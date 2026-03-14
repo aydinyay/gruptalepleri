@@ -14,6 +14,7 @@ class RequestNotification extends Model
         'phone',
         'message',
         'status',
+        'scheduled_for',
         'provider_code',
         'delivery_status',
         'delivered_at',
@@ -21,8 +22,9 @@ class RequestNotification extends Model
     ];
 
     protected $casts = [
-        'delivered_at' => 'datetime',
-        'sent_at' => 'datetime',
+        'delivered_at'  => 'datetime',
+        'sent_at'       => 'datetime',
+        'scheduled_for' => 'datetime',
     ];
 
     public function request()

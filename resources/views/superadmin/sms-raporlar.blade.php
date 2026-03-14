@@ -70,6 +70,7 @@
                         <option value="">Tümü</option>
                         <option value="sent" {{ request('status') === 'sent' ? 'selected' : '' }}>Gönderildi</option>
                         <option value="failed" {{ request('status') === 'failed' ? 'selected' : '' }}>Başarısız</option>
+                        <option value="scheduled" {{ request('status') === 'scheduled' ? 'selected' : '' }}>Zamanlandı</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Bekliyor</option>
                     </select>
                 </div>
@@ -100,6 +101,7 @@
                         <th>Numara</th>
                         <th>Mesaj</th>
                         <th>Durum</th>
+                        <th>Gönderim Zamanı</th>
                         <th>API Yanıtı</th>
                     </tr>
                 </thead>
@@ -131,8 +133,19 @@
                                 <span class="badge bg-success">Gönderildi</span>
                             @elseif($log->status === 'failed')
                                 <span class="badge bg-danger">Başarısız</span>
+                            @elseif($log->status === 'scheduled')
+                                <span class="badge bg-warning text-dark">Zamanlandı</span>
                             @else
                                 <span class="badge bg-secondary">Bekliyor</span>
+                            @endif
+                        </td>
+                        <td class="text-muted" style="font-size:0.75rem;">
+                            @if($log->scheduled_for && $log->status === 'scheduled')
+                                <span class="text-warning">⏰ {{ $log->scheduled_for->format('d.m H:i') }}</span>
+                            @elseif($log->sent_at)
+                                {{ $log->sent_at->format('d.m H:i') }}
+                            @else
+                                —
                             @endif
                         </td>
                         <td class="text-muted" style="font-size:0.75rem;">{{ $log->provider_code ?? '—' }}</td>

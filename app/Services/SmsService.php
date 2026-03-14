@@ -25,9 +25,16 @@ class SmsService
 
     /**
      * SMS gönder ve request_notifications tablosuna kaydet.
+     * $scheduledFor verilirse o zaman kadar bekletilir.
      */
-    public function send(?int $requestId, string $recipient, string $recipientName, string $phone, string $message): bool
-    {
+    public function send(
+        ?int $requestId,
+        string $recipient,
+        string $recipientName,
+        string $phone,
+        string $message,
+        ?Carbon $scheduledFor = null
+    ): bool {
         $notification = RequestNotification::create([
             'request_id'     => $requestId,
             'channel'        => 'sms',
@@ -35,17 +42,81 @@ class SmsService
             'recipient_name' => $recipientName,
             'phone'          => $phone,
             'message'        => $message,
-            'status'         => 'pending',
+            'status'         => $scheduledFor ? 'scheduled' : 'pending',
+            'scheduled_for'  => $scheduledFor,
         ]);
 
+        // Zamanlı ise şimdi gönderme — SendScheduledSms komutu üstlenir
+        if ($scheduledFor) {
+            return true;
+        }
+
+        return $this->gonder($notification);
+    }
+
+    /**
+     * Zamanlanmış bekleyen SMS'leri gönder (scheduler tarafından çağrılır).
+     */
+    public function sendScheduled(): void
+    {
+        $bekleyenler = RequestNotification::where('status', 'scheduled')
+            ->where('scheduled_for', '<=', now())
+            ->get();
+
+        foreach ($bekleyenler as $notification) {
+            $this->gonder($notification);
+        }
+    }
+
+    /**
+     * Belirli bir olay için SMS ayarlarındaki tüm numaralara gönder.
+     * Zaman penceresi dışındaysa bir sonraki açılış zamanına zamanlar.
+     */
+    public function sendByEvent(string $event, ?int $requestId, string $message): void
+    {
+        $scheduledFor = $this->zamanPenceresindeMi() ? null : $this->sonrakiPencereAcilis();
+
+        if ($scheduledFor) {
+            Log::info("SMS zaman penceresi dışı, zamanlandı: {$event} → {$scheduledFor->format('d.m.Y H:i')}");
+        }
+
+        $phones = SmsNotificationSetting::phonesForEvent($event);
+
+        if (empty($phones)) {
+            $fallback = config('services.sms.notify_phone');
+            if ($fallback) {
+                $this->send($requestId, 'admin', 'Admin', $fallback, $message, $scheduledFor);
+            }
+            return;
+        }
+
+        foreach ($phones as $phone) {
+            $this->send($requestId, 'admin', 'Admin', $phone, $message, $scheduledFor);
+        }
+    }
+
+    /**
+     * Admin'e SMS gönder — geriye uyumluluk.
+     */
+    public function sendToAdmin(?int $requestId = null, string $message): bool
+    {
+        $phone = config('services.sms.notify_phone');
+        if (!$phone) return false;
+        return $this->send($requestId, 'admin', 'Admin', $phone, $message);
+    }
+
+    // ── Private ──────────────────────────────────────────────────────────────
+
+    private function gonder(RequestNotification $notification): bool
+    {
         try {
             $xmlString = 'data=<sms>
 <kno>' . $this->kno . '</kno>
 <kulad>' . $this->username . '</kulad>
 <sifre>' . $this->password . '</sifre>
 <gonderen>' . $this->originator . '</gonderen>
-<mesaj>' . $message . '</mesaj>
-<numaralar>' . $phone . '</numaralar>
+<mesaj>' . $notification->message . '</mesaj>
+<numaralar>' . $notification->phone . '</numaralar>
 <tur>Normal</tur>
 </sms>';
 
@@ -60,7 +131,8 @@ class SmsService
             curl_close($ch);
 
             $body      = trim($body);
-            $isSuccess = str_contains($body, 'Gonderildi') || (is_numeric(explode(':', $body)[0]) && (int) explode(':', $body)[0] > 0);
+            $isSuccess = str_contains($body, 'Gonderildi')
+                || (is_numeric(explode(':', $body)[0]) && (int) explode(':', $body)[0] > 0);
 
             $notification->update([
                 'status'        => $isSuccess ? 'sent' : 'failed',
@@ -79,52 +151,23 @@ class SmsService
         }
     }
 
-    /**
-     * Belirli bir olay için SMS ayarlarındaki tüm numaralara gönder.
-     * Zaman penceresi dışındaysa göndermez (admin bildirimleri için).
-     */
-    public function sendByEvent(string $event, ?int $requestId, string $message): void
-    {
-        if (!$this->zamanPenceresindeMi()) {
-            Log::info("SMS zaman penceresi dışı, gönderilmedi: {$event}");
-            return;
-        }
-
-        $phones = SmsNotificationSetting::phonesForEvent($event);
-
-        if (empty($phones)) {
-            $fallback = config('services.sms.notify_phone');
-            if ($fallback) {
-                $this->send($requestId, 'admin', 'Admin', $fallback, $message);
-            }
-            return;
-        }
-
-        foreach ($phones as $phone) {
-            $this->send($requestId, 'admin', 'Admin', $phone, $message);
-        }
-    }
-
-    /**
-     * Şu anki saat SMS gönderme penceresinde mi?
-     */
     private function zamanPenceresindeMi(): bool
     {
         $baslangic = SistemAyar::get('sms_baslangic_saat', '08:00');
         $bitis     = SistemAyar::get('sms_bitis_saat', '21:00');
-
-        $simdi    = Carbon::now()->format('H:i');
+        $simdi     = Carbon::now()->format('H:i');
 
         return $simdi >= $baslangic && $simdi <= $bitis;
     }
 
-    /**
-     * Admin'e SMS gönder — sendByEvent wrapper'ı (geriye uyumluluk).
-     */
-    public function sendToAdmin(?int $requestId = null, string $message): bool
+    private function sonrakiPencereAcilis(): Carbon
     {
-        $phone = config('services.sms.notify_phone');
-        if (!$phone) return false;
-        return $this->send($requestId, 'admin', 'Admin', $phone, $message);
+        $baslangic = SistemAyar::get('sms_baslangic_saat', '08:00');
+        [$saat, $dakika] = explode(':', $baslangic);
+
+        $bugun = Carbon::today()->setHour((int)$saat)->setMinute((int)$dakika)->setSecond(0);
+
+        // Eğer bugünün açılış saati henüz gelmemişse bugün kullan, geçmişse yarın
+        return $bugun->isFuture() ? $bugun : $bugun->addDay();
     }
 }

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Her dakika çağrılır; komut kendi içinde ayarlanan aralığa göre çalışıp çalışmayacağına karar verir
 Schedule::command('opsiyon:check')->everyMinute();
+
+// Zamanlanmış SMS'leri her dakika kontrol et ve gönder
+Schedule::command('sms:send-scheduled')->everyMinute();
