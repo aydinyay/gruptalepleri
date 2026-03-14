@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyCVrF4w1ZWhMQfJXY7LA6tuSTr9cVSx61w\")",
+      "Bash(php artisan:*)",
+      "Bash(where nginx:*)",
+      "Read(//c//**)",
+      "Read(//c/tools/**)",
+      "Read(//c/gruptalepleri/$PROGRAMFILES/**)",
+      "Read(//d//**)",
+      "Read(//c/laragon/bin/**)",
+      "Bash(cmd /c 'dir /s /b C:\\\\nginx.conf 2>nul')",
+      "Bash(cmd /c 'dir /s /b C:\\\\laragon 2>nul')",
+      "Bash(cmd /c \"dir C:\\\\laragon /s /b 2>nul\")",
+      "Bash(cmd /c \"dir D:\\\\laragon /b 2>nul && echo LARAGON_D || echo YOK_D\")",
+      "Bash(cmd /c \"dir C:\\\\xampp /b 2>nul && echo XAMPP || echo YOK_XAMPP\")",
+      "Bash(cmd /c \"tasklist 2>nul\")",
+      "Bash(cmd /c tasklist)",
+      "Bash(powershell.exe -command \"Get-Process | Where-Object {$_Name -match ''nginx|php|laragon|apache|httpd''} | Select-Object Name,Id\")",
+      "Bash(powershell.exe -command \"Get-Process nginx,php,laragon,httpd -ErrorAction SilentlyContinue | Select-Object Name,Id,Path\")",
+      "Bash(powershell.exe -command \"Get-ChildItem ''C:\\\\Program Files\\\\Herd\\\\resources\\\\app.asar.unpacked\\\\resources\\\\bin\\\\nginx'' -Recurse -Filter ''*.conf'' | Select-Object FullName\")",
+      "Bash(powershell.exe -command \"Get-ChildItem ''C:\\\\Users\\\\Güneş Yaylacıklılar\\\\.config\\\\herd'' -Recurse -Filter ''*.conf'' -ErrorAction SilentlyContinue | Select-Object FullName\")",
+      "Bash(powershell.exe -command \"& ''C:\\\\Program Files\\\\Herd\\\\Herd.exe'' --restart-services\")",
+      "Bash(find resources/views/components -name \"*.blade.php\" -type f -exec wc -l {} +)",
+      "Bash(find resources/views/profile/partials -name \"*.blade.php\" -type f -exec wc -l {} +)",
+      "Bash(find app/Http/Controllers -name \"*.php\" -type f -exec wc -l {} +)",
+      "Bash(php check_status.php)",
+      "Bash(del \"c:\\\\gruptalepleri\\\\check_status.php\")",
+      "Bash(php fix_status.php)",
+      "Bash(php fix_old_beklemede.php)",
+      "Bash(php -r \"unlink\\(''c:/gruptalepleri/fix_old_beklemede.php''\\);\")",
+      "Bash(php check_users.php)",
+      "Bash(php -r \"unlink\\(''c:/gruptalepleri/check_users.php''\\);\")"
+    ]
+  }
+}
