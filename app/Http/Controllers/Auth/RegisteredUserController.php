@@ -56,6 +56,15 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
+        // Push + SMS bildirimi
+        try {
+            (new \App\Services\NotificationService())->yeniAcente($request->company_title, $request->name, $request->phone);
+            $mesaj = 'GT YENI ACENTE! ' . $request->company_title . ' firmasi kayit oldu. Yetkili: ' . $request->name . ' / ' . $request->phone;
+            (new \App\Services\SmsService())->sendByEvent('new_agency', null, $mesaj);
+        } catch (\Exception $e) {
+            // Bildirim hatası kaydı engellemesin
+        }
+
         return redirect()->route('acente.dashboard');
     }
 }

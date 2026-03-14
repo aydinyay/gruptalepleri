@@ -28,6 +28,31 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::get('/dashboard', function () {
         return view('superadmin.dashboard');
     })->name('dashboard');
+
+    // Acenteler
+    Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');
+    Route::post('/acenteler/{agency}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteToggle'])->name('acenteler.toggle');
+    Route::post('/acenteler/{agency}/rol', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteRolDegistir'])->name('acenteler.rol');
+    Route::delete('/acenteler/{agency}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteSil'])->name('acenteler.sil');
+
+    // SMS Ayarları
+    Route::get('/sms-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarlari'])->name('sms.ayarlar');
+    Route::post('/sms-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarEkle'])->name('sms.ekle');
+    Route::post('/sms-ayarlari/{ayar}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarToggle'])->name('sms.toggle');
+    Route::delete('/sms-ayarlari/{ayar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarSil'])->name('sms.sil');
+
+    // SMS Raporlar
+    Route::get('/sms-raporlar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsRaporlar'])->name('sms.raporlar');
+
+    // Scheduler aralığı
+    Route::post('/scheduler-aralik', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'schedulerAralikGuncelle'])->name('scheduler.aralik');
+    // SMS gönderim saatleri
+    Route::post('/sms-saat', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsSaatGuncelle'])->name('sms.saat');
+
+    // Opsiyon Uyarı Ayarları
+    Route::post('/opsiyon-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarEkle'])->name('opsiyon.ekle');
+    Route::post('/opsiyon-ayarlari/{opsiyonAyar}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarToggle'])->name('opsiyon.toggle');
+    Route::delete('/opsiyon-ayarlari/{opsiyonAyar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarSil'])->name('opsiyon.sil');
 });
 
 // Admin
@@ -47,7 +72,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/talepler/{gtpnr}/teklif/{offer}/toggle', [\App\Http\Controllers\Admin\RequestController::class, 'toggleOffer'])->name('requests.offer.toggle');
     Route::delete('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'deleteOffer'])->name('requests.offer.delete');
 
-    // Push polling — son N dakikadaki yeni talepleri döndürür
+    // Push polling
     Route::get('/push/yeni-talepler', function (\Illuminate\Http\Request $request) {
         $since = $request->input('since', now()->subMinutes(1)->toISOString());
         $yeni = \App\Models\Request::where('created_at', '>', $since)
@@ -55,6 +80,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->get(['id', 'gtpnr', 'agency_name', 'created_at']);
         return response()->json(['talepler' => $yeni, 'ts' => now()->toISOString()]);
     })->name('push.yeni-talepler');
+
 });
 
 // Acente
@@ -78,8 +104,29 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    
+});
+
+// Bildirimler — tüm roller için ortak
+Route::middleware('auth')->prefix('bildirimler')->name('bildirimler.')->group(function () {
+    Route::get('/', function () {
+        $bildirimler = \App\Models\KullaniciBildirimi::where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')->limit(20)->get();
+        $okunmamis = $bildirimler->where('is_read', false)->count();
+        return response()->json(['bildirimler' => $bildirimler, 'okunmamis' => $okunmamis]);
+    })->name('liste');
+
+    Route::post('/okundu', function (\Illuminate\Http\Request $request) {
+        \App\Models\KullaniciBildirimi::where('user_id', auth()->id())
+            ->whereIn('id', $request->input('ids', []))
+            ->update(['is_read' => true, 'read_at' => now()]);
+        return response()->json(['ok' => true]);
+    })->name('okundu');
+
+    Route::post('/hepsini-oku', function () {
+        \App\Models\KullaniciBildirimi::where('user_id', auth()->id())
+            ->where('is_read', false)->update(['is_read' => true, 'read_at' => now()]);
+        return response()->json(['ok' => true]);
+    })->name('hepsini-oku');
 });
 
 require __DIR__.'/auth.php';

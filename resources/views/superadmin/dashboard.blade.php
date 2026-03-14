@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Superadmin Panel — GrupTalepleri</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -68,13 +69,23 @@
     <div class="container-fluid px-4">
         <a class="navbar-brand" href="#">✈️ GrupTalepleri <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-weight:400;">SUPERADMIN</span></a>
         <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('superadmin.acenteler') }}" class="nav-link-custom">
+                <i class="fas fa-building me-1"></i> Acenteler
+            </a>
             <a href="{{ route('admin.requests.index') }}" class="nav-link-custom">
                 <i class="fas fa-list me-1"></i> Talepler
             </a>
-            <div class="text-white-50 small d-none d-md-block border-start border-secondary ps-3 ms-1">
+            <a href="{{ route('superadmin.sms.ayarlar') }}" class="nav-link-custom">
+                <i class="fas fa-bell me-1"></i> SMS Ayarları
+            </a>
+            <a href="{{ route('superadmin.sms.raporlar') }}" class="nav-link-custom">
+                <i class="fas fa-chart-bar me-1"></i> SMS Raporlar
+            </a>
+            <a href="{{ route('profile.edit') }}" class="nav-link-custom d-none d-md-block border-start border-secondary ps-3 ms-1" title="Profil Ayarları">
                 <i class="fas fa-user-shield me-1"></i>{{ auth()->user()->name }}
-            </div>
-            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-2">
+            </a>
+            <x-notification-bell />
+            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-1">
                 @csrf
                 <button type="submit" class="btn btn-outline-light btn-sm">
                     <i class="fas fa-sign-out-alt"></i>
@@ -373,13 +384,13 @@
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="#" class="quick-action">
-                            <i class="fas fa-user-plus"></i>
-                            <span>Yeni Kullanıcı</span>
+                        <a href="{{ route('superadmin.sms.ayarlar') }}" class="quick-action">
+                            <i class="fas fa-bell"></i>
+                            <span>SMS Ayarları</span>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="#" class="quick-action">
+                        <a href="{{ route('superadmin.acenteler') }}" class="quick-action">
                             <i class="fas fa-building"></i>
                             <span>Acenteler</span>
                         </a>

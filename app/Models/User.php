@@ -58,4 +58,14 @@ public function requests()
 {
     return $this->hasMany(\App\Models\Request::class);
 }
-    }
+
+public function bildirimleri()
+{
+    return $this->hasMany(KullaniciBildirimi::class);
+}
+
+public function okunmamisBildirimSayisi(): int
+{
+    return $this->bildirimleri()->where('is_read', false)->count();
+}
+}

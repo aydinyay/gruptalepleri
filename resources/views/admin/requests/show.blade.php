@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin | {{ $talep->gtpnr }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -21,7 +22,8 @@
             <h4 class="fw-bold mb-0">{{ $talep->gtpnr }}</h4>
             <small class="text-muted">{{ $talep->agency_name }} · {{ $talep->pax_total }} PAX · {{ $talep->created_at->format('d.m.Y') }}</small>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
+            <x-notification-bell />
             <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">← Geri</a>
             <a href="/acente/talep/{{ $talep->gtpnr }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Görünümü →</a>
         </div>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Panel — GrupTalepleri</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -70,10 +71,11 @@
             <a href="{{ route('admin.requests.index') }}" class="nav-link-custom">
                 <i class="fas fa-list me-1"></i> Talepler
             </a>
-            <div class="text-white-50 small d-none d-md-block border-start border-secondary ps-3 ms-1">
+            <a href="{{ route('profile.edit') }}" class="nav-link-custom d-none d-md-block border-start border-secondary ps-3 ms-1" title="Profil Ayarları">
                 <i class="fas fa-user-cog me-1"></i>{{ auth()->user()->name }}
-            </div>
-            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-2">
+            </a>
+            <x-notification-bell />
+            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-1">
                 @csrf
                 <button type="submit" class="btn btn-outline-light btn-sm" title="Çıkış">
                     <i class="fas fa-sign-out-alt"></i>

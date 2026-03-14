@@ -41,7 +41,8 @@ return [
         'username'   => env('SMS_USERNAME', 'aydin'),
         'password'   => env('SMS_PASSWORD'),
         'originator' => env('SMS_ORIGINATOR', 'G.Talepleri'),
-        'admin_phone' => env('SMS_ADMIN_PHONE'),
+        'admin_phone'   => env('SMS_ADMIN_PHONE'),
+        'notify_phone'  => env('SMS_NOTIFY_PHONE'),
     ],
 
     'slack' => [

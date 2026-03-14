@@ -7,6 +7,7 @@ use App\Models\Request as TalepModel;
 use App\Models\Offer;
 use App\Models\RequestLog;
 use App\Models\RequestPayment;
+use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -120,9 +121,19 @@ class RequestController extends Controller
             'user_id'     => auth()->id(),
         ]);
 
-        // Acenteye SMS gönder
+        $acenteUrl = route('acente.requests.show', $talep->gtpnr);
+
+        // Acenteye push bildirimi
+        if ($talep->user_id) {
+            (new NotificationService())->teklifEklendi($talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
+        }
+
+        // Acenteye SMS
         $smsMsg = $talep->gtpnr . ' numaralı talebiniz için yeni bir fiyat teklifi hazırlandı. Teklifinizi görüntülemek için sisteme giriş yapınız.';
         (new SmsService())->send($talep->id, 'acente', $talep->agency_name, $talep->phone, $smsMsg);
+
+        // Admin/superadmin'e de offer_added event bildirimi (SMS ayarlarında kurallıysa)
+        (new SmsService())->sendByEvent('offer_added', $talep->id, $talep->gtpnr . ' teklif eklendi: ' . $request->airline . ' — ' . $request->price_per_pax . ' ' . $currency . '/kişi');
 
         $successMsg = 'Teklif eklendi.';
 

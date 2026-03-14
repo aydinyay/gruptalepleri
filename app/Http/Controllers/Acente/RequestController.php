@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Request as TalepModel;
 use App\Models\RequestLog;
 use App\Services\GtpnrService;
+use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -78,9 +79,14 @@ class RequestController extends Controller
             'user_id'     => auth()->id(),
         ]);
 
-        // Admin'e SMS gönder
+        $url = route('admin.requests.show', $talep->gtpnr);
+
+        // Push bildirimi
+        (new NotificationService())->yeniTalep(auth()->id(), $talep->gtpnr, $talep->agency_name, $talep->pax_total, $url);
+
+        // SMS
         $smsMsg = 'Yeni grup talebi: ' . $talep->gtpnr . ' | ' . $talep->agency_name . ' | ' . $talep->pax_total . ' PAX | ' . $talep->phone;
-        (new SmsService())->sendToAdmin($talep->id, $smsMsg);
+        (new SmsService())->sendByEvent('new_request', $talep->id, $smsMsg);
 
         return redirect()->route('acente.requests.show', $talep->gtpnr);
     }
@@ -159,9 +165,14 @@ class RequestController extends Controller
             'user_id'     => auth()->id(),
         ]);
 
-        // Admin'e SMS gönder
+        $url = route('admin.requests.show', $talep->gtpnr);
+
+        // Push bildirimi
+        (new NotificationService())->teklifKabulEdildi($talep->gtpnr, $talep->agency_name, $teklif->airline ?? '—', $url);
+
+        // SMS
         $smsMsg = $talep->gtpnr . ' teklif kabul edildi: ' . ($teklif->airline ?? '—') . ' — ' . number_format($teklif->price_per_pax, 0) . ' ' . $teklif->currency . '/kişi | Acente: ' . $talep->agency_name;
-        (new SmsService())->sendToAdmin($talep->id, $smsMsg);
+        (new SmsService())->sendByEvent('offer_accepted', $talep->id, $smsMsg);
 
         // WhatsApp'a yönlendir
         $mesaj = $talep->gtpnr . ' numaralı talebim için ' . ($teklif->airline ?? '') . ' teklifini kabul ediyorum. Depozito ödemesi için bilgi alabilir miyim?';
