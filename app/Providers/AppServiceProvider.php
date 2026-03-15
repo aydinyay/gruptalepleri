@@ -31,19 +31,27 @@ class AppServiceProvider extends ServiceProvider
             static $superadminTelefon = null;
 
             if ($adminTelefon === null) {
-                $admin = \App\Models\User::where('role', 'admin')
-                    ->whereNotNull('phone')
-                    ->where('phone', '!=', '')
-                    ->first();
-                $adminTelefon = $admin?->phone ?? '905354154799';
+                try {
+                    $admin = \App\Models\User::where('role', 'admin')
+                        ->whereNotNull('phone')
+                        ->where('phone', '!=', '')
+                        ->first();
+                    $adminTelefon = $admin?->phone ?? '905354154799';
+                } catch (\Throwable $e) {
+                    $adminTelefon = '905354154799';
+                }
             }
 
             if ($superadminTelefon === null) {
-                $superadmin = \App\Models\User::where('role', 'superadmin')
-                    ->whereNotNull('phone')
-                    ->where('phone', '!=', '')
-                    ->first();
-                $superadminTelefon = $superadmin?->phone ?? '905324262630';
+                try {
+                    $superadmin = \App\Models\User::where('role', 'superadmin')
+                        ->whereNotNull('phone')
+                        ->where('phone', '!=', '')
+                        ->first();
+                    $superadminTelefon = $superadmin?->phone ?? '905324262630';
+                } catch (\Throwable $e) {
+                    $superadminTelefon = '905324262630';
+                }
             }
 
             $view->with('_adminTelefon', $adminTelefon)
