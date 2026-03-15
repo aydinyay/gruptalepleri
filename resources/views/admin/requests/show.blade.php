@@ -79,7 +79,7 @@
                         <div class="col-6 col-md-3"><div class="field-label">PAX</div><div class="fw-bold">{{ $talep->pax_total }} (Y:{{ $talep->pax_adult }} Ç:{{ $talep->pax_child }} B:{{ $talep->pax_infant }})</div></div>
                         @if($talep->group_company_name)<div class="col-6 col-md-3"><div class="field-label">Grup Firma</div><div>{{ $talep->group_company_name }}</div></div>@endif
                         @if($talep->flight_purpose)<div class="col-6 col-md-3"><div class="field-label">Uçuş Amacı</div><div>{{ $talep->flight_purpose }}</div></div>@endif
-                        @if($talep->notes)<div class="col-12"><div class="field-label">Acente Notu</div><div class="bg-light rounded p-2 small">{{ $talep->notes }}</div></div>@endif
+                        @if($talep->notes)<div class="col-12"><div class="field-label">Acente Notu <small class="text-muted fw-normal">(acentenin taleple birlikte gönderdiği)</small></div><div class="bg-light rounded p-2 small" style="white-space:pre-line;">{{ $talep->notes }}</div></div>@endif
                     </div>
                 </div>
             </div>
@@ -397,7 +397,12 @@
                             @if($teklif->option_date)<div class="col-12">📅 Opsiyon: {{ $teklif->option_date }} {{ $teklif->option_time }}</div>@endif
                             @if($teklif->supplier_reference)<div class="col-12 text-danger">🔒 {{ $teklif->supplier_reference }}</div>@endif
                         </div>
-                        @if($teklif->offer_text)<div class="mt-1 text-muted">{{ $teklif->offer_text }}</div>@endif
+                        @if($teklif->offer_text)
+                        <div class="mt-2 p-2 rounded border-start border-3 border-info" style="background:rgba(13,202,240,0.07);white-space:pre-line;font-size:0.82rem;">
+                            <div class="fw-semibold text-info mb-1" style="font-size:0.72rem;">📨 ADMİNİN ACENTEYE NOTU</div>
+                            {{ $teklif->offer_text }}
+                        </div>
+                        @endif
                         @if($teklif->created_by)<div class="text-muted mt-1" style="font-size:0.7rem;">Hazırlayan: {{ $teklif->created_by }}</div>@endif
 
                         {{-- Ham not + AI çıktısı (admin iç kontrol) --}}

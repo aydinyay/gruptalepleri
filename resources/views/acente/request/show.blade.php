@@ -520,14 +520,12 @@
                         </div>
                         @endif
 
-                        {{-- Operasyon notu --}}
+                        {{-- Adminin acenteye notu --}}
                         @if($teklif->offer_text)
-                        <details class="mb-3">
-                            <summary class="small text-muted" style="cursor:pointer;user-select:none;">
-                                📄 Operasyon Notunu Gör
-                            </summary>
-                            <div class="bg-light rounded p-2 mt-2 small" style="white-space:pre-wrap;font-size:0.78rem;color:#555;font-family:'Courier New',monospace;">{{ $teklif->offer_text }}</div>
-                        </details>
+                        <div class="mb-3 p-2 rounded border-start border-3 border-info" style="background:rgba(13,202,240,0.07);white-space:pre-line;font-size:0.82rem;">
+                            <div class="fw-semibold mb-1" style="font-size:0.72rem;color:#0dcaf0;">📨 YÖNETİCİ MESAJI</div>
+                            {{ $teklif->offer_text }}
+                        </div>
                         @endif
 
                         @if($teklif->created_by)
