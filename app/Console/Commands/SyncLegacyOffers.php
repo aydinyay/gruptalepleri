@@ -39,8 +39,8 @@ class SyncLegacyOffers extends Command
         foreach ($talepler as $talep) {
             $bar->advance();
 
-            // Zaten offers'ta option_date varsa atla
-            if ($talep->offers->whereNotNull('option_date')->count() > 0) {
+            // Zaten görünür offer varsa atla (sadece yeni oluşturulanlar için, force-update yok)
+            if ($talep->offers->where('is_visible', true)->whereNotNull('option_date')->count() > 0) {
                 $skipped++;
                 continue;
             }
@@ -71,12 +71,13 @@ class SyncLegacyOffers extends Command
                 $rawSaat = '23:59';
             }
 
-            $fiyat     = floatval($legacy_r->toplamodeme ?? 0);
-            $depRani   = floatval($legacy_r->depozitorani ?? 0);
-            $depTutari = floatval($legacy_r->depozitotutari ?? 0);
-            $currency  = strtoupper(trim($legacy_r->parabirimi ?? 'TRY')) ?: 'TRY';
-            $pax       = max(1, (int)($legacy_r->pax ?? $legacy_r->kisisayisi ?? 1));
-            $perPax    = ($fiyat > 0 && $pax > 0) ? round($fiyat / $pax, 2) : null;
+            $fiyat      = floatval($legacy_r->toplamodeme ?? 0);
+            $depRani    = floatval($legacy_r->depozitorani ?? 0);
+            $depTutari  = floatval($legacy_r->depozitotutari ?? 0);
+            $currency   = strtoupper(trim($legacy_r->parabirimi ?? 'TRY')) ?: 'TRY';
+            $pax        = max(1, (int)($legacy_r->pax ?? $legacy_r->kisisayisi ?? 1));
+            $perPax     = ($fiyat > 0 && $pax > 0) ? round($fiyat / $pax, 2) : null;
+            $cevapMetni = trim($legacy_r->cevapmetni ?? '') ?: null;
 
             $this->newLine();
             $this->line(sprintf(
@@ -93,10 +94,15 @@ class SyncLegacyOffers extends Command
                 $offer = $talep->offers->first();
                 if ($offer) {
                     $offer->update([
-                        'option_date'    => $legacy_r->opsiyontarihi,
+                        'option_date'    => $rawTarih,
                         'option_time'    => $rawSaat,
+                        'price_per_pax'  => $perPax ?: $offer->price_per_pax,
+                        'total_price'    => $fiyat > 0 ? $fiyat : $offer->total_price,
+                        'currency'       => $currency,
                         'deposit_rate'   => $depRani   > 0 ? $depRani   : $offer->deposit_rate,
                         'deposit_amount' => $depTutari > 0 ? $depTutari : $offer->deposit_amount,
+                        'offer_text'     => $cevapMetni ?: $offer->offer_text,
+                        'is_visible'     => true,
                     ]);
                 } else {
                     $talep->offers()->create([
@@ -107,7 +113,8 @@ class SyncLegacyOffers extends Command
                         'currency'       => $currency,
                         'deposit_rate'   => $depRani   > 0 ? $depRani   : null,
                         'deposit_amount' => $depTutari > 0 ? $depTutari : null,
-                        'is_visible'     => false, // Admin onaylayana kadar gizli
+                        'offer_text'     => $cevapMetni,
+                        'is_visible'     => true,
                     ]);
                 }
             }
