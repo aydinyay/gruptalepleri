@@ -206,10 +206,15 @@ class RequestController extends Controller
 
     public function show($gtpnr)
     {
-        $talep = TalepModel::where('gtpnr', $gtpnr)
-            ->where('user_id', auth()->id())
-            ->with(['segments', 'offers', 'logs.user', 'payments', 'notifications'])
-            ->firstOrFail();
+        $query = TalepModel::where('gtpnr', $gtpnr)
+            ->with(['segments', 'offers', 'logs.user', 'payments', 'notifications']);
+
+        // Admin/superadmin tüm talepleri görebilir; acente sadece kendi talebini
+        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+            $query->where('user_id', auth()->id());
+        }
+
+        $talep = $query->firstOrFail();
 
         return view('acente.request.show', compact('talep'));
     }
