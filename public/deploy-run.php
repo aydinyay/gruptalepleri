@@ -28,6 +28,9 @@ if ($action === 'migrate') {
 } elseif ($action === 'import-airlines') {
     set_time_limit(300);
     $kernel->call('airlines:import');
+} elseif ($action === 'sync-legacy-offers') {
+    set_time_limit(300);
+    $kernel->call('legacy:sync-offers');
 }
 
 $output = ob_get_clean();
@@ -54,6 +57,8 @@ pre{background:#000;padding:1rem;border-radius:8px;color:#0f0;white-space:pre-wr
    onclick="return confirm('Havalimanları içe aktarılsın mı? (1-2 dk sürebilir)')">✈ Havalimanları İçe Aktar</a>
 <a href="?key=gtp2026deploy&action=import-airlines" class="btn green"
    onclick="return confirm('Havayolları içe aktarılsın mı?')">🛫 Havayolları İçe Aktar</a>
+<a href="?key=gtp2026deploy&action=sync-legacy-offers" class="btn green"
+   onclick="return confirm('Eski sistemden opsiyon/fiyat verileri yeni sisteme aktarılsın mı?')">🔄 Eski Sistem Opsiyon Sync</a>
 
 <?php if ($output): ?>
 <h3>Çıktı:</h3>
