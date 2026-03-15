@@ -43,8 +43,18 @@ $yonler = ['1'=>'TEK YÖN','2'=>'GİDİŞ DÖNÜŞ'];
 $yon = $yonler[$talep->transfertipi1] ?? '—';
 
 $opsiyonDt = null;
-if (!empty($talep->opsiyontarihi) && !empty($talep->opsiyonsaati)) {
-    try { $opsiyonDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $talep->opsiyontarihi.' '.$talep->opsiyonsaati); } catch(\Throwable $e){}
+if (!empty($talep->opsiyontarihi)) {
+    try {
+        $rawSaat = trim($talep->opsiyonsaati ?? '');
+        if (preg_match('/^(\d{1,2}):(\d{2})/', $rawSaat, $m)) {
+            $rawSaat = sprintf('%02d:%02d', $m[1], $m[2]);
+        } elseif (preg_match('/^\d{1,2}$/', $rawSaat)) {
+            $rawSaat = sprintf('%02d:00', (int)$rawSaat);
+        } else {
+            $rawSaat = '23:59';
+        }
+        $opsiyonDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $talep->opsiyontarihi . ' ' . $rawSaat);
+    } catch(\Throwable $e){}
 }
 
 $pax = (!empty($talep->pax) && $talep->pax != $talep->kisisayisi) ? $talep->pax : $talep->kisisayisi;
