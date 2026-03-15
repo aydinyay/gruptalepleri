@@ -90,16 +90,16 @@ class SyncLegacyOffers extends Command
             ));
 
             if (!$dryRun) {
-                // requests.notes'u eski DB'deki gerçek acente notuyla güncelle
-                // notlar = acentenin notu, cevapmetni = adminin notu
-                $acenteNotu = trim($legacy_r->notlar ?? '') ?: null;
-                // Eğer notes'ta cevapmetni içeriği varsa (yanlış import) temizle
-                $mevcutNot = trim($talep->notes ?? '');
-                if ($mevcutNot !== '' && $cevapMetni && str_contains($mevcutNot, substr($cevapMetni, 0, 30))) {
-                    // notes'ta aslında cevapmetni var → temizle
-                    $talep->update(['notes' => $acenteNotu]);
-                } elseif ($acenteNotu !== null) {
-                    $talep->update(['notes' => $acenteNotu]);
+                // requests.notes'u düzelt:
+                // Kural: cevapmetni doluysa, notlar alanı da admin tarafından doldurulmuştur
+                // → notes temizle. Sadece cevapmetni boş olan kayıtlarda notlar gerçek acente notudur.
+                if ($cevapMetni) {
+                    $talep->update(['notes' => null]);
+                } else {
+                    $acenteNotu = trim($legacy_r->notlar ?? '') ?: null;
+                    if ($acenteNotu !== null) {
+                        $talep->update(['notes' => $acenteNotu]);
+                    }
                 }
 
                 // Mevcut offer varsa güncelle, yoksa oluştur

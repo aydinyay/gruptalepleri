@@ -399,7 +399,13 @@
                         </div>
                         @if($teklif->offer_text)
                         <div class="mt-2 p-2 rounded border-start border-3 border-info" style="background:rgba(13,202,240,0.07);white-space:pre-line;font-size:0.82rem;">
-                            <div class="fw-semibold text-info mb-1" style="font-size:0.72rem;">📨 ADMİNİN ACENTEYE NOTU</div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="fw-semibold text-info" style="font-size:0.72rem;">📨 ADMİNİN ACENTEYE NOTU</div>
+                                <button type="button" class="btn btn-warning btn-sm py-0 px-2" style="font-size:0.7rem;"
+                                    onclick="aiIleDoldur({{ json_encode($teklif->offer_text) }})">
+                                    ✨ AI ile Ayrıştır
+                                </button>
+                            </div>
                             {{ $teklif->offer_text }}
                         </div>
                         @endif
@@ -845,6 +851,14 @@
 <script>
 const CSRF = '{{ csrf_token() }}';
 const PARSE_URL = '{{ route("admin.requests.ai-parse", $talep->gtpnr) }}';
+
+function aiIleDoldur(metin) {
+    const textarea = document.getElementById('raw-note-input');
+    textarea.value = metin;
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    textarea.focus();
+    setTimeout(() => aiParseBaslat(), 300);
+}
 
 async function aiParseBaslat() {
     const rawNote = document.getElementById('raw-note-input').value.trim();
