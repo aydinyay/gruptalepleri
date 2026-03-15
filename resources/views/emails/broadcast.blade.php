@@ -28,7 +28,7 @@
   <div class="body">
     <div class="emoji-block">{{ $emoji }}</div>
     <div class="title">{{ $title }}</div>
-    <div class="message">{{ $message }}</div>
+    <div class="message">{{ $body }}</div>
     <div class="sender">Gönderen: <strong>{{ $sender }}</strong></div>
   </div>
   <div class="footer">

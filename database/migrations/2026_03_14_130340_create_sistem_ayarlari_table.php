@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sistem_ayarlari', function (Blueprint $table) {
-            $table->string('key')->primary();
+            $table->string('key', 150)->primary();
             $table->text('value')->nullable();
             $table->string('label')->nullable();
             $table->timestamps();

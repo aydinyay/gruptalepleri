@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('request_notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('request_id')->constrained('requests')->onDelete('cascade');
+            $table->foreignId('request_id')->nullable()->constrained('requests')->onDelete('cascade');
             $table->string('channel')->default('sms'); // sms, push
             $table->string('recipient')->default('admin'); // admin, acente
             $table->string('recipient_name')->nullable();

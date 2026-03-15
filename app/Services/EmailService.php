@@ -112,10 +112,10 @@ class EmailService
         $emoji   = $broadcast->emoji ?? '📢';
         $subject = "{$emoji} {$broadcast->title}";
         $data    = [
-            'title'   => $broadcast->title,
-            'message' => $broadcast->message,
-            'emoji'   => $emoji,
-            'sender'  => $broadcast->sender?->name ?? 'GrupTalepleri',
+            'title'  => $broadcast->title,
+            'body'   => $broadcast->message,
+            'emoji'  => $emoji,
+            'sender' => $broadcast->sender?->name ?? 'GrupTalepleri',
         ];
 
         $status = 'sent';
