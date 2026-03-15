@@ -130,8 +130,15 @@
                         $opsiyonHtml = '';
                         if ($aktifTeklif?->option_date) {
                             try {
-                                $saat = $aktifTeklif->option_time ?? '23:59';
-                                $optDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $aktifTeklif->option_date . ' ' . $saat);
+                                $rawSaat = trim($aktifTeklif->option_time ?? '');
+                                if (preg_match('/^(\d{1,2}):(\d{2})/', $rawSaat, $m)) {
+                                    $rawSaat = sprintf('%02d:%02d', $m[1], $m[2]);
+                                } elseif (preg_match('/^\d{1,2}$/', $rawSaat)) {
+                                    $rawSaat = sprintf('%02d:00', (int)$rawSaat);
+                                } else {
+                                    $rawSaat = '23:59';
+                                }
+                                $optDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $aktifTeklif->option_date . ' ' . $rawSaat);
                                 if ($optDt->isFuture()) {
                                     $diff = now()->diff($optDt);
                                     $parts = [];
