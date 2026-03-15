@@ -134,7 +134,7 @@
                 $durumlar = ['0'=>'BEKLEMEDE','1'=>'İŞLEMDE','2'=>'FİYATLANDIRILDI','3'=>'İPTAL','4'=>'BİLETLENDİ','5'=>'DEPOZİTODA'];
                 $durum = $durumlar[$r->islemdurumu] ?? $r->islemdurumu;
             @endphp
-            <tr onclick="window.location='{{ route('admin.eski-sistem.show', $r->gtpnr) }}'">
+            <tr onclick="window.location='{{ url('admin/eski-sistem/' . urlencode($r->gtpnr ?: $r->id)) }}'">
                 <td class="text-muted">{{ $i++ }}<br><small>{{ $r->id }}</small></td>
                 <td><strong class="font-monospace text-warning">{{ strtoupper($r->gtpnr) }}</strong></td>
                 <td>
