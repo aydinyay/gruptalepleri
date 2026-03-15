@@ -93,6 +93,10 @@
         $opsiyonTs    = \Carbon\Carbon::parse($ilkTeklif->option_date . ' ' . ($ilkTeklif->option_time ?? '23:59'));
         $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
         $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
+    } elseif (!empty($eskiOpsiyon)) {
+        $opsiyonTs    = $eskiOpsiyon;
+        $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
+        $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
     }
 
     // AI
