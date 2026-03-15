@@ -9,8 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
       body { background: #f0f2f5; overflow-y: auto !important; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; }
         #map { height: 250px; border-radius: 0 0 12px 12px; display: block; overflow: hidden; }
 
         .segment-card { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 10px; }
@@ -31,26 +29,13 @@
         .status-depozitoda { background: #6f42c1; }
         .status-depozito { background: #6f42c1; }
         .status-biletlendi { background: #198754; }
-        .status-olumsuz { background: #dc3545; }
+        .status-iade { background: #dc3545; }
+        .status-olumsuz { background: #343a40; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-0">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ route('acente.dashboard') }}">✈️ GrupTalepleri</a>
-        <div class="d-flex gap-2 align-items-center">
-            <x-notification-bell />
-            <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-light btn-sm">
-                <i class="fas fa-arrow-left"></i> Dashboard
-            </a>
-            <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' numaralı talep hakkında bilgi almak istiyorum') }}"
-               target="_blank" class="btn btn-success btn-sm">
-                <i class="fab fa-whatsapp"></i> WhatsApp
-            </a>
-        </div>
-    </div>
-</nav>
+<x-navbar-acente active="show" />
 
 <div class="container-fluid px-4 py-4">
 
@@ -114,8 +99,12 @@
                     </div>
                 </div>
                 <div class="text-end">
-                    @php $statusClass = 'status-' . $talep->status; @endphp
-                    <span class="badge {{ $statusClass }} fs-6 px-3 py-2">{{ ucfirst($talep->status) }}</span>
+                    @php
+                        $statusClass = 'status-' . $talep->status;
+                        $statusEtiket = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'][$talep->status] ?? ucfirst($talep->status);
+                    @endphp
+                    <span class="badge {{ $statusClass }} fs-6 px-3 py-2">{{ $statusEtiket }}</span>
+                    <x-iade-badge :talep="$talep" :showForAcente="true" />
                     @if($talep->status === 'beklemede')
                     <div class="mt-2">
                         <a href="#" class="btn btn-outline-secondary btn-sm">
@@ -340,25 +329,84 @@
                 </div>
             </div>
 
-            {{-- SMS BİLDİRİMLERİ --}}
-            @php $acenteNotifs = $talep->notifications->where('recipient', 'acente'); @endphp
-            @if($acenteNotifs->isNotEmpty())
+            {{-- İLETİŞİM GEÇMİŞİ --}}
+            @php
+                $tumIletisimler = $talep->notifications
+                    ->where('recipient', 'acente')
+                    ->sortByDesc('created_at');
+                $pushBildirimleri = auth()->user()->bildirimleri()
+                    ->orderByDesc('created_at')
+                    ->get();
+            @endphp
+            @if($tumIletisimler->isNotEmpty() || $pushBildirimleri->isNotEmpty())
             <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">📲 Size Gönderilen SMS Bildirimleri</div>
+                <div class="card-header fw-semibold">
+                    📡 İletişim Geçmişi
+                    <span class="badge bg-secondary ms-1">{{ $tumIletisimler->count() + $pushBildirimleri->count() }}</span>
+                </div>
                 <div class="card-body p-0">
-                    <table class="table table-sm mb-0 small">
+                    <table class="table table-sm mb-0 align-middle" style="font-size:0.82rem;">
                         <tbody>
-                            @foreach($acenteNotifs as $notif)
+                            {{-- Push bildirimleri --}}
+                            @foreach($pushBildirimleri as $pb)
                             <tr>
-                                <td class="text-muted text-nowrap ps-3">{{ $notif->created_at->format('d.m.Y H:i') }}</td>
-                                <td>{{ $notif->message }}</td>
+                                <td class="ps-3" style="width:28px;">
+                                    <span title="Push Bildirim">🔔</span>
+                                </td>
+                                <td class="text-muted text-nowrap">{{ $pb->created_at->format('d.m.Y H:i') }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ $pb->title }}</div>
+                                    <div class="text-muted">{{ $pb->message }}</div>
+                                </td>
+                                <td class="pe-3 text-nowrap">
+                                    @if($pb->is_read)
+                                        <span class="badge bg-success" title="{{ $pb->read_at?->format('d.m.Y H:i') }}">
+                                            <i class="fas fa-check-double me-1"></i>Okundu
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-circle me-1" style="font-size:0.5rem;"></i>Okunmadı
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+
+                            {{-- SMS ve Email bildirimleri --}}
+                            @foreach($tumIletisimler as $notif)
+                            <tr>
+                                <td class="ps-3" style="width:28px;">
+                                    @if($notif->channel === 'email')
+                                        <span title="E-posta">📧</span>
+                                    @else
+                                        <span title="SMS">💬</span>
+                                    @endif
+                                </td>
+                                <td class="text-muted text-nowrap">{{ $notif->created_at->format('d.m.Y H:i') }}</td>
+                                <td>
+                                    @if($notif->channel === 'email' && $notif->subject)
+                                        <div class="fw-semibold">{{ $notif->subject }}</div>
+                                    @else
+                                        <div>{{ Str::limit($notif->message, 80) }}</div>
+                                    @endif
+                                    @if($notif->channel === 'email')
+                                        <div class="text-muted" style="font-size:0.75rem;">{{ $notif->recipient_name }}</div>
+                                    @endif
+                                </td>
                                 <td class="pe-3 text-nowrap">
                                     @if($notif->status === 'sent')
-                                        <span class="badge bg-success">İletildi</span>
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>İletildi
+                                        </span>
+                                        @if($notif->delivery_status === 'delivered')
+                                            <span class="badge bg-info ms-1" style="font-size:0.65rem;">Teslim</span>
+                                        @endif
                                     @elseif($notif->status === 'failed')
                                         <span class="badge bg-danger">Hata</span>
+                                    @elseif($notif->status === 'scheduled')
+                                        <span class="badge bg-warning text-dark">Bekliyor</span>
                                     @else
-                                        <span class="badge bg-secondary">Bekliyor</span>
+                                        <span class="badge bg-secondary">{{ $notif->status }}</span>
                                     @endif
                                 </td>
                             </tr>

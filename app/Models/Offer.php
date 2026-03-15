@@ -28,10 +28,15 @@ class Offer extends Model
         'option_time',
         'offer_text',
         'admin_raw_note',
+        'ai_raw_output',
         'created_by',
         'is_visible',
         'is_accepted',
         'accepted_at',
+    ];
+
+    protected $casts = [
+        'ai_raw_output' => 'array',
     ];
 
     public function request()

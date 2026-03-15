@@ -61,6 +61,7 @@ class RegisteredUserController extends Controller
             (new \App\Services\NotificationService())->yeniAcente($request->company_title, $request->name, $request->phone);
             $mesaj = 'GT YENI ACENTE! ' . $request->company_title . ' firmasi kayit oldu. Yetkili: ' . $request->name . ' / ' . $request->phone;
             (new \App\Services\SmsService())->sendByEvent('new_agency', null, $mesaj);
+            (new \App\Services\EmailService())->yeniAcente($request->company_title, $request->name, $request->phone, $request->email, route('superadmin.acenteler'));
         } catch (\Exception $e) {
             // Bildirim hatası kaydı engellemesin
         }

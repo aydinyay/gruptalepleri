@@ -9,12 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; font-size: 1.3rem; }
-        .nav-link-custom { color: rgba(255,255,255,0.7) !important; font-size: 0.875rem; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
-        .nav-link-custom:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
-        .nav-link-custom.active { color: #fff !important; background: rgba(233,69,96,0.2); }
-
         .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-2px); }
         .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
@@ -64,36 +58,7 @@
 </head>
 <body>
 
-{{-- NAVBAR --}}
-<nav class="navbar navbar-dark mb-0">
-    <div class="container-fluid px-4">
-        <a class="navbar-brand" href="#">✈️ GrupTalepleri <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-weight:400;">SUPERADMIN</span></a>
-        <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('superadmin.acenteler') }}" class="nav-link-custom">
-                <i class="fas fa-building me-1"></i> Acenteler
-            </a>
-            <a href="{{ route('admin.requests.index') }}" class="nav-link-custom">
-                <i class="fas fa-list me-1"></i> Talepler
-            </a>
-            <a href="{{ route('superadmin.sms.ayarlar') }}" class="nav-link-custom">
-                <i class="fas fa-bell me-1"></i> SMS Ayarları
-            </a>
-            <a href="{{ route('superadmin.sms.raporlar') }}" class="nav-link-custom">
-                <i class="fas fa-chart-bar me-1"></i> SMS Raporlar
-            </a>
-            <a href="{{ route('profile.edit') }}" class="nav-link-custom d-none d-md-block border-start border-secondary ps-3 ms-1" title="Profil Ayarları">
-                <i class="fas fa-user-shield me-1"></i>{{ auth()->user()->name }}
-            </a>
-            <x-notification-bell />
-            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-1">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </form>
-        </div>
-    </div>
-</nav>
+<x-navbar-superadmin active="dashboard" />
 
 {{-- PAGE HEADER --}}
 <div class="page-header">
@@ -119,7 +84,7 @@
         $toplamKullanici = \App\Models\User::count();
         $toplamTalep = \App\Models\Request::count();
         $toplamTeklif = \App\Models\Offer::count();
-        $toplamAcente = \App\Models\Agency::count();
+        $toplamAcente = \App\Models\User::where('role', 'acente')->count();
         $bugunTalep = \App\Models\Request::whereDate('created_at', today())->count();
         $bekleyenTalep = \App\Models\Request::where('status', 'beklemede')->count();
         $biletlendi = \App\Models\Request::where('status', 'biletlendi')->count();
@@ -134,8 +99,9 @@
             ->limit(5)
             ->get();
 
-        // Son talepler
+        // Son talepler — aktif durumlar (biletlendi/olumsuz/iade hariç)
         $sonTalepler = \App\Models\Request::with(['segments'])
+            ->whereNotIn('status', ['biletlendi', 'olumsuz', 'iade', 'iptal'])
             ->orderBy('created_at', 'desc')
             ->limit(8)
             ->get();
@@ -299,7 +265,13 @@
                             @endphp
                             <tr>
                                 <td><strong>{{ $talep->gtpnr }}</strong></td>
-                                <td>{{ $talep->agency_name ?? '—' }}</td>
+                                <td>
+                                    @if(($talep->agency_name ?? '') === 'MÜNFERİT')
+                                        <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>
+                                    @else
+                                        {{ $talep->agency_name ?? '—' }}
+                                    @endif
+                                </td>
                                 <td>
                                     @foreach($talep->segments as $seg)
                                         <span class="badge bg-light text-dark border" style="font-size:0.7rem;">{{ $seg->from_iata }}→{{ $seg->to_iata }}</span>

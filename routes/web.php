@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\AirportController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Airline;
+use App\Models\Airport;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
@@ -11,7 +15,29 @@ Route::get('/', function () {
         if ($role === 'admin') return redirect()->route('admin.dashboard');
         return redirect()->route('acente.dashboard');
     }
-    return view('welcome');
+
+    $stats = Cache::remember('welcome_stats', 3600, function () {
+        $iatas = DB::table('flight_segments')
+            ->selectRaw('from_iata as iata')->whereNotNull('from_iata')->where('from_iata', '!=', '')
+            ->union(DB::table('flight_segments')->selectRaw('to_iata as iata')->whereNotNull('to_iata')->where('to_iata', '!=', ''))
+            ->get()->pluck('iata')->unique();
+
+        return [
+            // Operasyon istatistikleri
+            'toplam_grup'       => \App\Models\Request::count(),
+            'toplam_yolcu'      => (int) \App\Models\Request::sum('pax_total'),
+            'toplam_ulke'       => \App\Models\Airport::whereIn('iata', $iatas->values())->distinct('country_code')->count('country_code'),
+            'toplam_destinasyon'=> $iatas->count(),
+            'toplam_ucus'       => DB::table('flight_segments')->count(),
+            // Veritabanı meta
+            'airports'          => \App\Models\Airport::count(),
+            'airlines'          => \App\Models\Airline::count(),
+            'countries'         => \App\Models\Airport::distinct('country_code')->count('country_code'),
+            'large_airports'    => \App\Models\Airport::where('type', 'large_airport')->count(),
+        ];
+    });
+
+    return view('welcome', compact('stats'));
 });
 
 Route::get('/dashboard', function () {
@@ -22,6 +48,12 @@ Route::get('/dashboard', function () {
         default      => redirect()->route('acente.dashboard'),
     };
 })->middleware(['auth'])->name('dashboard');
+
+// Havalimanı & havayolu arama (giriş yapmış tüm roller)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/airports/search', [AirportController::class, 'search'])->name('airports.search');
+    Route::get('/airlines/search', [AirportController::class, 'airlineSearch'])->name('airlines.search');
+});
 
 // Superadmin
 Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(function () {
@@ -34,6 +66,12 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::post('/acenteler/{agency}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteToggle'])->name('acenteler.toggle');
     Route::post('/acenteler/{agency}/rol', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteRolDegistir'])->name('acenteler.rol');
     Route::delete('/acenteler/{agency}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteSil'])->name('acenteler.sil');
+    Route::post('/acenteler/{agency}/iade-badge', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteIadeBadgeToggle'])->name('acenteler.iade-badge');
+    Route::post('/acenteler/{agency}/broadcast-yetki', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteBroadcastYetkiToggle'])->name('acenteler.broadcast-yetki');
+
+    // Broadcast geçmişi & yetki yönetimi
+    Route::get('/broadcast-gecmisi', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastGecmisi'])->name('broadcast.gecmisi');
+    Route::post('/broadcast-yetki/{user}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastYetkiToggleById'])->name('broadcast.yetki');
 
     // SMS Ayarları
     Route::get('/sms-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarlari'])->name('sms.ayarlar');
@@ -71,6 +109,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::patch('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'updateOffer'])->name('requests.offer.update');
     Route::post('/talepler/{gtpnr}/teklif/{offer}/toggle', [\App\Http\Controllers\Admin\RequestController::class, 'toggleOffer'])->name('requests.offer.toggle');
     Route::delete('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'deleteOffer'])->name('requests.offer.delete');
+
+    // Broadcast duyurular
+    Route::get('/duyurular', [\App\Http\Controllers\Admin\BroadcastController::class, 'index'])->name('broadcast.index');
+    Route::get('/duyurular/olustur', [\App\Http\Controllers\Admin\BroadcastController::class, 'create'])->name('broadcast.create');
+    Route::post('/duyurular', [\App\Http\Controllers\Admin\BroadcastController::class, 'store'])->name('broadcast.store');
 
     // Push polling
     Route::get('/push/yeni-talepler', function (\Illuminate\Http\Request $request) {

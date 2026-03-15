@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
+use App\Models\BroadcastNotification;
 use App\Models\OpsiyonUyariAyar;
 use App\Models\SistemAyar;
 use App\Models\SmsNotificationSetting;
@@ -44,6 +45,44 @@ class SuperadminController extends Controller
         $agency->delete();
         $user?->delete();
         return back()->with('success', 'Acente silindi.');
+    }
+
+    public function acenteIadeBadgeToggle(Agency $agency)
+    {
+        $user = $agency->user;
+        if (!$user) return back();
+        $user->update(['show_iade_badge' => !$user->show_iade_badge]);
+        $durum = $user->show_iade_badge ? 'açıldı' : 'kapatıldı';
+        return back()->with('success', "İade badge görünümü {$durum}.");
+    }
+
+    public function acenteBroadcastYetkiToggle(Agency $agency)
+    {
+        $user = $agency->user;
+        if (!$user) return back();
+        $user->update(['can_send_broadcast' => !$user->can_send_broadcast]);
+        $durum = $user->can_send_broadcast ? 'verildi' : 'alındı';
+        return back()->with('success', "Duyuru gönderme yetkisi {$durum}: {$agency->company_title}");
+    }
+
+    public function broadcastYetkiToggleById(User $user)
+    {
+        $user->update(['can_send_broadcast' => !$user->can_send_broadcast]);
+        $durum = $user->can_send_broadcast ? 'verildi' : 'alındı';
+        return back()->with('success', "Duyuru gönderme yetkisi {$durum}: {$user->name}");
+    }
+
+    // ── BROADCAST GEÇMİŞİ ────────────────────────────────────────────────────
+
+    public function broadcastGecmisi()
+    {
+        $duyurular = BroadcastNotification::with('sender')
+            ->orderByDesc('created_at')
+            ->paginate(30);
+
+        $adminler = User::whereIn('role', ['admin', 'superadmin'])->get();
+
+        return view('superadmin.broadcast-gecmisi', compact('duyurular', 'adminler'));
     }
 
     // ── SMS AYARLARI ──────────────────────────────────────────────────────────

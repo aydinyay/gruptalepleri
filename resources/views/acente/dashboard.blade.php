@@ -9,8 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: #f0f2f5; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; }
         #map { height: 450px; width: 100%; border-radius: 0 0 12px 12px; }
         .stat-card { border-radius: 12px; border: none; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
@@ -21,37 +19,7 @@
 </head>
 <body>
 
-{{-- NAVBAR --}}
-<nav class="navbar navbar-expand-lg navbar-dark mb-4">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">✈️ GrupTalepleri</a>
-        <div class="d-flex align-items-center gap-3">
-            <div class="text-white-50 text-end d-none d-md-block">
-                <div class="fw-bold text-white">{{ $agency->contact_name ?? auth()->user()->name }}</div>
-                <small>{{ $agency->company_title ?? 'Acente' }}</small>
-            </div>
-            <a href="{{ route('acente.requests.create') }}" class="btn btn-danger btn-sm">
-                <i class="fas fa-plus"></i> Yeni Talep
-            </a>
-
-<a href="{{ route('acente.profil') }}" class="btn btn-outline-light btn-sm">
-    <i class="fas fa-user"></i> Profilim
-</a>
-
-
-            <x-notification-bell />
-            <a href="https://wa.me/905324262630" target="_blank" class="btn btn-success btn-sm">
-                <i class="fab fa-whatsapp"></i>
-            </a>
-            <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </form>
-        </div>
-    </div>
-</nav>
+<x-navbar-acente active="dashboard" />
 
 <div class="container-fluid px-4">
 

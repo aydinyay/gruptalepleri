@@ -6,10 +6,9 @@
     <title>Profilim — GrupTalepleri</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
-        body { background: #f0f2f5; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
         .card-header { background: #1a1a2e; color: white; border-radius: 12px 12px 0 0 !important; font-weight: 600; }
         .section-icon { color: #e94560; }
@@ -30,14 +29,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-0">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ route('acente.dashboard') }}">✈️ GrupTalepleri</a>
-        <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-light btn-sm">
-            <i class="fas fa-arrow-left"></i> Dashboard
-        </a>
-    </div>
-</nav>
+<x-navbar-acente active="profil" />
 
 <div class="container py-4" style="max-width:780px;">
 

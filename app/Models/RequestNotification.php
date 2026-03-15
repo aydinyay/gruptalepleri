@@ -13,6 +13,7 @@ class RequestNotification extends Model
         'recipient_name',
         'phone',
         'message',
+        'subject',
         'status',
         'scheduled_for',
         'provider_code',

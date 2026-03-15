@@ -9,29 +9,43 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: #f0f2f5; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; }
         .section-header { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: 700; margin-bottom: 0.75rem; }
         .segment-card { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 10px; }
         .iata-input { font-size: 1.4rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-align: center; }
         .required-star { color: #e94560; }
         .pax-box { border: 2px solid #dee2e6; border-radius: 8px; padding: 12px; text-align: center; }
         .pax-box.active { border-color: #0d6efd; background: #f0f5ff; }
+
+        /* Havayolu autocomplete */
+        .airline-wrap { position: relative; }
+        .airline-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #dee2e6; border-radius: 0 0 8px 8px; z-index: 1050; max-height: 240px; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .airline-dropdown.show { display: block; }
+        .airline-option { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+        .airline-option:hover, .airline-option.focused { background: #fff5f7; }
+        .airline-option .al-code { font-weight: 700; color: #e94560; font-size: 0.9rem; margin-right: 6px; }
+        .airline-option .al-name { font-size: 0.85rem; color: #333; }
+        .airline-option .al-country { font-size: 0.72rem; color: #6c757d; }
+
+        /* Havalimanı autocomplete */
+        .airport-wrap { position: relative; }
+        .airport-display { font-size: 0.82rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; padding: 6px 10px; width: 100%; cursor: text; }
+        .airport-display::placeholder { color: rgba(255,255,255,0.35); font-size: 0.78rem; }
+        .airport-display:focus { outline: none; background: rgba(255,255,255,0.15); border-color: #e94560; }
+        .airport-iata-badge { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; color: #fff; display: block; text-align: center; min-height: 2rem; }
+        .airport-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #1e2a45; border: 1px solid rgba(255,255,255,0.15); border-radius: 0 0 8px 8px; z-index: 1050; max-height: 260px; overflow-y: auto; display: none; }
+        .airport-dropdown.show { display: block; }
+        .airport-option { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .airport-option:hover, .airport-option.focused { background: rgba(233,69,96,0.25); }
+        .airport-option .ap-iata { font-weight: 700; color: #e94560; font-size: 0.95rem; margin-right: 6px; }
+        .airport-option .ap-city { color: #fff; font-size: 0.82rem; }
+        .airport-option .ap-name { color: rgba(255,255,255,0.5); font-size: 0.72rem; display: block; }
+        .airport-loading { padding: 10px 12px; color: rgba(255,255,255,0.4); font-size: 0.8rem; text-align: center; }
+        .airport-empty { padding: 10px 12px; color: rgba(255,255,255,0.4); font-size: 0.8rem; text-align: center; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-0">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ route('acente.dashboard') }}">✈️ GrupTalepleri</a>
-        <div class="d-flex gap-2 align-items-center">
-            <x-notification-bell />
-            <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-light btn-sm">
-                <i class="fas fa-arrow-left me-1"></i>Dashboard
-            </a>
-        </div>
-    </div>
-</nav>
+<x-navbar-acente active="create" />
 
 <div class="container py-4" style="max-width:860px;">
 
@@ -142,8 +156,13 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small">Tercih Edilen Havayolu</label>
-                        <input type="text" name="preferred_airline" class="form-control"
-                               value="{{ old('preferred_airline') }}" placeholder="Turkish Airlines, Pegasus...">
+                        <div class="airline-wrap">
+                            <input type="text" name="preferred_airline" id="airline-input"
+                                   class="form-control" autocomplete="off"
+                                   value="{{ old('preferred_airline') }}"
+                                   placeholder="TK, Turkish Airlines...">
+                            <div class="airline-dropdown" id="airline-dropdown"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -198,25 +217,38 @@
 <script>
 let segmentCount = 0;
 
-function segmentHtmlOlustur(index, fromVal = '', toVal = '', dateVal = '', timeVal = '', label = '', silinebilir = false) {
+function airportWidget(name, placeholder, iataVal, displayVal, required) {
+    const req = required ? 'required' : '';
+    return `
+    <div class="airport-wrap">
+        <span class="airport-iata-badge" data-iata-badge>${iataVal || '—'}</span>
+        <input type="hidden" name="${name}" value="${iataVal}" data-iata-hidden ${req}>
+        <input type="text"
+               class="airport-display mt-1"
+               placeholder="${placeholder}"
+               value="${displayVal}"
+               autocomplete="off"
+               data-airport-input
+               data-field="${name}">
+        <div class="airport-dropdown" data-airport-dropdown></div>
+    </div>`;
+}
+
+function segmentHtmlOlustur(index, fromVal = '', toVal = '', fromDisplay = '', toDisplay = '', dateVal = '', timeVal = '', label = '', silinebilir = false) {
     return `
     <div class="segment-card p-3 mb-3" id="seg-${index}">
         ${label ? `<div class="small text-white-50 mb-2 fw-bold">${label}</div>` : ''}
         <div class="row g-2 align-items-end">
             <div class="col-5 col-md-3">
                 <label class="form-label small text-white-50">Kalkış</label>
-                <input type="text" name="segments[${index}][from_iata]" class="form-control iata-input bg-transparent border-0 border-bottom border-secondary text-white"
-                       placeholder="IST" maxlength="3" value="${fromVal}" required
-                       oninput="this.value=this.value.toUpperCase()">
+                ${airportWidget('segments['+index+'][from_iata]', 'IST, İstanbul...', fromVal, fromDisplay, true)}
             </div>
-            <div class="col-2 text-center pt-3">
+            <div class="col-2 text-center" style="padding-top:2.2rem;">
                 <i class="fas fa-arrow-right text-danger" style="font-size:1.2rem;"></i>
             </div>
             <div class="col-5 col-md-3">
                 <label class="form-label small text-white-50">Varış</label>
-                <input type="text" name="segments[${index}][to_iata]" class="form-control iata-input bg-transparent border-0 border-bottom border-secondary text-white"
-                       placeholder="CDG" maxlength="3" value="${toVal}" required
-                       oninput="this.value=this.value.toUpperCase()">
+                ${airportWidget('segments['+index+'][to_iata]', 'CDG, Paris...', toVal, toDisplay, true)}
             </div>
             <div class="col-6 col-md-2">
                 <label class="form-label small text-white-50">Tarih</label>
@@ -228,7 +260,7 @@ function segmentHtmlOlustur(index, fromVal = '', toVal = '', dateVal = '', timeV
                 <input type="time" name="segments[${index}][departure_time]" class="form-control form-control-sm bg-dark text-white border-secondary"
                        value="${timeVal}">
             </div>
-            ${silinebilir ? `<div class="col-12 col-md-2 text-end"><button type="button" class="btn btn-outline-danger btn-sm" onclick="segmentSil(${index})"><i class="fas fa-times"></i></button></div>` : ''}
+            ${silinebilir ? `<div class="col-12 col-md-2 text-end"><button type="button" class="btn btn-outline-danger btn-sm mt-1" onclick="segmentSil(${index})"><i class="fas fa-times"></i></button></div>` : ''}
         </div>
     </div>`;
 }
@@ -240,15 +272,15 @@ function segmentleriYenile(tip) {
     container.innerHTML = '';
 
     if (tip === 'one_way') {
-        container.innerHTML = segmentHtmlOlustur(segmentCount++, '', '', '', '', 'Gidiş');
+        container.innerHTML = segmentHtmlOlustur(segmentCount++, '', '', '', '', '', '', 'Gidiş');
         addBtn.style.display = 'none';
     } else if (tip === 'round_trip') {
-        container.innerHTML = segmentHtmlOlustur(segmentCount++, '', '', '', '', 'Gidiş');
-        container.innerHTML += segmentHtmlOlustur(segmentCount++, '', '', '', '', 'Dönüş');
+        container.innerHTML = segmentHtmlOlustur(segmentCount++, '', '', '', '', '', '', 'Gidiş');
+        container.innerHTML += segmentHtmlOlustur(segmentCount++, '', '', '', '', '', '', 'Dönüş');
         addBtn.style.display = 'none';
     } else {
-        container.innerHTML = segmentHtmlOlustur(segmentCount++, '', '', '', '', '1. Uçuş');
-        container.innerHTML += segmentHtmlOlustur(segmentCount++, '', '', '', '', '2. Uçuş', true);
+        container.innerHTML = segmentHtmlOlustur(segmentCount++, '', '', '', '', '', '', '1. Uçuş');
+        container.innerHTML += segmentHtmlOlustur(segmentCount++, '', '', '', '', '', '', '2. Uçuş', true);
         addBtn.style.display = 'inline-block';
     }
 }
@@ -256,7 +288,7 @@ function segmentleriYenile(tip) {
 function segmentEkle() {
     const container = document.getElementById('segments');
     const div = document.createElement('div');
-    div.innerHTML = segmentHtmlOlustur(segmentCount, '', '', '', '', (segmentCount + 1) + '. Uçuş', true);
+    div.innerHTML = segmentHtmlOlustur(segmentCount, '', '', '', '', '', '', (segmentCount + 1) + '. Uçuş', true);
     container.appendChild(div.firstElementChild);
     segmentCount++;
 }
@@ -279,8 +311,238 @@ function paxHesapla() {
     }
 }
 
+// Form submit — kalkış/varış seçildi mi kontrol et
+document.getElementById('talep-form').addEventListener('submit', function(e) {
+    const hiddens = this.querySelectorAll('[data-iata-hidden]');
+    let ok = true;
+    hiddens.forEach(h => {
+        const wrap = h.closest('.airport-wrap');
+        const display = wrap.querySelector('[data-airport-input]');
+        if (!h.value) {
+            ok = false;
+            display.style.borderColor = '#e94560';
+            display.focus();
+        } else {
+            display.style.borderColor = '';
+        }
+    });
+    if (!ok) {
+        e.preventDefault();
+        alert('Lütfen kalkış ve varış havalimanlarını listeden seçin.');
+    }
+});
+
 // Sayfa yüklenince
 tripTipiDegisti();
+
+// ── Havalimanı Autocomplete ──────────────────────────────────────────────────
+const AIRPORT_SEARCH_URL = '{{ route('airports.search') }}';
+
+let acTimer = null;
+
+// Event delegation — dinamik eklenen inputlar için
+document.addEventListener('input', function(e) {
+    const input = e.target;
+    if (!input.hasAttribute('data-airport-input')) return;
+    clearTimeout(acTimer);
+    const q = input.value.trim();
+    if (q.length < 2) {
+        closeDropdown(input);
+        return;
+    }
+    showLoading(input);
+    acTimer = setTimeout(() => fetchAirports(q, input), 280);
+});
+
+document.addEventListener('keydown', function(e) {
+    const input = e.target;
+    if (!input.hasAttribute('data-airport-input')) return;
+    const dd = getDropdown(input);
+    const items = dd.querySelectorAll('.airport-option');
+    let focused = dd.querySelector('.airport-option.focused');
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!focused) { items[0]?.classList.add('focused'); }
+        else {
+            focused.classList.remove('focused');
+            const next = focused.nextElementSibling;
+            (next || items[0]).classList.add('focused');
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!focused) { items[items.length-1]?.classList.add('focused'); }
+        else {
+            focused.classList.remove('focused');
+            const prev = focused.previousElementSibling;
+            (prev || items[items.length-1]).classList.add('focused');
+        }
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (focused) selectAirport(focused, input);
+    } else if (e.key === 'Escape') {
+        closeDropdown(input);
+    }
+});
+
+// Dışarı tıklanınca kapat
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.airport-wrap')) {
+        document.querySelectorAll('.airport-dropdown.show').forEach(dd => dd.classList.remove('show'));
+    }
+});
+
+function getDropdown(input) {
+    return input.closest('.airport-wrap').querySelector('[data-airport-dropdown]');
+}
+
+function getBadge(input) {
+    return input.closest('.airport-wrap').querySelector('[data-iata-badge]');
+}
+
+function getHidden(input) {
+    return input.closest('.airport-wrap').querySelector('[data-iata-hidden]');
+}
+
+function showLoading(input) {
+    const dd = getDropdown(input);
+    dd.innerHTML = '<div class="airport-loading"><i class="fas fa-spinner fa-spin me-1"></i>Aranıyor...</div>';
+    dd.classList.add('show');
+}
+
+function closeDropdown(input) {
+    const dd = getDropdown(input);
+    dd.classList.remove('show');
+}
+
+async function fetchAirports(q, input) {
+    try {
+        const resp = await fetch(AIRPORT_SEARCH_URL + '?q=' + encodeURIComponent(q), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await resp.json();
+        renderDropdown(data, input);
+    } catch(err) {
+        closeDropdown(input);
+    }
+}
+
+function renderDropdown(airports, input) {
+    const dd = getDropdown(input);
+    if (!airports.length) {
+        dd.innerHTML = '<div class="airport-empty">Sonuç bulunamadı</div>';
+        dd.classList.add('show');
+        return;
+    }
+    dd.innerHTML = airports.map(a => `
+        <div class="airport-option"
+             data-iata="${a.iata}"
+             data-label="${escHtml(a.label)}"
+             data-city="${escHtml(a.city || '')}"
+             data-country="${escHtml(a.country || '')}">
+            <span class="ap-iata">${a.iata}</span>
+            <span class="ap-city">${escHtml(a.city || '')}${a.city && a.country ? ', ' : ''}${escHtml(a.country || '')}</span>
+            <span class="ap-name">${escHtml(a.name)}</span>
+        </div>
+    `).join('');
+    dd.classList.add('show');
+
+    dd.querySelectorAll('.airport-option').forEach(opt => {
+        opt.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            selectAirport(opt, input);
+        });
+    });
+}
+
+function selectAirport(opt, input) {
+    const iata    = opt.dataset.iata;
+    const city    = opt.dataset.city;
+    const country = opt.dataset.country;
+    const display = city ? `${iata} — ${city}${country ? ', ' + country : ''}` : iata;
+
+    getHidden(input).value  = iata;
+    getBadge(input).textContent = iata;
+    input.value = display;
+    closeDropdown(input);
+    input.dispatchEvent(new Event('change'));
+}
+
+function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Havayolu Autocomplete ─────────────────────────────────────────────────────
+const AIRLINE_SEARCH_URL = '{{ route('airlines.search') }}';
+const airlineInput    = document.getElementById('airline-input');
+const airlineDropdown = document.getElementById('airline-dropdown');
+let alTimer = null;
+
+airlineInput.addEventListener('input', function() {
+    clearTimeout(alTimer);
+    const q = this.value.trim();
+    if (q.length < 2) { airlineDropdown.classList.remove('show'); return; }
+    airlineDropdown.innerHTML = '<div style="padding:8px 12px;color:#aaa;font-size:0.8rem;"><i class="fas fa-spinner fa-spin me-1"></i>Aranıyor...</div>';
+    airlineDropdown.classList.add('show');
+    alTimer = setTimeout(() => fetchAirlines(q), 280);
+});
+
+airlineInput.addEventListener('keydown', function(e) {
+    const items   = airlineDropdown.querySelectorAll('.airline-option');
+    let focused   = airlineDropdown.querySelector('.airline-option.focused');
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!focused) items[0]?.classList.add('focused');
+        else { focused.classList.remove('focused'); (focused.nextElementSibling || items[0]).classList.add('focused'); }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!focused) items[items.length-1]?.classList.add('focused');
+        else { focused.classList.remove('focused'); (focused.previousElementSibling || items[items.length-1]).classList.add('focused'); }
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (focused) selectAirline(focused);
+    } else if (e.key === 'Escape') {
+        airlineDropdown.classList.remove('show');
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.airline-wrap')) airlineDropdown.classList.remove('show');
+});
+
+async function fetchAirlines(q) {
+    try {
+        const resp = await fetch(AIRLINE_SEARCH_URL + '?q=' + encodeURIComponent(q), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await resp.json();
+        if (!data.length) {
+            airlineDropdown.innerHTML = '<div style="padding:8px 12px;color:#aaa;font-size:0.8rem;">Sonuç bulunamadı</div>';
+            return;
+        }
+        airlineDropdown.innerHTML = data.map(a => `
+            <div class="airline-option" data-name="${escHtml(a.name)}" data-iata="${escHtml(a.iata||'')}" data-label="${escHtml(a.label)}">
+                ${a.iata ? `<span class="al-code">${a.iata}</span>` : ''}
+                ${a.icao && a.icao !== a.iata ? `<span class="al-code" style="color:#666;font-size:0.78rem;">${a.icao}</span>` : ''}
+                <span class="al-name">${escHtml(a.name)}</span>
+                ${a.country ? `<span class="al-country d-block">${escHtml(a.country)}</span>` : ''}
+            </div>
+        `).join('');
+        airlineDropdown.querySelectorAll('.airline-option').forEach(opt => {
+            opt.addEventListener('mousedown', e => { e.preventDefault(); selectAirline(opt); });
+        });
+    } catch(err) {
+        airlineDropdown.classList.remove('show');
+    }
+}
+
+function selectAirline(opt) {
+    // input'a "TK — Turkish Airlines" formatında yaz
+    const iata  = opt.dataset.iata;
+    const name  = opt.dataset.name;
+    airlineInput.value = iata ? `${iata} — ${name}` : name;
+    airlineDropdown.classList.remove('show');
+}
 </script>
 </body>
 </html>

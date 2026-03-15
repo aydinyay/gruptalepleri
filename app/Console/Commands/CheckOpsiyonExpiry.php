@@ -6,6 +6,7 @@ use App\Models\Offer;
 use App\Models\OpsiyonUyariAyar;
 use App\Models\OpsiyonUyariGonderim;
 use App\Models\SistemAyar;
+use App\Services\EmailService;
 use App\Services\NotificationService;
 use App\Services\SmsService;
 use Carbon\Carbon;
@@ -42,8 +43,9 @@ class CheckOpsiyonExpiry extends Command
             ->with('request')
             ->get();
 
-        $smsService  = new SmsService();
+        $smsService   = new SmsService();
         $notifService = new NotificationService();
+        $emailService = new EmailService();
 
         foreach ($ayarlar as $ayar) {
             $hedefZaman = Carbon::now()->addHours($ayar->saat_oncesi);
@@ -78,6 +80,9 @@ class CheckOpsiyonExpiry extends Command
                         $msg = "OPSİYON UYARISI: {$gtpnr} / {$airline} — {$saatKaldi} saat sonra opsiyon doluyor! {$opsTs->format('d.m.Y H:i')}";
                         $smsService->sendByEvent('opsiyon_uyarisi', $teklif->request_id, $msg);
                     }
+
+                    // Email
+                    $emailService->opsiyonUyarisi($teklif->request_id, $gtpnr, $airline, $saatKaldi, $opsTs->format('d.m.Y H:i'), $url);
 
                     // Gönderildi olarak kaydet
                     OpsiyonUyariGonderim::create([

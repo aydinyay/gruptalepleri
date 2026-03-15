@@ -2,16 +2,21 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Talepler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Talepler — Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .stat-card { border-left: 4px solid; border-radius: 6px; cursor: pointer; transition: transform 0.1s; }
         .stat-card:hover { transform: translateY(-2px); }
     </style>
 </head>
 <body>
+
+<x-navbar-admin active="talepler" />
+
 <div class="container-fluid py-4 px-4">
 
     {{-- BAŞLIK --}}
@@ -32,14 +37,23 @@
             'fiyatlandirıldi'=> ['renk' => '#ffc107', 'etiket' => 'Fiyatlandırıldı','ikon' => 'fa-tag'],
             'depozitoda'     => ['renk' => '#6f42c1', 'etiket' => 'Depozitoda',     'ikon' => 'fa-coins'],
             'biletlendi'     => ['renk' => '#198754', 'etiket' => 'Biletlendi',     'ikon' => 'fa-ticket-alt'],
-            'olumsuz'        => ['renk' => '#dc3545', 'etiket' => 'Olumsuz',        'ikon' => 'fa-times-circle'],
+            'iade'           => ['renk' => '#dc3545', 'etiket' => 'İade',           'ikon' => 'fa-undo'],
+            'olumsuz'        => ['renk' => '#343a40', 'etiket' => 'Olumsuz',        'ikon' => 'fa-times-circle'],
         ];
     @endphp
     <div class="row g-2 mb-3">
         <div class="col-6 col-md-2">
             <a href="{{ route('admin.requests.index') }}" class="text-decoration-none">
-                <div class="card stat-card p-2 text-center h-100" style="border-left-color:#0d6efd;">
-                    <div class="small text-muted">Toplam</div>
+                <div class="card stat-card p-2 text-center h-100 {{ !request()->has('durum') ? 'bg-light' : '' }}" style="border-left-color:#0d6efd;">
+                    <div class="small text-muted"><i class="fas fa-bolt me-1" style="color:#0d6efd;"></i>Aktif</div>
+                    <div class="fw-bold fs-5">{{ $aktifSayisi }}</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-2">
+            <a href="{{ route('admin.requests.index', ['durum' => 'tumu']) }}" class="text-decoration-none">
+                <div class="card stat-card p-2 text-center h-100 {{ request('durum') === 'tumu' ? 'bg-light' : '' }}" style="border-left-color:#adb5bd;">
+                    <div class="small text-muted"><i class="fas fa-archive me-1" style="color:#adb5bd;"></i>Tüm Arşiv</div>
                     <div class="fw-bold fs-5">{{ array_sum($durumSayilari->toArray()) }}</div>
                 </div>
             </a>
@@ -70,10 +84,11 @@
                 <div class="col-md-2">
                     <label class="form-label small text-muted mb-1">Durum</label>
                     <select name="durum" class="form-select form-select-sm">
-                        <option value="">Tümü</option>
+                        <option value="" {{ request('durum') === '' && !request()->has('durum') ? '' : '' }}>Aktif Talepler</option>
                         @foreach($durumlar as $key => $d)
                         <option value="{{ $key }}" {{ request('durum') === $key ? 'selected' : '' }}>{{ $d['etiket'] }}</option>
                         @endforeach
+                        <option value="tumu" {{ request('durum') === 'tumu' ? 'selected' : '' }}>── Tümü (Arşiv dahil)</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -99,6 +114,14 @@
     </div>
 
     {{-- TABLO --}}
+    @php
+        // Türk havalimanı IATA kodlarını tek sorguda al (iç hat tespiti için)
+        $allIatas = $talepler->getCollection()
+            ->flatMap(fn($t) => $t->segments->flatMap(fn($s) => [$s->from_iata, $s->to_iata]))
+            ->filter()->unique()->values();
+        $turkishIatas = \App\Models\Airport::whereIn('iata', $allIatas)
+            ->where('country_code', 'TR')->pluck('iata')->flip();
+    @endphp
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
@@ -109,34 +132,96 @@
                         <th>Rota</th>
                         <th class="text-center">PAX</th>
                         <th>Durum</th>
+                        <th>Opsiyon</th>
                         <th>Tarih</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($talepler as $talep)
-                    @php $renk = $durumlar[$talep->status]['renk'] ?? '#6c757d'; @endphp
+                    @php
+                        $renk = $durumlar[$talep->status]['renk'] ?? '#6c757d';
+
+                        // İç hat / dış hat tespiti — tüm segmentlerdeki dolu IATA'lara bak
+                        $firstSeg = $talep->segments->first();
+                        $allSegIatas = $talep->segments
+                            ->flatMap(fn($s) => [$s->from_iata, $s->to_iata])
+                            ->filter(fn($i) => !empty($i))
+                            ->unique()->values();
+                        $hasIatas = $allSegIatas->isNotEmpty();
+                        $isIchat = $hasIatas && $allSegIatas->every(fn($i) => isset($turkishIatas[$i]));
+
+                        // Opsiyon geri sayım — kabul edilmiş teklif önce, sonra en son option_date'li
+                        $opsOffer = $talep->offers->firstWhere('is_accepted', true)
+                            ?? $talep->offers->whereNotNull('option_date')->sortByDesc('option_date')->first();
+                        $opsCountdown = null;
+                        if ($opsOffer?->option_date) {
+                            $optDt = \Carbon\Carbon::parse(
+                                $opsOffer->option_date . ' ' . ($opsOffer->option_time ?? '23:59')
+                            );
+                            $now = now();
+                            if ($optDt->isFuture()) {
+                                $diff = $now->diff($optDt);
+                                $parts = [];
+                                if ($diff->m) $parts[] = $diff->m . ' ay';
+                                if ($diff->d) $parts[] = $diff->d . ' gün';
+                                if ($diff->h) $parts[] = $diff->h . ' sa';
+                                $opsCountdown = ['renk' => '#ffc107', 'text' => implode(' ', $parts ?: ['<1 sa']) . ' kaldı'];
+                            } else {
+                                $opsCountdown = ['renk' => '#dc3545', 'text' => 'OPSİYON BİTTİ'];
+                            }
+                        }
+                    @endphp
                     <tr>
                         <td>
                             <strong class="font-monospace">{{ $talep->gtpnr }}</strong>
                         </td>
                         <td>
-                            <div>{{ $talep->agency_name }}</div>
+                            <div>
+                                @if($talep->agency_name === 'MÜNFERİT')
+                                    <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>
+                                @else
+                                    {{ $talep->agency_name }}
+                                @endif
+                            </div>
                             @if($talep->phone)<div class="text-muted small">{{ $talep->phone }}</div>@endif
                         </td>
                         <td>
                             @foreach($talep->segments as $s)
                                 <span class="badge bg-light text-dark border me-1">{{ $s->from_iata }}→{{ $s->to_iata }}</span>
                             @endforeach
-                            @if($talep->segments->first()?->departure_date)
-                                <div class="text-muted small">{{ \Carbon\Carbon::parse($talep->segments->first()->departure_date)->format('d M Y') }}</div>
-                            @endif
+                            <div class="d-flex align-items-center gap-1 mt-1">
+                                @if($hasIatas)
+                                    @if($isIchat)
+                                        <span class="badge" style="background:#ffc107;color:#000;font-size:0.65rem;">İÇHAT</span>
+                                    @else
+                                        <span class="badge bg-success" style="font-size:0.65rem;">DIŞHAT</span>
+                                    @endif
+                                @endif
+                                @if($firstSeg?->departure_date)
+                                    <span class="text-muted" style="font-size:0.72rem;">{{ \Carbon\Carbon::parse($firstSeg->departure_date)->format('d M Y') }}</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="text-center">{{ $talep->pax_total }}</td>
                         <td>
                             <span class="badge" style="background-color:{{ $renk }}; {{ $talep->status === 'fiyatlandirıldi' ? 'color:#000;' : '' }}">
                                 {{ $durumlar[$talep->status]['etiket'] ?? $talep->status }}
                             </span>
+                            <x-iade-badge :talep="$talep" />
+                        </td>
+                        <td style="min-width:100px;">
+                            @if($opsCountdown)
+                                <span class="fw-bold" style="color:{{ $opsCountdown['renk'] }};font-size:0.78rem;">
+                                    {{ $opsCountdown['text'] }}
+                                </span>
+                                <div class="text-muted" style="font-size:0.68rem;">
+                                    {{ \Carbon\Carbon::parse($opsOffer->option_date)->format('d.m.Y') }}
+                                    @if($opsOffer->option_time) {{ substr($opsOffer->option_time,0,5) }}@endif
+                                </div>
+                            @else
+                                <span class="text-muted" style="font-size:0.75rem;">—</span>
+                            @endif
                         </td>
                         <td class="text-muted small">{{ $talep->created_at->format('d.m.Y') }}</td>
                         <td>
@@ -147,7 +232,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>
                             Sonuç bulunamadı.
                         </td>

@@ -3,7 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrupTalepleri — Grup Uçuş Talep Platformu</title>
+
+{{-- SEO --}}
+<title>GrupTalepleri — Grup Uçuş ve Charter Talep Platformu | TÜRSAB A Grubu</title>
+<meta name="description" content="Turizm acenteleri ve kurumsal şirketler için grup uçuş talep platformu. Charter, tarifeli grup ve özel uçuş tekliflerinizi hızlıca alın. TÜRSAB A Grubu belgeli. Şişli, İstanbul.">
+<meta name="keywords" content="grup uçuş, charter uçuş, grup bilet, grup charter, grup seyahat, turizm acentesi, TÜRSAB, grup talep, toplu bilet, grup rezervasyon, İstanbul, uçuş talebi">
+<meta name="author" content="Grup Talepleri Turizm San. ve Tic. Ltd. Şti.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://gruptalepleri.com">
+
+{{-- Open Graph (Facebook, WhatsApp, LinkedIn paylaşımlarında görünen önizleme) --}}
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gruptalepleri.com">
+<meta property="og:title" content="GrupTalepleri — Grup Uçuş ve Charter Talep Platformu">
+<meta property="og:description" content="Turizm acenteleri için grup uçuş talep platformu. Charter ve tarifeli grup uçuş tekliflerinizi hızlıca alın. TÜRSAB A Grubu belgeli.">
+<meta property="og:image" content="https://gruptalepleri.com/og-image.png">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="GrupTalepleri">
+
+{{-- Twitter / X Card --}}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GrupTalepleri — Grup Uçuş ve Charter Talep Platformu">
+<meta name="twitter:description" content="Turizm acenteleri için grup uçuş talep platformu. Charter ve tarifeli grup uçuş tekliflerinizi hızlıca alın.">
+<meta name="twitter:image" content="https://gruptalepleri.com/og-image.png">
+
+{{-- Instagram profil bağlantısı --}}
+<meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
+
+{{-- JSON-LD Yapılandırılmış Veri (Google arama sonucu zengin snippet) --}}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  "name": "Grup Talepleri Turizm San. ve Tic. Ltd. Şti.",
+  "alternateName": "GrupTalepleri",
+  "url": "https://gruptalepleri.com",
+  "logo": "https://gruptalepleri.com/og-image.png",
+  "description": "Turizm acenteleri ve kurumsal şirketler için grup uçuş ve charter talep platformu.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "İnönü Mah. Cumhuriyet Cad. No:93/12",
+    "addressLocality": "Şişli",
+    "addressRegion": "İstanbul",
+    "addressCountry": "TR"
+  },
+  "telephone": "+905354154799",
+  "email": "destek@gruptalepleri.com",
+  "sameAs": [
+    "https://www.instagram.com/grup.talepleri"
+  ],
+  "areaServed": "TR",
+  "priceRange": "₺₺",
+  "openingHours": "Mo-Fr 09:00-18:00"
+}
+</script>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -159,6 +213,86 @@ nav{
 .progress-bar-mini{height:3px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;}
 .progress-fill-mini{height:100%;background:var(--red);border-radius:2px;width:65%;}
 
+/* STATS BAND */
+.stats-band{
+    background:linear-gradient(135deg,#0f3460 0%,var(--navy2) 50%,var(--navy) 100%);
+    padding:5rem 5%;
+    position:relative;overflow:hidden;
+}
+.stats-band::before{
+    content:'';position:absolute;top:-150px;left:50%;transform:translateX(-50%);
+    width:800px;height:500px;
+    background:radial-gradient(ellipse,rgba(233,69,96,0.1) 0%,transparent 70%);
+    pointer-events:none;
+}
+.stats-band-title{
+    text-align:center;margin-bottom:3.5rem;
+}
+.stats-band-title .section-label{color:var(--red);}
+.stats-band-title .section-title{color:var(--white);margin-bottom:0.5rem;}
+.stats-band-title p{color:rgba(255,255,255,0.55);font-size:0.95rem;}
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1.5rem;
+    position:relative;z-index:1;
+}
+@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.stats-grid{grid-template-columns:1fr 1fr;gap:1rem;}}
+.stat-card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:16px;
+    padding:2rem 1.5rem;
+    text-align:center;
+    transition:all 0.3s;
+    position:relative;overflow:hidden;
+}
+.stat-card:hover{
+    background:rgba(233,69,96,0.1);
+    border-color:rgba(233,69,96,0.35);
+    transform:translateY(-4px);
+}
+.stat-card::after{
+    content:'';
+    position:absolute;bottom:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,transparent,var(--red),transparent);
+    opacity:0;transition:opacity 0.3s;
+}
+.stat-card:hover::after{opacity:1;}
+.stat-icon{
+    width:52px;height:52px;
+    background:rgba(233,69,96,0.15);
+    border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 1.2rem;
+    font-size:1.3rem;color:var(--red);
+}
+.stat-big{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:clamp(2.4rem,4vw,3.2rem);
+    font-weight:800;
+    color:var(--white);
+    line-height:1;
+    margin-bottom:0.4rem;
+    letter-spacing:-1px;
+}
+.stat-big .stat-suffix{color:var(--red);font-size:0.7em;}
+.stat-desc{font-size:0.9rem;color:rgba(255,255,255,0.7);font-weight:600;margin-bottom:0.3rem;}
+.stat-sub{font-size:0.75rem;color:rgba(255,255,255,0.35);line-height:1.4;}
+.stats-divider{
+    display:flex;align-items:center;justify-content:center;gap:1.5rem;
+    margin-top:3rem;padding-top:2.5rem;
+    border-top:1px solid rgba(255,255,255,0.08);
+    flex-wrap:wrap;gap:2rem;
+}
+.divider-stat{text-align:center;}
+.divider-num{font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:800;color:var(--white);}
+.divider-num span{color:var(--red);}
+.divider-label{font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.divider-sep{width:1px;height:40px;background:rgba(255,255,255,0.1);}
+@media(max-width:600px){.divider-sep{display:none;}.stats-divider{gap:1.5rem;}}
+
 /* NASIL ÇALIŞIR */
 .how-section{background:var(--light);padding:5rem 5%;}
 .section-label{font-size:0.75rem;font-weight:700;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.8rem;}
@@ -256,14 +390,19 @@ nav{
 .btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2);color:var(--red);}
 
 /* FOOTER */
-footer{
-    background:var(--navy2);
-    padding:2rem 5%;
-    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
-}
-.footer-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;color:var(--red);}
+footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2.5rem;padding-bottom:2rem;border-bottom:1px solid rgba(255,255,255,0.08);}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr;gap:1.5rem;}}
+.footer-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:800;color:var(--red);}
 .footer-logo span{color:var(--white);}
-.footer-text{font-size:0.8rem;color:rgba(255,255,255,0.35);}
+.footer-col-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.4);margin-bottom:0.8rem;}
+.footer-col p,.footer-col a{font-size:0.82rem;color:rgba(255,255,255,0.55);line-height:1.7;display:block;transition:color 0.2s;}
+.footer-col a:hover{color:var(--red);}
+.footer-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:8px;}
+.footer-badge strong{color:var(--white);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;padding-top:1.2rem;}
+.footer-text{font-size:0.75rem;color:rgba(255,255,255,0.25);}
+.footer-vergi{font-size:0.72rem;color:rgba(255,255,255,0.2);}
 </style>
 </head>
 <body>
@@ -299,16 +438,16 @@ footer{
         </div>
         <div class="hero-stats">
             <div>
-                <div class="stat-num">1.200<span>+</span></div>
+                <div class="stat-num">{{ number_format($stats['toplam_grup'], 0, ',', '.') }}<span>+</span></div>
                 <div class="stat-label">İşlenen Talep</div>
             </div>
             <div>
-                <div class="stat-num">48<span>s</span></div>
-                <div class="stat-label">Ort. Teklif Süresi</div>
+                <div class="stat-num">{{ number_format($stats['toplam_yolcu'], 0, ',', '.') }}<span>+</span></div>
+                <div class="stat-label">Hizmet Verilen Yolcu</div>
             </div>
             <div>
-                <div class="stat-num">%97</div>
-                <div class="stat-label">Müşteri Memnuniyeti</div>
+                <div class="stat-num">{{ $stats['toplam_ulke'] }}<span>+</span></div>
+                <div class="stat-label">Ülke</div>
             </div>
         </div>
     </div>
@@ -347,6 +486,103 @@ footer{
             </div>
             <div class="mini-sub">42 Pax · Biletlendi</div>
             <div class="status-dot"><span class="dot dot-green"></span> Tamamlandı</div>
+        </div>
+    </div>
+</section>
+
+{{-- STATS BAND --}}
+<section class="stats-band">
+    <div class="stats-band-title">
+        <div class="section-label">Rakamlarla GrupTalepleri</div>
+        <div class="section-title">Gerçek Operasyonlar, Gerçek Hacim</div>
+        <p>Platformumuzdan geçen her talep, her yolcu, her destinasyon — canlı veritabanı verisi.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="stat-big">
+                <span class="counter" data-target="{{ $stats['toplam_grup'] }}">0</span><span class="stat-suffix">+</span>
+            </div>
+            <div class="stat-desc">Grup İşlemi Yapıldı</div>
+            <div class="stat-sub">Platformdan geçen toplam<br>grup uçuş talebi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-big">
+                <span class="counter" data-target="{{ $stats['toplam_yolcu'] }}">0</span><span class="stat-suffix">+</span>
+            </div>
+            <div class="stat-desc">Yolcuya Hizmet Verildi</div>
+            <div class="stat-sub">Toplam işlenen<br>yolcu kapasitesi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-globe-europe"></i></div>
+            <div class="stat-big">
+                <span class="counter" data-target="{{ $stats['toplam_ulke'] }}">0</span><span class="stat-suffix">+</span>
+            </div>
+            <div class="stat-desc">Ülkeye Grup Gönderildi</div>
+            <div class="stat-sub">5 kıtada aktif<br>destinasyon kapsamı</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="stat-big">
+                <span class="counter" data-target="{{ $stats['toplam_destinasyon'] }}">0</span><span class="stat-suffix">+</span>
+            </div>
+            <div class="stat-desc">Havalimanına Boarding</div>
+            <div class="stat-sub">Uçuş yapılan unique<br>IATA destinasyonu</div>
+        </div>
+    </div>
+
+    <div class="stats-divider">
+        <div class="divider-stat">
+            <div class="divider-num"><span class="counter" data-target="{{ $stats['toplam_ucus'] }}">0</span><span style="color:var(--red)">+</span></div>
+            <div class="divider-label">Uçuş Gerçekleşti</div>
+        </div>
+        <div class="divider-sep"></div>
+        <div class="divider-stat">
+            <div class="divider-num"><span class="counter" data-target="24">0</span><span style="color:var(--red)">/7</span></div>
+            <div class="divider-label">Operasyon Desteği</div>
+        </div>
+    </div>
+
+    {{-- VERİTABANI KAPASİTESİ --}}
+    <div style="margin-top:3rem;padding-top:2.5rem;border-top:1px solid rgba(255,255,255,0.08);">
+        <div class="text-center mb-3">
+            <span style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;">Sistem Altyapısı</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card" style="padding:1.2rem 1rem;">
+                <div class="stat-icon" style="width:38px;height:38px;font-size:1rem;margin-bottom:0.8rem;"><i class="fas fa-plane-departure"></i></div>
+                <div class="stat-big" style="font-size:2rem;">
+                    <span class="counter" data-target="{{ $stats['airports'] }}">0</span><span class="stat-suffix">+</span>
+                </div>
+                <div class="stat-desc">Havalimanı</div>
+                <div class="stat-sub">IATA kodlu, dünya geneli<br>arama ve doğrulama</div>
+            </div>
+            <div class="stat-card" style="padding:1.2rem 1rem;">
+                <div class="stat-icon" style="width:38px;height:38px;font-size:1rem;margin-bottom:0.8rem;"><i class="fas fa-plane"></i></div>
+                <div class="stat-big" style="font-size:2rem;">
+                    <span class="counter" data-target="{{ $stats['airlines'] }}">0</span><span class="stat-suffix">+</span>
+                </div>
+                <div class="stat-desc">Havayolu</div>
+                <div class="stat-sub">IATA / ICAO kodlu<br>global havayolu veritabanı</div>
+            </div>
+            <div class="stat-card" style="padding:1.2rem 1rem;">
+                <div class="stat-icon" style="width:38px;height:38px;font-size:1rem;margin-bottom:0.8rem;"><i class="fas fa-globe"></i></div>
+                <div class="stat-big" style="font-size:2rem;">
+                    <span class="counter" data-target="{{ $stats['countries'] }}">0</span><span class="stat-suffix">+</span>
+                </div>
+                <div class="stat-desc">Ülke</div>
+                <div class="stat-sub">Her kıtadan destinasyon<br>tek platformda</div>
+            </div>
+            <div class="stat-card" style="padding:1.2rem 1rem;">
+                <div class="stat-icon" style="width:38px;height:38px;font-size:1rem;margin-bottom:0.8rem;"><i class="fas fa-building"></i></div>
+                <div class="stat-big" style="font-size:2rem;">
+                    <span class="counter" data-target="{{ $stats['large_airports'] }}">0</span><span class="stat-suffix">+</span>
+                </div>
+                <div class="stat-desc">Uluslararası Havalimanı</div>
+                <div class="stat-sub">Büyük & uluslararası<br>kategorisinde</div>
+            </div>
         </div>
     </div>
 </section>
@@ -463,8 +699,46 @@ footer{
 
 {{-- FOOTER --}}
 <footer>
-    <div class="footer-logo">✈ Grup<span>Talepleri</span></div>
-    <div class="footer-text">© {{ date('Y') }} GrupTalepleri · Tüm hakları saklıdır</div>
+    <div class="footer-grid">
+
+        {{-- Sol: Şirket tanıtımı --}}
+        <div class="footer-col">
+            <div class="footer-logo mb-2">✈ Grup<span>Talepleri</span></div>
+            <p style="margin-bottom:0.5rem;">Grup charter, tarifeli ve özel uçuş taleplerinizi tek platformda yönetin. Anlık teklif alın, operasyonunuzu hızlandırın.</p>
+            <div class="footer-badge">
+                <i class="fas fa-certificate" style="color:#f5a623;"></i>
+                TÜRSAB A Grubu &nbsp;·&nbsp; Belge No: <strong>12572</strong>
+            </div>
+        </div>
+
+        {{-- Orta: İletişim --}}
+        <div class="footer-col">
+            <div class="footer-col-title">İletişim</div>
+            <p><i class="fas fa-map-marker-alt me-2" style="color:var(--red);width:14px;"></i>İnönü Mah. Cumhuriyet Cad.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No:93/12 Şişli / İstanbul</p>
+            <a href="tel:+905354154799"><i class="fas fa-phone me-2" style="color:var(--red);width:14px;"></i>0535 415 47 99</a>
+            <a href="mailto:destek@gruptalepleri.com"><i class="fas fa-envelope me-2" style="color:var(--red);width:14px;"></i>destek@gruptalepleri.com</a>
+            <div style="margin-top:0.8rem;">
+                <a href="https://www.instagram.com/grup.talepleri" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.78rem;color:rgba(255,255,255,0.6);transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(233,69,96,0.5)';this.style.color='#fff';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.6)';">
+                    <i class="fab fa-instagram" style="color:#e1306c;"></i> @grup.talepleri
+                </a>
+            </div>
+        </div>
+
+        {{-- Sağ: Yasal / Fatura --}}
+        <div class="footer-col">
+            <div class="footer-col-title">Fatura Bilgileri</div>
+            <p style="font-weight:600;color:rgba(255,255,255,0.75);">Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</p>
+            <p>Vergi Dairesi: Beyoğlu VD</p>
+            <p>Vergi No: 4110477529</p>
+            <p>Mersis / Ünvan:<br>Group Ticket Turizm Seyahat Acentası</p>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        <div class="footer-text">© {{ date('Y') }} GrupTalepleri &nbsp;·&nbsp; Tüm hakları saklıdır &nbsp;·&nbsp; Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</div>
+        <div class="footer-vergi">TÜRSAB A Grubu Belge No: 12572 &nbsp;·&nbsp; Vergi No: 4110477529</div>
+    </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -476,6 +750,36 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
         if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
     });
 });
+
+// Counter animasyonu — sayı sıfırdan hedef değere animasyonla çıkar
+function animateCounter(el) {
+    const target   = parseInt(el.dataset.target, 10);
+    const duration = 1800; // ms
+    const start    = performance.now();
+
+    function step(now) {
+        const elapsed  = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease-out cubic
+        const eased    = 1 - Math.pow(1 - progress, 3);
+        const current  = Math.round(eased * target);
+        el.textContent = current.toLocaleString('tr-TR');
+        if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+// IntersectionObserver ile görünür olunca başlat
+const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+            entry.target.dataset.animated = '1';
+            animateCounter(entry.target);
+        }
+    });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
 </script>
 </body>
 </html>

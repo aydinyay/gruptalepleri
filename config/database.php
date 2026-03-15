@@ -64,6 +64,25 @@ return [
             ]) : [],
         ],
 
+        // Eski gruprez sistemi — sadece okuma için
+        'legacy' => [
+            'driver'    => 'mysql',
+            'host'      => env('LEGACY_DB_HOST', '127.0.0.1'),
+            'port'      => env('LEGACY_DB_PORT', '3306'),
+            'database'  => env('LEGACY_DB_DATABASE', 'gruprez1_vt'),
+            'username'  => env('LEGACY_DB_USERNAME', 'root'),
+            'password'  => env('LEGACY_DB_PASSWORD', ''),
+            // Eski sistemler genellikle utf8 (3-byte) kullanır, utf8mb4 değil.
+            // Eğer hâlâ bozuk karakter gelirse LEGACY_DB_CHARSET=latin1 dene.
+            'charset'   => env('LEGACY_DB_CHARSET', 'utf8'),
+            'collation' => 'utf8_unicode_ci',
+            'prefix'    => '',
+            'strict'    => false,
+            'options'   => [
+                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . env('LEGACY_DB_CHARSET', 'utf8'),
+            ],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

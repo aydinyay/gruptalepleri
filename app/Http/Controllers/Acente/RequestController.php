@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Controller;
+use App\Models\Airport;
 use App\Models\Request as TalepModel;
 use App\Models\RequestLog;
 use App\Services\GtpnrService;
+use App\Services\EmailService;
 use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
@@ -46,7 +48,7 @@ class RequestController extends Controller
             'user_id' => auth()->id(),
             'type' => 'group_flight',
             'status' => 'beklemede',
-            'agency_name' => $validated['agency_name'],
+            'agency_name' => mb_strtoupper($validated['agency_name'], 'UTF-8'),
             'phone' => $validated['phone'],
             'email' => $validated['email'],
             'group_company_name' => $validated['group_company_name'] ?? null,
@@ -62,11 +64,28 @@ class RequestController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
+        // Havalimanı adlarını toplu çek
+        $iataCodes = collect($validated['segments'])->flatMap(fn($s) => [
+            strtoupper($s['from_iata']),
+            strtoupper($s['to_iata']),
+        ])->unique()->values();
+
+        $airportMap = Airport::whereIn('iata', $iataCodes)
+            ->get(['iata', 'city', 'name', 'country_tr', 'country'])
+            ->keyBy('iata');
+
         foreach ($validated['segments'] as $index => $segment) {
+            $fromIata = strtoupper($segment['from_iata']);
+            $toIata   = strtoupper($segment['to_iata']);
+            $fromAp   = $airportMap[$fromIata] ?? null;
+            $toAp     = $airportMap[$toIata]   ?? null;
+
             $talep->segments()->create([
-                'order' => $index,
-                'from_iata' => strtoupper($segment['from_iata']),
-                'to_iata' => strtoupper($segment['to_iata']),
+                'order'          => $index,
+                'from_iata'      => $fromIata,
+                'from_city'      => $fromAp ? ($fromAp->city ?: $fromAp->name) : null,
+                'to_iata'        => $toIata,
+                'to_city'        => $toAp ? ($toAp->city ?: $toAp->name) : null,
                 'departure_date' => $segment['departure_date'],
                 'departure_time' => $segment['departure_time'] ?? null,
             ]);
@@ -87,6 +106,9 @@ class RequestController extends Controller
         // SMS
         $smsMsg = 'Yeni grup talebi: ' . $talep->gtpnr . ' | ' . $talep->agency_name . ' | ' . $talep->pax_total . ' PAX | ' . $talep->phone;
         (new SmsService())->sendByEvent('new_request', $talep->id, $smsMsg);
+
+        // Email
+        (new EmailService())->yeniTalep($talep->id, $talep->gtpnr, $talep->agency_name, $talep->pax_total, $url);
 
         return redirect()->route('acente.requests.show', $talep->gtpnr);
     }
@@ -173,6 +195,9 @@ class RequestController extends Controller
         // SMS
         $smsMsg = $talep->gtpnr . ' teklif kabul edildi: ' . ($teklif->airline ?? '—') . ' — ' . number_format($teklif->price_per_pax, 0) . ' ' . $teklif->currency . '/kişi | Acente: ' . $talep->agency_name;
         (new SmsService())->sendByEvent('offer_accepted', $talep->id, $smsMsg);
+
+        // Email
+        (new EmailService())->teklifKabul($talep->id, $talep->gtpnr, $talep->agency_name, $teklif->airline ?? '—', $url);
 
         // WhatsApp'a yönlendir
         $mesaj = $talep->gtpnr . ' numaralı talebim için ' . ($teklif->airline ?? '') . ' teklifini kabul ediyorum. Depozito ödemesi için bilgi alabilir miyim?';

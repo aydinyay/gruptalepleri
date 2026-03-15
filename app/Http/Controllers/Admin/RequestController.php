@@ -7,6 +7,7 @@ use App\Models\Request as TalepModel;
 use App\Models\Offer;
 use App\Models\RequestLog;
 use App\Models\RequestPayment;
+use App\Services\EmailService;
 use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\Auth;
@@ -15,10 +16,13 @@ use Illuminate\Support\Facades\Http;
 
 class RequestController extends Controller
 {
+    // Aktif olmayan statüler — varsayılan görünümde gizlenir
+    private array $pasifStatusler = ['biletlendi', 'olumsuz', 'iade', 'iptal'];
+
     public function index(Request $request)
     {
-        $query = TalepModel::with(['user', 'segments'])
-            ->orderBy('created_at', 'desc');
+        $query = TalepModel::with(['user', 'segments', 'offers'])
+            ->orderBy('id', 'desc');
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -29,8 +33,13 @@ class RequestController extends Controller
             });
         }
 
-        if ($request->filled('durum')) {
+        if ($request->input('durum') === 'tumu') {
+            // Arşiv dahil tümü — filtre uygulanmaz
+        } elseif ($request->filled('durum')) {
             $query->where('status', $request->durum);
+        } else {
+            // Varsayılan: sadece aktif talepler
+            $query->whereNotIn('status', $this->pasifStatusler);
         }
 
         if ($request->filled('tarih_baslangic')) {
@@ -47,7 +56,9 @@ class RequestController extends Controller
             ->groupBy('status')
             ->pluck('toplam', 'status');
 
-        return view('admin.requests.index', compact('talepler', 'durumSayilari'));
+        $aktifSayisi = TalepModel::whereNotIn('status', $this->pasifStatusler)->count();
+
+        return view('admin.requests.index', compact('talepler', 'durumSayilari', 'aktifSayisi'));
     }
 
     public function show($gtpnr)
@@ -62,6 +73,16 @@ class RequestController extends Controller
     public function updateStatus(Request $request, $gtpnr)
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+
+        if ($talep->status === 'biletlendi') {
+            return back()->with('error', 'Biletlenmiş talepler değiştirilemez.');
+        }
+
+        $geçerliDurumlar = ['beklemede', 'islemde', 'fiyatlandirıldi', 'depozitoda', 'biletlendi', 'iade', 'olumsuz'];
+        if (!in_array($request->status, $geçerliDurumlar)) {
+            return back()->with('error', 'Geçersiz durum.');
+        }
+
         $eskiDurum = $talep->status;
         $talep->update(['status' => $request->status]);
 
@@ -71,6 +92,12 @@ class RequestController extends Controller
             'description' => 'Durum değişti: ' . $eskiDurum . ' → ' . $request->status,
             'user_id'     => auth()->id(),
         ]);
+
+        // Acenteye durum değişikliği emaili
+        if ($talep->user_id) {
+            $acenteUrl = route('acente.requests.show', $talep->gtpnr);
+            (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $request->status, $acenteUrl);
+        }
 
         return back()->with('success', 'Durum güncellendi.');
     }
@@ -109,6 +136,7 @@ class RequestController extends Controller
             'option_time'           => $request->option_time ?: null,
             'offer_text'            => $request->offer_text,
             'admin_raw_note'        => $request->admin_raw_note,
+            'ai_raw_output'         => $request->ai_raw_output ? json_decode($request->ai_raw_output, true) : null,
             'created_by'            => auth()->user()->name,
         ]);
 
@@ -134,6 +162,11 @@ class RequestController extends Controller
 
         // Admin/superadmin'e de offer_added event bildirimi (SMS ayarlarında kurallıysa)
         (new SmsService())->sendByEvent('offer_added', $talep->id, $talep->gtpnr . ' teklif eklendi: ' . $request->airline . ' — ' . $request->price_per_pax . ' ' . $currency . '/kişi');
+
+        // Acenteye email
+        if ($talep->user_id) {
+            (new EmailService())->teklifEklendi($talep->id, $talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
+        }
 
         $successMsg = 'Teklif eklendi.';
 
@@ -179,8 +212,7 @@ class RequestController extends Controller
 
     public function aiParse(Request $request, $gtpnr)
     {
-        TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
-
+        $talep   = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $rawNote = $request->input('raw_note');
 
         $prompt = 'Aşağıdaki serbest metin operasyon notundan yapılandırılmış veri çıkar. '
@@ -220,6 +252,23 @@ class RequestController extends Controller
         if (!$data) {
             return response()->json(['error' => 'JSON parse hatası: ' . $text], 500);
         }
+
+        // AI parse olayını logla — ham metin + AI özeti birlikte saklanır
+        $logDesc  = "HAM METİN:\n" . mb_substr($rawNote, 0, 800);
+        $logDesc .= "\n\nAI ÖZET: ";
+        $logDesc .= implode(' | ', array_filter([
+            $data['airline']      ?? null,
+            $data['airline_pnr']  ?? null,
+            $data['flight_number'] ?? null,
+            isset($data['price_per_pax']) ? ($data['price_per_pax'] . ' ' . ($data['currency'] ?? '')) : null,
+        ]));
+
+        RequestLog::create([
+            'request_id'  => $talep->id,
+            'action'      => 'ai_parse',
+            'description' => $logDesc,
+            'user_id'     => auth()->id(),
+        ]);
 
         return response()->json(['data' => $data]);
     }

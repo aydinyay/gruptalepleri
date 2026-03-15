@@ -38,6 +38,8 @@
             offer_added:     '💰',
             offer_accepted:  '✅',
             opsiyon_uyarisi: '⚠️',
+            broadcast:       '📢',
+            email_sent:      '📧',
         };
         return icons[type] ?? '🔔';
     }

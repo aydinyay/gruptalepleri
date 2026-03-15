@@ -2,29 +2,39 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Admin | {{ $talep->gtpnr }}</title>
+    <title>{{ $talep->gtpnr }} — Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: 600; margin-bottom: 0.75rem; }
         .field-label { font-size: 0.75rem; color: #6c757d; }
         .ai-field { background: #fff3cd; border-left: 3px solid #ffc107; }
     </style>
 </head>
 <body>
+
+<x-navbar-admin active="talepler" />
+
 <div class="container-fluid px-4 py-3">
 
     {{-- HEADER --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h4 class="fw-bold mb-0">{{ $talep->gtpnr }}</h4>
-            <small class="text-muted">{{ $talep->agency_name }} · {{ $talep->pax_total }} PAX · {{ $talep->created_at->format('d.m.Y') }}</small>
+            <small class="text-muted">
+                @if($talep->agency_name === 'MÜNFERİT')
+                    <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>
+                @else
+                    {{ $talep->agency_name }}
+                @endif
+                · {{ $talep->pax_total }} PAX · {{ $talep->created_at->format('d.m.Y') }}
+            </small>
         </div>
         <div class="d-flex gap-2 align-items-center">
-            <x-notification-bell />
-            <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">← Geri</a>
+            <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">← Talepler</a>
             <a href="/acente/talep/{{ $talep->gtpnr }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Görünümü →</a>
         </div>
     </div>
@@ -45,11 +55,24 @@
             <div class="card mb-3">
                 <div class="card-header py-2 d-flex justify-content-between align-items-center">
                     <span class="fw-bold">📋 Talep Bilgileri</span>
-                    <span class="badge bg-secondary">{{ $talep->status }}</span>
+                    @php
+                        $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
+                        $durumRenkleri   = ['beklemede'=>'secondary','islemde'=>'primary','fiyatlandirıldi'=>'warning','depozitoda'=>'purple','biletlendi'=>'success','iade'=>'danger','olumsuz'=>'dark'];
+                    @endphp
+                    <span class="badge" style="background-color:{{ ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirıldi'=>'#ffc107','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'][$talep->status] ?? '#6c757d' }}; {{ $talep->status==='fiyatlandirıldi'?'color:#000;':'' }}">
+                        {{ $durumEtiketleri[$talep->status] ?? $talep->status }}
+                    </span>
+                    <x-iade-badge :talep="$talep" />
                 </div>
                 <div class="card-body py-2">
                     <div class="row g-2">
-                        <div class="col-6 col-md-3"><div class="field-label">Acente</div><div class="fw-bold">{{ $talep->agency_name }}</div></div>
+                        <div class="col-6 col-md-3"><div class="field-label">Acente</div><div class="fw-bold">
+                            @if($talep->agency_name === 'MÜNFERİT')
+                                <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>
+                            @else
+                                {{ $talep->agency_name }}
+                            @endif
+                        </div></div>
                         <div class="col-6 col-md-3"><div class="field-label">Telefon</div><div>{{ $talep->phone }}</div></div>
                         <div class="col-6 col-md-3"><div class="field-label">E-posta</div><div>{{ $talep->email }}</div></div>
                         <div class="col-6 col-md-3"><div class="field-label">PAX</div><div class="fw-bold">{{ $talep->pax_total }} (Y:{{ $talep->pax_adult }} Ç:{{ $talep->pax_child }} B:{{ $talep->pax_infant }})</div></div>
@@ -169,6 +192,7 @@
                                 <input type="text" name="supplier_reference" id="f-supplier-ref" class="form-control form-control-sm" placeholder="KUNEYILD2633080">
                             </div>
                             <input type="hidden" name="admin_raw_note" id="f-raw-note">
+                            <input type="hidden" name="ai_raw_output" id="f-ai-raw-output">
 
                             {{-- Gizli ödeme alanları: AI parse varsa otomatik kaydedilir --}}
                             <input type="hidden" name="p_amount" id="f-p-amount">
@@ -281,17 +305,23 @@
             <div class="card mb-3">
                 <div class="card-header py-2 fw-bold">🔄 Durum Güncelle</div>
                 <div class="card-body py-2">
+                    @if($talep->status === 'biletlendi')
+                        <div class="alert alert-warning py-2 mb-0 small">
+                            <i class="fas fa-lock me-1"></i>Biletlenmiş talepler değiştirilemez.
+                        </div>
+                    @else
                     <form method="POST" action="{{ route('admin.requests.status', $talep->gtpnr) }}">
                         @csrf
                         <div class="input-group input-group-sm">
                             <select name="status" class="form-select">
-                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iptal'=>'İptal'] as $val => $label)
+                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
                                 <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                             <button type="submit" class="btn btn-primary">Güncelle</button>
                         </div>
                     </form>
+                    @endif
                 </div>
             </div>
 
@@ -368,6 +398,31 @@
                         </div>
                         @if($teklif->offer_text)<div class="mt-1 text-muted">{{ $teklif->offer_text }}</div>@endif
                         @if($teklif->created_by)<div class="text-muted mt-1" style="font-size:0.7rem;">Hazırlayan: {{ $teklif->created_by }}</div>@endif
+
+                        {{-- Ham not + AI çıktısı (admin iç kontrol) --}}
+                        @if($teklif->admin_raw_note || $teklif->ai_raw_output)
+                        <div class="mt-2">
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.7rem;"
+                                    type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#raw-{{ $teklif->id }}">
+                                🔍 Ham Veri &amp; AI Kaydı
+                            </button>
+                            <div class="collapse mt-2" id="raw-{{ $teklif->id }}">
+                                @if($teklif->admin_raw_note)
+                                <div class="mb-2">
+                                    <div class="fw-semibold" style="font-size:0.72rem;color:#6c757d;text-transform:uppercase;letter-spacing:.05em;">Ham Operasyon Notu</div>
+                                    <pre class="bg-light border rounded p-2 mb-0" style="font-size:0.75rem;white-space:pre-wrap;max-height:180px;overflow-y:auto;">{{ $teklif->admin_raw_note }}</pre>
+                                </div>
+                                @endif
+                                @if($teklif->ai_raw_output)
+                                <div>
+                                    <div class="fw-semibold" style="font-size:0.72rem;color:#6c757d;text-transform:uppercase;letter-spacing:.05em;">AI Ayrıştırma Çıktısı</div>
+                                    <pre class="bg-light border rounded p-2 mb-0" style="font-size:0.72rem;white-space:pre-wrap;max-height:180px;overflow-y:auto;">{{ json_encode($teklif->ai_raw_output, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
                     </div>
                     @endforeach
                 </div>
@@ -482,10 +537,24 @@
                 <div class="card-body py-2 small">
                     <div class="text-muted mb-1">{{ $talep->created_at->format('d.m.Y H:i') }} — Talep oluşturuldu</div>
                     @foreach($talep->logs as $log)
+                    @if($log->action === 'ai_parse')
+                    <div class="mb-1">
+                        <span class="text-muted">{{ $log->created_at->format('d.m.Y H:i') }}</span>
+                        — <span class="badge bg-warning text-dark" style="font-size:0.68rem;">🤖 AI Parse</span>
+                        @if($log->user)<span class="text-primary">· {{ $log->user->name }}</span>@endif
+                        <button class="btn btn-link btn-sm p-0 ms-1" style="font-size:0.72rem;"
+                                type="button" data-bs-toggle="collapse"
+                                data-bs-target="#log-ai-{{ $log->id }}">detay</button>
+                        <div class="collapse" id="log-ai-{{ $log->id }}">
+                            <pre class="bg-light border rounded p-2 mt-1 mb-0" style="font-size:0.7rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;">{{ $log->description }}</pre>
+                        </div>
+                    </div>
+                    @else
                     <div class="text-muted mb-1">
                         {{ $log->created_at->format('d.m.Y H:i') }} — {{ $log->description }}
                         @if($log->user)<span class="text-primary">· {{ $log->user->name }}</span>@endif
                     </div>
+                    @endif
                     @endforeach
                 </div>
             </div>
@@ -708,7 +777,8 @@ async function aiParseBaslat() {
             document.getElementById('f-option-date').value = parts[0] ?? '';
             document.getElementById('f-option-time').value = parts[1] ?? '';
         }
-        document.getElementById('f-raw-note').value = rawNote;
+        document.getElementById('f-raw-note').value     = rawNote;
+        document.getElementById('f-ai-raw-output').value = JSON.stringify(d);
 
         // Ödeme formu (bağımsız form)
         if (d.payment_method) document.getElementById('p-method').value   = d.payment_method;

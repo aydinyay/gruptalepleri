@@ -25,6 +25,12 @@
             <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 {{ $slot }}
             </div>
+
+            <div class="mt-6 text-center" style="font-size:0.72rem;color:#9ca3af;line-height:1.8;">
+                <div>Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</div>
+                <div>İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli/İstanbul &nbsp;·&nbsp; 0535 415 47 99</div>
+                <div>Beyoğlu VD · Vergi No: 4110477529 &nbsp;·&nbsp; TÜRSAB A Grubu Belge No: 12572</div>
+            </div>
         </div>
     </body>
 </html>

@@ -13,3 +13,6 @@ Schedule::command('opsiyon:check')->everyMinute();
 
 // Zamanlanmış SMS'leri her dakika kontrol et ve gönder
 Schedule::command('sms:send-scheduled')->everyMinute();
+
+// Zamanlanmış broadcast duyurularını her dakika kontrol et ve gönder
+Schedule::command('broadcast:send-scheduled')->everyMinute();

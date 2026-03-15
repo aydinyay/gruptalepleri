@@ -9,11 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; font-size: 1.3rem; }
-        .nav-link-custom { color: rgba(255,255,255,0.7) !important; font-size: 0.875rem; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; text-decoration: none; }
-        .nav-link-custom:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
-
         .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-2px); }
         .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
@@ -63,27 +58,7 @@
 </head>
 <body>
 
-{{-- NAVBAR --}}
-<nav class="navbar navbar-dark mb-0">
-    <div class="container-fluid px-4">
-        <a class="navbar-brand" href="#">✈️ GrupTalepleri <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-weight:400;">ADMIN</span></a>
-        <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('admin.requests.index') }}" class="nav-link-custom">
-                <i class="fas fa-list me-1"></i> Talepler
-            </a>
-            <a href="{{ route('profile.edit') }}" class="nav-link-custom d-none d-md-block border-start border-secondary ps-3 ms-1" title="Profil Ayarları">
-                <i class="fas fa-user-cog me-1"></i>{{ auth()->user()->name }}
-            </a>
-            <x-notification-bell />
-            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-1">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm" title="Çıkış">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </form>
-        </div>
-    </div>
-</nav>
+<x-navbar-admin active="dashboard" />
 
 {{-- PAGE HEADER --}}
 <div class="page-header">
@@ -120,8 +95,9 @@
             ->orderByRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') ASC")
             ->get();
 
-        // Son talepler (tüm durumlar)
+        // Son talepler — aktif durumlar (biletlendi/olumsuz/iade hariç)
         $sonTalepler = \App\Models\Request::with('segments')
+            ->whereNotIn('status', ['biletlendi', 'olumsuz', 'iade', 'iptal'])
             ->orderBy('created_at','desc')
             ->limit(10)
             ->get();
@@ -280,7 +256,12 @@
                                     &nbsp;·&nbsp;
                                     <i class="fas fa-clock me-1"></i>{{ $talep->created_at->diffForHumans() }}
                                     @if($talep->agency_name)
-                                        &nbsp;·&nbsp; {{ $talep->agency_name }}
+                                        &nbsp;·&nbsp;
+                                        @if($talep->agency_name === 'MÜNFERİT')
+                                            <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>
+                                        @else
+                                            {{ $talep->agency_name }}
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -334,7 +315,13 @@
                             @endphp
                             <tr>
                                 <td><strong>{{ $talep->gtpnr }}</strong></td>
-                                <td class="text-muted">{{ $talep->agency_name ?? '—' }}</td>
+                                <td class="text-muted">
+                                    @if(($talep->agency_name ?? '') === 'MÜNFERİT')
+                                        <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>
+                                    @else
+                                        {{ $talep->agency_name ?? '—' }}
+                                    @endif
+                                </td>
                                 <td>
                                     @foreach($talep->segments as $seg)
                                         <span class="badge bg-light text-dark border" style="font-size:0.68rem;">{{ $seg->from_iata }}→{{ $seg->to_iata }}</span>

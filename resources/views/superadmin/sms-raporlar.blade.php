@@ -9,10 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: #1a1a2e !important; }
-        .navbar-brand { color: #e94560 !important; font-weight: 700; }
-        .nav-link-custom { color: rgba(255,255,255,0.7) !important; font-size: 0.875rem; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
-        .nav-link-custom:hover, .nav-link-custom.active { color: #fff !important; background: rgba(255,255,255,0.08); }
         .page-header { background: #1a1a2e; padding: 1.2rem 0; margin-bottom: 1.5rem; }
         .page-header h5 { color: #fff; font-weight: 700; margin: 0; }
         .page-header p { color: rgba(255,255,255,0.5); font-size: 0.82rem; margin: 0; }
@@ -23,25 +19,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-dark">
-    <div class="container-fluid px-4">
-        <a class="navbar-brand" href="{{ route('superadmin.dashboard') }}">✈️ GrupTalepleri <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-weight:400;">SUPERADMIN</span></a>
-        <div class="d-flex align-items-center gap-1">
-            <a href="{{ route('superadmin.dashboard') }}" class="nav-link-custom">Dashboard</a>
-            <a href="{{ route('superadmin.acenteler') }}" class="nav-link-custom">Acenteler</a>
-            <a href="{{ route('superadmin.sms.ayarlar') }}" class="nav-link-custom">SMS Ayarları</a>
-            <a href="{{ route('superadmin.sms.raporlar') }}" class="nav-link-custom active">SMS Raporlar</a>
-            <x-notification-bell />
-            <a href="{{ route('profile.edit') }}" class="nav-link-custom border-start border-secondary ps-3 ms-1" title="Profil Ayarları">
-                <i class="fas fa-user-cog me-1"></i>{{ auth()->user()->name }}
-            </a>
-            <form method="POST" action="{{ route('logout') }}" class="d-inline ms-2">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt"></i></button>
-            </form>
-        </div>
-    </div>
-</nav>
+<x-navbar-superadmin active="sms-raporlar" />
 
 <div class="page-header">
     <div class="container-fluid px-4">
