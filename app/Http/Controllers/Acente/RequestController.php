@@ -115,9 +115,11 @@ class RequestController extends Controller
 
     public function aiAnaliz(Request $request, $gtpnr)
     {
-        TalepModel::where('gtpnr', $gtpnr)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
+        $query = TalepModel::where('gtpnr', $gtpnr);
+        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+            $query->where('user_id', auth()->id());
+        }
+        $query->firstOrFail();
 
         $prompt = $request->input('prompt');
 
@@ -149,9 +151,11 @@ class RequestController extends Controller
 
     public function aiKaydet(Request $request, $gtpnr)
     {
-        $talep = TalepModel::where('gtpnr', $gtpnr)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
+        $query = TalepModel::where('gtpnr', $gtpnr);
+        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+            $query->where('user_id', auth()->id());
+        }
+        $talep = $query->firstOrFail();
 
         $talep->update([
             'ai_analysis'            => $request->input('html'),
