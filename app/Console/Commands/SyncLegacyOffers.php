@@ -39,12 +39,6 @@ class SyncLegacyOffers extends Command
         foreach ($talepler as $talep) {
             $bar->advance();
 
-            // Zaten görünür offer varsa atla (sadece yeni oluşturulanlar için, force-update yok)
-            if ($talep->offers->where('is_visible', true)->whereNotNull('option_date')->count() > 0) {
-                $skipped++;
-                continue;
-            }
-
             // Eski DB'de bul
             try {
                 $legacy_r = $legacy->table('grupmesajlari')
@@ -55,8 +49,33 @@ class SyncLegacyOffers extends Command
                 continue;
             }
 
+            if (!$legacy_r) {
+                $skipped++;
+                continue;
+            }
+
+            // Notes alanını HER ZAMAN düzelt (offer skip'ten bağımsız)
+            $cevapMetniCheck = trim($legacy_r->cevapmetni ?? '') ?: null;
+            if ($cevapMetniCheck) {
+                // cevapmetni varsa notlar da admin yazmıştır → notes temizle
+                if ($talep->notes !== null) {
+                    $talep->update(['notes' => null]);
+                }
+            } else {
+                $acenteNotu = trim($legacy_r->notlar ?? '') ?: null;
+                if ($acenteNotu !== null && $talep->notes !== $acenteNotu) {
+                    $talep->update(['notes' => $acenteNotu]);
+                }
+            }
+
+            // Zaten görünür offer varsa offer sync'i atla
             $rawTarih = trim($legacy_r->opsiyontarihi ?? '');
-            if (!$legacy_r || !$rawTarih || $rawTarih === '0000-00-00' || str_starts_with($rawTarih, '0000')) {
+            if ($talep->offers->where('is_visible', true)->whereNotNull('option_date')->count() > 0) {
+                $skipped++;
+                continue;
+            }
+
+            if (!$rawTarih || $rawTarih === '0000-00-00' || str_starts_with($rawTarih, '0000')) {
                 $noData++;
                 continue;
             }
@@ -77,7 +96,7 @@ class SyncLegacyOffers extends Command
             $currency   = strtoupper(trim($legacy_r->parabirimi ?? 'TRY')) ?: 'TRY';
             $pax        = max(1, (int)($legacy_r->pax ?? $legacy_r->kisisayisi ?? 1));
             $perPax     = ($fiyat > 0 && $pax > 0) ? round($fiyat / $pax, 2) : null;
-            $cevapMetni = trim($legacy_r->cevapmetni ?? '') ?: null;
+            $cevapMetni = $cevapMetniCheck;
 
             $this->newLine();
             $this->line(sprintf(
