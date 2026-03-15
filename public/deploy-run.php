@@ -30,7 +30,11 @@ if ($action === 'migrate') {
     $kernel->call('airlines:import');
 } elseif ($action === 'sync-legacy-offers') {
     set_time_limit(300);
-    $kernel->call('legacy:sync-offers');
+    try {
+        $kernel->call('legacy:sync-offers');
+    } catch (\Throwable $e) {
+        echo "HATA: " . $e->getMessage() . "\n" . $e->getTraceAsString();
+    }
 }
 
 $output = ob_get_clean();
