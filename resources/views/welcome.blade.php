@@ -31,6 +31,7 @@
 <meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
 
 {{-- JSON-LD Yapılandırılmış Veri (Google arama sonucu zengin snippet) --}}
+@verbatim
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -57,6 +58,7 @@
   "openingHours": "Mo-Fr 09:00-18:00"
 }
 </script>
+@endverbatim
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
