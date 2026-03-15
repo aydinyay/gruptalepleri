@@ -852,6 +852,11 @@ async function aiParseBaslat() {
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
             body: JSON.stringify({ raw_note: rawNote })
         });
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            alert('Sunucu hatası (HTTP ' + res.status + '). Lütfen sayfayı yenileyip tekrar deneyin.');
+            return;
+        }
         const json = await res.json();
         if (json.error) { alert('Hata: ' + json.error); return; }
 
