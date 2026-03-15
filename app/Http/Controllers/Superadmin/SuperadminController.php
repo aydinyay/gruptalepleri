@@ -39,6 +39,28 @@ class SuperadminController extends Controller
         return back()->with('success', 'Rol güncellendi.');
     }
 
+    public function acenteGuncelle(Agency $agency, Request $request)
+    {
+        $request->validate([
+            'company_title' => 'required|string|max:200',
+            'tourism_title' => 'nullable|string|max:200',
+            'contact_name'  => 'nullable|string|max:150',
+            'phone'         => 'nullable|string|max:50',
+            'email'         => 'nullable|email|max:150',
+            'tursab_no'     => 'nullable|string|max:50',
+            'tax_number'    => 'nullable|string|max:50',
+            'tax_office'    => 'nullable|string|max:100',
+            'address'       => 'nullable|string|max:500',
+        ]);
+
+        $agency->update($request->only([
+            'company_title', 'tourism_title', 'contact_name',
+            'phone', 'email', 'tursab_no', 'tax_number', 'tax_office', 'address',
+        ]));
+
+        return back()->with('success', "{$agency->company_title} güncellendi.");
+    }
+
     public function acenteSil(Agency $agency)
     {
         $user = $agency->user;
@@ -151,6 +173,17 @@ class SuperadminController extends Controller
         SmsNotificationSetting::create($request->only('label', 'phone', 'event'));
 
         return back()->with('success', 'SMS bildirimi eklendi.');
+    }
+
+    public function smsAyarGuncelle(SmsNotificationSetting $ayar, Request $request)
+    {
+        $request->validate([
+            'label' => 'required|string|max:100',
+            'phone' => 'required|string|max:200',
+            'event' => 'required|in:new_agency,new_request,offer_added,offer_accepted,all',
+        ]);
+        $ayar->update($request->only('label', 'phone', 'event'));
+        return back()->with('success', 'SMS kuralı güncellendi.');
     }
 
     public function smsAyarToggle(SmsNotificationSetting $ayar)

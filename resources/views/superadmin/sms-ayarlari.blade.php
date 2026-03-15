@@ -173,6 +173,10 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" title="Düzenle"
+                                            onclick="smsDuzenle({{ $ayar->id }}, {{ json_encode($ayar->label) }}, {{ json_encode($ayar->phone) }}, '{{ $ayar->event }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
                                         <form method="POST" action="{{ route('superadmin.sms.toggle', $ayar) }}">
                                             @csrf
                                             <button type="submit" class="btn btn-sm {{ $ayar->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
@@ -341,6 +345,58 @@
 
 </div>
 
+{{-- SMS KURAL DÜZENLEME MODAL --}}
+<div class="modal fade" id="smsEditModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="smsEditForm">
+                @csrf @method('PATCH')
+                <div class="modal-header" style="background:#1a1a2e;">
+                    <h5 class="modal-title text-white"><i class="fas fa-edit me-2" style="color:#e94560;"></i>SMS Kuralı Düzenle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Kişi / Etiket</label>
+                        <input type="text" name="label" id="se_label" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Telefon Numarası</label>
+                        <input type="text" name="phone" id="se_phone" class="form-control form-control-sm" required>
+                        <div class="form-text">Virgülle ayırarak birden fazla numara girebilirsiniz</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Olay</label>
+                        <select name="event" id="se_event" class="form-select form-select-sm" required>
+                            @foreach($events as $event)
+                            <option value="{{ $event }}">{{ \App\Models\SmsNotificationSetting::eventLabel($event) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm text-white fw-bold" style="background:#e94560;">
+                        <i class="fas fa-save me-1"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const smsEditModal = new bootstrap.Modal(document.getElementById('smsEditModal'));
+const smsEditForm  = document.getElementById('smsEditForm');
+
+function smsDuzenle(id, label, phone, event) {
+    smsEditForm.action = '/superadmin/sms-ayarlari/' + id;
+    document.getElementById('se_label').value = label || '';
+    document.getElementById('se_phone').value = phone || '';
+    document.getElementById('se_event').value = event || '';
+    smsEditModal.show();
+}
+</script>
 </body>
 </html>

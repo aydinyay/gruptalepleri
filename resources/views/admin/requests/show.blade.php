@@ -496,6 +496,18 @@
                                 <span class="badge {{ $odeme->status === 'alindi' ? 'bg-success' : ($odeme->status === 'iade' ? 'bg-danger' : 'bg-warning text-dark') }}">
                                     {{ number_format($odeme->amount, 0) }} {{ $odeme->currency }}
                                 </span>
+                                <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size:0.7rem;" title="Düzenle"
+                                    onclick="odemeDuzenle(
+                                        {{ $odeme->id }},
+                                        '{{ route('admin.requests.payment.update', [$talep->gtpnr, $odeme->id]) }}',
+                                        {{ $odeme->sequence }}, '{{ $odeme->payment_type }}',
+                                        '{{ $odeme->payment_method }}', {{ json_encode($odeme->bank_name) }},
+                                        {{ json_encode($odeme->sender_masked) }}, {{ json_encode($odeme->account_masked) }},
+                                        {{ $odeme->amount }}, '{{ $odeme->currency }}',
+                                        '{{ $odeme->payment_date?->format('Y-m-d') }}', '{{ $odeme->status }}'
+                                    )">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form method="POST" action="{{ route('admin.requests.payment.delete', [$talep->gtpnr, $odeme->id]) }}" class="sil-form">
                                     @csrf @method('DELETE')
                                     <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size:0.7rem;"
@@ -707,6 +719,91 @@
     </div>
 </div>
 
+{{-- ÖDEME DÜZENLEME MODALI --}}
+<div class="modal fade" id="odemeDuzenleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="odemeDuzenleForm">
+                @csrf @method('PATCH')
+                <div class="modal-header py-2" style="background:#1a1a2e;">
+                    <h6 class="modal-title text-white fw-bold mb-0"><i class="fas fa-edit me-2" style="color:#e94560;"></i>Ödeme Düzenle</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Sıra No</label>
+                            <input type="number" name="sequence" id="od_sequence" class="form-control form-control-sm" min="1">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Ödeme Tipi</label>
+                            <select name="payment_type" id="od_type" class="form-select form-select-sm">
+                                <option value="depozito">Depozito</option>
+                                <option value="bakiye">Bakiye</option>
+                                <option value="full">Full</option>
+                                <option value="diger">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Durum</label>
+                            <select name="status" id="od_status" class="form-select form-select-sm">
+                                <option value="alindi">Alındı</option>
+                                <option value="bekleniyor">Bekleniyor</option>
+                                <option value="iade">İade</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Yöntem</label>
+                            <select name="payment_method" id="od_method" class="form-select form-select-sm">
+                                <option value="">Seç</option>
+                                <option value="FAST">FAST</option>
+                                <option value="EFT">EFT</option>
+                                <option value="havale">Havale</option>
+                                <option value="kart">Kart</option>
+                                <option value="nakit">Nakit</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Banka</label>
+                            <input type="text" name="bank_name" id="od_bank" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Gönderen</label>
+                            <input type="text" name="sender_masked" id="od_sender" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Hesap</label>
+                            <input type="text" name="account_masked" id="od_account" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Tutar</label>
+                            <input type="number" name="amount" id="od_amount" class="form-control form-control-sm" step="0.01" required>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small fw-bold">Para Birimi</label>
+                            <select name="currency" id="od_currency" class="form-select form-select-sm">
+                                <option value="TRY">TRY</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small fw-bold">Tarih</label>
+                            <input type="date" name="payment_date" id="od_date" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">
+                        <i class="fas fa-save me-1"></i>Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{-- SİLME ONAY MODALI --}}
 <div class="modal fade" id="silOnayModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -852,6 +949,25 @@ function teklifDuzenle(id, data) {
 // Silme onay modali
 let silFormPending = null;
 const silModal = new bootstrap.Modal(document.getElementById('silOnayModal'));
+
+// ── ÖDEME DÜZENLEME ────────────────────────────────────────────────────────
+const odemeDuzenleModal = new bootstrap.Modal(document.getElementById('odemeDuzenleModal'));
+const odemeDuzenleForm  = document.getElementById('odemeDuzenleForm');
+
+function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, amount, currency, date, status) {
+    odemeDuzenleForm.action = url;
+    document.getElementById('od_sequence').value = sequence || 1;
+    document.getElementById('od_type').value     = type     || 'depozito';
+    document.getElementById('od_method').value   = method   || '';
+    document.getElementById('od_bank').value     = bank     || '';
+    document.getElementById('od_sender').value   = sender   || '';
+    document.getElementById('od_account').value  = account  || '';
+    document.getElementById('od_amount').value   = amount   || '';
+    document.getElementById('od_currency').value = currency || 'TRY';
+    document.getElementById('od_date').value     = date     || '';
+    document.getElementById('od_status').value   = status   || 'alindi';
+    odemeDuzenleModal.show();
+}
 
 function silOnayGoster(form, baslik, detay) {
     silFormPending = form;

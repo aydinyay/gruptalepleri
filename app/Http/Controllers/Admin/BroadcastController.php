@@ -73,4 +73,14 @@ class BroadcastController extends Controller
 
         return redirect()->route('admin.broadcast.index')->with('success', $mesaj);
     }
+
+    public function destroy(BroadcastNotification $broadcast)
+    {
+        abort_unless(auth()->user()->can_send_broadcast, 403);
+        abort_unless($broadcast->sender_id === auth()->id(), 403);
+        abort_if($broadcast->status === 'sent', 422, 'Gönderilmiş duyurular silinemez.');
+
+        $broadcast->delete();
+        return back()->with('success', 'Duyuru silindi.');
+    }
 }

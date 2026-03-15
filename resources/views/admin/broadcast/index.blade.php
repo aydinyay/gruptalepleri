@@ -47,6 +47,7 @@
                         <th class="text-center">Gönderildi</th>
                         <th>Durum</th>
                         <th>Tarih</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -77,10 +78,21 @@
                             @endif
                         </td>
                         <td class="text-muted small">{{ $d->created_at->format('d.m.Y H:i') }}</td>
+                        <td>
+                            @if(in_array($d->status, ['scheduled','draft']))
+                            <form method="POST" action="{{ route('admin.broadcast.destroy', $d) }}"
+                                  onsubmit="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            @endif
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="fas fa-bullhorn fa-2x mb-2 d-block opacity-25"></i>
                             Henüz duyuru gönderilmedi.
                         </td>

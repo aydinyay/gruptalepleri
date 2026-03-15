@@ -400,4 +400,32 @@ class RequestController extends Controller
 
         return back()->with('success', 'Ödeme silindi.');
     }
+
+    public function updatePayment(Request $request, $gtpnr, $payment)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+        $odeme = RequestPayment::where('request_id', $talep->id)->findOrFail($payment);
+
+        $odeme->update([
+            'sequence'       => $request->sequence ?? $odeme->sequence,
+            'payment_type'   => $request->payment_type,
+            'payment_method' => $request->payment_method,
+            'bank_name'      => $request->bank_name,
+            'sender_masked'  => $request->sender_masked,
+            'account_masked' => $request->account_masked,
+            'amount'         => $request->amount,
+            'currency'       => $request->currency ?? 'TRY',
+            'payment_date'   => $request->payment_date,
+            'status'         => $request->status ?? $odeme->status,
+        ]);
+
+        RequestLog::create([
+            'request_id'  => $talep->id,
+            'action'      => 'odeme_guncellendi',
+            'description' => $odeme->sequence . '. ödeme güncellendi: ' . number_format($odeme->amount, 0) . ' ' . $odeme->currency,
+            'user_id'     => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Ödeme güncellendi.');
+    }
 }

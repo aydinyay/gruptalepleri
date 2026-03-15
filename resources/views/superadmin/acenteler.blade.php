@@ -18,6 +18,8 @@
         .role-superadmin { background: #1a1a2e; color: #e94560; }
         .role-admin { background: #084298; color: #fff; }
         .role-acente { background: #e9ecef; color: #495057; }
+        #searchInput { max-width: 360px; }
+        tr.hidden-row { display: none; }
     </style>
 </head>
 <body>
@@ -27,7 +29,7 @@
 <div class="page-header">
     <div class="container-fluid px-4">
         <h5><i class="fas fa-building me-2" style="color:#e94560;"></i>Acente Yönetimi</h5>
-        <p>{{ $acenteler->count() }} acente kayıtlı</p>
+        <p id="headerCount">{{ $acenteler->count() }} acente kayıtlı</p>
     </div>
 </div>
 
@@ -37,9 +39,22 @@
         <div class="alert alert-success alert-dismissible fade show py-2">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
+    {{-- ARAMA ÇUBUĞU --}}
+    <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+        <div class="input-group" style="max-width:360px;">
+            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+            <input type="text" id="searchInput" class="form-control"
+                   placeholder="Firma adı, yetkili, telefon, e-posta, TURSAB...">
+            <button class="btn btn-outline-secondary" id="clearSearch" title="Temizle" style="display:none;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <span id="searchResult" class="text-muted small"></span>
+    </div>
+
     <div class="card shadow-sm">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0" id="acenteTable">
                 <thead class="table-light">
                     <tr>
                         <th>Firma</th>
@@ -55,7 +70,7 @@
                 </thead>
                 <tbody>
                     @forelse($acenteler as $acente)
-                    <tr>
+                    <tr data-search="{{ strtolower($acente->company_title . ' ' . $acente->tourism_title . ' ' . $acente->contact_name . ' ' . $acente->phone . ' ' . $acente->email . ' ' . $acente->tursab_no) }}">
                         <td>
                             <div class="fw-bold">{{ $acente->company_title }}</div>
                             @if($acente->tourism_title)
@@ -80,11 +95,30 @@
                             @endif
                         </td>
                         <td>
-                            <div class="d-flex gap-1">
+                            <div class="d-flex gap-1 flex-wrap">
+
+                                {{-- Düzenle --}}
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                    title="Düzenle"
+                                    onclick="acenteDuzenle({{ $acente->id }},
+                                        {{ json_encode($acente->company_title) }},
+                                        {{ json_encode($acente->tourism_title) }},
+                                        {{ json_encode($acente->contact_name) }},
+                                        {{ json_encode($acente->phone) }},
+                                        {{ json_encode($acente->email) }},
+                                        {{ json_encode($acente->tax_number) }},
+                                        {{ json_encode($acente->tax_office) }},
+                                        {{ json_encode($acente->address) }},
+                                        {{ json_encode($acente->tursab_no) }}
+                                    )">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
                                 {{-- Aktif/Pasif toggle --}}
                                 <form method="POST" action="{{ route('superadmin.acenteler.toggle', $acente) }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm {{ $acente->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ $acente->is_active ? 'Pasif yap' : 'Aktif yap' }}">
+                                    <button type="submit" class="btn btn-sm {{ $acente->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
+                                            title="{{ $acente->is_active ? 'Pasif yap' : 'Aktif yap' }}">
                                         <i class="fas {{ $acente->is_active ? 'fa-pause' : 'fa-play' }}"></i>
                                     </button>
                                 </form>
@@ -153,6 +187,120 @@
 
 </div>
 
+{{-- DÜZENLEME MODAL --}}
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="editForm">
+                @csrf
+                @method('PATCH')
+                <div class="modal-header" style="background:#1a1a2e;">
+                    <h5 class="modal-title text-white"><i class="fas fa-edit me-2" style="color:#e94560;"></i>Acente Düzenle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Firma Ünvanı <span class="text-danger">*</span></label>
+                            <input type="text" name="company_title" id="e_company_title" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Turizm Ünvanı</label>
+                            <input type="text" name="tourism_title" id="e_tourism_title" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Yetkili Adı</label>
+                            <input type="text" name="contact_name" id="e_contact_name" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Telefon</label>
+                            <input type="text" name="phone" id="e_phone" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">E-posta</label>
+                            <input type="email" name="email" id="e_email" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">TURSAB No</label>
+                            <input type="text" name="tursab_no" id="e_tursab_no" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Vergi No</label>
+                            <input type="text" name="tax_number" id="e_tax_number" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Vergi Dairesi</label>
+                            <input type="text" name="tax_office" id="e_tax_office" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Adres</label>
+                            <textarea name="address" id="e_address" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm text-white fw-bold" style="background:#e94560;">
+                        <i class="fas fa-save me-1"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── ARAMA ──────────────────────────────────────────────────────────────────
+const searchInput = document.getElementById('searchInput');
+const clearBtn    = document.getElementById('clearSearch');
+const resultEl    = document.getElementById('searchResult');
+const headerCount = document.getElementById('headerCount');
+const rows        = document.querySelectorAll('#acenteTable tbody tr[data-search]');
+const total       = rows.length;
+
+searchInput.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    clearBtn.style.display = q ? '' : 'none';
+    let visible = 0;
+    rows.forEach(row => {
+        const match = row.dataset.search.includes(q);
+        row.classList.toggle('hidden-row', !match);
+        if (match) visible++;
+    });
+    if (q) {
+        resultEl.textContent = visible + ' / ' + total + ' sonuç';
+    } else {
+        resultEl.textContent = '';
+    }
+});
+
+clearBtn.addEventListener('click', function () {
+    searchInput.value = '';
+    this.style.display = 'none';
+    resultEl.textContent = '';
+    rows.forEach(r => r.classList.remove('hidden-row'));
+    searchInput.focus();
+});
+
+// ── DÜZENLEME MODAL ─────────────────────────────────────────────────────────
+const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+const editForm  = document.getElementById('editForm');
+const baseUrl   = '/superadmin/acenteler/';
+
+function acenteDuzenle(id, company_title, tourism_title, contact_name, phone, email, tax_number, tax_office, address, tursab_no) {
+    editForm.action = baseUrl + id;
+    document.getElementById('e_company_title').value = company_title  || '';
+    document.getElementById('e_tourism_title').value = tourism_title  || '';
+    document.getElementById('e_contact_name').value  = contact_name   || '';
+    document.getElementById('e_phone').value         = phone          || '';
+    document.getElementById('e_email').value         = email          || '';
+    document.getElementById('e_tax_number').value    = tax_number     || '';
+    document.getElementById('e_tax_office').value    = tax_office     || '';
+    document.getElementById('e_address').value       = address        || '';
+    document.getElementById('e_tursab_no').value     = tursab_no      || '';
+    editModal.show();
+}
+</script>
 </body>
 </html>
