@@ -55,7 +55,8 @@ class SyncLegacyOffers extends Command
                 continue;
             }
 
-            if (!$legacy_r || empty($legacy_r->opsiyontarihi)) {
+            $rawTarih = trim($legacy_r->opsiyontarihi ?? '');
+            if (!$legacy_r || !$rawTarih || $rawTarih === '0000-00-00' || str_starts_with($rawTarih, '0000')) {
                 $noData++;
                 continue;
             }
@@ -81,7 +82,7 @@ class SyncLegacyOffers extends Command
             $this->line(sprintf(
                 '  %s → opsiyon: %s %s | fiyat: %s %s',
                 $talep->gtpnr,
-                $legacy_r->opsiyontarihi,
+                $rawTarih,
                 $rawSaat,
                 $fiyat ?: '—',
                 $currency
@@ -99,7 +100,7 @@ class SyncLegacyOffers extends Command
                     ]);
                 } else {
                     $talep->offers()->create([
-                        'option_date'    => $legacy_r->opsiyontarihi,
+                        'option_date'    => $rawTarih,
                         'option_time'    => $rawSaat,
                         'price_per_pax'  => $perPax,
                         'total_price'    => $fiyat > 0 ? $fiyat : null,
