@@ -58,24 +58,43 @@ class BroadcastService
             'sent_count' => $sentCount,
         ]);
 
-        // Superadmin'lere özet push bildirimi gönder (gönderen hariç)
-        $superadminler = User::whereIn('role', ['superadmin'])
-            ->where('id', '!=', $broadcast->sender_id)
-            ->get();
+        $pushTitle = ($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $broadcast->title;
 
+        // Superadmin'ler: gönderen hariç, gerçek içeriği + özet birlikte al
+        $superadminler = User::where('role', 'superadmin')->get();
         foreach ($superadminler as $sa) {
+            // Bell: gerçek broadcast içeriği
+            if (!in_array('push', $channels) || $kullanicilar->contains('id', $sa->id)) {
+                // Zaten listede var, sadece özet yeter
+            } else {
+                $ns->createForUser($sa->id, 'broadcast', $pushTitle, $broadcast->message, null);
+            }
+            // Her durumda gönderim özeti de ekle
             $ns->createForUser(
                 $sa->id,
                 'broadcast',
-                '✅ Duyuru Gönderildi',
-                "\"{$broadcast->title}\" — {$sentCount} kullanıcıya iletildi.",
+                '✅ Duyuru Gönderildi (' . $sentCount . ' kişi)',
+                "\"{$broadcast->title}\" → Gönderen: " . ($broadcast->sender?->name ?? '-'),
                 null
             );
+
+            // SMS CC (superadmin'e broadcast SMS kopyası)
+            if (in_array('sms', $channels) && $sa->phone) {
+                $mesaj = ($broadcast->emoji ? $broadcast->emoji . ' ' : '')
+                    . $broadcast->title . "\n" . $broadcast->message
+                    . "\n[CC Kopya — {$sentCount} kişiye gönderildi]";
+                $sms->send(null, 'superadmin', $sa->name, $sa->phone, $mesaj);
+            }
+
+            // Email CC (superadmin'e broadcast email kopyası)
+            if (in_array('email', $channels) && !$kullanicilar->contains('id', $sa->id)) {
+                $email->broadcastEmail($sa, $broadcast);
+            }
         }
 
-        // Gönderen superadmin ise kendisine de özet bildir
+        // Gönderen admin ise kendisine özet bildir (superadmin zaten üstte)
         $sender = User::find($broadcast->sender_id);
-        if ($sender && in_array($sender->role, ['superadmin', 'admin'])) {
+        if ($sender && $sender->role === 'admin') {
             $ns->createForUser(
                 $sender->id,
                 'broadcast',

@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('admin.partials.theme-styles')
     <title>Eski Sistem: {{ strtoupper($talep->gtpnr) }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background:#1a1a2e; color:#e0e0e0; font-family:'Segoe UI',sans-serif; }
-        .card { background:#16213e; border-color:#2a2a4e; }
-        .card-header { background:#0d1b2a; border-color:#2a2a4e; }
-        .table { color:#e0e0e0; }
-        .table-striped>tbody>tr:nth-of-type(odd)>* { background:#1e2d3e; color:#e0e0e0; }
-        .table-striped>tbody>tr:nth-of-type(even)>* { background:#16213e; color:#e0e0e0; }
-        .table th { color:#adb5bd; font-size:0.78rem; }
+        body { font-family:'Segoe UI',sans-serif; }
+        .table th { font-size:0.78rem; }
         .table td { font-size:0.875rem; vertical-align:middle; }
-        pre { font-family:'Segoe UI',sans-serif; color:#e0e0e0; margin:0; white-space:pre-wrap; }
-        .esle-ok   { background:#0a3622 !important; }
-        .esle-fark { background:#3d1a1a !important; }
-        .esle-yok  { background:#2d2d00 !important; }
+        pre { font-family:'Segoe UI',sans-serif; margin:0; white-space:pre-wrap; }
+        /* Karşılaştırma satır renkleri — her iki temada çalışır */
+        html[data-theme="dark"]  .esle-ok   { background:#0a3622 !important; }
+        html[data-theme="dark"]  .esle-fark { background:#3d1a1a !important; }
+        html[data-theme="dark"]  .esle-yok  { background:#2d2d00 !important; }
+        html[data-theme="light"] .esle-ok   { background:#d1e7dd !important; }
+        html[data-theme="light"] .esle-fark { background:#f8d7da !important; }
+        html[data-theme="light"] .esle-yok  { background:#fff3cd !important; }
     </style>
 </head>
 <body>
@@ -342,5 +342,6 @@ document.getElementById('ara-form').addEventListener('submit', function(e) {
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@include('admin.partials.theme-script')
 </body>
 </html>

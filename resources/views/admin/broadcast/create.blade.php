@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('admin.partials.theme-styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Duyuru Gönder — Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <style>
-        body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
+        body { font-family:'Segoe UI',sans-serif; }
         .channel-card { border:2px solid #dee2e6; border-radius:10px; padding:14px 18px; cursor:pointer; transition:all 0.15s; user-select:none; }
         .channel-card:hover { border-color:#adb5bd; background:#f8f9fa; }
         .channel-card.active-push  { border-color:#6366f1; background:#eef2ff; }
@@ -264,6 +265,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@include('admin.partials.theme-script')
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

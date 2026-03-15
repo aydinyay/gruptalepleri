@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('admin.partials.theme-styles')
     <title>Eski Sistem Arşivi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background:#1a1a2e; color:#fff; font-family:'Segoe UI',sans-serif; }
+        body { font-family:'Segoe UI',sans-serif; }
         .tablo td, .tablo th { font-size:0.78rem; vertical-align:middle; }
         .tablo tbody tr { cursor:pointer; }
-        .tablo tbody tr:hover { background:#2a2a4e !important; }
-        .opsiyon-var { color:#FFFF00; font-weight:700; }
+        html[data-theme="dark"]  .tablo tbody tr:hover { background:#2a2a4e !important; }
+        html[data-theme="light"] .tablo tbody tr:hover { background:#e9ecef !important; }
+        html[data-theme="dark"]  .opsiyon-var  { color:#FFFF00; font-weight:700; }
+        html[data-theme="light"] .opsiyon-var  { color:#b38600; font-weight:700; }
         .opsiyon-bitti { color:#FF0000; font-weight:700; }
         .badge-durum-0 { background:#F0AD4E; color:#000; }
         .badge-durum-1 { background:#FFFF00; color:#000; }
@@ -97,10 +100,26 @@
             @foreach($talepler as $r)
             @php
                 $opsiyonHtml = '';
-                if (!empty($r->opsiyontarihi) && strlen($r->opsiyontarihi) >= 10) {
+                if (!empty($r->opsiyontarihi) && strlen($r->opsiyontarihi) >= 8) {
                     try {
-                        $saat = !empty($r->opsiyonsaati) ? $r->opsiyonsaati : '23:59';
-                        $optDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $r->opsiyontarihi . ' ' . $saat);
+                        $rawTarih = trim($r->opsiyontarihi);
+                        $rawSaat  = !empty($r->opsiyonsaati) ? trim($r->opsiyonsaati) : '23:59';
+                        // Normalize saat: strip seconds if present (HH:MM:SS → HH:MM)
+                        if (preg_match('/^(\d{1,2}:\d{2})/', $rawSaat, $m)) {
+                            $rawSaat = $m[1];
+                        }
+                        // Try multiple date formats
+                        $optDt = null;
+                        foreach (['Y-m-d', 'd.m.Y', 'd/m/Y', 'm/d/Y'] as $fmt) {
+                            try {
+                                $optDt = \Carbon\Carbon::createFromFormat($fmt . ' H:i', $rawTarih . ' ' . $rawSaat);
+                                break;
+                            } catch (\Throwable $ex) {}
+                        }
+                        // Last resort: Carbon::parse
+                        if (!$optDt) {
+                            $optDt = \Carbon\Carbon::parse($rawTarih . ' ' . $rawSaat);
+                        }
                         if ($optDt->isFuture()) {
                             $diff = now()->diff($optDt);
                             $parts = [];
@@ -184,5 +203,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@include('admin.partials.theme-script')
 </body>
 </html>

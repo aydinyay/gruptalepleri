@@ -717,7 +717,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
         <div class="footer-col">
             <div class="footer-col-title">İletişim</div>
             <p><i class="fas fa-map-marker-alt me-2" style="color:var(--red);width:14px;"></i>İnönü Mah. Cumhuriyet Cad.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No:93/12 Şişli / İstanbul</p>
-            <a href="tel:+905354154799"><i class="fas fa-phone me-2" style="color:var(--red);width:14px;"></i>0535 415 47 99</a>
+            <a href="tel:+{{ $_superadminTelefon }}"><i class="fas fa-phone me-2" style="color:var(--red);width:14px;"></i>{{ preg_replace('/^90/', '0', $_superadminTelefon) }}</a>
             <a href="mailto:destek@gruptalepleri.com"><i class="fas fa-envelope me-2" style="color:var(--red);width:14px;"></i>destek@gruptalepleri.com</a>
             <div style="margin-top:0.8rem;">
                 <a href="https://www.instagram.com/grup.talepleri" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.78rem;color:rgba(255,255,255,0.6);transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(233,69,96,0.5)';this.style.color='#fff';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.6)';">

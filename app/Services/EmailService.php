@@ -25,7 +25,7 @@ class EmailService
     }
 
     /**
-     * Teklif eklendiğinde acenteye email gönder.
+     * Teklif eklendiğinde acenteye email gönder + superadmin CC.
      */
     public function teklifEklendi(int $requestId, int $agencyUserId, string $gtpnr, string $airline, string $acenteUrl): void
     {
@@ -35,6 +35,9 @@ class EmailService
         $subject = "✈️ Teklifiniz Hazır: {$gtpnr}";
         $data    = compact('gtpnr', 'airline', 'acenteUrl');
         $this->send($requestId, $user, $subject, 'emails.teklif_eklendi', $data);
+
+        // Superadmin CC
+        $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.teklif_eklendi', $data);
     }
 
     /**
@@ -80,7 +83,7 @@ class EmailService
     }
 
     /**
-     * Durum değişikliği — acenteye email.
+     * Durum değişikliği — acenteye email + superadmin CC.
      */
     public function durumDegisti(int $requestId, int $agencyUserId, string $gtpnr, string $eskiDurum, string $yeniDurum, string $acenteUrl): void
     {
@@ -100,6 +103,20 @@ class EmailService
         $subject = "📋 Talep Durumu Güncellendi: {$gtpnr} → {$yeniDurumEtiket}";
         $data    = compact('gtpnr', 'eskiDurum', 'yeniDurum', 'yeniDurumEtiket', 'acenteUrl');
         $this->send($requestId, $user, $subject, 'emails.durum_degisti', $data);
+
+        // Superadmin CC
+        $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.durum_degisti', $data);
+    }
+
+    /**
+     * Superadmin'e CC gönder (sadece superadmin değilse, email varsa).
+     */
+    private function ccSuperadmin(?int $requestId, string $subject, string $view, array $data): void
+    {
+        $superadmin = User::where('role', 'superadmin')->whereNotNull('email')->first();
+        if ($superadmin) {
+            $this->send($requestId, $superadmin, $subject, $view, $data);
+        }
     }
 
     /**

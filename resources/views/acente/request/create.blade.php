@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('acente.partials.theme-styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Yeni Grup Uçuş Talebi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: #f0f2f5; }
+        html[data-theme="dark"] body { background: #1a1a2e !important; }
         .section-header { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: 700; margin-bottom: 0.75rem; }
         .segment-card { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 10px; }
         .iata-input { font-size: 1.4rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-align: center; }
@@ -544,5 +546,6 @@ function selectAirline(opt) {
     airlineDropdown.classList.remove('show');
 }
 </script>
+@include('acente.partials.theme-script')
 </body>
 </html>

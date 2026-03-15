@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('admin.partials.theme-styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $talep->gtpnr }} — Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        body { font-family: 'Segoe UI', sans-serif; }
         .section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: 600; margin-bottom: 0.75rem; }
         .field-label { font-size: 0.75rem; color: #6c757d; }
         .ai-field { background: #fff3cd; border-left: 3px solid #ffc107; }
@@ -835,6 +836,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@include('admin.partials.theme-script')
 <script>
 const CSRF = '{{ csrf_token() }}';
 const PARSE_URL = '{{ route("admin.requests.ai-parse", $talep->gtpnr) }}';

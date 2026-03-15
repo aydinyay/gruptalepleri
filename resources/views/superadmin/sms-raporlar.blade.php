@@ -66,8 +66,19 @@
 
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <span class="fw-bold"><i class="fas fa-sms me-1"></i> SMS Kayıtları</span>
-            <span class="badge bg-secondary">Toplam: {{ $logs->total() }}</span>
+            <span class="fw-bold"><i class="fas fa-sms me-1"></i> SMS / E-posta Kayıtları</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary">Toplam: {{ $logs->total() }}</span>
+                @if($logs->total() > 0)
+                <form method="POST" action="{{ route('superadmin.sms.log.hepsini-sil') }}"
+                      onsubmit="return confirm('Tüm {{ $logs->total() }} log kaydı silinecek. Emin misiniz?')">
+                    @csrf
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2">
+                        <i class="fas fa-trash me-1"></i>Tümünü Sil
+                    </button>
+                </form>
+                @endif
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -75,12 +86,13 @@
                     <tr>
                         <th>Tarih</th>
                         <th>Talep</th>
+                        <th>Kanal</th>
                         <th>Alıcı</th>
-                        <th>Numara</th>
+                        <th>Numara/Email</th>
                         <th>Mesaj</th>
                         <th>Durum</th>
-                        <th>Gönderim Zamanı</th>
-                        <th>API Yanıtı</th>
+                        <th>Gönderim</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,14 +109,21 @@
                             @endif
                         </td>
                         <td>
-                            @if($log->recipient === 'admin')
-                                <span class="badge bg-dark">Admin</span>
+                            @if($log->channel === 'email')
+                                <span class="badge bg-info text-dark">Email</span>
+                            @else
+                                <span class="badge bg-success">SMS</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($log->recipient === 'admin' || $log->recipient === 'superadmin')
+                                <span class="badge bg-dark">{{ ucfirst($log->recipient) }}</span>
                             @else
                                 <span class="badge bg-primary">Acente</span>
                             @endif
                             <div class="text-muted" style="font-size:0.75rem;">{{ $log->recipient_name }}</div>
                         </td>
-                        <td>{{ $log->phone }}</td>
+                        <td>{{ $log->phone ?? $log->subject ?? '—' }}</td>
                         <td class="msg-cell" title="{{ $log->message }}">{{ $log->message }}</td>
                         <td>
                             @if($log->status === 'sent')
@@ -126,11 +145,19 @@
                                 —
                             @endif
                         </td>
-                        <td class="text-muted" style="font-size:0.75rem;">{{ $log->provider_code ?? '—' }}</td>
+                        <td>
+                            <form method="POST" action="{{ route('superadmin.sms.log.sil', $log->id) }}"
+                                  onsubmit="return confirm('Bu log silinsin mi?')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger py-0 px-1" title="Sil">
+                                    <i class="fas fa-times" style="font-size:0.7rem;"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">Kayıt bulunamadı.</td>
+                        <td colspan="9" class="text-center text-muted py-4">Kayıt bulunamadı.</td>
                     </tr>
                     @endforelse
                 </tbody>

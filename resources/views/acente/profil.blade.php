@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('acente.partials.theme-styles')
     <title>Profilim — GrupTalepleri</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        body { font-family: 'Segoe UI', sans-serif; }
         .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
         .card-header { background: #1a1a2e; color: white; border-radius: 12px 12px 0 0 !important; font-weight: 600; }
         .section-icon { color: #e94560; }
@@ -199,5 +200,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@include('acente.partials.theme-script')
 </body>
 </html>

@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('acente.partials.theme-styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Acente Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; }
-        #map { height: 450px; width: 100%; border-radius: 0 0 12px 12px; }
+        #map { height: 400px; width: 100%; border-radius: 0 0 8px 8px; }
         .stat-card { border-radius: 12px; border: none; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
         .stat-number { font-size: 2rem; font-weight: 700; }
-        .map-filters { background: white; padding: 10px 15px; border-radius: 12px 12px 0 0; border-bottom: 1px solid #dee2e6; }
+        .map-filters { padding: 10px 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #dee2e6; }
         .filter-badge { cursor: pointer; user-select: none; }
+        html[data-theme="dark"] .map-filters { background: #16213e !important; border-color: #2a2a4e !important; }
+        html[data-theme="light"] .map-filters { background: #fff; }
+        /* Tablo hover - tıklanabilir satır */
+        html[data-theme="dark"]  #talepTablosu tr:hover { background:#2a2a4e !important; }
+        html[data-theme="light"] #talepTablosu tr:hover { background:#f0f5ff !important; }
     </style>
 </head>
 <body>
@@ -85,20 +90,20 @@
 
     {{-- TALEPLER LİSTESİ --}}
     <div class="card shadow-sm mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">📋 Taleplerim</h6>
+        <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <h6 class="mb-0 fw-bold">📋 Taleplerim</h6>
             <span class="badge bg-secondary">{{ $istatistik['toplam'] }} talep</span>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+            <table class="table table-sm table-hover mb-0" style="font-size:0.82rem;">
+                <thead style="background:#0d6efd; font-size:0.72rem; text-transform:uppercase; letter-spacing:1px;">
                     <tr>
-                        <th>GTPNR</th>
-                        <th>Rota</th>
-                        <th>PAX</th>
-                        <th>Durum</th>
-                        <th>Tarih</th>
-                        <th>İşlem</th>
+                        <th style="color:#fff;">GTPNR</th>
+                        <th style="color:#fff;">Rota</th>
+                        <th style="color:#fff;">PAX</th>
+                        <th style="color:#fff;">Gidiş</th>
+                        <th style="color:#fff;">Opsiyon</th>
+                        <th style="color:#fff;" class="text-center">Durum</th>
                     </tr>
                 </thead>
                 <tbody id="talepTablosu">
@@ -108,37 +113,73 @@
                         'islemde'         => ['bg'=>'#0d6efd','color'=>'#fff','label'=>'İşlemde'],
                         'fiyatlandirıldi' => ['bg'=>'#ffc107','color'=>'#000','label'=>'Fiyatlandırıldı'],
                         'iptal'           => ['bg'=>'#dc3545','color'=>'#fff','label'=>'İptal'],
+                        'olumsuz'         => ['bg'=>'#343a40','color'=>'#fff','label'=>'Olumsuz'],
                         'biletlendi'      => ['bg'=>'#198754','color'=>'#fff','label'=>'Biletlendi'],
                         'depozitoda'      => ['bg'=>'#6f42c1','color'=>'#fff','label'=>'Depozitoda'],
+                        'iade'            => ['bg'=>'#e94560','color'=>'#fff','label'=>'İade'],
                     ];
                     @endphp
                     @forelse($talepler as $talep)
-                    @php $sc = $statusConfig[$talep->status] ?? ['bg'=>'#6c757d','color'=>'#fff','label'=>$talep->status]; @endphp
-                    <tr data-status="{{ $talep->status }}" style="border-left: 4px solid {{ $sc['bg'] }}">
-                        <td><strong>{{ $talep->gtpnr }}</strong></td>
+                    @php
+                        $sc = $statusConfig[$talep->status] ?? ['bg'=>'#6c757d','color'=>'#fff','label'=>$talep->status];
+                        $segs = $talep->segments->sortBy('order');
+                        $ilkSeg = $segs->first();
+
+                        // Opsiyon: kabul edilmiş veya ilk teklif
+                        $aktifTeklif = $talep->offers->firstWhere('is_accepted', true) ?? $talep->offers->first();
+                        $opsiyonHtml = '';
+                        if ($aktifTeklif?->option_date) {
+                            try {
+                                $saat = $aktifTeklif->option_time ?? '23:59';
+                                $optDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $aktifTeklif->option_date . ' ' . $saat);
+                                if ($optDt->isFuture()) {
+                                    $diff = now()->diff($optDt);
+                                    $parts = [];
+                                    if ($diff->d) $parts[] = $diff->d.'g';
+                                    if ($diff->h) $parts[] = $diff->h.'s';
+                                    if (!$diff->d) $parts[] = $diff->i.'d';
+                                    $opsiyonHtml = '<span class="text-warning fw-bold" id="op-'.$talep->id.'" data-ts="'.$optDt->timestamp.'">'.(implode(' ',$parts) ?: '<1s').' kaldı</span>';
+                                } else {
+                                    $opsiyonHtml = '<span class="text-danger fw-bold">OPSİYON BİTTİ</span>';
+                                }
+                            } catch(\Throwable $e) {}
+                        } elseif ($talep->status === 'beklemede') {
+                            $opsiyonHtml = '<span class="text-muted">—</span>';
+                        } elseif ($talep->status === 'biletlendi') {
+                            $opsiyonHtml = '<span class="text-success">BİLETLENDİ</span>';
+                        }
+                    @endphp
+                    <tr data-status="{{ $talep->status }}"
+                        style="cursor:pointer; border-left: 3px solid {{ $sc['bg'] }};"
+                        onclick="window.location='{{ route('acente.requests.show', $talep->gtpnr) }}'">
                         <td>
-                            @foreach($talep->segments as $seg)
-                                <span class="badge bg-light text-dark border">{{ $seg->from_iata }}→{{ $seg->to_iata }}</span>
+                            <strong class="font-monospace" style="color:#e94560;">{{ $talep->gtpnr }}</strong><br>
+                            <small class="text-muted">{{ $talep->created_at->format('d.m.Y') }}</small>
+                        </td>
+                        <td>
+                            @foreach($segs as $seg)
+                                <span class="fw-bold">{{ $seg->from_iata }}–{{ $seg->to_iata }}</span><br>
                             @endforeach
                         </td>
-                        <td>{{ $talep->pax_total }}</td>
+                        <td><span class="fw-bold">{{ $talep->pax_total }}</span></td>
                         <td>
-                            <span class="badge" style="background:{{ $sc['bg'] }};color:{{ $sc['color'] }}">{{ $sc['label'] }}</span>
+                            @if($ilkSeg)
+                                <span>{{ \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d.m.Y') }}</span>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
                         </td>
-                        <td>{{ $talep->created_at->format('d.m.Y') }}</td>
-                        <td>
-                            <a href="{{ route('acente.requests.show', $talep->gtpnr) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i> Detay
-                            </a>
-                            <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' talebi hakkında bilgi almak istiyorum') }}"
-                               target="_blank" class="btn btn-sm btn-success">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
+                        <td>{!! $opsiyonHtml !!}</td>
+                        <td class="text-center">
+                            <span class="badge" style="background:{{ $sc['bg'] }};color:{{ $sc['color'] }};">{{ $sc['label'] }}</span>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">Henüz talep yok. <a href="{{ route('acente.requests.create') }}">İlk talebi oluştur</a></td>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Henüz talep yok.
+                            <a href="{{ route('acente.requests.create') }}">İlk talebi oluştur →</a>
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -269,8 +310,24 @@ function filtreTabloyu() {
         }
     });
 }
+
+// ── Opsiyon geri sayım ──
+document.querySelectorAll('[id^="op-"][data-ts]').forEach(el => {
+    const hedef = parseInt(el.dataset.ts) * 1000;
+    function guncelle() {
+        const kalan = hedef - Date.now();
+        if (kalan <= 0) { el.textContent = 'OPSİYON BİTTİ'; el.className = 'text-danger fw-bold'; return; }
+        const g = Math.floor(kalan / 86400000);
+        const s = Math.floor((kalan % 86400000) / 3600000);
+        const d = Math.floor((kalan % 3600000) / 60000);
+        el.textContent = g > 0 ? g+'g '+s+'s' : (s > 0 ? s+'s '+d+'d' : d+'d kaldı');
+        setTimeout(guncelle, 30000);
+    }
+    guncelle();
+});
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>
+@include('acente.partials.theme-script')
 </body>
 </html>

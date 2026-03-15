@@ -79,8 +79,17 @@
 
     {{-- Tüm duyurular --}}
     <div class="card shadow-sm">
-        <div class="card-header fw-semibold bg-white">
-            <i class="fas fa-history me-2 text-secondary"></i>Tüm Gönderimler
+        <div class="card-header fw-semibold bg-white d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-history me-2 text-secondary"></i>Tüm Gönderimler</span>
+            @if($duyurular->total() > 0)
+            <form method="POST" action="{{ route('superadmin.broadcast.hepsini-sil') }}"
+                  onsubmit="return confirm('Tüm {{ $duyurular->total() }} duyuru silinecek. Emin misiniz?')">
+                @csrf
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash me-1"></i>Tümünü Sil
+                </button>
+            </form>
+            @endif
         </div>
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
@@ -93,6 +102,7 @@
                         <th class="text-center">Alıcı</th>
                         <th>Durum</th>
                         <th>Tarih</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -123,10 +133,19 @@
                             @endif
                         </td>
                         <td class="text-muted small">{{ $d->created_at->format('d.m.Y H:i') }}</td>
+                        <td>
+                            <form method="POST" action="{{ route('superadmin.broadcast.sil', $d->id) }}"
+                                  onsubmit="return confirm('Bu duyuru silinecek?')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Sil">
+                                    <i class="fas fa-trash" style="font-size:0.75rem;"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="fas fa-bullhorn fa-2x mb-2 d-block opacity-25"></i>
                             Henüz duyuru gönderilmedi.
                         </td>

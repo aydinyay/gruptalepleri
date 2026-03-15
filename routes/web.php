@@ -73,6 +73,8 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     // Broadcast geçmişi & yetki yönetimi
     Route::get('/broadcast-gecmisi', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastGecmisi'])->name('broadcast.gecmisi');
     Route::post('/broadcast-yetki/{user}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastYetkiToggleById'])->name('broadcast.yetki');
+    Route::delete('/broadcast-gecmisi/{broadcast}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastSil'])->name('broadcast.sil');
+    Route::post('/broadcast-gecmisi/hepsini-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastHepsiniSil'])->name('broadcast.hepsini-sil');
 
     // SMS Ayarları
     Route::get('/sms-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarlari'])->name('sms.ayarlar');
@@ -83,6 +85,12 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
 
     // SMS Raporlar
     Route::get('/sms-raporlar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsRaporlar'])->name('sms.raporlar');
+    Route::delete('/sms-raporlar/{log}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsLogSil'])->name('sms.log.sil');
+    Route::post('/sms-raporlar/hepsini-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsLogHepsiniSil'])->name('sms.log.hepsini-sil');
+
+    // Bildirim silme (bell)
+    Route::delete('/bildirimler/{bildirim}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimSil'])->name('bildirim.sil');
+    Route::post('/bildirimler/hepsini-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimHepsiniSil'])->name('bildirim.hepsini-sil');
 
     // Scheduler aralığı
     Route::post('/scheduler-aralik', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'schedulerAralikGuncelle'])->name('scheduler.aralik');

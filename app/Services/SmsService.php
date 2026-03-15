@@ -71,6 +71,7 @@ class SmsService
     /**
      * Belirli bir olay için SMS ayarlarındaki tüm numaralara gönder.
      * Zaman penceresi dışındaysa bir sonraki açılış zamanına zamanlar.
+     * Superadmin her zaman CC alır.
      */
     public function sendByEvent(string $event, ?int $requestId, string $message): void
     {
@@ -82,6 +83,12 @@ class SmsService
 
         $phones = SmsNotificationSetting::phonesForEvent($event);
 
+        // Superadmin CC: her zaman superadmin telefona da gönder
+        $superadmin = \App\Models\User::where('role', 'superadmin')->whereNotNull('phone')->first();
+        if ($superadmin?->phone && !in_array($superadmin->phone, $phones)) {
+            $phones[] = $superadmin->phone;
+        }
+
         if (empty($phones)) {
             $fallback = config('services.sms.notify_phone');
             if ($fallback) {
@@ -91,7 +98,8 @@ class SmsService
         }
 
         foreach ($phones as $phone) {
-            $this->send($requestId, 'admin', 'Admin', $phone, $message, $scheduledFor);
+            $name = ($superadmin && $phone === $superadmin->phone) ? 'Superadmin' : 'Admin';
+            $this->send($requestId, 'admin', $name, $phone, $message, $scheduledFor);
         }
     }
 

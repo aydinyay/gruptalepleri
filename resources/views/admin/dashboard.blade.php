@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('admin.partials.theme-styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Panel — GrupTalepleri</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        body { font-family: 'Segoe UI', sans-serif; }
         .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-2px); }
         .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
@@ -48,7 +49,7 @@
 
         /* Push notification dot */
         .notif-dot { width: 8px; height: 8px; background: #e94560; border-radius: 50%; animation: blink 1.5s infinite; display: inline-block; margin-right: 6px; }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
         .quick-btn { border: 1.5px solid #dee2e6; border-radius: 10px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s; color: #495057; text-decoration: none; display: block; background: #fff; }
         .quick-btn:hover { border-color: #e94560; color: #e94560; background: #fff5f7; }
@@ -443,6 +444,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@include('admin.partials.theme-script')
 <script>
 // Canlı opsiyon sayaçları
 document.querySelectorAll('.countdown[data-ts]').forEach(el => {

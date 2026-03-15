@@ -30,6 +30,9 @@
             </a>
             @endif
             <x-notification-bell />
+            <button class="theme-toggle-btn" onclick="window.adminToggleTheme && window.adminToggleTheme()" title="Tema değiştir">
+                <i id="themeToggleIcon" class="fas fa-sun"></i>
+            </button>
             <a href="{{ route('profile.edit') }}"
                class="nav-lc d-none d-md-inline border-start border-secondary ps-3 ms-1">
                 <i class="fas fa-user-cog me-1"></i>{{ auth()->user()->name }}

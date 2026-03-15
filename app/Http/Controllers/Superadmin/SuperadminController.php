@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Superadmin;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\BroadcastNotification;
+use App\Models\KullaniciBildirimi;
 use App\Models\OpsiyonUyariAyar;
 use App\Models\SistemAyar;
 use App\Models\SmsNotificationSetting;
@@ -196,6 +197,50 @@ class SuperadminController extends Controller
     {
         $ayar->delete();
         return back()->with('success', 'Silindi.');
+    }
+
+    // ── BROADCAST SİLME (superadmin — tüm duyurular silinebilir) ─────────────
+
+    public function broadcastSil(BroadcastNotification $broadcast)
+    {
+        $broadcast->delete();
+        return back()->with('success', 'Duyuru silindi.');
+    }
+
+    public function broadcastHepsiniSil()
+    {
+        BroadcastNotification::truncate();
+        return back()->with('success', 'Tüm duyurular silindi.');
+    }
+
+    // ── SMS LOG SİLME ────────────────────────────────────────────────────────
+
+    public function smsLogSil(RequestNotification $log)
+    {
+        $log->delete();
+        return back()->with('success', 'Log silindi.');
+    }
+
+    public function smsLogHepsiniSil()
+    {
+        RequestNotification::truncate();
+        return back()->with('success', 'Tüm SMS/email logları silindi.');
+    }
+
+    // ── BİLDİRİM SİLME ───────────────────────────────────────────────────────
+
+    public function bildirimSil(KullaniciBildirimi $bildirim)
+    {
+        // Sadece kendi bildirimini silebilir
+        abort_unless($bildirim->user_id === auth()->id(), 403);
+        $bildirim->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    public function bildirimHepsiniSil()
+    {
+        KullaniciBildirimi::where('user_id', auth()->id())->delete();
+        return response()->json(['ok' => true]);
     }
 
     // ── SMS RAPORLAR ──────────────────────────────────────────────────────────

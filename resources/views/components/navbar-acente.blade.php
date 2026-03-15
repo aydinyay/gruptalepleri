@@ -22,11 +22,14 @@
                 <i class="fas fa-plus me-1"></i>Yeni Talep
             </a>
             <x-notification-bell />
+            <button class="theme-toggle-btn" onclick="window.siteToggleTheme && window.siteToggleTheme()" title="Tema değiştir">
+                <i id="themeToggleIcon" class="fas fa-moon"></i>
+            </button>
             <a href="{{ route('acente.profil') }}"
                class="nav-lc d-none d-md-inline {{ $active === 'profil' ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-user-cog me-1"></i>{{ auth()->user()->name }}
             </a>
-            <a href="https://wa.me/905324262630" target="_blank"
+            <a href="https://wa.me/{{ $_adminTelefon ?? '905324262630' }}" target="_blank"
                class="btn btn-sm btn-success px-2" title="WhatsApp Destek">
                 <i class="fab fa-whatsapp"></i>
             </a>

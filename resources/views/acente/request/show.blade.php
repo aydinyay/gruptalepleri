@@ -3,185 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('acente.partials.theme-styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $talep->gtpnr }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-      body { background: #f0f2f5; overflow-y: auto !important; }
-        #map { height: 250px; border-radius: 0 0 12px 12px; display: block; overflow: hidden; }
+        body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        html[data-theme="dark"] body { background: #1a1a2e !important; }
 
-        .segment-card { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 10px; }
-        .iata-code { font-size: 2.2rem; font-weight: 700; letter-spacing: 3px; }
-        .teklif-card { border-left: 5px solid #e94560; border-radius: 8px; transition: transform 0.2s; }
-        .teklif-card:hover { transform: translateY(-2px); }
-        .timeline { position: relative; padding-left: 30px; }
-        .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: #dee2e6; }
-        .timeline-item { position: relative; margin-bottom: 20px; }
-        .timeline-item::before { content: ''; position: absolute; left: -24px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: #e94560; border: 2px solid white; box-shadow: 0 0 0 2px #e94560; }
-        .ozet-item { text-align: center; padding: 15px; border-right: 1px solid #dee2e6; }
-        .ozet-item:last-child { border-right: none; }
-        .ozet-label { font-size: 0.75rem; text-transform: uppercase; color: #6c757d; letter-spacing: 1px; }
-        .ozet-value { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
-        .status-beklemede { background: #6c757d; }
-        .status-islemde { background: #0d6efd; }
-        .status-fiyatlandirildi { background: #ffc107; color: #000 !important; }
-        .status-depozitoda { background: #6f42c1; }
-        .status-depozito { background: #6f42c1; }
-        .status-biletlendi { background: #198754; }
-        .status-iade { background: #dc3545; }
-        .status-olumsuz { background: #343a40; }
+        /* Header */
+        .talep-header { border-left: 5px solid #e94560; }
+        .ozet-kutu { background: #f8f9fa; border-radius: 8px; padding: 10px 14px; text-align: center; }
+        .ozet-kutu .etiket { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: #6c757d; }
+        .ozet-kutu .deger { font-size: 0.95rem; font-weight: 700; margin-top: 2px; }
+
+        /* Durum badge'leri */
+        .badge-beklemede      { background: #6c757d; color: #fff; }
+        .badge-islemde        { background: #0d6efd; color: #fff; }
+        .badge-fiyatlandirıldi { background: #ffc107; color: #000; }
+        .badge-depozitoda     { background: #6f42c1; color: #fff; }
+        .badge-biletlendi     { background: #198754; color: #fff; }
+        .badge-iade           { background: #dc3545; color: #fff; }
+        .badge-olumsuz        { background: #343a40; color: #fff; }
+
+        /* Talep bilgileri tablosu */
+        .bilgi-tablo th { font-size: 0.78rem; color: #6c757d; font-weight: 600; width: 38%; padding: 7px 12px; border-color: #f0f2f5; }
+        .bilgi-tablo td { font-size: 0.88rem; padding: 7px 12px; border-color: #f0f2f5; }
+        .bilgi-tablo tr:last-child th,
+        .bilgi-tablo tr:last-child td { border-bottom: 0; }
+
+        /* Segment kartı */
+        .seg-kart { background: linear-gradient(135deg, #1a1a2e, #0d3b7a); color: #fff; border-radius: 10px; padding: 14px 18px; }
+        .seg-iata { font-size: 2rem; font-weight: 800; letter-spacing: 3px; }
+        .seg-arrow { font-size: 1.4rem; opacity: 0.6; }
+
+        /* Teklif kartları */
+        .teklif-card { border: none; border-left: 4px solid #e94560; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin-bottom: 16px; }
+        .teklif-card.kabul-edildi { border-left-color: #198754; }
+        .teklif-card .fiyat-kutu { background: #f8fff8; border: 1px solid #d1e7dd; border-radius: 8px; padding: 12px; text-align: center; }
+        .teklif-card .fiyat-kutu .fiyat { font-size: 1.6rem; font-weight: 800; color: #198754; }
+        .teklif-card .fiyat-kutu .toplam { font-size: 0.85rem; color: #6c757d; }
+
+        /* Kollaps ok */
+        .collapse-toggle { cursor: pointer; user-select: none; }
+        .collapse-toggle .chevron { transition: transform 0.2s; }
+        .collapsed .chevron { transform: rotate(-90deg); }
+
+        /* Map */
+        #map { height: 220px; border-radius: 0 0 8px 8px; }
+
+        /* Beklemede animasyonu */
+        .beklemede-pulse { animation: pulse 2s infinite; }
+        @@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* Opsiyon alarm */
+        @@keyframes blink-alarm { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .alert-danger [id^="sayac-"] { animation: blink-alarm 1s infinite; }
     </style>
 </head>
 <body>
 
 <x-navbar-acente active="show" />
 
-<div class="container-fluid px-4 py-4">
+@php
+    // ── Temel hesaplamalar ──
+    $statusEtiketMap = [
+        'beklemede'      => 'Beklemede',
+        'islemde'        => 'İşlemde',
+        'fiyatlandirıldi'=> 'Fiyatlandırıldı',
+        'depozitoda'     => 'Depozitoda',
+        'biletlendi'     => 'Biletlendi',
+        'iade'           => 'İade',
+        'olumsuz'        => 'Olumsuz',
+    ];
+    $statusEtiket = $statusEtiketMap[$talep->status] ?? ucfirst($talep->status);
+    $statusClass  = 'badge-' . $talep->status;
 
-    {{-- 1. HEADER --}}
-    @php
-        // AI hash hesapla
-        $hashKaynagi = $talep->segments->map(fn($s) =>
-            $s->from_iata . $s->to_iata . $s->departure_date . $s->departure_time
-        )->join('|') . '||' . $talep->offers->map(fn($o) =>
-            $o->airline . $o->price_per_pax . $o->total_price . $o->option_date . $o->option_time
-        )->join('|') . '||' . $talep->pax_total . $talep->flight_purpose;
-        $mevcutHash = md5($hashKaynagi);
-        $analizVarMi = $talep->ai_analysis && $talep->ai_analysis_hash === $mevcutHash;
-        $analizEskiMi = $talep->ai_analysis && $talep->ai_analysis_hash !== $mevcutHash;
+    // İlk görünür ve fiyatlı teklif
+    $gosterilecekTeklifler = $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
+    $ilkTeklif = $gosterilecekTeklifler->firstWhere('is_accepted', true)
+              ?? $gosterilecekTeklifler->first();
 
-        // Fiyatlı ve görünür ilk teklifi al
-        $ilkTeklif = $talep->offers->first(fn($o) => ($o->price_per_pax ?? 0) > 0 && $o->is_visible)
-                  ?? $talep->offers->first(fn($o) => !empty($o->airline) && $o->is_visible)
-                  ?? null;
+    // Opsiyon geri sayım (header için)
+    $opsiyonKalan = null;
+    $opsiyonRenk  = 'secondary';
+    $opsiyonTs    = null;
+    if ($ilkTeklif?->option_date) {
+        $opsiyonTs    = \Carbon\Carbon::parse($ilkTeklif->option_date . ' ' . ($ilkTeklif->option_time ?? '23:59'));
+        $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
+        $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
+    }
 
-        // Havayolu logo haritası (ad → IATA kodu)
-        $airlineIata = [
-            'turkish airlines' => 'TK', 'thy' => 'TK', 'tk' => 'TK',
-            'pegasus' => 'PC', 'pc' => 'PC',
-            'sunexpress' => 'XQ', 'sun express' => 'XQ', 'xq' => 'XQ',
-            'ajet' => 'VF', 'vf' => 'VF',
-            'freebird' => 'FH', 'fh' => 'FH',
-            'corendon' => 'CAI', 'corendon airlines' => 'CAI',
-            'wizz' => 'W6', 'wizz air' => 'W6', 'w6' => 'W6',
-            'ryanair' => 'FR', 'fr' => 'FR',
-            'easyjet' => 'U2', 'u2' => 'U2',
-            'lufthansa' => 'LH', 'lh' => 'LH',
-            'emirates' => 'EK', 'ek' => 'EK',
-            'qatar' => 'QR', 'qatar airways' => 'QR', 'qr' => 'QR',
-            'flydubai' => 'FZ', 'fz' => 'FZ',
-            'atlas' => 'KK', 'atlasjet' => 'KK', 'atlasglobal' => 'KK',
-        ];
-        $havayoluAdi  = $ilkTeklif?->airline;
-        $havayoluIata = $havayoluAdi ? ($airlineIata[strtolower(trim($havayoluAdi))] ?? null) : null;
-        $havayoluLogo = $havayoluIata ? "https://images.kiwi.com/airlines/64/{$havayoluIata}.png" : null;
+    // AI
+    $hashKaynagi = $talep->segments->map(fn($s) =>
+        $s->from_iata . $s->to_iata . $s->departure_date . $s->departure_time
+    )->join('|') . '||' . $talep->offers->map(fn($o) =>
+        $o->airline . $o->price_per_pax . $o->total_price . $o->option_date . $o->option_time
+    )->join('|') . '||' . $talep->pax_total . $talep->flight_purpose;
+    $mevcutHash = md5($hashKaynagi);
+    $analizVarMi  = $talep->ai_analysis && $talep->ai_analysis_hash === $mevcutHash;
+    $analizEskiMi = $talep->ai_analysis && $talep->ai_analysis_hash !== $mevcutHash;
 
-        $opsiyonKalan = null;
-        $opsiyonRenk = 'success';
-        if ($ilkTeklif?->option_date) {
-            $opsiyonTs = \Carbon\Carbon::parse($ilkTeklif->option_date . ' ' . ($ilkTeklif->option_time ?? '23:59'));
-            $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
-            $opsiyonRenk = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 48 ? 'warning' : 'success'));
-        }
-    @endphp
-    <div class="card shadow-sm mb-3" style="border-left: 5px solid #e94560;">
-        <div class="card-body py-3">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                <div>
-                    <h2 class="fw-bold mb-1 fs-3">{{ $talep->gtpnr }}</h2>
-                    <div class="text-muted small">
-                        ✈️ Uçak Grup Talebi &nbsp;|&nbsp;
-                        @foreach($talep->segments as $s)
-                            {{ $s->from_iata }}@if(!$loop->last) → @endif{{ $s->to_iata }}
-                        @endforeach
-                        &nbsp;|&nbsp; {{ $talep->pax_total }} Pax
+    // Havayolu logo map
+    $airlineIata = [
+        'turkish airlines'=>'TK','thy'=>'TK','tk'=>'TK',
+        'pegasus'=>'PC','pc'=>'PC',
+        'sunexpress'=>'XQ','sun express'=>'XQ','xq'=>'XQ',
+        'ajet'=>'VF','vf'=>'VF',
+        'freebird'=>'FH','fh'=>'FH',
+        'corendon'=>'CAI','corendon airlines'=>'CAI',
+        'wizz'=>'W6','wizz air'=>'W6','w6'=>'W6',
+        'ryanair'=>'FR','fr'=>'FR',
+        'easyjet'=>'U2','u2'=>'U2',
+        'lufthansa'=>'LH','lh'=>'LH',
+        'emirates'=>'EK','ek'=>'EK',
+        'qatar'=>'QR','qatar airways'=>'QR','qr'=>'QR',
+        'flydubai'=>'FZ','fz'=>'FZ',
+        'atlas'=>'KK','atlasjet'=>'KK','atlasglobal'=>'KK',
+    ];
+
+    // Gidiş segmenti
+    $segs     = $talep->segments->sortBy('order');
+    $ilkSeg   = $segs->first();
+    $sonSeg   = $segs->last();
+    $tripType = $talep->trip_type === 'round_trip' ? 'Gidiş - Dönüş' : ($talep->trip_type === 'multi_city' ? 'Çok Ayaklı' : 'Tek Yön');
+@endphp
+
+<div class="container-fluid px-3 py-3" style="max-width:1200px;">
+
+    @if(in_array(auth()->user()->role, ['admin','superadmin']))
+    <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-3" style="border-left:4px solid #ffc107;">
+        <i class="fas fa-eye me-1"></i>
+        <strong>Admin Önizleme Modu</strong>
+        <span class="text-muted small">— Acentenin gördüğünü görüyorsunuz. Butonlar işlev yapmaz.</span>
+        <a href="{{ route('admin.requests.show', $talep->gtpnr) }}" class="btn btn-sm btn-dark ms-auto">
+            <i class="fas fa-arrow-left me-1"></i>Admin Sayfasına Dön
+        </a>
+    </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════
+         1. HEADER — GTPNR + DURUM + ÖZET BAR
+         ═══════════════════════════════════════ --}}
+    <div class="card shadow-sm talep-header mb-3">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-3">
+                    @if(in_array(auth()->user()->role, ['admin','superadmin']))
+                        <a href="{{ route('admin.requests.show', $talep->gtpnr) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    @else
+                        <a href="{{ route('acente.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    @endif
+                    <div>
+                        <h4 class="fw-bold mb-0 font-monospace" style="color:#1a1a2e;">{{ $talep->gtpnr }}</h4>
+                        <small class="text-muted">
+                            {{ $talep->agency_name }}
+                            &nbsp;·&nbsp; {{ $talep->created_at->format('d.m.Y H:i') }}
+                        </small>
                     </div>
                 </div>
-                <div class="text-end">
-                    @php
-                        $statusClass = 'status-' . $talep->status;
-                        $statusEtiket = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'][$talep->status] ?? ucfirst($talep->status);
-                    @endphp
+                <div class="d-flex align-items-center gap-2">
                     <span class="badge {{ $statusClass }} fs-6 px-3 py-2">{{ $statusEtiket }}</span>
                     <x-iade-badge :talep="$talep" :showForAcente="true" />
-                    @if($talep->status === 'beklemede')
-                    <div class="mt-2">
-                        <a href="#" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-edit"></i> Düzenle
-                        </a>
-                    </div>
-                    @endif
                 </div>
             </div>
 
-            {{-- DASHBOARD BAR --}}
-            <div class="row g-2 mt-2">
-                <div class="col-6 col-md-2">
-                    <div class="bg-light rounded p-2 text-center h-100">
-                        <div class="small text-muted">Rota</div>
-                        <div class="fw-bold">
-                            {{ $talep->segments->first()?->from_iata }}
-                            <i class="fas fa-arrow-right text-danger mx-1" style="font-size:0.7rem;"></i>
-                            {{ $talep->segments->last()?->to_iata }}
+            {{-- ÖZET BAR --}}
+            <div class="row g-2">
+                <div class="col-6 col-md">
+                    <div class="ozet-kutu">
+                        <div class="etiket">Rota</div>
+                        <div class="deger">
+                            {{ $ilkSeg?->from_iata }}
+                            <i class="fas fa-arrow-right text-danger" style="font-size:0.6rem;"></i>
+                            {{ $sonSeg?->to_iata }}
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-2">
-                    <div class="bg-light rounded p-2 text-center h-100">
-                        <div class="small text-muted">Gidiş</div>
-                        <div class="fw-bold">
-                            @if($talep->segments->first()?->departure_date)
-                                {{ \Carbon\Carbon::parse($talep->segments->first()->departure_date)->format('d M Y') }}
-                            @else — @endif
+                <div class="col-6 col-md">
+                    <div class="ozet-kutu">
+                        <div class="etiket">Gidiş</div>
+                        <div class="deger">
+                            {{ $ilkSeg?->departure_date ? \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d M Y') : '—' }}
                         </div>
-                        @if($talep->segments->first()?->departure_time)
-                        <div class="small text-muted">{{ $talep->segments->first()->departure_time }}</div>
-                        @endif
                     </div>
                 </div>
-                <div class="col-6 col-md-1">
-                    <div class="bg-light rounded p-2 text-center h-100">
-                        <div class="small text-muted">PAX</div>
-                        <div class="fw-bold text-primary">{{ $talep->pax_total }}</div>
+                <div class="col-6 col-md">
+                    <div class="ozet-kutu">
+                        <div class="etiket">PAX</div>
+                        <div class="deger text-primary">{{ $talep->pax_total }}</div>
                     </div>
                 </div>
-                <div class="col-6 col-md-2">
-                    <div class="bg-light rounded p-2 text-center h-100">
-                        <div class="small text-muted">Havayolu</div>
-                        @if($havayoluLogo)
-                            <img src="{{ $havayoluLogo }}" alt="{{ $havayoluAdi }}"
-                                 style="max-height:28px; max-width:72px; object-fit:contain;"
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div class="fw-bold" style="display:none;">{{ $havayoluAdi }}</div>
-                        @else
-                            <div class="fw-bold">{{ $havayoluAdi ?? '—' }}</div>
-                        @endif
-                    </div>
-                </div>
-                <div class="col-6 col-md-2">
-                    <div class="bg-light rounded p-2 text-center h-100">
-                        <div class="small text-muted">Kişi Başı</div>
-                        <div class="fw-bold text-success">
+                <div class="col-6 col-md">
+                    <div class="ozet-kutu">
+                        <div class="etiket">Kişi Başı</div>
+                        <div class="deger text-success">
                             @if($ilkTeklif?->price_per_pax > 0)
                                 {{ number_format($ilkTeklif->price_per_pax, 0) }} {{ $ilkTeklif->currency }}
-                            @else — @endif
+                            @else <span class="text-muted">—</span> @endif
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="bg-{{ $opsiyonRenk }} bg-opacity-10 border border-{{ $opsiyonRenk }} border-opacity-25 rounded p-2 text-center h-100">
-                        <div class="small text-muted">Opsiyon</div>
-                        @if($opsiyonKalan === null)
-                            <div class="fw-bold text-muted">—</div>
-                        @elseif($opsiyonKalan <= 0)
-                            <div class="fw-bold text-danger"><i class="fas fa-ban me-1"></i>Süresi Doldu</div>
-                        @else
-                            @php $gun = floor($opsiyonKalan / 24); $saat = $opsiyonKalan % 24; @endphp
-                            <div class="fw-bold text-{{ $opsiyonRenk }}">
-                                @if($gun > 0) {{ $gun }} gün @endif{{ $saat }} saat kaldı
-                            </div>
-                            <div class="small text-muted">{{ $opsiyonTs->format('d.m.Y H:i') }}</div>
+                <div class="col-12 col-md">
+                    <div class="ozet-kutu bg-{{ $opsiyonRenk }} bg-opacity-10" style="border:1px solid;">
+                        <div class="etiket">Opsiyon</div>
+                        <div class="deger text-{{ $opsiyonRenk }}">
+                            @if($opsiyonKalan === null)
+                                <span class="text-muted">—</span>
+                            @elseif($opsiyonKalan <= 0)
+                                <i class="fas fa-ban me-1"></i>Doldu
+                            @else
+                                @php $g = floor($opsiyonKalan/24); $s = $opsiyonKalan%24; @endphp
+                                @if($g > 0) {{ $g }}g @endif{{ $s }}sa kaldı
+                            @endif
+                        </div>
+                        @if($opsiyonTs && $opsiyonKalan > 0)
+                        <div style="font-size:0.65rem;color:#6c757d;">{{ $opsiyonTs->format('d.m.Y H:i') }}</div>
                         @endif
                     </div>
                 </div>
@@ -189,297 +231,220 @@
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-12 col-md-7">
+    <div class="row g-3">
 
-            {{-- 3. HARİTA --}}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold d-flex justify-content-between align-items-center"
-                     style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#harita-collapse" aria-expanded="true">
-                    <span>🗺️ Rota Haritası</span>
-                    <i class="fas fa-chevron-up" id="harita-chevron" style="transition:transform 0.2s;"></i>
-                </div>
-                <div class="collapse show" id="harita-collapse">
-                    <div id="map"></div>
-                </div>
-            </div>
+        {{-- ═══════════════════════════════════
+             SOL KOLON
+             ═══════════════════════════════════ --}}
+        <div class="col-12 col-lg-7">
 
-            {{-- UÇUŞ SEGMENTLERİ --}}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">✈️ Uçuş Segmentleri</div>
-                <div class="card-body">
-                    @foreach($talep->segments as $segment)
-                    <div class="segment-card p-3 mb-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="text-center">
-                                <div class="iata-code">{{ $segment->from_iata }}</div>
-                                <small class="opacity-75">Kalkış</small>
-                            </div>
-                            <div class="text-center flex-grow-1">
-                                <div style="height:2px;background:rgba(255,255,255,0.3);position:relative;margin:0 20px;">
-                                    <span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:20px;">✈</span>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="iata-code">{{ $segment->to_iata }}</div>
-                                <small class="opacity-75">Varış</small>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between mt-3 opacity-75">
-                            <small><i class="fas fa-calendar"></i> {{ $segment->departure_date }}</small>
-                            @if($segment->departure_time)
-                            <small><i class="fas fa-clock"></i> {{ $segment->departure_time }}</small>
-                            @endif
-                        </div>
-                    </div>
-                    @endforeach
-
-                    @if($talep->group_company_name || $talep->email || $talep->phone)
-                    <div class="card shadow-sm mb-3 mt-3">
-                        <div class="card-body">
-                            <div class="row g-2">
-                                @if($talep->group_company_name)
-                                <div class="col-6">
-                                    <small class="text-muted">Grup Firma</small>
-                                    <div class="fw-bold">{{ $talep->group_company_name }}</div>
-                                </div>
-                                @endif
-                                @if($talep->email)
-                                <div class="col-6">
-                                    <small class="text-muted">E-posta</small>
-                                    <div class="fw-bold">{{ $talep->email }}</div>
-                                </div>
-                                @endif
-                                @if($talep->phone)
-                                <div class="col-6">
-                                    <small class="text-muted">Telefon</small>
-                                    <div class="fw-bold">{{ $talep->phone }}</div>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($talep->notes)
-                    <div class="alert alert-light mt-2">
-                        <small class="text-muted">📝 Not:</small>
-                        <div>{{ $talep->notes }}</div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- AI HAVALİMANI İSTİHBARATI --}}
-            <div class="card shadow-sm mb-4" id="ai-havalimani-kart">
-                <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-                    <div>
-                        <span>🤖 AI Operasyon Analizi</span>
-                        @if($analizVarMi)
-                            <small class="text-muted fw-normal ms-2">
-                                · {{ $talep->ai_analysis_updated_at?->format('d.m.Y H:i') }}
-                            </small>
-                        @endif
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        @if($analizEskiMi)
-                            <span class="badge bg-warning text-dark">Veri değişti</span>
-                        @endif
-                        <button class="btn btn-sm {{ $analizVarMi ? 'btn-outline-secondary' : 'btn-dark' }}"
-                                id="ai-analiz-btn" onclick="aiAnalizBaslat()">
-                            @if($analizVarMi)
-                                <i class="fas fa-sync me-1"></i> Yenile
-                            @else
-                                <i class="fas fa-robot me-1"></i> Analiz Başlat
-                            @endif
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body" id="ai-analiz-icerik">
-                    @if($analizVarMi || $analizEskiMi)
-                        {!! $talep->ai_analysis !!}
-                    @else
-                        <div class="text-center text-muted py-4">
-                            <i class="fas fa-robot fa-3x opacity-25 mb-3 d-block"></i>
-                            <div>Havalimanı istihbaratı, transfer önerisi ve operasyon notları için butona tıklayın.</div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- 7. TİMELINE --}}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">📅 Operasyon Zaman Çizelgesi :</div>
-                <div class="card-body">
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="fw-bold">Talep Oluşturuldu</div>
-                            <small class="text-muted">{{ $talep->created_at->format('d.m.Y H:i') }}</small>
-                        </div>
-                        @foreach($talep->logs as $log)
-                        <div class="timeline-item">
-                            <div class="fw-bold">{{ $log->description }}</div>
-                            <small class="text-muted">
-                                {{ $log->created_at->format('d.m.Y H:i') }}
-                                @if($log->user) · {{ $log->user->name }} @endif
-                            </small>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- İLETİŞİM GEÇMİŞİ --}}
-            @php
-                $tumIletisimler = $talep->notifications
-                    ->where('recipient', 'acente')
-                    ->sortByDesc('created_at');
-                $pushBildirimleri = auth()->user()->bildirimleri()
-                    ->orderByDesc('created_at')
-                    ->get();
-            @endphp
-            @if($tumIletisimler->isNotEmpty() || $pushBildirimleri->isNotEmpty())
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-semibold">
-                    📡 İletişim Geçmişi
-                    <span class="badge bg-secondary ms-1">{{ $tumIletisimler->count() + $pushBildirimleri->count() }}</span>
+            {{-- ── TALEPBİLGİLERİ ── --}}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header fw-bold py-2" style="background:#1a1a2e; color:#fff;">
+                    <i class="fas fa-clipboard-list me-2" style="color:#e94560;"></i>Talep Bilgileri
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-sm mb-0 align-middle" style="font-size:0.82rem;">
+                    <table class="table bilgi-tablo mb-0">
                         <tbody>
-                            {{-- Push bildirimleri --}}
-                            @foreach($pushBildirimleri as $pb)
-                            <tr>
-                                <td class="ps-3" style="width:28px;">
-                                    <span title="Push Bildirim">🔔</span>
-                                </td>
-                                <td class="text-muted text-nowrap">{{ $pb->created_at->format('d.m.Y H:i') }}</td>
-                                <td>
-                                    <div class="fw-semibold">{{ $pb->title }}</div>
-                                    <div class="text-muted">{{ $pb->message }}</div>
-                                </td>
-                                <td class="pe-3 text-nowrap">
-                                    @if($pb->is_read)
-                                        <span class="badge bg-success" title="{{ $pb->read_at?->format('d.m.Y H:i') }}">
-                                            <i class="fas fa-check-double me-1"></i>Okundu
+                        {{-- Acente & İletişim --}}
+                        <tr>
+                            <th>Acente</th>
+                            <td class="fw-bold">{{ $talep->agency_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Telefon</th>
+                            <td>
+                                <a href="tel:{{ $talep->phone }}" class="text-decoration-none">
+                                    {{ $talep->phone }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>E-posta</th>
+                            <td>{{ $talep->email }}</td>
+                        </tr>
+                        @if($talep->group_company_name)
+                        <tr>
+                            <th>Grup / Firma</th>
+                            <td class="fw-bold">{{ $talep->group_company_name }}</td>
+                        </tr>
+                        @endif
+                        @if($talep->flight_purpose)
+                        <tr>
+                            <th>Uçuş Amacı</th>
+                            <td>{{ $talep->flight_purpose }}</td>
+                        </tr>
+                        @endif
+                        {{-- PAX --}}
+                        <tr>
+                            <th>Yolcu Sayısı</th>
+                            <td>
+                                <span class="fw-bold fs-5 text-primary">{{ $talep->pax_total }}</span> kişi
+                                @php
+                                    $paxDetay = [];
+                                    if ($talep->pax_adult > 0) $paxDetay[] = $talep->pax_adult . ' Yetişkin';
+                                    if ($talep->pax_child > 0) $paxDetay[] = $talep->pax_child . ' Çocuk';
+                                    if ($talep->pax_infant > 0) $paxDetay[] = $talep->pax_infant . ' Bebek';
+                                @endphp
+                                @if(count($paxDetay))
+                                    <span class="text-muted ms-1" style="font-size:0.82rem;">({{ implode(', ', $paxDetay) }})</span>
+                                @endif
+                            </td>
+                        </tr>
+                        {{-- Uçuş türü --}}
+                        <tr>
+                            <th>Uçuş Türü</th>
+                            <td>{{ $tripType }}</td>
+                        </tr>
+                        {{-- Segmentler --}}
+                        @foreach($segs as $i => $seg)
+                        <tr style="background:#f8faff;">
+                            <th>
+                                @if($segs->count() === 1)
+                                    <i class="fas fa-plane-departure text-primary me-1"></i>Parkur
+                                @elseif($i === 0)
+                                    <i class="fas fa-plane-departure text-primary me-1"></i>Gidiş Parkuru
+                                @elseif($i === $segs->count()-1)
+                                    <i class="fas fa-plane-arrival text-success me-1"></i>Dönüş Parkuru
+                                @else
+                                    <i class="fas fa-plane text-warning me-1"></i>{{ $i+1 }}. Segment
+                                @endif
+                            </th>
+                            <td>
+                                <span class="fw-bold font-monospace fs-6">{{ $seg->from_iata }}</span>
+                                <i class="fas fa-long-arrow-alt-right text-danger mx-2"></i>
+                                <span class="fw-bold font-monospace fs-6">{{ $seg->to_iata }}</span>
+                                @if($seg->from_city || $seg->to_city)
+                                    <div class="text-muted" style="font-size:0.78rem;">
+                                        {{ $seg->from_city }} → {{ $seg->to_city }}
+                                    </div>
+                                @endif
+                                <div class="mt-1">
+                                    <i class="fas fa-calendar-alt text-muted me-1" style="font-size:0.75rem;"></i>
+                                    <span style="font-size:0.88rem;">
+                                        {{ $seg->departure_date ? \Carbon\Carbon::parse($seg->departure_date)->format('d.m.Y (D)') : '—' }}
+                                    </span>
+                                    @if($seg->departure_time)
+                                        <span class="text-muted ms-2" style="font-size:0.82rem;">
+                                            <i class="fas fa-clock me-1"></i>{{ substr($seg->departure_time, 0, 5) }}
                                         </span>
-                                    @else
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="fas fa-circle me-1" style="font-size:0.5rem;"></i>Okunmadı
-                                        </span>
                                     @endif
-                                </td>
-                            </tr>
-                            @endforeach
-
-                            {{-- SMS ve Email bildirimleri --}}
-                            @foreach($tumIletisimler as $notif)
-                            <tr>
-                                <td class="ps-3" style="width:28px;">
-                                    @if($notif->channel === 'email')
-                                        <span title="E-posta">📧</span>
-                                    @else
-                                        <span title="SMS">💬</span>
-                                    @endif
-                                </td>
-                                <td class="text-muted text-nowrap">{{ $notif->created_at->format('d.m.Y H:i') }}</td>
-                                <td>
-                                    @if($notif->channel === 'email' && $notif->subject)
-                                        <div class="fw-semibold">{{ $notif->subject }}</div>
-                                    @else
-                                        <div>{{ Str::limit($notif->message, 80) }}</div>
-                                    @endif
-                                    @if($notif->channel === 'email')
-                                        <div class="text-muted" style="font-size:0.75rem;">{{ $notif->recipient_name }}</div>
-                                    @endif
-                                </td>
-                                <td class="pe-3 text-nowrap">
-                                    @if($notif->status === 'sent')
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check me-1"></i>İletildi
-                                        </span>
-                                        @if($notif->delivery_status === 'delivered')
-                                            <span class="badge bg-info ms-1" style="font-size:0.65rem;">Teslim</span>
-                                        @endif
-                                    @elseif($notif->status === 'failed')
-                                        <span class="badge bg-danger">Hata</span>
-                                    @elseif($notif->status === 'scheduled')
-                                        <span class="badge bg-warning text-dark">Bekliyor</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ $notif->status }}</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                        {{-- Tercihler --}}
+                        @if($talep->preferred_airline)
+                        <tr>
+                            <th>Tercih Havayolu</th>
+                            <td>{{ $talep->preferred_airline }}</td>
+                        </tr>
+                        @endif
+                        @if($talep->hotel_needed || $talep->visa_needed)
+                        <tr>
+                            <th>Ek Hizmetler</th>
+                            <td>
+                                @if($talep->hotel_needed)
+                                    <span class="badge bg-info text-dark me-1"><i class="fas fa-hotel me-1"></i>Otel</span>
+                                @endif
+                                @if($talep->visa_needed)
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-passport me-1"></i>Vize</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endif
+                        @if($talep->notes)
+                        <tr>
+                            <th><i class="fas fa-sticky-note text-warning me-1"></i>Notlar</th>
+                            <td style="white-space:pre-line;">{{ $talep->notes }}</td>
+                        </tr>
+                        @endif
+                        <tr>
+                            <th>Talep Tarihi</th>
+                            <td class="text-muted">
+                                {{ $talep->created_at->format('d.m.Y H:i') }}
+                                <span class="ms-2 text-muted" style="font-size:0.78rem;">
+                                    ({{ $talep->created_at->diffForHumans() }})
+                                </span>
+                            </td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            @endif
 
-        </div>
-
-        <div class="col-md-5">
-
-            {{-- 5. TEKLİFLER --}}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold text-danger">
-                    💰 Teklifler
-                    <span class="badge bg-danger ms-1">{{ $talep->offers->where('price_per_pax', '>', 0)->where('is_visible', true)->count() }}</span>
+            {{-- ── TEKLİFLER ── --}}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header fw-bold py-2 d-flex justify-content-between align-items-center"
+                     style="background:#1a1a2e; color:#fff;">
+                    <div>
+                        <i class="fas fa-tag me-2" style="color:#ffc107;"></i>Teklifler
+                        @if($gosterilecekTeklifler->count() > 0)
+                            <span class="badge bg-warning text-dark ms-1">{{ $gosterilecekTeklifler->count() }}</span>
+                        @endif
+                    </div>
                 </div>
-                <div class="card-body">
-                    @forelse($talep->offers->where('price_per_pax', '>', 0)->where('is_visible', true) as $teklif)
-                    @php
-                        $tklKey  = strtolower(trim($teklif->airline ?? ''));
-                        $tklIata = $airlineIata[$tklKey] ?? null;
-                        $tklLogo = $tklIata ? "https://images.kiwi.com/airlines/64/{$tklIata}.png" : null;
-                    @endphp
-                    <div class="teklif-card card mb-3 p-3">
-                        {{-- Havayolu başlık --}}
+                <div class="card-body {{ $gosterilecekTeklifler->count() === 0 ? 'py-5 text-center' : 'pt-3 pb-2' }}">
+
+                @forelse($gosterilecekTeklifler as $teklif)
+                @php
+                    $tklKey  = strtolower(trim($teklif->airline ?? ''));
+                    $tklIata = $airlineIata[$tklKey] ?? null;
+                    $tklLogo = $tklIata ? "https://images.kiwi.com/airlines/64/{$tklIata}.png" : null;
+                @endphp
+                <div class="teklif-card card p-0 {{ $teklif->is_accepted ? 'kabul-edildi' : '' }}">
+                    <div class="card-body p-3">
+
+                        {{-- Havayolu + kabul rozeti --}}
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center gap-2">
                                 @if($tklLogo)
                                     <img src="{{ $tklLogo }}" alt="{{ $teklif->airline }}"
-                                         style="max-height:30px; max-width:80px; object-fit:contain;"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='';">
+                                         style="max-height:32px;max-width:90px;object-fit:contain;"
+                                         onerror="this.style.display='none';this.nextElementSibling.style.display='';">
                                     <span class="fw-bold fs-5" style="display:none;">{{ $teklif->airline ?? '—' }}</span>
                                 @else
                                     <span class="fw-bold fs-5">{{ $teklif->airline ?? '—' }}</span>
                                 @endif
                             </div>
-                            <span class="badge bg-secondary">{{ $teklif->currency }}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary">{{ $teklif->currency }}</span>
+                                @if($teklif->is_accepted)
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Kabul Edildi</span>
+                                @endif
+                            </div>
                         </div>
 
-                        {{-- Uçuş bilgileri --}}
+                        {{-- Uçuş detayları (PNR, sefer no, saat, bagaj) --}}
                         @if($teklif->airline_pnr || $teklif->flight_number || $teklif->flight_departure_time || $teklif->baggage_kg || $teklif->pax_confirmed)
-                        <div class="rounded p-2 mb-3" style="background:#f0f4ff; border:1px solid #c5d3f0;">
+                        <div class="rounded p-2 mb-3" style="background:#f0f4ff;border:1px solid #c5d3f0;">
                             <div class="row g-2 text-center">
                                 @if($teklif->airline_pnr)
-                                <div class="col-6">
+                                <div class="col-6 col-md-3">
                                     <div class="small text-muted">PNR</div>
                                     <div class="fw-bold font-monospace text-primary">{{ $teklif->airline_pnr }}</div>
                                 </div>
                                 @endif
                                 @if($teklif->flight_number)
-                                <div class="col-6">
+                                <div class="col-6 col-md-3">
                                     <div class="small text-muted">Sefer</div>
                                     <div class="fw-bold">{{ $teklif->flight_number }}</div>
                                 </div>
                                 @endif
                                 @if($teklif->flight_departure_time || $teklif->flight_arrival_time)
-                                <div class="col-6">
+                                <div class="col-6 col-md-3">
                                     <div class="small text-muted">Saat</div>
-                                    <div class="fw-bold">{{ $teklif->flight_departure_time ? substr($teklif->flight_departure_time, 0, 5) : '--' }} → {{ $teklif->flight_arrival_time ? substr($teklif->flight_arrival_time, 0, 5) : '--' }}</div>
+                                    <div class="fw-bold">{{ $teklif->flight_departure_time ? substr($teklif->flight_departure_time,0,5) : '--' }} → {{ $teklif->flight_arrival_time ? substr($teklif->flight_arrival_time,0,5) : '--' }}</div>
                                 </div>
                                 @endif
                                 @if($teklif->baggage_kg)
-                                <div class="col-6">
+                                <div class="col-6 col-md-3">
                                     <div class="small text-muted">Bagaj</div>
                                     <div class="fw-bold">🧳 {{ $teklif->baggage_kg }} KG</div>
                                 </div>
                                 @endif
                                 @if($teklif->pax_confirmed)
-                                <div class="col-6">
+                                <div class="col-6 col-md-3">
                                     <div class="small text-muted">PAX</div>
                                     <div class="fw-bold">👥 {{ $teklif->pax_confirmed }}</div>
                                 </div>
@@ -488,166 +453,173 @@
                         </div>
                         @endif
 
-                        <div class="row g-2 text-center mb-3">
+                        {{-- Fiyat + toplam --}}
+                        <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <div class="bg-light rounded p-2">
+                                <div class="fiyat-kutu">
                                     <div class="small text-muted">Kişi Başı</div>
-                                    <div class="fw-bold text-success fs-5">
-                                        {{ number_format($teklif->price_per_pax, 0) }} {{ $teklif->currency }}
-                                    </div>
+                                    <div class="fiyat">{{ number_format($teklif->price_per_pax, 0) }}</div>
+                                    <div class="toplam">{{ $teklif->currency }}</div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="bg-light rounded p-2">
-                                    <div class="small text-muted">Toplam</div>
-                                    <div class="fw-bold fs-5">
-                                        {{ number_format($teklif->total_price, 0) }} {{ $teklif->currency }}
-                                    </div>
+                                <div class="bg-light border rounded p-2 text-center">
+                                    <div class="small text-muted">Toplam ({{ $talep->pax_total }} kişi)</div>
+                                    <div class="fw-bold fs-5">{{ number_format($teklif->total_price, 0) }}</div>
+                                    <div class="small text-muted">{{ $teklif->currency }}</div>
                                 </div>
                             </div>
                             @if($teklif->deposit_amount)
-                            <div class="col-6">
-                                <div class="bg-warning bg-opacity-10 rounded p-2">
+                            <div class="col-12">
+                                <div class="bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-2 text-center">
                                     <div class="small text-muted">Depozito (%{{ $teklif->deposit_rate }})</div>
-                                    <div class="fw-bold text-warning">
-                                        {{ number_format($teklif->deposit_amount, 0) }} {{ $teklif->currency }}
-                                    </div>
+                                    <div class="fw-bold text-warning">{{ number_format($teklif->deposit_amount, 0) }} {{ $teklif->currency }}</div>
                                 </div>
                             </div>
                             @endif
-            @if($teklif->option_date)
-@php
-    $opsiyonStr = $teklif->option_date . ' ' . ($teklif->option_time ?? '23:59');
-    $opsiyonTs = \Carbon\Carbon::parse($opsiyonStr);
-    $kalanSaniye = \Carbon\Carbon::now()->diffInSeconds($opsiyonTs, false);
-    $kalanSaat = $kalanSaniye / 3600;
-@endphp
-<div class="col-12">
-@if($kalanSaniye <= 0)
-    <div class="alert alert-danger text-center fw-bold py-2 mb-0">
-        <i class="fas fa-ban me-1"></i> OPSİYON SÜRESİ DOLDU
-        <div class="small fw-normal">{{ $opsiyonTs->format('d.m.Y H:i') }}</div>
-    </div>
-@elseif($kalanSaat <= 6)
-    <div class="alert alert-danger border-2 mb-0 py-2" id="sayac-kutu-{{ $teklif->id }}">
-        <div class="fw-bold text-danger"><i class="fas fa-exclamation-triangle me-1"></i>KRİTİK — OPSİYON BİTİYOR!</div>
-        <div class="fs-3 fw-bold font-monospace text-danger" id="sayac-{{ $teklif->id }}">--:--:--</div>
-        <small>Son: {{ $opsiyonTs->format('d.m.Y H:i') }}</small>
-    </div>
-@elseif($kalanSaat <= 24)
-    <div class="alert alert-warning border-2 mb-0 py-2" id="sayac-kutu-{{ $teklif->id }}">
-        <div class="fw-bold"><i class="fas fa-clock me-1"></i>Opsiyon Bitiyor</div>
-        <div class="fs-4 fw-bold font-monospace text-warning" id="sayac-{{ $teklif->id }}">--:--:--</div>
-        <small>Son: {{ $opsiyonTs->format('d.m.Y H:i') }}</small>
-    </div>
-@else
-    <div class="bg-success bg-opacity-10 rounded p-2 border border-success border-opacity-25" id="sayac-kutu-{{ $teklif->id }}">
-        <div class="small text-muted"><i class="fas fa-hourglass-half me-1 text-success"></i>Opsiyona Kalan</div>
-        <div class="fw-bold font-monospace text-success" id="sayac-{{ $teklif->id }}">--g --:--:--</div>
-        <small class="text-muted">Son: {{ $opsiyonTs->format('d.m.Y H:i') }}</small>
-    </div>
-@endif
-<input type="hidden" id="opsiyon-ts-{{ $teklif->id }}" value="{{ $opsiyonTs->timestamp }}">
-</div>
-@endif
                         </div>
 
+                        {{-- Opsiyon sayacı --}}
+                        @if($teklif->option_date)
+                        @php
+                            $opsStr = $teklif->option_date . ' ' . ($teklif->option_time ?? '23:59');
+                            $opsDt  = \Carbon\Carbon::parse($opsStr);
+                            $opsKalanSn   = \Carbon\Carbon::now()->diffInSeconds($opsDt, false);
+                            $opsKalanSaat = $opsKalanSn / 3600;
+                        @endphp
+                        <div class="mb-3">
+                        @if($opsKalanSn <= 0)
+                            <div class="alert alert-danger text-center fw-bold py-2 mb-0">
+                                <i class="fas fa-ban me-1"></i>OPSİYON SÜRESİ DOLDU
+                                <div class="small fw-normal">{{ $opsDt->format('d.m.Y H:i') }}</div>
+                            </div>
+                        @elseif($opsKalanSaat <= 6)
+                            <div class="alert alert-danger border-2 mb-0 py-2" id="sayac-kutu-{{ $teklif->id }}">
+                                <div class="fw-bold text-danger"><i class="fas fa-exclamation-triangle me-1"></i>KRİTİK — OPSİYON BİTİYOR!</div>
+                                <div class="fs-3 fw-bold font-monospace text-danger" id="sayac-{{ $teklif->id }}">--:--:--</div>
+                                <small>Son: {{ $opsDt->format('d.m.Y H:i') }}</small>
+                            </div>
+                        @elseif($opsKalanSaat <= 24)
+                            <div class="alert alert-warning border-2 mb-0 py-2" id="sayac-kutu-{{ $teklif->id }}">
+                                <div class="fw-bold"><i class="fas fa-clock me-1"></i>Opsiyon Bitiyor</div>
+                                <div class="fs-4 fw-bold font-monospace text-warning" id="sayac-{{ $teklif->id }}">--:--:--</div>
+                                <small>Son: {{ $opsDt->format('d.m.Y H:i') }}</small>
+                            </div>
+                        @else
+                            <div class="bg-success bg-opacity-10 rounded p-2 border border-success border-opacity-25" id="sayac-kutu-{{ $teklif->id }}">
+                                <div class="small text-muted"><i class="fas fa-hourglass-half me-1 text-success"></i>Opsiyona Kalan</div>
+                                <div class="fw-bold font-monospace text-success" id="sayac-{{ $teklif->id }}">--g --:--:--</div>
+                                <small class="text-muted">Son: {{ $opsDt->format('d.m.Y H:i') }}</small>
+                            </div>
+                        @endif
+                        <input type="hidden" id="opsiyon-ts-{{ $teklif->id }}" value="{{ $opsDt->timestamp }}">
+                        </div>
+                        @endif
+
+                        {{-- Operasyon notu --}}
                         @if($teklif->offer_text)
                         <details class="mb-3">
-                            <summary class="small text-muted" style="cursor:pointer; user-select:none;">
+                            <summary class="small text-muted" style="cursor:pointer;user-select:none;">
                                 📄 Operasyon Notunu Gör
                             </summary>
-                            <div class="bg-light rounded p-2 mt-2 small font-monospace" style="white-space:pre-wrap; font-size:0.78rem; color:#555;">{{ $teklif->offer_text }}</div>
+                            <div class="bg-light rounded p-2 mt-2 small" style="white-space:pre-wrap;font-size:0.78rem;color:#555;font-family:'Courier New',monospace;">{{ $teklif->offer_text }}</div>
                         </details>
                         @endif
 
                         @if($teklif->created_by)
-                        <div class="text-muted mb-3" style="font-size:0.8rem;">
-                            <i class="fas fa-user me-1"></i>Teklifi Hazırlayan: <strong>{{ $teklif->created_by }}</strong>
+                        <div class="text-muted mb-3" style="font-size:0.78rem;">
+                            <i class="fas fa-user-tie me-1"></i>Hazırlayan: <strong>{{ $teklif->created_by }}</strong>
                         </div>
                         @endif
 
-                        @if($teklif->is_accepted)
-                        <div class="alert alert-success py-2 mb-2 text-center">
-                            <i class="fas fa-check-circle me-1"></i><strong>Kabul Edildi</strong>
-                            <div class="small text-muted">{{ $teklif->accepted_at ? \Carbon\Carbon::parse($teklif->accepted_at)->format('d.m.Y H:i') : '' }}</div>
-                        </div>
-                        @endif
-
+                        {{-- Butonlar --}}
                         <div class="d-flex gap-2">
                             @if(!$teklif->is_accepted)
                             <button type="button" class="btn btn-success btn-sm flex-fill"
                                 onclick="kabulOnayGoster(
                                     {{ $teklif->id }},
                                     '{{ addslashes($teklif->airline ?? '—') }}',
-                                    '{{ number_format($teklif->price_per_pax, 0) }} {{ $teklif->currency }}',
-                                    '{{ number_format($teklif->total_price, 0) }} {{ $teklif->currency }}',
-                                    '{{ $teklif->option_date ? \Carbon\Carbon::parse($teklif->option_date)->format("d.m.Y") . " " . substr($teklif->option_time ?? "23:59", 0, 5) : "—" }}'
+                                    '{{ number_format($teklif->price_per_pax,0) }} {{ $teklif->currency }}',
+                                    '{{ number_format($teklif->total_price,0) }} {{ $teklif->currency }}',
+                                    '{{ $teklif->option_date ? \Carbon\Carbon::parse($teklif->option_date)->format("d.m.Y")." ".substr($teklif->option_time ?? "23:59",0,5) : "—" }}'
                                 )">
-                                <i class="fas fa-check me-1"></i> Kabul Et
+                                <i class="fas fa-check me-1"></i>Kabul Et
                             </button>
                             @else
                             <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - depozito ödemesi hakkında bilgi almak istiyorum') }}"
                                target="_blank" class="btn btn-success btn-sm flex-fill">
-                                <i class="fab fa-whatsapp me-1"></i> Depozito Bilgisi Al
+                                <i class="fab fa-whatsapp me-1"></i>Depozito Bilgisi Al
                             </a>
                             @endif
                             <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - ' . ($teklif->airline ?? '') . ' teklifi hakkında sorum var') }}"
                                target="_blank" class="btn btn-outline-secondary btn-sm flex-fill">
-                                <i class="fas fa-question"></i> Sor
+                                <i class="fab fa-whatsapp me-1"></i>Sor
                             </a>
                         </div>
+
                     </div>
-                    @empty
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-hourglass-half fa-3x mb-3 opacity-25"></i>
-                        <p class="mb-1">Teklif hazırlanıyor...</p>
-                        <small>Operasyon ekibimiz en kısa sürede size dönecektir.</small>
+                </div>
+                @empty
+                {{-- Teklif yok --}}
+                <div class="text-muted">
+                    <div class="beklemede-pulse mb-3">
+                        <i class="fas fa-hourglass-half fa-3x opacity-25"></i>
                     </div>
-                    @endforelse
+                    <p class="fw-bold mb-1">Teklif hazırlanıyor...</p>
+                    <small>Operasyon ekibimiz en kısa sürede dönecektir.</small>
+                    <div class="mt-3">
+                        <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' numaralı talebim için bilgi almak istiyorum') }}"
+                           target="_blank" class="btn btn-outline-success btn-sm">
+                            <i class="fab fa-whatsapp me-1"></i>Durumu Sor
+                        </a>
+                    </div>
+                </div>
+                @endforelse
                 </div>
             </div>
 
-            {{-- 6. MUHASEBE & ÖDEMELER --}}
+        </div>{{-- /SOL KOLON --}}
+
+        {{-- ═══════════════════════════════════
+             SAĞ KOLON
+             ═══════════════════════════════════ --}}
+        <div class="col-12 col-lg-5">
+
+            {{-- ── MUHASEBE ── --}}
             @if($talep->offers->count() > 0)
             @php
-                $ilkTeklif = $talep->offers->first(fn($o) => ($o->price_per_pax ?? 0) > 0)
-                          ?? $talep->offers->first();
-                $toplamTutar = $ilkTeklif->total_price;
-                $odenenCurrency = $ilkTeklif->currency;
-                $toplamOdenen = $talep->payments->where('status', 'alindi')->sum('amount');
-                $kalanTutar = max(0, $toplamTutar - $toplamOdenen);
-                $yuzde = $toplamTutar > 0 ? min(100, round(($toplamOdenen / $toplamTutar) * 100)) : 0;
+                $muhTeklif = $talep->offers->first(fn($o) => ($o->price_per_pax ?? 0) > 0) ?? $talep->offers->first();
+                $toplamTutar  = $muhTeklif->total_price ?? 0;
+                $muhCurrency  = $muhTeklif->currency ?? '';
+                $toplamOdenen = $talep->payments->where('status','alindi')->sum('amount');
+                $kalanTutar   = max(0, $toplamTutar - $toplamOdenen);
+                $yuzde        = $toplamTutar > 0 ? min(100, round(($toplamOdenen/$toplamTutar)*100)) : 0;
             @endphp
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">💳 Muhasebe Durumu</div>
+            <div class="card shadow-sm mb-3">
+                <div class="card-header fw-bold py-2">
+                    <i class="fas fa-wallet me-2 text-success"></i>Ödeme Durumu
+                </div>
                 <div class="card-body">
-
-                    {{-- Progress bar --}}
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Tahsilat</span>
                         <span class="fw-bold">%{{ $yuzde }}</span>
                     </div>
-                    <div class="progress mb-3" style="height:12px; border-radius:6px;">
+                    <div class="progress mb-3" style="height:10px;border-radius:6px;">
                         <div class="progress-bar {{ $yuzde >= 100 ? 'bg-success' : ($yuzde >= 50 ? 'bg-primary' : 'bg-warning') }}"
-                             style="width:{{ $yuzde }}%; border-radius:6px;"></div>
+                             style="width:{{ $yuzde }}%;border-radius:6px;"></div>
                     </div>
-
-                    {{-- Özet satırlar --}}
                     <div class="d-flex justify-content-between py-2 border-bottom">
-                        <span>Toplam Tutar</span>
-                        <strong>{{ number_format($toplamTutar, 0) }} {{ $odenenCurrency }}</strong>
+                        <span class="small">Toplam Tutar</span>
+                        <strong>{{ number_format($toplamTutar,0) }} {{ $muhCurrency }}</strong>
                     </div>
                     <div class="d-flex justify-content-between py-2 border-bottom text-success">
-                        <span>Toplam Ödenen</span>
-                        <strong>{{ number_format($toplamOdenen, 0) }} {{ $odenenCurrency }}</strong>
+                        <span class="small">Ödenen</span>
+                        <strong>{{ number_format($toplamOdenen,0) }} {{ $muhCurrency }}</strong>
                     </div>
                     <div class="d-flex justify-content-between py-2 {{ $kalanTutar > 0 ? 'text-danger' : 'text-success' }}">
-                        <span>Kalan Bakiye</span>
-                        <strong>{{ number_format($kalanTutar, 0) }} {{ $odenenCurrency }}</strong>
+                        <span class="small">Kalan</span>
+                        <strong>{{ number_format($kalanTutar,0) }} {{ $muhCurrency }}</strong>
                     </div>
-
-                    {{-- Ödeme detayları --}}
                     @if($talep->payments->count() > 0)
                     <hr class="my-2">
                     @foreach($talep->payments as $odeme)
@@ -658,312 +630,116 @@
                             <span class="text-muted ms-1">· {{ \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y') }}</span>
                             @endif
                         </div>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="{{ $odeme->status === 'alindi' ? 'text-success fw-bold' : ($odeme->status === 'iade' ? 'text-danger' : 'text-warning fw-bold') }}">
-                                {{ number_format($odeme->amount, 0) }} {{ $odeme->currency }}
-                            </span>
-                            @if($odeme->status === 'bekleniyor')
-                                <span class="badge bg-warning text-dark" style="font-size:0.65rem;">Bekleniyor</span>
-                            @elseif($odeme->status === 'iade')
-                                <span class="badge bg-danger" style="font-size:0.65rem;">İade</span>
-                            @else
-                                <span class="badge bg-success" style="font-size:0.65rem;">Alındı</span>
+                        <span class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger' : 'text-warning fw-bold') }}">
+                            {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
+                            @if($odeme->status==='bekleniyor') <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">Bekleniyor</span>
+                            @elseif($odeme->status==='iade') <span class="badge bg-danger ms-1" style="font-size:0.6rem;">İade</span>
+                            @else <span class="badge bg-success ms-1" style="font-size:0.6rem;">✓</span>
                             @endif
-                        </div>
+                        </span>
                     </div>
                     @endforeach
                     @endif
-
                 </div>
             </div>
             @endif
 
-            {{-- İLETİŞİM --}}
-            <div class="card shadow-sm">
-                <div class="card-header fw-bold">📞 İletişim</div>
+            {{-- ── İLETİŞİM ── --}}
+            <div class="card shadow-sm mb-3">
                 <div class="card-body d-grid gap-2">
-                    <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' numaralı talep hakkında bilgi almak istiyorum') }}"
+                    <a href="https://wa.me/{{ $_adminTelefon }}?text={{ urlencode($talep->gtpnr . ' numaralı talep hakkında bilgi almak istiyorum') }}"
                        target="_blank" class="btn btn-success">
-                        <i class="fab fa-whatsapp"></i> WhatsApp ile Yaz
+                        <i class="fab fa-whatsapp me-2"></i>WhatsApp ile Yaz
                     </a>
-                    <a href="tel:+905324262630" class="btn btn-outline-primary">
-                        <i class="fas fa-phone"></i> Ara
+                    <a href="tel:+{{ $_adminTelefon }}" class="btn btn-outline-primary">
+                        <i class="fas fa-phone me-2"></i>Ara — {{ preg_replace('/^90/', '0', $_adminTelefon) }}
                     </a>
                 </div>
             </div>
 
-        </div>
+            {{-- ── AI OPERASYONANALİZİ (collapsible) ── --}}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle {{ ($analizVarMi || $analizEskiMi) ? '' : 'collapsed' }}"
+                     data-bs-toggle="collapse" data-bs-target="#ai-collapse" aria-expanded="{{ ($analizVarMi || $analizEskiMi) ? 'true' : 'false' }}">
+                    <div>
+                        <i class="fas fa-robot me-2 text-primary"></i>
+                        <span class="fw-semibold">AI Operasyon Analizi</span>
+                        @if($analizVarMi)
+                            <small class="text-muted fw-normal ms-1">· {{ $talep->ai_analysis_updated_at?->format('d.m.Y H:i') }}</small>
+                        @elseif($analizEskiMi)
+                            <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">Güncelleme var</span>
+                        @endif
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm {{ $analizVarMi ? 'btn-outline-secondary' : 'btn-primary' }} py-0 px-2"
+                                id="ai-analiz-btn" onclick="event.stopPropagation(); aiAnalizBaslat()">
+                            @if($analizVarMi) <i class="fas fa-sync"></i>
+                            @else <i class="fas fa-play"></i> Başlat
+                            @endif
+                        </button>
+                        <i class="fas fa-chevron-down chevron text-muted" style="font-size:0.75rem;"></i>
+                    </div>
+                </div>
+                <div class="collapse {{ ($analizVarMi || $analizEskiMi) ? 'show' : '' }}" id="ai-collapse">
+                    <div class="card-body p-2" id="ai-analiz-icerik">
+                        @if($analizVarMi || $analizEskiMi)
+                            {!! $talep->ai_analysis !!}
+                        @else
+                            <div class="text-center text-muted py-3" style="font-size:0.85rem;">
+                                <i class="fas fa-robot fa-2x opacity-25 d-block mb-2"></i>
+                                Havalimanı istihbaratı, transfer önerisi ve fiyat değerlendirmesi için <strong>Başlat</strong>'a tıklayın.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── ROTA HARİTASI (collapsible, kapalı) ── --}}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle collapsed"
+                     data-bs-toggle="collapse" data-bs-target="#harita-collapse" aria-expanded="false">
+                    <span class="fw-semibold"><i class="fas fa-map-marked-alt me-2 text-success"></i>Rota Haritası</span>
+                    <i class="fas fa-chevron-down chevron text-muted" style="font-size:0.75rem;" id="harita-chevron"></i>
+                </div>
+                <div class="collapse" id="harita-collapse">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            {{-- ── OPERASYON ZAMAN ÇİZELGESİ (collapsible, kapalı) ── --}}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle collapsed"
+                     data-bs-toggle="collapse" data-bs-target="#timeline-collapse" aria-expanded="false">
+                    <span class="fw-semibold"><i class="fas fa-history me-2 text-secondary"></i>Geçmiş</span>
+                    <i class="fas fa-chevron-down chevron text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <div class="collapse" id="timeline-collapse">
+                    <div class="card-body py-2">
+                        <div class="timeline" style="padding-left:24px;position:relative;">
+                            <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:#dee2e6;"></div>
+                            <div class="mb-3" style="position:relative;">
+                                <div style="position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:#e94560;border:2px solid #fff;box-shadow:0 0 0 2px #e94560;"></div>
+                                <div class="fw-bold small">Talep Oluşturuldu</div>
+                                <small class="text-muted">{{ $talep->created_at->format('d.m.Y H:i') }}</small>
+                            </div>
+                            @foreach($talep->logs as $log)
+                            <div class="mb-3" style="position:relative;">
+                                <div style="position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:#e94560;border:2px solid #fff;box-shadow:0 0 0 2px #e94560;"></div>
+                                <div class="fw-bold small">{{ $log->description }}</div>
+                                <small class="text-muted">
+                                    {{ $log->created_at->format('d.m.Y H:i') }}
+                                    @if($log->user) · {{ $log->user->name }} @endif
+                                </small>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>{{-- /SAĞ KOLON --}}
     </div>
 </div>
-
-<script>
-async function aiAnalizBaslat() {
-    const btn = document.getElementById('ai-analiz-btn');
-    const icerik = document.getElementById('ai-analiz-icerik');
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Analiz yapılıyor...';
-
-    const fromIata = "{{ $talep->segments->first()?->from_iata }}";
-    const toIata   = "{{ $talep->segments->last()?->to_iata }}";
-    const pax      = {{ $talep->pax_total ?? 0 }};
-    const tarih    = "{{ $talep->segments->first()?->departure_date }}";
-    const amaç     = "{{ $talep->flight_purpose ?? '' }}";
-
-    @php
-    $offerData = $talep->offers->map(function($o) {
-        return [
-            'airline'         => $o->airline,
-            'currency'        => $o->currency,
-            'price_per_pax'   => $o->price_per_pax,
-            'total_price'     => $o->total_price,
-            'cost_price'      => $o->cost_price,
-            'profit_amount'   => $o->profit_amount,
-            'profit_percent'  => $o->profit_percent,
-            'deposit_rate'    => $o->deposit_rate,
-            'deposit_amount'  => $o->deposit_amount,
-            'option_date'     => $o->option_date,
-            'option_time'     => $o->option_time,
-            'offer_text'      => $o->offer_text,
-            'created_by'      => $o->created_by,
-        ];
-    })->values()->toArray();
-    @endphp
-    const teklifler = @json($offerData);
-
-    let teklifBilgisi = 'Henüz teklif girilmemiş.';
-    if (teklifler.length > 0) {
-        teklifBilgisi = teklifler.map((t, i) => {
-            const karMarj = t.profit_percent ? `%${t.profit_percent}` : '-';
-            const karTutar = t.profit_amount ? `${t.profit_amount} ${t.currency}` : '-';
-            const depozito = t.deposit_amount ? `${t.deposit_amount} ${t.currency} (%${t.deposit_rate})` : '-';
-            const opsiyon = (t.option_date && t.option_time) ? `${t.option_date} ${t.option_time}` : (t.option_date || '-');
-            return `Teklif #${i+1}: ${t.airline || '-'} | Kişi Başı: ${t.price_per_pax} ${t.currency} | Toplam Satış: ${t.total_price} ${t.currency} | Maliyet: ${t.cost_price || '-'} ${t.currency} | Kâr: ${karTutar} (${karMarj}) | Depozito: ${depozito} | Opsiyon: ${opsiyon}${t.offer_text ? ' | Not: ' + t.offer_text : ''}${t.created_by ? ' | Hazırlayan: ' + t.created_by : ''}`;
-        }).join('\n');
-    }
-
-    const prompt = `Sen bir havacılık operasyon uzmanısın. Aşağıdaki grup uçuşu için KISA ve ÖZET analiz yap.
-
-TALEP: ${fromIata} → ${toIata} | ${pax} PAX | ${tarih} | ${amaç || '-'}
-TEKLİF: ${teklifBilgisi}
-
-4 ayrı Bootstrap card oluştur. Her card MAX 4-5 madde, kısa cümleler, emoji ikon kullan.
-
-CARD 1 (border-primary): 🛬 VARIŞ - ${toIata}
-• Şehir ve uzaklık
-• En iyi ulaşım (${pax} kişi için)
-• Tahmini transfer süresi/ücreti
-• 1 kritik operasyon notu
-
-CARD 2 (border-success): 🛫 KALKIŞ - ${fromIata}
-• Kaç saat önce havalimanında olunmalı
-• Check-in tahmini süre
-• Terminal/buluşma noktası
-• 1 önemli not
-
-CARD 3 (border-warning): 📅 TARİH - ${tarih}
-• Hava durumu karakteri
-• Yakın tatil/bayram/etkinlik varsa
-• Trafik/yoğunluk uyarısı
-
-CARD 4 (border-purple, style="border-color:#6f42c1"): 💰 FİNANS
-• Kişi başı fiyat değerlendirmesi
-• Kar marjı: yeterli/düşük/yüksek
-• Opsiyon riski
-• Öneri: kabul et / bekle / müzakere et
-
-Sadece 4 card HTML ver, başka hiçbir şey yazma. Her card compact olsun, card-body padding az olsun (p-2).`;
-
-    try {
-        const response = await fetch('{{ route("acente.requests.ai-analiz", $talep->gtpnr) }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ prompt })
-        });
-
-        const raw  = await response.text();
-        let data;
-        try { data = JSON.parse(raw); } catch(je) {
-            icerik.innerHTML = '<div class="alert alert-danger">Sunucu geçersiz yanıt döndürdü:<br><pre style="font-size:11px">' + raw.substring(0, 300) + '</pre></div>';
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-robot me-1"></i> Tekrar Dene';
-            return;
-        }
-        const metin = data.html ?? data.error ?? 'Analiz alınamadı.';
-
-        // Markdown code block varsa temizle
-        const temiz = metin.replace(/```html|```/g, '').trim();
-
-        icerik.innerHTML = temiz;
-        btn.innerHTML = '<i class="fas fa-check me-1"></i> Analiz Tamamlandı';
-        btn.className = 'btn btn-sm btn-success';
-
-        // DB'ye kaydet
-        fetch('{{ route("acente.requests.ai-kaydet", $talep->gtpnr) }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ html: temiz, hash: '{{ $mevcutHash }}' })
-        }).catch(() => {});  // sessiz hata — kayıt başarısız olsa da UI etkilenmesin
-
-    } catch (e) {
-        icerik.innerHTML = '<div class="alert alert-danger">Analiz sırasında hata oluştu: ' + e.message + '</div>';
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-robot me-1"></i> Tekrar Dene';
-    }
-}
-</script>
-
-<script>
-@php
-$segmentData = $talep->segments->map(function($s) {
-    return [
-        'from'     => $s->from_iata,
-        'to'       => $s->to_iata,
-        'fromCity' => $s->from_city ? $s->from_city : $s->from_iata,
-        'toCity'   => $s->to_city   ? $s->to_city   : $s->to_iata,
-    ];
-})->values()->toArray();
-@endphp
-const segmentler = @json($segmentData);
-
-const havalimanları = {
-    'IST': {lat:41.2753,lng:28.7519}, 'SAW': {lat:40.8985,lng:29.3092},
-    'ESB': {lat:40.1281,lng:32.9951}, 'AYT': {lat:36.8987,lng:30.7992},
-    'ADB': {lat:38.2924,lng:27.1570}, 'CDG': {lat:49.0097,lng:2.5479},
-    'LHR': {lat:51.4700,lng:-0.4543}, 'LGW': {lat:51.1537,lng:-0.1821},
-    'DXB': {lat:25.2532,lng:55.3657}, 'JFK': {lat:40.6413,lng:-73.7781},
-    'FRA': {lat:50.0379,lng:8.5622}, 'AMS': {lat:52.3105,lng:4.7683},
-    'BCN': {lat:41.2974,lng:2.0833}, 'FCO': {lat:41.8003,lng:12.2389},
-    'MUC': {lat:48.3538,lng:11.7861}, 'GZT': {lat:36.9473,lng:37.4787},
-    'TZX': {lat:40.9950,lng:39.7897}, 'JNB': {lat:-26.1392,lng:28.2460},
-    'AUH': {lat:24.4330,lng:54.6511}, 'DOH': {lat:25.2732,lng:51.6080},
-    'BKK': {lat:13.6811,lng:100.7472}, 'SIN': {lat:1.3644,lng:103.9915},
-};
-
-function initMap() {
-    const map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 5,
-        center: {lat: 41.0, lng: 29.0},
-        mapTypeId: 'roadmap',
-        styles: [{featureType:'poi',stylers:[{visibility:'off'}]}]
-    });
-    map.addListener('click', function() {});
-    document.getElementById('map').addEventListener('wheel', function(e) {
-        e.stopPropagation();
-    }, { passive: true });
-
-    const geocoder = new google.maps.Geocoder();
-
-    function getCoords(iata, city, callback) {
-        if (havalimanları[iata]) {
-            callback(havalimanları[iata]);
-        } else if (city) {
-            geocoder.geocode({ address: city + ' airport' }, function(results, status) {
-                if (status === 'OK') callback(results[0].geometry.location);
-            });
-        }
-    }
-
-    function addMarker(pos, code) {
-        new google.maps.Marker({
-            position: pos,
-            map: map,
-            title: code,
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 10,
-                fillColor: '#e94560',
-                fillOpacity: 1,
-                strokeColor: 'white',
-                strokeWeight: 2
-            },
-            label: { text: code, color: 'white', fontSize: '9px', fontWeight: 'bold' }
-        });
-    }
-
-    segmentler.forEach(segment => {
-        getCoords(segment.from, segment.fromCity, function(from) {
-            getCoords(segment.to, segment.toCity, function(to) {
-                if (!from || !to) return;
-
-                new google.maps.Polyline({
-                    path: [from, to],
-                    geodesic: true,
-                    strokeColor: '#e94560',
-                    strokeOpacity: 0.9,
-                    strokeWeight: 3,
-                    map: map
-                });
-
-                addMarker(from, segment.from);
-                addMarker(to, segment.to);
-            });
-        });
-    });
-}
-</script>
-
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>
-</body>
-<script>
-// Opsiyon sayaçları
-document.querySelectorAll('[id^="opsiyon-ts-"]').forEach(input => {
-    const tId = input.id.replace('opsiyon-ts-', '');
-    const hedef = parseInt(input.value) * 1000;
-    const sayacEl = document.getElementById('sayac-' + tId);
-    const kutuEl = document.getElementById('sayac-kutu-' + tId);
-    if (!sayacEl) return;
-
-    function guncelle() {
-        const kalan = hedef - Date.now();
-        if (kalan <= 0) {
-            sayacEl.closest('.alert, .bg-success') && (sayacEl.closest('[id^="sayac-kutu"]').innerHTML =
-                '<div class="fw-bold text-danger"><i class="fas fa-ban me-1"></i>OPSİYON SÜRESİ DOLDU</div>');
-            return;
-        }
-
-        const gun = Math.floor(kalan / 86400000);
-        const saat = Math.floor((kalan % 86400000) / 3600000);
-        const dk = Math.floor((kalan % 3600000) / 60000);
-        const sn = Math.floor((kalan % 60000) / 1000);
-
-        if (gun > 0) {
-            sayacEl.textContent = gun + 'g ' + String(saat).padStart(2,'0') + ':' + String(dk).padStart(2,'0') + ':' + String(sn).padStart(2,'0');
-        } else {
-            sayacEl.textContent = String(saat).padStart(2,'0') + ':' + String(dk).padStart(2,'0') + ':' + String(sn).padStart(2,'0');
-        }
-
-        // Son 6 saat: yanıp sön
-        if (kalan < 6 * 3600000 && kutuEl) {
-            kutuEl.style.animation = 'none';
-            setTimeout(() => { if(kutuEl) kutuEl.style.animation = ''; }, 10);
-        }
-
-        setTimeout(guncelle, 1000);
-    }
-    guncelle();
-});
-</script>
-
-<style>
-@keyframes blink-alarm {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-.alert-danger [id^="sayac-"] {
-    animation: blink-alarm 1s infinite;
-}
-</style>
-<script>
-const haritaCollapse = document.getElementById('harita-collapse');
-const haritaChevron = document.getElementById('harita-chevron');
-if (haritaCollapse) {
-    haritaCollapse.addEventListener('hide.bs.collapse', () => haritaChevron.style.transform = 'rotate(180deg)');
-    haritaCollapse.addEventListener('show.bs.collapse', () => haritaChevron.style.transform = 'rotate(0deg)');
-}
-</script>
 
 {{-- KABUL ONAY MODALI --}}
 <div class="modal fade" id="kabulOnayModal" tabindex="-1">
@@ -1017,10 +793,12 @@ if (haritaCollapse) {
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+// ── Kabul Modal ──
 const kabulModal = new bootstrap.Modal(document.getElementById('kabulOnayModal'));
 const KABUL_BASE = '{{ url("acente/talep/" . $talep->gtpnr . "/teklif") }}';
-
 function kabulOnayGoster(id, airline, price, total, option) {
     document.getElementById('k-airline').textContent = airline;
     document.getElementById('k-price').textContent   = price;
@@ -1029,5 +807,190 @@ function kabulOnayGoster(id, airline, price, total, option) {
     document.getElementById('kabul-form').action     = KABUL_BASE + '/' + id + '/kabul';
     kabulModal.show();
 }
+
+// ── Opsiyon Sayaçları ──
+document.querySelectorAll('[id^="opsiyon-ts-"]').forEach(input => {
+    const tId   = input.id.replace('opsiyon-ts-', '');
+    const hedef = parseInt(input.value) * 1000;
+    const el    = document.getElementById('sayac-' + tId);
+    const kutu  = document.getElementById('sayac-kutu-' + tId);
+    if (!el) return;
+    function guncelle() {
+        const kalan = hedef - Date.now();
+        if (kalan <= 0) {
+            if (kutu) kutu.innerHTML = '<div class="fw-bold text-danger"><i class="fas fa-ban me-1"></i>OPSİYON SÜRESİ DOLDU</div>';
+            return;
+        }
+        const gun  = Math.floor(kalan / 86400000);
+        const saat = Math.floor((kalan % 86400000) / 3600000);
+        const dk   = Math.floor((kalan % 3600000) / 60000);
+        const sn   = Math.floor((kalan % 60000) / 1000);
+        el.textContent = gun > 0
+            ? gun + 'g ' + String(saat).padStart(2,'0') + ':' + String(dk).padStart(2,'0') + ':' + String(sn).padStart(2,'0')
+            : String(saat).padStart(2,'0') + ':' + String(dk).padStart(2,'0') + ':' + String(sn).padStart(2,'0');
+        setTimeout(guncelle, 1000);
+    }
+    guncelle();
+});
+
+// ── AI Analiz ──
+async function aiAnalizBaslat() {
+    const btn    = document.getElementById('ai-analiz-btn');
+    const icerik = document.getElementById('ai-analiz-icerik');
+    // AI collapse aç
+    const aiCollapse = document.getElementById('ai-collapse');
+    if (aiCollapse && !aiCollapse.classList.contains('show')) {
+        new bootstrap.Collapse(aiCollapse, { toggle: true });
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    const fromIata = "{{ $talep->segments->first()?->from_iata }}";
+    const toIata   = "{{ $talep->segments->last()?->to_iata }}";
+    const pax      = {{ $talep->pax_total ?? 0 }};
+    const tarih    = "{{ $talep->segments->first()?->departure_date }}";
+    const amac     = "{{ $talep->flight_purpose ?? '' }}";
+
+    @php
+    $offerData = $talep->offers->map(fn($o) => [
+        'airline'        => $o->airline,
+        'currency'       => $o->currency,
+        'price_per_pax'  => $o->price_per_pax,
+        'total_price'    => $o->total_price,
+        'cost_price'     => $o->cost_price,
+        'profit_amount'  => $o->profit_amount,
+        'profit_percent' => $o->profit_percent,
+        'deposit_rate'   => $o->deposit_rate,
+        'deposit_amount' => $o->deposit_amount,
+        'option_date'    => $o->option_date,
+        'option_time'    => $o->option_time,
+        'offer_text'     => $o->offer_text,
+        'created_by'     => $o->created_by,
+    ])->values()->toArray();
+    @endphp
+    const teklifler = @json($offerData);
+
+    let teklifBilgisi = 'Henüz teklif girilmemiş.';
+    if (teklifler.length > 0) {
+        teklifBilgisi = teklifler.map((t, i) => {
+            const depozito = t.deposit_amount ? `${t.deposit_amount} ${t.currency} (%${t.deposit_rate})` : '-';
+            const opsiyon  = (t.option_date && t.option_time) ? `${t.option_date} ${t.option_time}` : (t.option_date || '-');
+            return `Teklif #${i+1}: ${t.airline||'-'} | Kişi Başı: ${t.price_per_pax} ${t.currency} | Toplam: ${t.total_price} ${t.currency} | Maliyet: ${t.cost_price||'-'} | Kâr: ${t.profit_amount||'-'} (%${t.profit_percent||'-'}) | Depozito: ${depozito} | Opsiyon: ${opsiyon}`;
+        }).join('\n');
+    }
+
+    const prompt = `Sen bir havacılık operasyon uzmanısın. Aşağıdaki grup uçuşu için KISA ve ÖZET analiz yap.
+
+TALEP: ${fromIata} → ${toIata} | ${pax} PAX | ${tarih} | ${amac || '-'}
+TEKLİF: ${teklifBilgisi}
+
+4 ayrı Bootstrap card oluştur. Her card MAX 4-5 madde, kısa cümleler, emoji ikon kullan.
+
+CARD 1 (border-primary): 🛬 VARIŞ - ${toIata}
+• Şehir ve uzaklık • En iyi ulaşım (${pax} kişi için) • Tahmini transfer süresi/ücreti • 1 kritik operasyon notu
+
+CARD 2 (border-success): 🛫 KALKIŞ - ${fromIata}
+• Kaç saat önce havalimanında olunmalı • Check-in tahmini süre • Terminal/buluşma noktası
+
+CARD 3 (border-warning): 📅 TARİH - ${tarih}
+• Hava durumu karakteri • Yakın tatil/bayram varsa • Trafik/yoğunluk uyarısı
+
+CARD 4 (border-purple, style="border-color:#6f42c1"): 💰 FİNANS
+• Kişi başı fiyat değerlendirmesi • Kâr marjı: yeterli/düşük/yüksek • Opsiyon riski • Öneri
+
+Sadece 4 card HTML ver, başka hiçbir şey yazma. Her card compact olsun (card-body p-2).`;
+
+    try {
+        const res = await fetch('{{ route("acente.requests.ai-analiz", $talep->gtpnr) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ prompt })
+        });
+        const raw = await res.text();
+        let data;
+        try { data = JSON.parse(raw); } catch(je) {
+            icerik.innerHTML = '<div class="alert alert-danger small">Sunucu hatası: ' + raw.substring(0,200) + '</div>';
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-play"></i> Tekrar';
+            return;
+        }
+        const temiz = (data.html ?? data.error ?? 'Analiz alınamadı.').replace(/```html|```/g,'').trim();
+        icerik.innerHTML = temiz;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.className = 'btn btn-sm btn-success py-0 px-2';
+
+        fetch('{{ route("acente.requests.ai-kaydet", $talep->gtpnr) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ html: temiz, hash: '{{ $mevcutHash }}' })
+        }).catch(() => {});
+    } catch(e) {
+        icerik.innerHTML = '<div class="alert alert-danger small">Hata: ' + e.message + '</div>';
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-play"></i> Başlat';
+    }
+}
+
+// ── Harita (Google Maps) ──
+@php
+$segmentData = $talep->segments->map(fn($s) => [
+    'from'     => $s->from_iata,
+    'to'       => $s->to_iata,
+    'fromCity' => $s->from_city ?: $s->from_iata,
+    'toCity'   => $s->to_city   ?: $s->to_iata,
+])->values()->toArray();
+@endphp
+const segmentler = @json($segmentData);
+
+const havalimanları = {
+    'IST':{lat:41.2753,lng:28.7519},'SAW':{lat:40.8985,lng:29.3092},
+    'ESB':{lat:40.1281,lng:32.9951},'AYT':{lat:36.8987,lng:30.7992},
+    'ADB':{lat:38.2924,lng:27.1570},'GZT':{lat:36.9473,lng:37.4787},
+    'TZX':{lat:40.9950,lng:39.7897},'CDG':{lat:49.0097,lng:2.5479},
+    'LHR':{lat:51.4700,lng:-0.4543},'DXB':{lat:25.2532,lng:55.3657},
+    'JFK':{lat:40.6413,lng:-73.7781},'FRA':{lat:50.0379,lng:8.5622},
+    'AMS':{lat:52.3105,lng:4.7683},'BCN':{lat:41.2974,lng:2.0833},
+    'FCO':{lat:41.8003,lng:12.2389},'MUC':{lat:48.3538,lng:11.7861},
+    'DOH':{lat:25.2732,lng:51.6080},'AUH':{lat:24.4330,lng:54.6511},
+    'BKK':{lat:13.6811,lng:100.7472},'SIN':{lat:1.3644,lng:103.9915},
+};
+
+function initMap() {
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 4, center: {lat:39.0,lng:30.0}, mapTypeId: 'roadmap',
+        styles: [{featureType:'poi',stylers:[{visibility:'off'}]}]
+    });
+    const geocoder = new google.maps.Geocoder();
+    function getCoords(iata, city, cb) {
+        if (havalimanları[iata]) { cb(havalimanları[iata]); return; }
+        if (city) geocoder.geocode({address: city + ' airport'}, (r,s) => { if (s==='OK') cb(r[0].geometry.location); });
+    }
+    function addMarker(pos, code) {
+        new google.maps.Marker({ position:pos, map, title:code,
+            icon:{ path:google.maps.SymbolPath.CIRCLE, scale:10, fillColor:'#e94560', fillOpacity:1, strokeColor:'white', strokeWeight:2 },
+            label:{ text:code, color:'white', fontSize:'9px', fontWeight:'bold' }
+        });
+    }
+    segmentler.forEach(seg => {
+        getCoords(seg.from, seg.fromCity, from => {
+            getCoords(seg.to, seg.toCity, to => {
+                if (!from || !to) return;
+                new google.maps.Polyline({ path:[from,to], geodesic:true, strokeColor:'#e94560', strokeOpacity:0.9, strokeWeight:3, map });
+                addMarker(from, seg.from);
+                addMarker(to, seg.to);
+            });
+        });
+    });
+}
+
+// Harita collapse chevron
+document.getElementById('harita-collapse')?.addEventListener('hide.bs.collapse', () => {
+    document.getElementById('harita-chevron').style.transform = 'rotate(-90deg)';
+});
+document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse', () => {
+    document.getElementById('harita-chevron').style.transform = 'rotate(0deg)';
+});
 </script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>
+@include('acente.partials.theme-script')
+</body>
 </html>
