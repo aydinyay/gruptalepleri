@@ -281,6 +281,89 @@ class RequestController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    public function aiFormatOffer(Request $request, $gtpnr)
+    {
+        $talep   = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+        $offerId = $request->input('offer_id');
+        $rawNote = $request->input('raw_note');
+
+        if (!$rawNote) {
+            return response()->json(['error' => 'Ham not boş.'], 422);
+        }
+
+        $prompt = 'Aşağıdaki ham uçuş operasyon verisini seyahat acentasına gönderilecek şekilde sade, anlaşılır ve düzenli bir operasyon mesajına çevir.
+
+Kurallar:
+- Metni paragraf yapma, satır satır düzenle.
+- Ham veride olmayan bilgi ekleme.
+- Yorum yapma.
+- Tüm bilgileri net başlıklar altında yaz.
+
+Format şu sırayla olacak:
+
+Havayolu
+PNR
+Request No
+Yolcu sayısı (PAX)
+
+Uçuş bilgisi
+- Havayolu
+- Uçuş numarası
+- Uçuş tarihi
+- Gün
+- Parkur
+- Kalkış saati
+- Varış saati
+
+Kişi başı fiyat
+Bagaj hakkı
+
+Ödeme durumu
+- 1. depozito (tarih ve ödeme şekli)
+- 2. depozito (tarih ve opsiyon bilgisi)
+
+Biletleme deadline
+- Son ödeme tarihi
+- Saat
+
+Sadece formatlanmış metni döndür, başka hiçbir şey yazma. Markdown kullanma.
+
+Ham veri:
+' . $rawNote;
+
+        $apiKey = config('services.gemini.key');
+        if (!$apiKey) {
+            return response()->json(['error' => 'Gemini API anahtarı tanımlı değil'], 500);
+        }
+
+        try {
+            $response = Http::timeout(30)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}",
+                [
+                    'contents' => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => ['thinkingConfig' => ['thinkingBudget' => 0]],
+                ]
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'AI bağlantı hatası: ' . $e->getMessage()], 500);
+        }
+
+        if ($response->failed()) {
+            return response()->json(['error' => 'AI yanıt vermedi'], 500);
+        }
+
+        $formatted = trim($response->json('candidates.0.content.parts.0.text') ?? '');
+        if (!$formatted) {
+            return response()->json(['error' => 'AI boş yanıt döndürdü'], 500);
+        }
+
+        // Offer'a kaydet
+        $offer = Offer::where('id', $offerId)->where('request_id', $talep->id)->firstOrFail();
+        $offer->update(['offer_text' => $formatted]);
+
+        return response()->json(['formatted' => $formatted]);
+    }
+
     public function storePayment(Request $request, $gtpnr)
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();

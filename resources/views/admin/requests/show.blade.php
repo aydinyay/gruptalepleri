@@ -405,6 +405,11 @@
                                     onclick="aiIleDoldur({{ json_encode($teklif->offer_text) }})">
                                     ✨ AI ile Ayrıştır
                                 </button>
+                                <button type="button" class="btn btn-success btn-sm py-0 px-2 ms-1" style="font-size:0.7rem;"
+                                    id="fmt-btn-{{ $teklif->id }}"
+                                    onclick="aiFormatlaAcenteye({{ $teklif->id }}, {{ json_encode($teklif->offer_text) }})">
+                                    📨 Acenteye Formatla
+                                </button>
                             </div>
                             {{ $teklif->offer_text }}
                         </div>
@@ -851,6 +856,32 @@
 <script>
 const CSRF = '{{ csrf_token() }}';
 const PARSE_URL = '{{ route("admin.requests.ai-parse", $talep->gtpnr) }}';
+
+async function aiFormatlaAcenteye(offerId, rawNote) {
+    const btn = document.getElementById('fmt-btn-' + offerId);
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+        const res = await fetch('{{ route("admin.requests.ai-format-offer", $talep->gtpnr) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ offer_id: offerId, raw_note: rawNote })
+        });
+        const data = await res.json();
+        if (data.error) {
+            alert('Hata: ' + data.error);
+            btn.disabled = false; btn.innerHTML = orig;
+            return;
+        }
+        // Sayfayı yenile — formatlı metin artık offer_text'te
+        location.reload();
+    } catch(e) {
+        alert('Hata: ' + e.message);
+        btn.disabled = false; btn.innerHTML = orig;
+    }
+}
 
 function aiIleDoldur(metin) {
     const textarea = document.getElementById('raw-note-input');
