@@ -113,6 +113,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/talepler/{gtpnr}/teklif/{offer}/toggle', [\App\Http\Controllers\Admin\RequestController::class, 'toggleOffer'])->name('requests.offer.toggle');
     Route::delete('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'deleteOffer'])->name('requests.offer.delete');
 
+    // Eski sistem arşiv görüntüleyici
+    Route::get('/eski-sistem', [\App\Http\Controllers\Admin\EskiSistemController::class, 'index'])->name('eski-sistem');
+    Route::get('/eski-sistem/{gtpnr}', [\App\Http\Controllers\Admin\EskiSistemController::class, 'show'])->name('eski-sistem.show');
+
     // Broadcast duyurular
     Route::get('/duyurular', [\App\Http\Controllers\Admin\BroadcastController::class, 'index'])->name('broadcast.index');
     Route::get('/duyurular/olustur', [\App\Http\Controllers\Admin\BroadcastController::class, 'create'])->name('broadcast.create');
