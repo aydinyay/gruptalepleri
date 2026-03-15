@@ -103,10 +103,14 @@
                 if (!empty($r->opsiyontarihi) && strlen($r->opsiyontarihi) >= 8) {
                     try {
                         $rawTarih = trim($r->opsiyontarihi);
-                        $rawSaat  = !empty($r->opsiyonsaati) ? trim($r->opsiyonsaati) : '23:59';
-                        // Normalize saat: strip seconds if present (HH:MM:SS → HH:MM)
-                        if (preg_match('/^(\d{1,2}:\d{2})/', $rawSaat, $m)) {
-                            $rawSaat = $m[1];
+                        $rawSaat  = trim($r->opsiyonsaati ?? '');
+                        // Normalize saat: "00" → "00:00", "8" → "08:00", "23:59:00" → "23:59"
+                        if (preg_match('/^(\d{1,2}):(\d{2})/', $rawSaat, $m)) {
+                            $rawSaat = sprintf('%02d:%02d', $m[1], $m[2]);
+                        } elseif (preg_match('/^\d{1,2}$/', $rawSaat)) {
+                            $rawSaat = sprintf('%02d:00', (int)$rawSaat);
+                        } else {
+                            $rawSaat = '23:59';
                         }
                         // Try multiple date formats
                         $optDt = null;
