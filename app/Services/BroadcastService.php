@@ -50,11 +50,40 @@ class BroadcastService
             }
         }
 
+        $sentCount = $kullanicilar->count();
+
         $broadcast->update([
             'status'     => 'sent',
             'sent_at'    => now(),
-            'sent_count' => $kullanicilar->count(),
+            'sent_count' => $sentCount,
         ]);
+
+        // Superadmin'lere özet push bildirimi gönder (gönderen hariç)
+        $superadminler = User::whereIn('role', ['superadmin'])
+            ->where('id', '!=', $broadcast->sender_id)
+            ->get();
+
+        foreach ($superadminler as $sa) {
+            $ns->createForUser(
+                $sa->id,
+                'broadcast',
+                '✅ Duyuru Gönderildi',
+                "\"{$broadcast->title}\" — {$sentCount} kullanıcıya iletildi.",
+                null
+            );
+        }
+
+        // Gönderen superadmin ise kendisine de özet bildir
+        $sender = User::find($broadcast->sender_id);
+        if ($sender && in_array($sender->role, ['superadmin', 'admin'])) {
+            $ns->createForUser(
+                $sender->id,
+                'broadcast',
+                '✅ Duyuru Gönderildi',
+                "\"{$broadcast->title}\" — {$sentCount} kullanıcıya iletildi.",
+                null
+            );
+        }
     }
 
     /**
