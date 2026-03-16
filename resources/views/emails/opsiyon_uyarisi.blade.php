@@ -8,7 +8,7 @@
   body { margin:0; padding:0; background:#f0f2f5; font-family:'Segoe UI',Arial,sans-serif; }
   .wrapper { max-width:600px; margin:32px auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08); }
   .header { background:linear-gradient(135deg,#1a1a2e,#16213e); padding:32px 40px; text-align:center; }
-  .header .logo { font-size:1.5rem; font-weight:800; color:#e94560; letter-spacing:1px; }
+  .header .logo { font-size:1.3rem; font-weight:800; color:#e94560; letter-spacing:0.5px; white-space:nowrap; display:inline-block; line-height:1.15; }
   .header .logo span { color:#fff; }
   .header h2 { color:#fff; font-size:1.1rem; font-weight:400; margin:8px 0 0; opacity:0.75; }
   .body { padding:36px 40px; }
@@ -25,6 +25,8 @@
   .info-table tr:first-child td:first-child { border-radius:8px 0 0 0; }
   .info-table tr:first-child td:last-child { border-radius:0 8px 0 0; }
   .btn { display:inline-block; background:#f59e0b; color:#fff; text-decoration:none; padding:14px 32px; border-radius:8px; font-weight:700; font-size:0.95rem; margin-top:8px; }
+  .short-link { margin:12px 0 0; font-size:0.8rem; color:#6b7280; word-break:break-all; }
+  .short-link a { color:#1d4ed8; text-decoration:none; }
   .footer { background:#f8f9fa; padding:20px 40px; text-align:center; font-size:0.78rem; color:#adb5bd; border-top:1px solid #e9ecef; }
 </style>
 </head>
@@ -46,6 +48,7 @@
       <tr><td>Opsiyon Bitiş</td><td><strong>{{ $opsiyonBitis }}</strong></td></tr>
     </table>
     <a href="{{ $adminUrl }}" class="btn">Talebi İncele →</a>
+    <p class="short-link">Kısa link: <a href="{{ $adminUrl }}">{{ $adminUrl }}</a></p>
   </div>
   <div class="footer">
     Bu e-posta GrupTalepleri platformu tarafından otomatik olarak gönderilmiştir.
