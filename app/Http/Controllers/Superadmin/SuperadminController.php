@@ -22,6 +22,12 @@ class SuperadminController extends Controller
 
     private function bildirimEslestirmeSorgusu(KullaniciBildirimi $bildirim)
     {
+        if ($bildirim->type === 'broadcast' && ! empty($bildirim->broadcast_id)) {
+            return KullaniciBildirimi::query()
+                ->where('type', 'broadcast')
+                ->where('broadcast_id', $bildirim->broadcast_id);
+        }
+
         return KullaniciBildirimi::query()
             ->where('type', $bildirim->type)
             ->where('title', $bildirim->title)
@@ -40,11 +46,21 @@ class SuperadminController extends Controller
 
     private function broadcastBildirimleriniSil(BroadcastNotification $broadcast): int
     {
-        return KullaniciBildirimi::query()
+        $silinen = KullaniciBildirimi::query()
             ->where('type', 'broadcast')
-            ->where('title', $this->broadcastPushTitle($broadcast))
-            ->where('message', $broadcast->message)
+            ->where('broadcast_id', $broadcast->id)
             ->delete();
+
+        // Geriye dönük uyumluluk: eski kayıtlarda broadcast_id yoktu.
+        if ($silinen === 0) {
+            $silinen = KullaniciBildirimi::query()
+                ->where('type', 'broadcast')
+                ->where('title', $this->broadcastPushTitle($broadcast))
+                ->where('message', $broadcast->message)
+                ->delete();
+        }
+
+        return $silinen;
     }
 
     // ── ACENTELER ────────────────────────────────────────────────────────────
@@ -260,7 +276,22 @@ class SuperadminController extends Controller
     public function broadcastHepsiniSil()
     {
         $this->assertSuperadmin();
-        $silinenBildirim = KullaniciBildirimi::query()->where('type', 'broadcast')->delete();
+        $broadcastIds = BroadcastNotification::query()->pluck('id');
+        $silinenBildirim = 0;
+
+        if ($broadcastIds->isNotEmpty()) {
+            $silinenBildirim += KullaniciBildirimi::query()
+                ->where('type', 'broadcast')
+                ->whereIn('broadcast_id', $broadcastIds)
+                ->delete();
+        }
+
+        // Geriye dönük uyumluluk: broadcast_id olmayan eski broadcast push kayıtları.
+        $silinenBildirim += KullaniciBildirimi::query()
+            ->where('type', 'broadcast')
+            ->whereNull('broadcast_id')
+            ->delete();
+
         BroadcastNotification::truncate();
         return back()->with('success', "Tüm duyurular silindi. {$silinenBildirim} çan bildirimi kaldırıldı.");
     }
@@ -322,12 +353,15 @@ class SuperadminController extends Controller
         $islenen = [];
 
         foreach ($tohumlar as $bildirim) {
-            $parmakIzi = md5($bildirim->type . '|' . $bildirim->title . '|' . $bildirim->message . '|' . ($bildirim->url ?? ''));
-            if (isset($islenen[$parmakIzi])) {
+            $anahtar = ($bildirim->type === 'broadcast' && ! empty($bildirim->broadcast_id))
+                ? 'broadcast:' . $bildirim->broadcast_id
+                : 'fingerprint:' . md5($bildirim->type . '|' . $bildirim->title . '|' . $bildirim->message . '|' . ($bildirim->url ?? ''));
+
+            if (isset($islenen[$anahtar])) {
                 continue;
             }
 
-            $islenen[$parmakIzi] = true;
+            $islenen[$anahtar] = true;
             $silinenToplam += $this->bildirimEslestirmeSorgusu($bildirim)->delete();
         }
 
@@ -340,26 +374,25 @@ class SuperadminController extends Controller
 
         $tohumlar = KullaniciBildirimi::query()
             ->where('user_id', auth()->id())
-            ->select('type', 'title', 'message', 'url')
-            ->distinct()
             ->get();
 
         $silinenToplam = 0;
+        $islenen = [];
 
         foreach ($tohumlar as $tohum) {
-            $silinenToplam += KullaniciBildirimi::query()
-                ->where('type', $tohum->type)
-                ->where('title', $tohum->title)
-                ->where('message', $tohum->message)
-                ->when(
-                    $tohum->url === null,
-                    fn ($q) => $q->whereNull('url'),
-                    fn ($q) => $q->where('url', $tohum->url)
-                )
-                ->delete();
+            $anahtar = ($tohum->type === 'broadcast' && ! empty($tohum->broadcast_id))
+                ? 'broadcast:' . $tohum->broadcast_id
+                : 'fingerprint:' . md5($tohum->type . '|' . $tohum->title . '|' . $tohum->message . '|' . ($tohum->url ?? ''));
+
+            if (isset($islenen[$anahtar])) {
+                continue;
+            }
+
+            $islenen[$anahtar] = true;
+            $silinenToplam += $this->bildirimEslestirmeSorgusu($tohum)->delete();
         }
 
-        return response()->json(['ok' => true, 'deleted' => $silinenToplam, 'groups' => $tohumlar->count()]);
+        return response()->json(['ok' => true, 'deleted' => $silinenToplam, 'groups' => count($islenen)]);
     }
 
     // ── SMS RAPORLAR ──────────────────────────────────────────────────────────

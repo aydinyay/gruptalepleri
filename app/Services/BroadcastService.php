@@ -47,7 +47,8 @@ class BroadcastService
                     'broadcast',
                     $pushTitle,
                     $broadcast->message,
-                    null
+                    null,
+                    $broadcast->id
                 );
             }
 
@@ -84,7 +85,7 @@ class BroadcastService
             if (! in_array('push', $activeChannels, true) || $kullanicilar->contains('id', $sa->id)) {
                 // Zaten listede var, sadece özet yeter
             } else {
-                $ns->createForUser($sa->id, 'broadcast', $pushTitle, $broadcast->message, null);
+                $ns->createForUser($sa->id, 'broadcast', $pushTitle, $broadcast->message, null, $broadcast->id);
             }
             // Her durumda gönderim özeti de ekle
             $ns->createForUser(
@@ -92,7 +93,8 @@ class BroadcastService
                 'broadcast',
                 '✅ Duyuru Gönderildi (' . $sentCount . ' kişi)',
                 "\"{$broadcast->title}\" → Gönderen: " . ($broadcast->sender?->name ?? '-'),
-                null
+                null,
+                $broadcast->id
             );
 
             // SMS CC (superadmin'e broadcast SMS kopyası)
@@ -117,7 +119,8 @@ class BroadcastService
                 'broadcast',
                 '✅ Duyuru Gönderildi',
                 "\"{$broadcast->title}\" — {$sentCount} kullanıcıya iletildi.",
-                null
+                null,
+                $broadcast->id
             );
         }
     }

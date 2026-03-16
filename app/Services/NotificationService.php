@@ -11,7 +11,14 @@ class NotificationService
     /**
      * Belirli bir kullanıcıya bildirim oluştur.
      */
-    public function createForUser(int $userId, string $type, string $title, string $message, ?string $url = null): ?KullaniciBildirimi
+    public function createForUser(
+        int $userId,
+        string $type,
+        string $title,
+        string $message,
+        ?string $url = null,
+        ?int $broadcastId = null
+    ): ?KullaniciBildirimi
     {
         if (! SistemAyar::pushEnabled()) {
             return null;
@@ -23,20 +30,28 @@ class NotificationService
             'title'   => $title,
             'message' => $message,
             'url'     => $url,
+            'broadcast_id' => $broadcastId,
         ]);
     }
 
     /**
      * Belirtilen role sahip tüm kullanıcılara bildirim oluştur.
      */
-    public function createForRole(string $role, string $type, string $title, string $message, ?string $url = null): void
+    public function createForRole(
+        string $role,
+        string $type,
+        string $title,
+        string $message,
+        ?string $url = null,
+        ?int $broadcastId = null
+    ): void
     {
         $users = $role === 'admin_and_superadmin'
             ? User::whereIn('role', ['admin', 'superadmin'])->get()
             : User::where('role', $role)->get();
 
         foreach ($users as $user) {
-            $this->createForUser($user->id, $type, $title, $message, $url);
+            $this->createForUser($user->id, $type, $title, $message, $url, $broadcastId);
         }
     }
 

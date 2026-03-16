@@ -8,9 +8,10 @@ class KullaniciBildirimi extends Model
 {
     protected $table = 'kullanici_bildirimleri';
 
-    protected $fillable = ['user_id', 'type', 'title', 'message', 'url', 'is_read', 'read_at'];
+    protected $fillable = ['user_id', 'broadcast_id', 'type', 'title', 'message', 'url', 'is_read', 'read_at'];
 
     protected $casts = [
+        'broadcast_id' => 'integer',
         'is_read' => 'boolean',
         'read_at' => 'datetime',
     ];
