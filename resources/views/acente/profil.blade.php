@@ -35,7 +35,7 @@
 <div class="container py-4" style="max-width:780px;">
 
     {{-- Başlık --}}
-    <div class="d-flex align-items-center gap-3 mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-3 mb-4">
         <div class="avatar-circle">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
@@ -132,8 +132,8 @@
                     </div>
                 </div>
 
-                <div class="mt-4 text-end">
-                    <button type="submit" class="btn btn-save">
+                <div class="mt-4 text-start text-md-end">
+                    <button type="submit" class="btn btn-save w-100 w-md-auto">
                         <i class="fas fa-save me-2"></i>Bilgileri Kaydet
                     </button>
                 </div>
@@ -168,8 +168,8 @@
                         <input type="password" name="password_confirmation" class="form-control" required>
                     </div>
                 </div>
-                <div class="mt-4 text-end">
-                    <button type="submit" class="btn btn-save">
+                <div class="mt-4 text-start text-md-end">
+                    <button type="submit" class="btn btn-save w-100 w-md-auto">
                         <i class="fas fa-key me-2"></i>Şifremi Güncelle
                     </button>
                 </div>

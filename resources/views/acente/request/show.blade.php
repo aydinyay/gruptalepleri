@@ -127,11 +127,13 @@
 <div class="container-fluid px-3 py-3" style="max-width:1200px;">
 
     @if(in_array(auth()->user()->role, ['admin','superadmin']))
-    <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-3" style="border-left:4px solid #ffc107;">
+    <div class="alert alert-warning py-2 px-3 mb-3 d-flex flex-wrap align-items-center gap-2" style="border-left:4px solid #ffc107;">
         <i class="fas fa-eye me-1"></i>
-        <strong>Admin Önizleme Modu</strong>
-        <span class="text-muted small">— Acentenin gördüğünü görüyorsunuz. Butonlar işlev yapmaz.</span>
-        <a href="{{ route('admin.requests.show', $talep->gtpnr) }}" class="btn btn-sm btn-dark ms-auto">
+        <div class="small">
+            <strong>Admin Önizleme Modu</strong>
+            <span class="text-muted">— Acentenin gördüğünü görüyorsunuz. Butonlar işlev yapmaz.</span>
+        </div>
+        <a href="{{ route('admin.requests.show', $talep->gtpnr) }}" class="btn btn-sm btn-dark ms-md-auto w-100 w-md-auto mt-1 mt-md-0">
             <i class="fas fa-arrow-left me-1"></i>Admin Sayfasına Dön
         </a>
     </div>
@@ -525,9 +527,9 @@
                         @endif
 
                         {{-- Butonlar --}}
-                        <div class="d-flex gap-2">
+                        <div class="d-grid d-md-flex gap-2">
                             @if(!$teklif->is_accepted)
-                            <button type="button" class="btn btn-success btn-sm flex-fill"
+                            <button type="button" class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill"
                                 onclick="kabulOnayGoster(
                                     {{ $teklif->id }},
                                     '{{ addslashes($teklif->airline ?? '—') }}',
@@ -539,12 +541,12 @@
                             </button>
                             @else
                             <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - depozito ödemesi hakkında bilgi almak istiyorum') }}"
-                               target="_blank" class="btn btn-success btn-sm flex-fill">
+                               target="_blank" class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill">
                                 <i class="fab fa-whatsapp me-1"></i>Depozito Bilgisi Al
                             </a>
                             @endif
                             <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - ' . ($teklif->airline ?? '') . ' teklifi hakkında sorum var') }}"
-                               target="_blank" class="btn btn-outline-secondary btn-sm flex-fill">
+                               target="_blank" class="btn btn-outline-secondary btn-sm w-100 w-md-auto flex-md-fill">
                                 <i class="fab fa-whatsapp me-1"></i>Sor
                             </a>
                         </div>
@@ -592,7 +594,7 @@
                     <i class="fas fa-wallet me-2 text-success"></i>Ödeme Durumu
                 </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between small mb-1">
+                    <div class="d-flex justify-content-between flex-wrap gap-1 small mb-1">
                         <span class="text-muted">Tahsilat</span>
                         <span class="fw-bold">%{{ $yuzde }}</span>
                     </div>
@@ -600,22 +602,22 @@
                         <div class="progress-bar {{ $yuzde >= 100 ? 'bg-success' : ($yuzde >= 50 ? 'bg-primary' : 'bg-warning') }}"
                              style="width:{{ $yuzde }}%;border-radius:6px;"></div>
                     </div>
-                    <div class="d-flex justify-content-between py-2 border-bottom">
+                    <div class="d-flex justify-content-between flex-wrap gap-1 py-2 border-bottom">
                         <span class="small">Toplam Tutar</span>
                         <strong>{{ number_format($toplamTutar,0) }} {{ $muhCurrency }}</strong>
                     </div>
-                    <div class="d-flex justify-content-between py-2 border-bottom text-success">
+                    <div class="d-flex justify-content-between flex-wrap gap-1 py-2 border-bottom text-success">
                         <span class="small">Ödenen</span>
                         <strong>{{ number_format($toplamOdenen,0) }} {{ $muhCurrency }}</strong>
                     </div>
-                    <div class="d-flex justify-content-between py-2 {{ $kalanTutar > 0 ? 'text-danger' : 'text-success' }}">
+                    <div class="d-flex justify-content-between flex-wrap gap-1 py-2 {{ $kalanTutar > 0 ? 'text-danger' : 'text-success' }}">
                         <span class="small">Kalan</span>
                         <strong>{{ number_format($kalanTutar,0) }} {{ $muhCurrency }}</strong>
                     </div>
                     @if($talep->payments->count() > 0)
                     <hr class="my-2">
                     @foreach($talep->payments as $odeme)
-                    <div class="d-flex justify-content-between align-items-center py-1 small">
+                    <div class="d-flex justify-content-between flex-wrap align-items-center gap-1 py-1 small">
                         <div>
                             <span class="fw-bold">{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</span>
                             @if($odeme->payment_date)

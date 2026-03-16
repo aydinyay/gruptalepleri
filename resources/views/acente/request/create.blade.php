@@ -206,11 +206,11 @@
             </div>
         </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success btn-lg px-5">
+        <div class="d-grid d-md-flex gap-2">
+            <button type="submit" class="btn btn-success btn-lg px-md-5 w-100 w-md-auto">
                 <i class="fas fa-paper-plane me-2"></i>Talebi Gönder
             </button>
-            <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-secondary btn-lg">Vazgeç</a>
+            <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-secondary btn-lg w-100 w-md-auto">Vazgeç</a>
         </div>
 
     </form>
