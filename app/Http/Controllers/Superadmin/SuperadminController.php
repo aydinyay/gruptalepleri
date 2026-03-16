@@ -399,21 +399,47 @@ class SuperadminController extends Controller
 
     public function smsRaporlar(Request $request)
     {
+        $channel = $request->input('channel', 'all');
+        if (! in_array($channel, ['all', 'sms', 'email'], true)) {
+            $channel = 'all';
+        }
+
+        $sharedFilters = function ($queryBuilder) use ($request): void {
+            if ($request->filled('recipient')) {
+                $queryBuilder->where('recipient', $request->recipient);
+            }
+            if ($request->filled('status')) {
+                $queryBuilder->where('status', $request->status);
+            }
+            if ($request->filled('tarih')) {
+                $queryBuilder->whereDate('created_at', $request->tarih);
+            }
+        };
+
         $query = RequestNotification::with('request')
             ->orderBy('created_at', 'desc');
 
-        if ($request->filled('recipient')) {
-            $query->where('recipient', $request->recipient);
+        $sharedFilters($query);
+
+        if ($channel !== 'all') {
+            $query->where('channel', $channel);
         }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('tarih')) {
-            $query->whereDate('created_at', $request->tarih);
-        }
+
+        $countQuery = RequestNotification::query();
+        $sharedFilters($countQuery);
+        $groupedCounts = $countQuery
+            ->selectRaw('channel, count(*) as total')
+            ->groupBy('channel')
+            ->pluck('total', 'channel');
+
+        $channelCounts = [
+            'sms' => (int) ($groupedCounts['sms'] ?? 0),
+            'email' => (int) ($groupedCounts['email'] ?? 0),
+        ];
+        $channelCounts['all'] = $channelCounts['sms'] + $channelCounts['email'];
 
         $logs = $query->paginate(50)->withQueryString();
 
-        return view('superadmin.sms-raporlar', compact('logs'));
+        return view('superadmin.sms-raporlar', compact('logs', 'channel', 'channelCounts'));
     }
 }
