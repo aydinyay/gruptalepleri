@@ -13,6 +13,37 @@
         .section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: 600; margin-bottom: 0.75rem; }
         .field-label { font-size: 0.75rem; color: #6c757d; }
         .ai-field { background: #fff3cd; border-left: 3px solid #ffc107; }
+        .ops-sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            background: inherit;
+            border: 1px solid rgba(0,0,0,.08);
+            border-radius: .6rem;
+            padding: .75rem .9rem;
+            margin-bottom: .75rem;
+            backdrop-filter: blur(4px);
+        }
+        .ops-top-meta {
+            font-size: .82rem;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .55rem;
+            align-items: center;
+        }
+        .ops-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .ops-actions .btn { white-space: nowrap; }
+        @media (max-width: 991.98px) {
+            .ops-sticky-header { top: .35rem; }
+            .ops-actions { justify-content: flex-start; margin-top: .6rem; }
+        }
     </style>
 </head>
 <body>
@@ -20,9 +51,39 @@
 <x-navbar-admin active="talepler" />
 
 <div class="container-fluid px-4 py-3">
+    @php
+        $statusMetaMap = \App\Models\Request::statusMetaMap();
+        $statusMeta = \App\Models\Request::statusMeta($talep->status);
+        $statusUpdateOrder = ['beklemede', 'islemde', 'fiyatlandirildi', 'depozitoda', 'biletlendi', 'iade', 'olumsuz'];
+    @endphp
 
     {{-- HEADER --}}
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="ops-sticky-header">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-lg">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h4 class="fw-bold mb-0">{{ $talep->gtpnr }}</h4>
+                    <span class="badge" style="background:{{ $statusMeta['bg'] }};color:{{ $statusMeta['text'] }};">{{ $statusMeta['label'] }}</span>
+                    <x-iade-badge :talep="$talep" />
+                </div>
+                <div class="ops-top-meta mt-1">
+                    <span><strong>Acente:</strong> {{ $talep->agency_name }}</span>
+                    <span><strong>PAX:</strong> {{ $talep->pax_total }}</span>
+                    <span><strong>Olusturma:</strong> {{ $talep->created_at->format('d.m.Y') }}</span>
+                </div>
+            </div>
+            <div class="col-12 col-lg-auto">
+                <div class="ops-actions">
+                    <a href="#offer-form" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Yeni Teklif</a>
+                    <a href="#status-update-card" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt me-1"></i>Durum Guncelle</a>
+                    <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Gorunumu</a>
+                    <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">Taleplere Don</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-none d-flex justify-content-between align-items-center mb-3">
         <div>
             <h4 class="fw-bold mb-0">{{ $talep->gtpnr }}</h4>
             <small class="text-muted">
@@ -90,7 +151,7 @@
             </div>
 
             {{-- SEGMENTLER --}}
-            <div class="card mb-3">
+            <div class="card mb-3" id="status-update-card">
                 <div class="card-header py-2 fw-bold">✈️ Uçuş Segmentleri</div>
                 <div class="card-body py-2">
                     @foreach($talep->segments as $s)
@@ -1048,4 +1109,3 @@ document.getElementById('sil-onayla-btn').addEventListener('click', function () 
 </script>
 </body>
 </html>
-
