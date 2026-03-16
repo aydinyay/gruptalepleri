@@ -37,7 +37,7 @@
             <i class="fas fa-plane-departure me-1" aria-hidden="true"></i><span class="brand-text">GrupTalepleri</span>
         </a>
 
-        @php($gorunenKullanici = $_acentePreviewUser ?? auth()->user())
+        @php($oturumKullanici = auth()->user())
 
         <div class="ms-auto nav-mobile-quick d-md-none">
             <a href="{{ route('acente.requests.create') }}" class="btn btn-sm btn-danger px-2" title="Yeni Talep">
@@ -67,7 +67,7 @@
                 </button>
                 <a href="{{ route('acente.profil') }}"
                    class="nav-lc {{ $active === 'profil' ? 'nav-lc-active' : '' }}">
-                    <i class="fas fa-user-cog me-1"></i>{{ $gorunenKullanici->name }}
+                    <i class="fas fa-user-cog me-1"></i>{{ $oturumKullanici->name }}
                 </a>
                 <a href="https://wa.me/{{ $_adminTelefon ?? '905324262630' }}" target="_blank"
                    class="btn btn-sm btn-success px-2" title="WhatsApp Destek">
@@ -88,7 +88,11 @@
 <div class="container-fluid px-4 py-2 border-bottom" style="background:#fff3cd;">
     <div class="d-flex flex-wrap align-items-center gap-2 small">
         <span class="fw-bold text-dark">Admin Onizleme Modu</span>
-        <span class="text-muted">{{ $_acentePreviewUser?->name }} acentesinin gordugu sayfalari goruyorsunuz.</span>
+        <span class="text-muted">
+            Giris: <strong>{{ auth()->user()->name }}</strong>
+            <span class="mx-1">|</span>
+            Onizlenen acente: <strong>{{ $_acentePreviewUser?->name }}</strong>
+        </span>
         <form method="POST" action="{{ route('acente.preview.stop') }}" class="ms-auto">
             @csrf
             <button class="btn btn-sm btn-outline-dark">Onizlemeyi Kapat</button>
