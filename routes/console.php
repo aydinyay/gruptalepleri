@@ -16,3 +16,8 @@ Schedule::command('sms:send-scheduled')->everyMinute();
 
 // Zamanlanmış broadcast duyurularını her dakika kontrol et ve gönder
 Schedule::command('broadcast:send-scheduled')->everyMinute();
+
+// Local geliştirme ortamında DB boşalma riskine karşı otomatik sağlık kontrolü
+Schedule::command('db:ensure-local-health --import-on-empty --min-requests=1')
+    ->everyTenMinutes()
+    ->environments(['local']);
