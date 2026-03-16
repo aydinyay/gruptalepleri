@@ -94,7 +94,7 @@
         $s->from_iata . $s->to_iata . $s->departure_date . $s->departure_time
     )->join('|') . '||' . $talep->offers->map(fn($o) =>
         $o->airline . $o->price_per_pax . $o->total_price . $o->option_date . $o->option_time
-    )->join('|') . '||' . $talep->pax_total . $talep->flight_purpose;
+    )->join('|') . '||' . $talep->pax_total . $talep->flight_purpose . '||' . ($fiyatKiyas['hash_context'] ?? '');
     $mevcutHash = md5($hashKaynagi);
     $analizVarMi  = $talep->ai_analysis && $talep->ai_analysis_hash === $mevcutHash;
     $analizEskiMi = $talep->ai_analysis && $talep->ai_analysis_hash !== $mevcutHash;
@@ -860,6 +860,7 @@ async function aiAnalizBaslat() {
     ])->values()->toArray();
     @endphp
     const teklifler = @json($offerData);
+    const fiyatKiyasOzeti = @json($fiyatKiyas['prompt_summary'] ?? 'Endeksli geçmiş kıyas verisi yok.');
 
     let teklifBilgisi = 'Henüz teklif girilmemiş.';
     if (teklifler.length > 0) {
@@ -875,10 +876,13 @@ async function aiAnalizBaslat() {
 TALEP: ${fromIata} ? ${toIata} | ${pax} PAX | ${tarih} | ${amac || '-'}
 ACENTE NOTU: ${acenteNotu || '-'}
 TEKLIF OZETLERI: ${teklifBilgisi}
+ENDEKSLI GECMIS FIYAT KIYASI: ${fiyatKiyasOzeti}
 
 Sadece acenteye gösterilecek bilgi üret.
 İç operasyon verileri (maliyet, kâr/kârlılık, tedarikçi referansı, hazırlayan kişi) hakkında yorum yapma.
 Veri yoksa "yetersiz veri" de, tahmin uydurma.
+Fiyat değerlendirmesinde suçlayıcı dil kullanma. "kazık", "fahiş" gibi ifadeler kullanma.
+Bunun bir referans kıyas olduğunu belirt; kesin yargı verme.
 
 4 ayrı Bootstrap card oluştur. Her card MAX 4 madde, kısa cümleler, emoji ikon kullan.
 

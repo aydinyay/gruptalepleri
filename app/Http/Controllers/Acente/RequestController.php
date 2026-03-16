@@ -10,6 +10,7 @@ use App\Models\RequestLog;
 use App\Services\GtpnrService;
 use App\Services\EmailService;
 use App\Services\NotificationService;
+use App\Services\OfferPriceBenchmarkService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -261,6 +262,8 @@ class RequestController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        return view('acente.request.show', compact('talep', 'eskiOpsiyon'));
+        $fiyatKiyas = app(OfferPriceBenchmarkService::class)->forRequest($talep);
+
+        return view('acente.request.show', compact('talep', 'eskiOpsiyon', 'fiyatKiyas'));
     }
 }
