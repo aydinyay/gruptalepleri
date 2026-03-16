@@ -852,15 +852,11 @@ async function aiAnalizBaslat() {
         'currency'       => $o->currency,
         'price_per_pax'  => $o->price_per_pax,
         'total_price'    => $o->total_price,
-        'cost_price'     => $o->cost_price,
-        'profit_amount'  => $o->profit_amount,
-        'profit_percent' => $o->profit_percent,
         'deposit_rate'   => $o->deposit_rate,
         'deposit_amount' => $o->deposit_amount,
         'option_date'    => $o->option_date,
         'option_time'    => $o->option_time,
         'offer_text'     => $o->offer_text,
-        'created_by'     => $o->created_by,
     ])->values()->toArray();
     @endphp
     const teklifler = @json($offerData);
@@ -870,17 +866,21 @@ async function aiAnalizBaslat() {
         teklifBilgisi = teklifler.map((t, i) => {
             const depozito = t.deposit_amount ? `${t.deposit_amount} ${t.currency} (%${t.deposit_rate})` : '-';
             const opsiyon  = (t.option_date && t.option_time) ? `${t.option_date} ${t.option_time}` : (t.option_date || '-');
-            return `Teklif #${i+1}: ${t.airline||'-'} | Kişi Başı: ${t.price_per_pax} ${t.currency} | Toplam: ${t.total_price} ${t.currency} | Maliyet: ${t.cost_price||'-'} | Kâr: ${t.profit_amount||'-'} (%${t.profit_percent||'-'}) | Depozito: ${depozito} | Opsiyon: ${opsiyon}`;
+            return `Teklif #${i+1}: ${t.airline||'-'} | Kişi Başı: ${t.price_per_pax} ${t.currency} | Toplam: ${t.total_price} ${t.currency} | Depozito: ${depozito} | Opsiyon: ${opsiyon}`;
         }).join('\n');
     }
 
-    const prompt = `Sen bir havacılık operasyon uzmanısın. Aşağıdaki grup uçuşu için KISA ve ÖZET analiz yap.
+    const prompt = `Sen bir acente operasyon asistanısın. Aşağıdaki grup uçuşu için KISA ve ÖZET analiz yap.
 
 TALEP: ${fromIata} ? ${toIata} | ${pax} PAX | ${tarih} | ${amac || '-'}
 ACENTE NOTU: ${acenteNotu || '-'}
-YONETICI MESAJLARI / TEKLIF NOTLARI: ${teklifBilgisi}
+TEKLIF OZETLERI: ${teklifBilgisi}
 
-4 ayrı Bootstrap card oluştur. Her card MAX 4-5 madde, kısa cümleler, emoji ikon kullan.
+Sadece acenteye gösterilecek bilgi üret.
+İç operasyon verileri (maliyet, kâr/kârlılık, tedarikçi referansı, hazırlayan kişi) hakkında yorum yapma.
+Veri yoksa "yetersiz veri" de, tahmin uydurma.
+
+4 ayrı Bootstrap card oluştur. Her card MAX 4 madde, kısa cümleler, emoji ikon kullan.
 
 CARD 1 (border-primary): 🛬 VARIŞ - ${toIata}
 • Şehir ve uzaklık • En iyi ulaşım (${pax} kişi için) • Tahmini transfer süresi/ücreti • 1 kritik operasyon notu
@@ -891,8 +891,8 @@ CARD 2 (border-success): 🛫 KALKIŞ - ${fromIata}
 CARD 3 (border-warning): 📅 TARİH - ${tarih}
 • Hava durumu karakteri • Yakın tatil/bayram varsa • Trafik/yoğunluk uyarısı
 
-CARD 4 (border-purple, style="border-color:#6f42c1"): 💰 FİNANS
-• Kişi başı fiyat değerlendirmesi • Kâr marjı: yeterli/düşük/yüksek • Opsiyon riski • Öneri
+CARD 4 (border-purple, style="border-color:#6f42c1"): 💰 FİYAT & OPSİYON
+• Kişi başı fiyat seviyesi (yalnız mevcut tekliflere göre) • Opsiyon riski • Net aksiyon önerisi • Belirsizlik varsa kısa uyarı
 
 Sadece 4 card HTML ver, başka hiçbir şey yazma. Her card compact olsun (card-body p-2).`;
 
