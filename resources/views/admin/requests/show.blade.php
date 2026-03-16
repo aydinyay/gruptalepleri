@@ -406,9 +406,7 @@
                         <div class="input-group input-group-sm">
                             <select name="status" class="form-select">
                                 @foreach($statusUpdateOrder as $val)
-                                @php
-                                    $statusOption = $statusMetaMap[$val] ?? \App\Models\Request::statusMeta($val);
-                                @endphp
+                                @php($statusOption = $statusMetaMap[$val] ?? \App\Models\Request::statusMeta($val))
                                 <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $statusOption['label'] }}</option>
                                 @endforeach
                             </select>
