@@ -45,6 +45,13 @@ return [
         'notify_phone'  => env('SMS_NOTIFY_PHONE'),
     ],
 
+    'whatsapp' => [
+        'enabled'   => env('WHATSAPP_RESET_ENABLED', false),
+        'api_url'   => env('WHATSAPP_API_URL'),
+        'api_token' => env('WHATSAPP_API_TOKEN'),
+        'timeout'   => env('WHATSAPP_API_TIMEOUT', 10),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
