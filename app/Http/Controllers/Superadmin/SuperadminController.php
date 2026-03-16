@@ -313,6 +313,27 @@ class SuperadminController extends Controller
 
     // ── BİLDİRİM SİLME ───────────────────────────────────────────────────────
 
+    public function smsTeslimDurumlariGuncelle(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $limit = (int) $request->input('limit', 100);
+        $limit = max(1, min(300, $limit));
+
+        $sonuc = (new SmsService())->refreshDeliveryStatuses($limit);
+        $mesaj = sprintf(
+            'SMS durum guncelleme tamamlandi. Kontrol:%d Guncel:%d Iletildi:%d Iletilemedi:%d Bekliyor:%d Hata:%d',
+            $sonuc['checked'],
+            $sonuc['updated'],
+            $sonuc['delivered'],
+            $sonuc['undelivered'],
+            $sonuc['pending'],
+            $sonuc['errors']
+        );
+
+        return back()->with('success', $mesaj);
+    }
+
     public function bildirimSil(KullaniciBildirimi $bildirim)
     {
         // Sadece kendi bildirimini silebilir
@@ -440,8 +461,14 @@ class SuperadminController extends Controller
         $channelCounts['all'] = $channelCounts['sms'] + $channelCounts['email'];
 
         $logs = $query->paginate(50)->withQueryString();
-        $smsBalance = (new SmsService())->getBalance();
+        $smsInfo = (new SmsService())->getAccountInfo();
+        $smsBalance = [
+            'available' => $smsInfo['available'],
+            'balance' => $smsInfo['balance'],
+            'raw' => $smsInfo['raw'],
+            'message' => $smsInfo['message'],
+        ];
 
-        return view('superadmin.sms-raporlar', compact('logs', 'channel', 'channelCounts', 'smsBalance'));
+        return view('superadmin.sms-raporlar', compact('logs', 'channel', 'channelCounts', 'smsBalance', 'smsInfo'));
     }
 }
