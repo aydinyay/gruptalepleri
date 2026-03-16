@@ -143,16 +143,15 @@
                 <div class="card-header py-2 d-flex justify-content-between align-items-center">
                     <span class="fw-bold">📋 Talep Bilgileri</span>
                     @php
-                        $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
-                        $durumRenkleri   = ['beklemede'=>'secondary','islemde'=>'primary','fiyatlandirildi'=>'warning','depozitoda'=>'purple','biletlendi'=>'success','iade'=>'danger','olumsuz'=>'dark'];
+                        $currentStatusMeta = $statusMetaMap[$talep->status] ?? \App\Models\Request::statusMeta($talep->status);
                         $yoneticiMesajlari = $talep->offers->pluck('offer_text')->filter(fn ($mesaj) => filled(trim((string) $mesaj)));
                         $acenteNotu = filled(trim((string) $talep->notes)) ? trim((string) $talep->notes) : null;
                         if ($acenteNotu && $yoneticiMesajlari->contains(fn ($mesaj) => trim((string) $mesaj) === $acenteNotu)) {
                             $acenteNotu = null;
                         }
                     @endphp
-                    <span class="badge" style="background-color:{{ ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirildi'=>'#ffc107','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'][$talep->status] ?? '#6c757d' }}; {{ $talep->status==='fiyatlandirildi'?'color:#000;':'' }}">
-                        {{ $durumEtiketleri[$talep->status] ?? $talep->status }}
+                    <span class="badge" style="background-color:{{ $currentStatusMeta['bg'] }}; color:{{ $currentStatusMeta['text'] }};">
+                        {{ $currentStatusMeta['label'] }}
                     </span>
                     <x-iade-badge :talep="$talep" />
                 </div>
@@ -406,8 +405,9 @@
                         @csrf
                         <div class="input-group input-group-sm">
                             <select name="status" class="form-select">
-                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
-                                <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $label }}</option>
+                                @foreach($statusUpdateOrder as $val)
+                                @php($statusOption = $statusMetaMap[$val] ?? \App\Models\Request::statusMeta($val))
+                                <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $statusOption['label'] }}</option>
                                 @endforeach
                             </select>
                             <button type="submit" class="btn btn-primary">Güncelle</button>
@@ -429,7 +429,7 @@
                 <div class="card-body py-2">
                     @foreach($talep->offers as $teklif)
                     <div class="border rounded p-2 mb-2 small {{ !$teklif->is_visible ? 'opacity-50 border-dashed' : '' }}" style="{{ !$teklif->is_visible ? 'border-style:dashed!important;' : '' }}">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-1">
                             <div>
                                 <strong>{{ $teklif->airline ?? '—' }}</strong>
                                 @if($teklif->airline_pnr)<span class="badge bg-primary ms-1">PNR: {{ $teklif->airline_pnr }}</span>@endif
@@ -437,7 +437,7 @@
                                 @if(!$teklif->is_visible)<span class="badge bg-warning text-dark ms-1"><i class="fas fa-eye-slash me-1"></i>Gizli</span>@endif
                                 @if($teklif->is_accepted)<span class="badge bg-success ms-1"><i class="fas fa-check me-1"></i>Acente Kabul Etti</span>@endif
                             </div>
-                            <div class="d-flex gap-1">
+                            <div class="d-flex flex-wrap gap-1 justify-content-end">
                                 <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size:0.7rem;"
                                     onclick="teklifDuzenle({{ $teklif->id }}, {{ json_encode([
                                         'airline'               => $teklif->airline,
@@ -697,45 +697,47 @@
                     <span class="badge bg-secondary">{{ $talep->notifications->count() }}</span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-sm table-hover mb-0 small">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Tarih</th>
-                                <th>Alıcı</th>
-                                <th>Telefon</th>
-                                <th>Durum</th>
-                                <th>Mesaj</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($talep->notifications as $notif)
-                            <tr>
-                                <td class="text-nowrap">{{ $notif->created_at->format('d.m.Y H:i') }}</td>
-                                <td>
-                                    @if($notif->recipient === 'admin')
-                                        <span class="badge bg-dark">Admin</span>
-                                    @else
-                                        <span class="badge bg-info text-dark">{{ $notif->recipient_name }}</span>
-                                    @endif
-                                </td>
-                                <td>{{ $notif->phone }}</td>
-                                <td>
-                                    @if($notif->status === 'sent')
-                                        <span class="badge bg-success">Gönderildi</span>
-                                    @elseif($notif->status === 'failed')
-                                        <span class="badge bg-danger">Hata</span>
-                                        @if($notif->provider_code)
-                                            <small class="text-muted d-block">{{ $notif->provider_code }}</small>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Alıcı</th>
+                                    <th>Telefon</th>
+                                    <th>Durum</th>
+                                    <th>Mesaj</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($talep->notifications as $notif)
+                                <tr>
+                                    <td class="text-nowrap">{{ $notif->created_at->format('d.m.Y H:i') }}</td>
+                                    <td>
+                                        @if($notif->recipient === 'admin')
+                                            <span class="badge bg-dark">Admin</span>
+                                        @else
+                                            <span class="badge bg-info text-dark">{{ $notif->recipient_name }}</span>
                                         @endif
-                                    @else
-                                        <span class="badge bg-secondary">Bekliyor</span>
-                                    @endif
-                                </td>
-                                <td class="text-muted" style="max-width:220px; white-space:normal;">{{ $notif->message }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td>{{ $notif->phone }}</td>
+                                    <td>
+                                        @if($notif->status === 'sent')
+                                            <span class="badge bg-success">Gönderildi</span>
+                                        @elseif($notif->status === 'failed')
+                                            <span class="badge bg-danger">Hata</span>
+                                            @if($notif->provider_code)
+                                                <small class="text-muted d-block">{{ $notif->provider_code }}</small>
+                                            @endif
+                                        @else
+                                            <span class="badge bg-secondary">Bekliyor</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-muted" style="max-width:220px; white-space:normal;">{{ $notif->message }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             @endif
