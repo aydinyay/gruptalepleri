@@ -17,7 +17,7 @@
         <div class="d-flex align-items-center gap-2">
             <a href="{{ route('admin.dashboard') }}"
                class="nav-lc {{ $active === 'dashboard' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-home me-1"></i>Dashboard
+                <i class="fas fa-home me-1"></i>Panel
             </a>
             <a href="{{ route('admin.requests.index') }}"
                class="nav-lc {{ $active === 'talepler' ? 'nav-lc-active' : '' }}">

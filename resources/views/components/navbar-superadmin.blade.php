@@ -17,7 +17,7 @@
         <div class="d-flex align-items-center gap-2">
             <a href="{{ route('superadmin.dashboard') }}"
                class="nav-lc {{ $active === 'dashboard' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-home me-1"></i>Dashboard
+                <i class="fas fa-home me-1"></i>Panel
             </a>
             <a href="{{ route('superadmin.acenteler') }}"
                class="nav-lc {{ $active === 'acenteler' ? 'nav-lc-active' : '' }}">
@@ -33,7 +33,7 @@
             </a>
             <a href="{{ route('superadmin.broadcast.gecmisi') }}"
                class="nav-lc {{ $active === 'broadcast' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-bullhorn me-1"></i>Broadcast
+                <i class="fas fa-bullhorn me-1"></i>Duyuru
             </a>
             <x-notification-bell />
             <a href="{{ route('profile.edit') }}"
