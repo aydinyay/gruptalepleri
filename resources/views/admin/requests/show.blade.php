@@ -136,7 +136,7 @@
     <div class="row g-3">
 
         {{-- SOL KOLON --}}
-        <div class="col-md-7">
+        <div class="col-md-7" id="ops-main-column">
 
             {{-- TALEP BİLGİLERİ --}}
             <div class="card mb-3 ops-tab-section is-active" data-tab-section="summary">
@@ -191,7 +191,7 @@
             </div>
 
             {{-- AI PARSE KUTUSU --}}
-            <div class="card mb-3 border-warning ops-tab-section" data-tab-section="offers">
+            <div class="card mb-3 border-warning ops-tab-section" data-tab-section="offers" id="ops-ai-helper-card">
                 <div class="card-header py-2 fw-bold bg-warning bg-opacity-10">
                     🤖 Operasyon Notu → AI ile Doldur
                 </div>
@@ -390,7 +390,7 @@
         </div>
 
         {{-- SAĞ KOLON --}}
-        <div class="col-md-5">
+        <div class="col-md-5" id="ops-side-column">
 
             {{-- DURUM GÜNCELLE --}}
             <div class="card mb-3 ops-tab-section is-active" data-tab-section="summary" id="status-update-card">
@@ -1063,6 +1063,35 @@ function moveRequestFormToModal(formId, modalBodyId) {
 
 moveRequestFormToModal('offer-form', 'create-offer-modal-body');
 moveRequestFormToModal('payment-form', 'create-payment-modal-body');
+
+function positionAiHelperCard() {
+    const aiHelperCard = document.getElementById('ops-ai-helper-card');
+    const mainColumn = document.getElementById('ops-main-column');
+    const sideColumn = document.getElementById('ops-side-column');
+    if (!aiHelperCard || !mainColumn || !sideColumn) {
+        return;
+    }
+
+    const isDesktop = window.matchMedia('(min-width: 992px)').matches;
+    if (isDesktop) {
+        if (aiHelperCard.parentElement !== sideColumn) {
+            sideColumn.prepend(aiHelperCard);
+        }
+        return;
+    }
+
+    if (aiHelperCard.parentElement !== mainColumn) {
+        const firstSummaryCard = mainColumn.querySelector('[data-tab-section=\"summary\"]');
+        if (firstSummaryCard) {
+            firstSummaryCard.insertAdjacentElement('afterend', aiHelperCard);
+        } else {
+            mainColumn.prepend(aiHelperCard);
+        }
+    }
+}
+
+positionAiHelperCard();
+window.addEventListener('resize', positionAiHelperCard);
 
 async function aiFormatlaAcenteye(offerId, rawNote) {
     const btn = document.getElementById('fmt-btn-' + offerId);
