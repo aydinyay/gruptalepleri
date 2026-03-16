@@ -138,7 +138,7 @@
     $segs     = $talep->segments->sortBy('order');
     $ilkSeg   = $segs->first();
     $sonSeg   = $segs->last();
-    $tripType = $talep->trip_type === 'round_trip' ? 'Gidiş - Dönüş' : ($talep->trip_type === 'multi_city' ? 'Çok Ayaklı' : 'Tek Yön');
+    $tripType = \App\Models\Request::tripTypeLabel($talep->trip_type);
 @endphp
 
 <div class="container-fluid px-3 py-3" style="max-width:1200px;">

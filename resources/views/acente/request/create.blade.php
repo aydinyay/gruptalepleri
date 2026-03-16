@@ -150,10 +150,11 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label small">Uçuş Tipi <span class="required-star">*</span></label>
+                        @php($tripTypeOld = \App\Models\Request::normalizeTripType(old('trip_type', 'one_way')))
                         <select name="trip_type" id="trip-type" class="form-select" onchange="tripTipiDegisti()">
-                            <option value="one_way"    {{ old('trip_type','one_way') === 'one_way'    ? 'selected' : '' }}>Tek Yön</option>
-                            <option value="round_trip" {{ old('trip_type') === 'round_trip' ? 'selected' : '' }}>Gidiş - Dönüş</option>
-                            <option value="multi"      {{ old('trip_type') === 'multi'      ? 'selected' : '' }}>Çoklu Uçuş</option>
+                            <option value="one_way"    {{ $tripTypeOld === 'one_way' ? 'selected' : '' }}>Tek Yön</option>
+                            <option value="round_trip" {{ $tripTypeOld === 'round_trip' ? 'selected' : '' }}>Gidiş - Dönüş</option>
+                            <option value="multi"      {{ $tripTypeOld === 'multi' ? 'selected' : '' }}>Çoklu Uçuş</option>
                         </select>
                     </div>
                     <div class="col-md-6">

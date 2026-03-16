@@ -35,7 +35,7 @@ class RequestController extends Controller
             'email' => 'required|email',
             'group_company_name' => 'nullable|string',
             'flight_purpose' => 'nullable|string',
-            'trip_type' => 'required|string',
+            'trip_type' => 'required|string|in:one_way,round_trip,multi,multi_city',
             'pax_total' => 'required|integer|min:1',
             'pax_adult' => 'nullable|integer',
             'pax_child' => 'nullable|integer',

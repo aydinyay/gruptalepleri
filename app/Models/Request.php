@@ -16,10 +16,25 @@ class Request extends Model
     public const STATUS_OLUMSUZ = 'olumsuz';
     public const STATUS_IPTAL = 'iptal';
 
+    public const TRIP_TYPE_ONE_WAY = 'one_way';
+    public const TRIP_TYPE_ROUND_TRIP = 'round_trip';
+    public const TRIP_TYPE_MULTI = 'multi';
+
     public const STATUS_ALIASES = [
         'fiyatlandirildi' => self::STATUS_FIYATLANDIRILDI,
         'depozito' => self::STATUS_DEPOZITODA,
         'depozitoda' => self::STATUS_DEPOZITODA,
+    ];
+
+    public const TRIP_TYPE_ALIASES = [
+        'multi_city' => self::TRIP_TYPE_MULTI,
+        'multicity' => self::TRIP_TYPE_MULTI,
+    ];
+
+    public const TRIP_TYPE_LABELS = [
+        self::TRIP_TYPE_ONE_WAY => 'Tek Yön',
+        self::TRIP_TYPE_ROUND_TRIP => 'Gidiş - Dönüş',
+        self::TRIP_TYPE_MULTI => 'Çok Ayaklı',
     ];
 
     protected $fillable = [
@@ -61,6 +76,16 @@ class Request extends Model
         $this->attributes['status'] = static::normalizeStatus($value);
     }
 
+    public function getTripTypeAttribute($value): ?string
+    {
+        return static::normalizeTripType($value);
+    }
+
+    public function setTripTypeAttribute($value): void
+    {
+        $this->attributes['trip_type'] = static::normalizeTripType($value);
+    }
+
     public static function normalizeStatus(?string $value): ?string
     {
         if ($value === null) {
@@ -74,6 +99,27 @@ class Request extends Model
         }
 
         return self::STATUS_ALIASES[$normalized] ?? $normalized;
+    }
+
+    public static function normalizeTripType(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = mb_strtolower(trim($value), 'UTF-8');
+
+        return self::TRIP_TYPE_ALIASES[$normalized] ?? $normalized;
+    }
+
+    public static function tripTypeLabel(?string $value): string
+    {
+        $normalized = static::normalizeTripType($value);
+        if (! $normalized) {
+            return 'Belirtilmedi';
+        }
+
+        return self::TRIP_TYPE_LABELS[$normalized] ?? ucfirst(str_replace('_', ' ', $normalized));
     }
 
     public function user()
