@@ -33,18 +33,29 @@ class PreviewController extends Controller
 
         // Acentenin bu URL'yi dogrudan acmasi durumunda 403 yerine kendi talep ekranina yonlendir.
         if (! in_array($authUser->role, ['admin', 'superadmin'], true)) {
-            $query = TalepModel::where('gtpnr', $gtpnr);
-            if ($authUser->role === 'acente') {
-                $query->where('user_id', $authUser->id);
+            if ($authUser->role !== 'acente') {
+                return redirect()->route('dashboard')
+                    ->with('error', 'Bu sayfa sadece yonetici onizleme modunda kullanilabilir.');
             }
 
-            $talep = $query->firstOrFail();
+            $talep = TalepModel::where('gtpnr', $gtpnr)
+                ->where('user_id', $authUser->id)
+                ->first();
+
+            if (! $talep) {
+                return redirect()->route('acente.dashboard')
+                    ->with('error', 'Bu talep hesabiniza bagli degil veya bulunamadi.');
+            }
 
             return redirect()->route('acente.requests.show', $talep->gtpnr);
         }
 
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
-        $user = User::where('role', 'acente')->findOrFail($talep->user_id);
+        $user = User::find($talep->user_id);
+        if (! $user || $user->role !== 'acente') {
+            return redirect()->route('admin.requests.show', $talep->gtpnr)
+                ->with('error', 'Bu talep acente hesabina bagli olmadigi icin onizleme acilamadi.');
+        }
 
         session([
             'acente_preview_user_id' => $user->id,
