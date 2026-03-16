@@ -193,7 +193,11 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
 
 // Bildirimler — tüm roller için ortak
 Route::middleware('auth')->prefix('bildirimler')->name('bildirimler.')->group(function () {
-    Route::get('/', function () {
+    Route::get('/', function (\Illuminate\Http\Request $request) {
+        if (! $request->expectsJson()) {
+            return redirect()->route('dashboard');
+        }
+
         $bildirimler = \App\Models\KullaniciBildirimi::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')->limit(20)->get();
         $okunmamis = $bildirimler->where('is_read', false)->count();

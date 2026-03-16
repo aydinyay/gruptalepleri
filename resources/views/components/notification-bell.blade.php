@@ -68,7 +68,7 @@
                 const id = this.dataset.id;
                 fetch(OKUNDU_URL, {
                     method: 'POST',
-                    headers: {'Content-Type':'application/json','X-CSRF-TOKEN': CSRF},
+                    headers: {'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN': CSRF},
                     body: JSON.stringify({ids: [parseInt(id)]})
                 });
             });
@@ -80,7 +80,9 @@
     }
 
     function fetchBildirimler() {
-        fetch(POLL_URL)
+        fetch(POLL_URL, {
+            headers: {'Accept':'application/json'}
+        })
             .then(r => r.json())
             .then(data => {
                 const yeniOkunmamis = data.okunmamis ?? 0;
@@ -122,7 +124,7 @@
         e.preventDefault(); e.stopPropagation();
         fetch(HEPSINI_URL, {
             method: 'POST',
-            headers: {'Content-Type':'application/json','X-CSRF-TOKEN': CSRF},
+            headers: {'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN': CSRF},
         }).then(() => { sonOkunmamis = 0; fetchBildirimler(); });
     });
 
