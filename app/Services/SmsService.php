@@ -17,14 +17,14 @@ class SmsService
 
     public function __construct()
     {
-        $this->kno        = config('services.sms.kno');
-        $this->username   = config('services.sms.username');
-        $this->password   = config('services.sms.password');
+        $this->kno = config('services.sms.kno');
+        $this->username = config('services.sms.username');
+        $this->password = config('services.sms.password');
         $this->originator = config('services.sms.originator');
     }
 
     /**
-     * SMS gönder ve request_notifications tablosuna kaydet.
+     * SMS gonder ve request_notifications tablosuna kaydet.
      * $scheduledFor verilirse o zaman kadar bekletilir.
      */
     public function send(
@@ -40,17 +40,17 @@ class SmsService
         }
 
         $notification = RequestNotification::create([
-            'request_id'     => $requestId,
-            'channel'        => 'sms',
-            'recipient'      => $recipient,
+            'request_id' => $requestId,
+            'channel' => 'sms',
+            'recipient' => $recipient,
             'recipient_name' => $recipientName,
-            'phone'          => $phone,
-            'message'        => $message,
-            'status'         => $scheduledFor ? 'scheduled' : 'pending',
-            'scheduled_for'  => $scheduledFor,
+            'phone' => $phone,
+            'message' => $message,
+            'status' => $scheduledFor ? 'scheduled' : 'pending',
+            'scheduled_for' => $scheduledFor,
         ]);
 
-        // Zamanlı ise şimdi gönderme — SendScheduledSms komutu üstlenir
+        // Zamanli ise simdi gonderme, scheduler komutu gonderecek.
         if ($scheduledFor) {
             return true;
         }
@@ -59,7 +59,7 @@ class SmsService
     }
 
     /**
-     * Zamanlanmış bekleyen SMS'leri gönder (scheduler tarafından çağrılır).
+     * Zamanlanmis bekleyen SMS'leri gonderir.
      */
     public function sendScheduled(): void
     {
@@ -77,9 +77,8 @@ class SmsService
     }
 
     /**
-     * Belirli bir olay için SMS ayarlarındaki tüm numaralara gönder.
-     * Zaman penceresi dışındaysa bir sonraki açılış zamanına zamanlar.
-     * Superadmin her zaman CC alır.
+     * Belirli bir olay icin SMS ayarlarindaki tum numaralara gonderir.
+     * Zaman penceresi disindaysa bir sonraki acilis zamanina planlar.
      */
     public function sendByEvent(string $event, ?int $requestId, string $message): void
     {
@@ -88,16 +87,15 @@ class SmsService
         }
 
         $scheduledFor = $this->zamanPenceresindeMi() ? null : $this->sonrakiPencereAcilis();
-
         if ($scheduledFor) {
-            Log::info("SMS zaman penceresi dışı, zamanlandı: {$event} → {$scheduledFor->format('d.m.Y H:i')}");
+            Log::info("SMS zaman penceresi disi, zamanlandi: {$event} -> {$scheduledFor->format('d.m.Y H:i')}");
         }
 
         $phones = SmsNotificationSetting::phonesForEvent($event);
 
-        // Superadmin CC: her zaman superadmin telefona da gönder
+        // Superadmin CC: her zaman superadmin telefonuna da gonder.
         $superadmin = \App\Models\User::where('role', 'superadmin')->whereNotNull('phone')->first();
-        if ($superadmin?->phone && !in_array($superadmin->phone, $phones)) {
+        if ($superadmin?->phone && ! in_array($superadmin->phone, $phones, true)) {
             $phones[] = $superadmin->phone;
         }
 
@@ -116,16 +114,101 @@ class SmsService
     }
 
     /**
-     * Admin'e SMS gönder — geriye uyumluluk.
+     * Admin'e SMS gonder - geriye uyumluluk.
      */
-    public function sendToAdmin(?int $requestId = null, string $message): bool
+    public function sendToAdmin(string $message, ?int $requestId = null): bool
     {
         $phone = config('services.sms.notify_phone');
-        if (!$phone) return false;
+        if (! $phone) {
+            return false;
+        }
+
         return $this->send($requestId, 'admin', 'Admin', $phone, $message);
     }
 
-    // ── Private ──────────────────────────────────────────────────────────────
+    /**
+     * SMS servisinden kalan kredi bilgisini getirir.
+     * Endpoint tanimli degilse guvenli fallback doner.
+     */
+    public function getBalance(): array
+    {
+        $url = config('services.sms.balance_url');
+        if (! $url) {
+            return [
+                'available' => false,
+                'balance' => null,
+                'raw' => null,
+                'message' => 'SMS bakiye endpointi tanimli degil.',
+            ];
+        }
+
+        try {
+            $timeout = (int) config('services.sms.balance_timeout', 10);
+            $payload = http_build_query([
+                'kno' => $this->kno,
+                'kulad' => $this->username,
+                'sifre' => $this->password,
+            ]);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+            $body = curl_exec($ch);
+            $curlError = curl_error($ch);
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($body === false) {
+                return [
+                    'available' => false,
+                    'balance' => null,
+                    'raw' => null,
+                    'message' => $curlError ?: 'SMS bakiye sorgusu basarisiz.',
+                ];
+            }
+
+            if ($httpCode >= 400) {
+                return [
+                    'available' => false,
+                    'balance' => null,
+                    'raw' => trim((string) $body),
+                    'message' => "SMS bakiye sorgusu HTTP {$httpCode} hatasi verdi.",
+                ];
+            }
+
+            $raw = trim((string) $body);
+            $balance = $this->extractFirstNumber($raw);
+
+            if ($balance === null) {
+                return [
+                    'available' => false,
+                    'balance' => null,
+                    'raw' => $raw,
+                    'message' => 'SMS bakiye cevabi parse edilemedi.',
+                ];
+            }
+
+            return [
+                'available' => true,
+                'balance' => $balance,
+                'raw' => $raw,
+                'message' => null,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('SMS bakiye sorgu hatasi: ' . $e->getMessage());
+            return [
+                'available' => false,
+                'balance' => null,
+                'raw' => null,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
 
     private function gonder(RequestNotification $notification): bool
     {
@@ -150,21 +233,21 @@ class SmsService
             $body = curl_exec($ch);
             curl_close($ch);
 
-            $body      = trim($body);
+            $body = trim((string) $body);
             $isSuccess = str_contains($body, 'Gonderildi')
-                || (is_numeric(explode(':', $body)[0]) && (int) explode(':', $body)[0] > 0);
+                || (is_numeric(explode(':', $body)[0] ?? null) && (int) (explode(':', $body)[0] ?? 0) > 0);
 
             $notification->update([
-                'status'        => $isSuccess ? 'sent' : 'failed',
+                'status' => $isSuccess ? 'sent' : 'failed',
                 'provider_code' => $body,
-                'sent_at'       => $isSuccess ? now() : null,
+                'sent_at' => $isSuccess ? now() : null,
             ]);
 
             return $isSuccess;
-        } catch (\Exception $e) {
-            Log::error('SMS gönderme hatası: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('SMS gonderme hatasi: ' . $e->getMessage());
             $notification->update([
-                'status'        => 'failed',
+                'status' => 'failed',
                 'provider_code' => $e->getMessage(),
             ]);
             return false;
@@ -174,8 +257,8 @@ class SmsService
     private function zamanPenceresindeMi(): bool
     {
         $baslangic = SistemAyar::get('sms_baslangic_saat', '08:00');
-        $bitis     = SistemAyar::get('sms_bitis_saat', '21:00');
-        $simdi     = Carbon::now()->format('H:i');
+        $bitis = SistemAyar::get('sms_bitis_saat', '21:00');
+        $simdi = Carbon::now()->format('H:i');
 
         return $simdi >= $baslangic && $simdi <= $bitis;
     }
@@ -185,9 +268,18 @@ class SmsService
         $baslangic = SistemAyar::get('sms_baslangic_saat', '08:00');
         [$saat, $dakika] = explode(':', $baslangic);
 
-        $bugun = Carbon::today()->setHour((int)$saat)->setMinute((int)$dakika)->setSecond(0);
+        $bugun = Carbon::today()->setHour((int) $saat)->setMinute((int) $dakika)->setSecond(0);
 
-        // Eğer bugünün açılış saati henüz gelmemişse bugün kullan, geçmişse yarın
+        // Eger bugunun acilis saati henuz gelmemisse bugun, gecmisse yarin.
         return $bugun->isFuture() ? $bugun : $bugun->addDay();
+    }
+
+    private function extractFirstNumber(string $text): ?float
+    {
+        if (preg_match('/-?\d+(?:[.,]\d+)?/', $text, $matches) !== 1) {
+            return null;
+        }
+
+        return (float) str_replace(',', '.', $matches[0]);
     }
 }

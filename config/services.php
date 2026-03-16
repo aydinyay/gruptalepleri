@@ -43,6 +43,8 @@ return [
         'originator' => env('SMS_ORIGINATOR', 'G.Talepleri'),
         'admin_phone'   => env('SMS_ADMIN_PHONE'),
         'notify_phone'  => env('SMS_NOTIFY_PHONE'),
+        'balance_url'   => env('SMS_BALANCE_URL'),
+        'balance_timeout' => (int) env('SMS_BALANCE_TIMEOUT', 10),
     ],
 
     'whatsapp' => [
