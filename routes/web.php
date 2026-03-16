@@ -111,6 +111,9 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     // Bildirim silme (bell)
     Route::delete('/bildirimler/{bildirim}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimSil'])->name('bildirim.sil');
     Route::post('/bildirimler/hepsini-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimHepsiniSil'])->name('bildirim.hepsini-sil');
+    Route::delete('/bildirimler/{bildirim}/herkesten-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimHerkestenSil'])->name('bildirim.herkesten-sil');
+    Route::post('/bildirimler/secilenleri-herkesten-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimSecilenleriHerkestenSil'])->name('bildirim.secilenleri-herkesten-sil');
+    Route::post('/bildirimler/hepsini-herkesten-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimHepsiniHerkestenSil'])->name('bildirim.hepsini-herkesten-sil');
 
     // Scheduler aralığı
     Route::post('/scheduler-aralik', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'schedulerAralikGuncelle'])->name('scheduler.aralik');

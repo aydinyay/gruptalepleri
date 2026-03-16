@@ -15,6 +15,38 @@ use Illuminate\Http\Request;
 
 class SuperadminController extends Controller
 {
+    private function assertSuperadmin(): void
+    {
+        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
+    }
+
+    private function bildirimEslestirmeSorgusu(KullaniciBildirimi $bildirim)
+    {
+        return KullaniciBildirimi::query()
+            ->where('type', $bildirim->type)
+            ->where('title', $bildirim->title)
+            ->where('message', $bildirim->message)
+            ->when(
+                $bildirim->url === null,
+                fn ($q) => $q->whereNull('url'),
+                fn ($q) => $q->where('url', $bildirim->url)
+            );
+    }
+
+    private function broadcastPushTitle(BroadcastNotification $broadcast): string
+    {
+        return trim(($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $broadcast->title);
+    }
+
+    private function broadcastBildirimleriniSil(BroadcastNotification $broadcast): int
+    {
+        return KullaniciBildirimi::query()
+            ->where('type', 'broadcast')
+            ->where('title', $this->broadcastPushTitle($broadcast))
+            ->where('message', $broadcast->message)
+            ->delete();
+    }
+
     // ── ACENTELER ────────────────────────────────────────────────────────────
 
     public function acenteler()
@@ -219,14 +251,18 @@ class SuperadminController extends Controller
 
     public function broadcastSil(BroadcastNotification $broadcast)
     {
+        $this->assertSuperadmin();
+        $silinenBildirim = $this->broadcastBildirimleriniSil($broadcast);
         $broadcast->delete();
-        return back()->with('success', 'Duyuru silindi.');
+        return back()->with('success', "Duyuru silindi. {$silinenBildirim} çan bildirimi kaldırıldı.");
     }
 
     public function broadcastHepsiniSil()
     {
+        $this->assertSuperadmin();
+        $silinenBildirim = KullaniciBildirimi::query()->where('type', 'broadcast')->delete();
         BroadcastNotification::truncate();
-        return back()->with('success', 'Tüm duyurular silindi.');
+        return back()->with('success', "Tüm duyurular silindi. {$silinenBildirim} çan bildirimi kaldırıldı.");
     }
 
     // ── SMS LOG SİLME ────────────────────────────────────────────────────────
@@ -257,6 +293,73 @@ class SuperadminController extends Controller
     {
         KullaniciBildirimi::where('user_id', auth()->id())->delete();
         return response()->json(['ok' => true]);
+    }
+
+    public function bildirimHerkestenSil(KullaniciBildirimi $bildirim)
+    {
+        $this->assertSuperadmin();
+        abort_unless($bildirim->user_id === auth()->id(), 403);
+
+        $silinen = $this->bildirimEslestirmeSorgusu($bildirim)->delete();
+        return response()->json(['ok' => true, 'deleted' => $silinen]);
+    }
+
+    public function bildirimSecilenleriHerkestenSil(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $tohumlar = KullaniciBildirimi::query()
+            ->where('user_id', auth()->id())
+            ->whereIn('id', $validated['ids'])
+            ->get();
+
+        $silinenToplam = 0;
+        $islenen = [];
+
+        foreach ($tohumlar as $bildirim) {
+            $parmakIzi = md5($bildirim->type . '|' . $bildirim->title . '|' . $bildirim->message . '|' . ($bildirim->url ?? ''));
+            if (isset($islenen[$parmakIzi])) {
+                continue;
+            }
+
+            $islenen[$parmakIzi] = true;
+            $silinenToplam += $this->bildirimEslestirmeSorgusu($bildirim)->delete();
+        }
+
+        return response()->json(['ok' => true, 'deleted' => $silinenToplam, 'groups' => count($islenen)]);
+    }
+
+    public function bildirimHepsiniHerkestenSil()
+    {
+        $this->assertSuperadmin();
+
+        $tohumlar = KullaniciBildirimi::query()
+            ->where('user_id', auth()->id())
+            ->select('type', 'title', 'message', 'url')
+            ->distinct()
+            ->get();
+
+        $silinenToplam = 0;
+
+        foreach ($tohumlar as $tohum) {
+            $silinenToplam += KullaniciBildirimi::query()
+                ->where('type', $tohum->type)
+                ->where('title', $tohum->title)
+                ->where('message', $tohum->message)
+                ->when(
+                    $tohum->url === null,
+                    fn ($q) => $q->whereNull('url'),
+                    fn ($q) => $q->where('url', $tohum->url)
+                )
+                ->delete();
+        }
+
+        return response()->json(['ok' => true, 'deleted' => $silinenToplam, 'groups' => $tohumlar->count()]);
     }
 
     // ── SMS RAPORLAR ──────────────────────────────────────────────────────────
