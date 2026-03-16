@@ -375,7 +375,7 @@
                 <div class="section-title">Sistem Durumu</div>
                 <div class="system-info">
                     <div class="system-info-item">
-                        <span class="label">Laravel</span>
+                        <span class="label">Altyapı</span>
                         <span class="value green">v{{ app()->version() }}</span>
                     </div>
                     <div class="system-info-item">
