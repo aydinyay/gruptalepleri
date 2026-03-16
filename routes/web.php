@@ -97,6 +97,7 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
 
     // SMS Ayarları
     Route::get('/sms-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarlari'])->name('sms.ayarlar');
+    Route::post('/bildirim-sistemleri', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'bildirimSistemleriGuncelle'])->name('bildirim.sistemleri');
     Route::post('/sms-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarEkle'])->name('sms.ekle');
     Route::post('/sms-ayarlari/{ayar}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarToggle'])->name('sms.toggle');
     Route::patch('/sms-ayarlari/{ayar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarGuncelle'])->name('sms.guncelle');
@@ -153,6 +154,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Push polling
     Route::get('/push/yeni-talepler', function (\Illuminate\Http\Request $request) {
+        if (! \App\Models\SistemAyar::pushEnabled()) {
+            return response()->json(['talepler' => [], 'ts' => now()->toISOString()]);
+        }
+
         $since = $request->input('since', now()->subMinutes(1)->toISOString());
         $yeni = \App\Models\Request::where('created_at', '>', $since)
             ->orderBy('created_at', 'desc')

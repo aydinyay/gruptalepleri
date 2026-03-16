@@ -118,8 +118,24 @@ class SuperadminController extends Controller
         $schedulerAralik   = (int) SistemAyar::get('opsiyon_check_aralik', 1440);
         $smsBaslangic      = SistemAyar::get('sms_baslangic_saat', '08:00');
         $smsBitis          = SistemAyar::get('sms_bitis_saat', '21:00');
+        $notificationSystems = [
+            'sms' => SistemAyar::smsEnabled(),
+            'email' => SistemAyar::emailEnabled(),
+            'push' => SistemAyar::pushEnabled(),
+            'broadcast' => SistemAyar::broadcastEnabled(),
+        ];
 
-        return view('superadmin.sms-ayarlari', compact('ayarlar', 'events', 'opsiyonAyarlar', 'schedulerAralik', 'smsBaslangic', 'smsBitis'));
+        return view('superadmin.sms-ayarlari', compact('ayarlar', 'events', 'opsiyonAyarlar', 'schedulerAralik', 'smsBaslangic', 'smsBitis', 'notificationSystems'));
+    }
+
+    public function bildirimSistemleriGuncelle(Request $request)
+    {
+        SistemAyar::set(SistemAyar::KEY_SMS_ENABLED, $request->boolean('sms_enabled'));
+        SistemAyar::set(SistemAyar::KEY_EMAIL_ENABLED, $request->boolean('email_enabled'));
+        SistemAyar::set(SistemAyar::KEY_PUSH_ENABLED, $request->boolean('push_enabled'));
+        SistemAyar::set(SistemAyar::KEY_BROADCAST_ENABLED, $request->boolean('broadcast_enabled'));
+
+        return back()->with('success', 'Bildirim sistemleri güncellendi.');
     }
 
     public function schedulerAralikGuncelle(Request $request)

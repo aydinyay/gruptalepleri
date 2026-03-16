@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\KullaniciBildirimi;
+use App\Models\SistemAyar;
 use App\Models\User;
 
 class NotificationService
@@ -10,8 +11,12 @@ class NotificationService
     /**
      * Belirli bir kullanıcıya bildirim oluştur.
      */
-    public function createForUser(int $userId, string $type, string $title, string $message, ?string $url = null): KullaniciBildirimi
+    public function createForUser(int $userId, string $type, string $title, string $message, ?string $url = null): ?KullaniciBildirimi
     {
+        if (! SistemAyar::pushEnabled()) {
+            return null;
+        }
+
         return KullaniciBildirimi::create([
             'user_id' => $userId,
             'type'    => $type,

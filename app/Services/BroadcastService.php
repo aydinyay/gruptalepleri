@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BroadcastNotification;
+use App\Models\SistemAyar;
 use App\Models\User;
 
 class BroadcastService
@@ -13,8 +14,24 @@ class BroadcastService
      */
     public function send(BroadcastNotification $broadcast): void
     {
+        if (! SistemAyar::broadcastEnabled()) {
+            return;
+        }
+
         $kullanicilar = $this->hedefKullanicilari($broadcast);
         $channels     = $broadcast->channels ?? ['push'];
+        $activeChannels = array_values(array_filter($channels, function (string $channel): bool {
+            return match ($channel) {
+                'push' => SistemAyar::pushEnabled(),
+                'sms' => SistemAyar::smsEnabled(),
+                'email' => SistemAyar::emailEnabled(),
+                default => false,
+            };
+        }));
+
+        if (empty($activeChannels)) {
+            return;
+        }
 
         $ns    = new NotificationService();
         $sms   = new SmsService();
@@ -24,7 +41,7 @@ class BroadcastService
 
         foreach ($kullanicilar as $user) {
             // Push bildirimi (uygulama içi bildirim zili)
-            if (in_array('push', $channels)) {
+            if (in_array('push', $activeChannels, true)) {
                 $ns->createForUser(
                     $user->id,
                     'broadcast',
@@ -35,7 +52,7 @@ class BroadcastService
             }
 
             // SMS — acentenin agency.phone alanını kullan
-            if (in_array('sms', $channels)) {
+            if (in_array('sms', $activeChannels, true)) {
                 $phone = $user->agency?->phone ?? null;
                 if ($phone) {
                     $mesaj = ($broadcast->emoji ? $broadcast->emoji . ' ' : '')
@@ -45,7 +62,7 @@ class BroadcastService
             }
 
             // E-posta
-            if (in_array('email', $channels)) {
+            if (in_array('email', $activeChannels, true)) {
                 $email->broadcastEmail($user, $broadcast);
             }
         }
@@ -64,7 +81,7 @@ class BroadcastService
         $superadminler = User::where('role', 'superadmin')->get();
         foreach ($superadminler as $sa) {
             // Bell: gerçek broadcast içeriği
-            if (!in_array('push', $channels) || $kullanicilar->contains('id', $sa->id)) {
+            if (! in_array('push', $activeChannels, true) || $kullanicilar->contains('id', $sa->id)) {
                 // Zaten listede var, sadece özet yeter
             } else {
                 $ns->createForUser($sa->id, 'broadcast', $pushTitle, $broadcast->message, null);
@@ -79,7 +96,7 @@ class BroadcastService
             );
 
             // SMS CC (superadmin'e broadcast SMS kopyası)
-            if (in_array('sms', $channels) && $sa->phone) {
+            if (in_array('sms', $activeChannels, true) && $sa->phone) {
                 $mesaj = ($broadcast->emoji ? $broadcast->emoji . ' ' : '')
                     . $broadcast->title . "\n" . $broadcast->message
                     . "\n[CC Kopya — {$sentCount} kişiye gönderildi]";
@@ -87,7 +104,7 @@ class BroadcastService
             }
 
             // Email CC (superadmin'e broadcast email kopyası)
-            if (in_array('email', $channels) && !$kullanicilar->contains('id', $sa->id)) {
+            if (in_array('email', $activeChannels, true) && !$kullanicilar->contains('id', $sa->id)) {
                 $email->broadcastEmail($sa, $broadcast);
             }
         }

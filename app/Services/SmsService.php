@@ -35,6 +35,10 @@ class SmsService
         string $message,
         ?Carbon $scheduledFor = null
     ): bool {
+        if (! SistemAyar::smsEnabled()) {
+            return false;
+        }
+
         $notification = RequestNotification::create([
             'request_id'     => $requestId,
             'channel'        => 'sms',
@@ -59,6 +63,10 @@ class SmsService
      */
     public function sendScheduled(): void
     {
+        if (! SistemAyar::smsEnabled()) {
+            return;
+        }
+
         $bekleyenler = RequestNotification::where('status', 'scheduled')
             ->where('scheduled_for', '<=', now())
             ->get();
@@ -75,6 +83,10 @@ class SmsService
      */
     public function sendByEvent(string $event, ?int $requestId, string $message): void
     {
+        if (! SistemAyar::smsEnabled()) {
+            return;
+        }
+
         $scheduledFor = $this->zamanPenceresindeMi() ? null : $this->sonrakiPencereAcilis();
 
         if ($scheduledFor) {

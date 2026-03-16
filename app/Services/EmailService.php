@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BroadcastNotification;
 use App\Models\Request as TalepModel;
 use App\Models\RequestNotification;
+use App\Models\SistemAyar;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -125,6 +126,10 @@ class EmailService
      */
     public function broadcastEmail(User $user, BroadcastNotification $broadcast): void
     {
+        if (! SistemAyar::emailEnabled()) {
+            return;
+        }
+
         if (! $user->email) return;
 
         $emoji   = $broadcast->emoji ?? '📢';
@@ -165,6 +170,10 @@ class EmailService
      */
     private function send(?int $requestId, User $user, string $subject, string $view, array $data): void
     {
+        if (! SistemAyar::emailEnabled()) {
+            return;
+        }
+
         $status = 'sent';
         try {
             Mail::send($view, $data, function ($m) use ($user, $subject) {

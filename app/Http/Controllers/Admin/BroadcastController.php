@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BroadcastNotification;
+use App\Models\SistemAyar;
 use App\Models\User;
 use App\Services\BroadcastService;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ class BroadcastController extends Controller
     public function store(Request $request)
     {
         abort_unless(auth()->user()->can_send_broadcast, 403);
+        abort_if(!SistemAyar::broadcastEnabled(), 422, 'Broadcast sistemi süperadmin tarafından pasif durumda.');
 
         $validated = $request->validate([
             'title'             => 'required|string|max:255',

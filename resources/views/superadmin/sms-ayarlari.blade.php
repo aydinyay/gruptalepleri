@@ -43,6 +43,49 @@
     @endif
 
     {{-- SMS GÖNDERIM SAATLERİ --}}
+    <div class="card shadow-sm mb-4 border-primary">
+        <div class="card-header fw-bold d-flex align-items-center gap-2" style="background:#eef4ff;border-bottom:1px solid #b6d4fe;">
+            <i class="fas fa-sliders-h text-primary"></i>
+            <span>Bildirim Sistemleri (Global)</span>
+        </div>
+        <div class="card-body py-3">
+            <form method="POST" action="{{ route('superadmin.bildirim.sistemleri') }}">
+                @csrf
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sms_enabled" name="sms_enabled" value="1" {{ ($notificationSystems['sms'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="sms_enabled">SMS</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="email_enabled" name="email_enabled" value="1" {{ ($notificationSystems['email'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="email_enabled">Email</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="push_enabled" name="push_enabled" value="1" {{ ($notificationSystems['push'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="push_enabled">Push</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="broadcast_enabled" name="broadcast_enabled" value="1" {{ ($notificationSystems['broadcast'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="broadcast_enabled">Broadcast</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-sm btn-primary fw-bold">
+                        <i class="fas fa-save me-1"></i> Sistem Durumlarını Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow-sm mb-4 border-info">
         <div class="card-header fw-bold" style="background:#e8f4fd;border-bottom:1px solid #b8daff;">
             <i class="fas fa-moon text-info me-1"></i> SMS Gönderim Saatleri
