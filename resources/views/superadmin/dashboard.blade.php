@@ -88,7 +88,7 @@
         $bugunTalep = \App\Models\Request::whereDate('created_at', today())->count();
         $bekleyenTalep = \App\Models\Request::where('status', 'beklemede')->count();
         $biletlendi = \App\Models\Request::where('status', 'biletlendi')->count();
-        $depozito = \App\Models\Request::where('status', 'depozito')->count();
+        $depozito = \App\Models\Request::where('status', \App\Models\Request::STATUS_DEPOZITODA)->count();
 
         // Opsiyon kritik olanlar
         $kritikOpsiyonlar = \App\Models\Offer::whereNotNull('option_date')
@@ -256,9 +256,9 @@
                                     'beklemede' => ['class'=>'status-beklemede','label'=>'Beklemede'],
                                     'islemde' => ['class'=>'status-islemde','label'=>'İşlemde'],
                                     'fiyatlandirildi' => ['class'=>'status-fiyatlandirildi','label'=>'Fiyatlandırıldı'],
-                                    'fiyatlandirıldi' => ['class'=>'status-fiyatlandirildi','label'=>'Fiyatlandırıldı'],
+                                    'fiyatlandirildi' => ['class'=>'status-fiyatlandirildi','label'=>'Fiyatlandırıldı'],
                                     'biletlendi' => ['class'=>'status-biletlendi','label'=>'Biletlendi'],
-                                    'depozito' => ['class'=>'status-depozito','label'=>'Depozito'],
+                                    'depozitoda' => ['class'=>'status-depozito','label'=>'Depozitoda'],
                                     'iptal' => ['class'=>'status-iptal','label'=>'İptal'],
                                 ];
                                 $sc = $statusMap[$talep->status] ?? ['class'=>'status-beklemede','label'=>$talep->status];
@@ -410,8 +410,8 @@
                         $dagilim = [
                             ['label'=>'Beklemede', 'count'=>\App\Models\Request::where('status','beklemede')->count(), 'color'=>'#6c757d'],
                             ['label'=>'İşlemde', 'count'=>\App\Models\Request::where('status','islemde')->count(), 'color'=>'#0d6efd'],
-                            ['label'=>'Fiyatlandırıldı', 'count'=>\App\Models\Request::whereIn('status',['fiyatlandirildi','fiyatlandirıldi'])->count(), 'color'=>'#ffc107'],
-                            ['label'=>'Depozito', 'count'=>\App\Models\Request::where('status','depozito')->count(), 'color'=>'#6f42c1'],
+                            ['label'=>'Fiyatlandırıldı', 'count'=>\App\Models\Request::where('status', \App\Models\Request::STATUS_FIYATLANDIRILDI)->count(), 'color'=>'#ffc107'],
+                            ['label'=>'Depozitoda', 'count'=>\App\Models\Request::where('status', \App\Models\Request::STATUS_DEPOZITODA)->count(), 'color'=>'#6f42c1'],
                             ['label'=>'Biletlendi', 'count'=>\App\Models\Request::where('status','biletlendi')->count(), 'color'=>'#198754'],
                             ['label'=>'İptal', 'count'=>\App\Models\Request::where('status','iptal')->count(), 'color'=>'#dc3545'],
                         ];

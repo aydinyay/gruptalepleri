@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Airline;
 use App\Models\Airport;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Route;
 
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
@@ -17,23 +19,35 @@ Route::get('/', function () {
     }
 
     $stats = Cache::remember('welcome_stats', 3600, function () {
+        if (! Schema::hasTable('flight_segments') || ! Schema::hasTable('requests') || ! Schema::hasTable('airports')) {
+            return [
+                'toplam_grup' => 0,
+                'toplam_yolcu' => 0,
+                'toplam_ulke' => 0,
+                'toplam_destinasyon' => 0,
+                'toplam_ucus' => 0,
+                'airports' => 0,
+                'airlines' => 0,
+                'countries' => 0,
+                'large_airports' => 0,
+            ];
+        }
+
         $iatas = DB::table('flight_segments')
             ->selectRaw('from_iata as iata')->whereNotNull('from_iata')->where('from_iata', '!=', '')
             ->union(DB::table('flight_segments')->selectRaw('to_iata as iata')->whereNotNull('to_iata')->where('to_iata', '!=', ''))
             ->get()->pluck('iata')->unique();
 
         return [
-            // Operasyon istatistikleri
-            'toplam_grup'       => \App\Models\Request::count(),
-            'toplam_yolcu'      => (int) \App\Models\Request::sum('pax_total'),
-            'toplam_ulke'       => \App\Models\Airport::whereIn('iata', $iatas->values())->distinct('country_code')->count('country_code'),
-            'toplam_destinasyon'=> $iatas->count(),
-            'toplam_ucus'       => DB::table('flight_segments')->count(),
-            // Veritabanı meta
-            'airports'          => \App\Models\Airport::count(),
-            'airlines'          => \App\Models\Airline::count(),
-            'countries'         => \App\Models\Airport::distinct('country_code')->count('country_code'),
-            'large_airports'    => \App\Models\Airport::where('type', 'large_airport')->count(),
+            'toplam_grup' => \App\Models\Request::count(),
+            'toplam_yolcu' => (int) \App\Models\Request::sum('pax_total'),
+            'toplam_ulke' => \App\Models\Airport::whereIn('iata', $iatas->values())->distinct('country_code')->count('country_code'),
+            'toplam_destinasyon' => $iatas->count(),
+            'toplam_ucus' => DB::table('flight_segments')->count(),
+            'airports' => \App\Models\Airport::count(),
+            'airlines' => \App\Models\Airline::count(),
+            'countries' => \App\Models\Airport::distinct('country_code')->count('country_code'),
+            'large_airports' => \App\Models\Airport::where('type', 'large_airport')->count(),
         ];
     });
 

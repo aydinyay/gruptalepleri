@@ -35,6 +35,13 @@ if ($action === 'migrate') {
     } catch (\Throwable $e) {
         echo "HATA: " . $e->getMessage() . "\n" . $e->getTraceAsString();
     }
+} elseif ($action === 'repair-legacy-notes') {
+    set_time_limit(300);
+    try {
+        $kernel->call('legacy:repair-notes');
+    } catch (\Throwable $e) {
+        echo "HATA: " . $e->getMessage() . "\n" . $e->getTraceAsString();
+    }
 }
 
 $output = ob_get_clean();
@@ -63,6 +70,9 @@ pre{background:#000;padding:1rem;border-radius:8px;color:#0f0;white-space:pre-wr
    onclick="return confirm('Havayolları içe aktarılsın mı?')">🛫 Havayolları İçe Aktar</a>
 <a href="?key=gtp2026deploy&action=sync-legacy-offers" class="btn green"
    onclick="return confirm('Eski sistemden opsiyon/fiyat verileri yeni sisteme aktarılsın mı?')">🔄 Eski Sistem Opsiyon Sync</a>
+
+<a href="?key=gtp2026deploy&action=repair-legacy-notes" class="btn blue"
+   onclick="return confirm('Eski sistem not alanlari duzeltilsin mi?')">Repair Legacy Notes</a>
 
 <?php if ($output): ?>
 <h3>Çıktı:</h3>

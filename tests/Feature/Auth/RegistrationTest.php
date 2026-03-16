@@ -23,9 +23,15 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'phone' => '05551234567',
+            'company_title' => 'Test Agency',
+            'tourism_title' => 'Test Tourism',
+            'tursab_no' => '12345',
+            'tax_number' => '1234567890',
+            'tax_office' => 'Sisli',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('acente.dashboard', absolute: false));
     }
 }

@@ -57,10 +57,15 @@
                 <div class="card-header py-2 d-flex justify-content-between align-items-center">
                     <span class="fw-bold">📋 Talep Bilgileri</span>
                     @php
-                        $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
-                        $durumRenkleri   = ['beklemede'=>'secondary','islemde'=>'primary','fiyatlandirıldi'=>'warning','depozitoda'=>'purple','biletlendi'=>'success','iade'=>'danger','olumsuz'=>'dark'];
+                        $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
+                        $durumRenkleri   = ['beklemede'=>'secondary','islemde'=>'primary','fiyatlandirildi'=>'warning','depozitoda'=>'purple','biletlendi'=>'success','iade'=>'danger','olumsuz'=>'dark'];
+                        $yoneticiMesajlari = $talep->offers->pluck('offer_text')->filter(fn ($mesaj) => filled(trim((string) $mesaj)));
+                        $acenteNotu = filled(trim((string) $talep->notes)) ? trim((string) $talep->notes) : null;
+                        if ($acenteNotu && $yoneticiMesajlari->contains(fn ($mesaj) => trim((string) $mesaj) === $acenteNotu)) {
+                            $acenteNotu = null;
+                        }
                     @endphp
-                    <span class="badge" style="background-color:{{ ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirıldi'=>'#ffc107','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'][$talep->status] ?? '#6c757d' }}; {{ $talep->status==='fiyatlandirıldi'?'color:#000;':'' }}">
+                    <span class="badge" style="background-color:{{ ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirildi'=>'#ffc107','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'][$talep->status] ?? '#6c757d' }}; {{ $talep->status==='fiyatlandirildi'?'color:#000;':'' }}">
                         {{ $durumEtiketleri[$talep->status] ?? $talep->status }}
                     </span>
                     <x-iade-badge :talep="$talep" />
@@ -79,7 +84,7 @@
                         <div class="col-6 col-md-3"><div class="field-label">PAX</div><div class="fw-bold">{{ $talep->pax_total }} (Y:{{ $talep->pax_adult }} Ç:{{ $talep->pax_child }} B:{{ $talep->pax_infant }})</div></div>
                         @if($talep->group_company_name)<div class="col-6 col-md-3"><div class="field-label">Grup Firma</div><div>{{ $talep->group_company_name }}</div></div>@endif
                         @if($talep->flight_purpose)<div class="col-6 col-md-3"><div class="field-label">Uçuş Amacı</div><div>{{ $talep->flight_purpose }}</div></div>@endif
-                        @if($talep->notes)<div class="col-12"><div class="field-label">Acente Notu <small class="text-muted fw-normal">(acentenin taleple birlikte gönderdiği)</small></div><div class="bg-light rounded p-2 small" style="white-space:pre-line;">{{ $talep->notes }}</div></div>@endif
+                        @if($acenteNotu)<div class="col-12"><div class="field-label">Acente Notu <small class="text-muted fw-normal">(acentenin taleple birlikte gonderdigi)</small></div><div class="bg-light rounded p-2 small" style="white-space:pre-line;">{{ $acenteNotu }}</div></div>@endif
                     </div>
                 </div>
             </div>
@@ -315,7 +320,7 @@
                         @csrf
                         <div class="input-group input-group-sm">
                             <select name="status" class="form-select">
-                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirıldi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
+                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
                                 <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>

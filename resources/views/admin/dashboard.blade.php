@@ -82,8 +82,8 @@
         $toplamTalep      = \App\Models\Request::count();
         $bekleyenler      = \App\Models\Request::where('status','beklemede')->with('segments')->orderBy('created_at','asc')->get();
         $islemdekiler     = \App\Models\Request::where('status','islemde')->count();
-        $fiyatlananlar    = \App\Models\Request::whereIn('status',['fiyatlandirildi','fiyatlandirıldi'])->count();
-        $depozitodakiler  = \App\Models\Request::where('status','depozito')->count();
+        $fiyatlananlar    = \App\Models\Request::where('status', \App\Models\Request::STATUS_FIYATLANDIRILDI)->count();
+        $depozitodakiler  = \App\Models\Request::where('status', \App\Models\Request::STATUS_DEPOZITODA)->count();
         $biletilenler     = \App\Models\Request::where('status','biletlendi')->count();
         $bugunTalep       = \App\Models\Request::whereDate('created_at', today())->count();
         $bugunTeklif      = \App\Models\Offer::whereDate('created_at', today())->count();
@@ -307,9 +307,9 @@
                                     'beklemede'        => ['class'=>'status-beklemede','label'=>'Beklemede'],
                                     'islemde'          => ['class'=>'status-islemde','label'=>'İşlemde'],
                                     'fiyatlandirildi'  => ['class'=>'status-fiyatlandirildi','label'=>'Fiyatlandırıldı'],
-                                    'fiyatlandirıldi'  => ['class'=>'status-fiyatlandirildi','label'=>'Fiyatlandırıldı'],
+                                    'fiyatlandirildi'  => ['class'=>'status-fiyatlandirildi','label'=>'Fiyatlandırıldı'],
                                     'biletlendi'       => ['class'=>'status-biletlendi','label'=>'Biletlendi'],
-                                    'depozito'         => ['class'=>'status-depozito','label'=>'Depozito'],
+                                    'depozitoda'       => ['class'=>'status-depozito','label'=>'Depozitoda'],
                                     'iptal'            => ['class'=>'status-iptal','label'=>'İptal'],
                                 ];
                                 $sc = $statusMap[$talep->status] ?? ['class'=>'status-beklemede','label'=>$talep->status];
@@ -414,7 +414,7 @@
                             ['label'=>'Beklemede',      'count'=>$bekleyenler->count(),  'color'=>'#e94560'],
                             ['label'=>'İşlemde',        'count'=>$islemdekiler,           'color'=>'#0d6efd'],
                             ['label'=>'Fiyatlandırıldı','count'=>$fiyatlananlar,          'color'=>'#ffc107'],
-                            ['label'=>'Depozito',       'count'=>$depozitodakiler,        'color'=>'#6f42c1'],
+                            ['label'=>'Depozitoda',     'count'=>$depozitodakiler,        'color'=>'#6f42c1'],
                             ['label'=>'Biletlendi',     'count'=>$biletilenler,           'color'=>'#198754'],
                             ['label'=>'İptal',          'count'=>\App\Models\Request::where('status','iptal')->count(), 'color'=>'#dc3545'],
                         ];

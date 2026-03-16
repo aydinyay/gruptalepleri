@@ -7,6 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Request extends Model
 {
+    public const STATUS_BEKLEMEDE = 'beklemede';
+    public const STATUS_ISLEMDE = 'islemde';
+    public const STATUS_FIYATLANDIRILDI = 'fiyatlandirildi';
+    public const STATUS_DEPOZITODA = 'depozitoda';
+    public const STATUS_BILETLENDI = 'biletlendi';
+    public const STATUS_IADE = 'iade';
+    public const STATUS_OLUMSUZ = 'olumsuz';
+    public const STATUS_IPTAL = 'iptal';
+
+    public const STATUS_ALIASES = [
+        'fiyatlandirildi' => self::STATUS_FIYATLANDIRILDI,
+        'depozito' => self::STATUS_DEPOZITODA,
+        'depozitoda' => self::STATUS_DEPOZITODA,
+    ];
+
     protected $fillable = [
         'gtpnr',
         'user_id',
@@ -35,6 +50,31 @@ class Request extends Model
     protected $casts = [
         'ai_analysis_updated_at' => 'datetime',
     ];
+
+    public function getStatusAttribute($value): ?string
+    {
+        return static::normalizeStatus($value);
+    }
+
+    public function setStatusAttribute($value): void
+    {
+        $this->attributes['status'] = static::normalizeStatus($value);
+    }
+
+    public static function normalizeStatus(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = mb_strtolower(trim($value), 'UTF-8');
+
+        if (str_starts_with($normalized, 'fiyatlandir') && str_ends_with($normalized, 'ldi')) {
+            return self::STATUS_FIYATLANDIRILDI;
+        }
+
+        return self::STATUS_ALIASES[$normalized] ?? $normalized;
+    }
 
     public function user()
     {
@@ -74,7 +114,7 @@ class Request extends Model
      */
     public function isIadede(): bool
     {
-        if ($this->status !== 'depozitoda') {
+        if ($this->status !== self::STATUS_DEPOZITODA) {
             return false;
         }
 

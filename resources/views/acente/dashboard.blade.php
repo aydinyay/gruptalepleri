@@ -50,7 +50,7 @@
         </div>
         <div class="col-6 col-md-2">
             <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #ffc107">
-                <div class="stat-number text-warning">{{ $istatistik['fiyatlandirıldi'] }}</div>
+                <div class="stat-number text-warning">{{ $istatistik['fiyatlandirildi'] }}</div>
                 <div class="text-muted small">Fiyatlandırıldı</div>
             </div>
         </div>
@@ -80,7 +80,7 @@
             <small class="text-muted me-2">Filtre:</small>
             <span class="badge filter-badge bg-secondary" data-status="beklemede" onclick="toggleFilter(this)">Beklemede</span>
             <span class="badge filter-badge bg-primary" data-status="islemde" onclick="toggleFilter(this)">İşlemde</span>
-            <span class="badge filter-badge bg-warning text-dark" data-status="fiyatlandirıldi" onclick="toggleFilter(this)">Fiyatlandırıldı</span>
+            <span class="badge filter-badge bg-warning text-dark" data-status="fiyatlandirildi" onclick="toggleFilter(this)">Fiyatlandırıldı</span>
             <span class="badge filter-badge bg-danger" data-status="iptal" onclick="toggleFilter(this)">İptal</span>
             <span class="badge filter-badge bg-success" data-status="biletlendi" onclick="toggleFilter(this)">Biletlendi</span>
             <span class="badge filter-badge" data-status="depozitoda" style="background:#6f42c1" onclick="toggleFilter(this)">Depozitoda</span>
@@ -111,7 +111,7 @@
                     $statusConfig = [
                         'beklemede'       => ['bg'=>'#6c757d','color'=>'#fff','label'=>'Beklemede'],
                         'islemde'         => ['bg'=>'#0d6efd','color'=>'#fff','label'=>'İşlemde'],
-                        'fiyatlandirıldi' => ['bg'=>'#ffc107','color'=>'#000','label'=>'Fiyatlandırıldı'],
+                        'fiyatlandirildi' => ['bg'=>'#ffc107','color'=>'#000','label'=>'Fiyatlandırıldı'],
                         'iptal'           => ['bg'=>'#dc3545','color'=>'#fff','label'=>'İptal'],
                         'olumsuz'         => ['bg'=>'#343a40','color'=>'#fff','label'=>'Olumsuz'],
                         'biletlendi'      => ['bg'=>'#198754','color'=>'#fff','label'=>'Biletlendi'],
@@ -201,7 +201,7 @@ let aktifFiltre = null; // null = hepsi göster
 const statusRenkler = {
     'beklemede':       '#6c757d',
     'islemde':         '#0d6efd',
-    'fiyatlandirıldi': '#ffc107',
+    'fiyatlandirildi': '#ffc107',
     'iptal':           '#dc3545',
     'biletlendi':      '#198754',
     'depozitoda':      '#6f42c1',
@@ -255,7 +255,7 @@ function cizRotalar() {
                 map: map
             });
 
-            const statusEtiketler = {'beklemede':'Beklemede','islemde':'İşlemde','fiyatlandirıldi':'Fiyatlandırıldı','iptal':'İptal','biletlendi':'Biletlendi','depozitoda':'Depozitoda'};
+            const statusEtiketler = {'beklemede':'Beklemede','islemde':'İşlemde','fiyatlandirildi':'Fiyatlandırıldı','iptal':'İptal','biletlendi':'Biletlendi','depozitoda':'Depozitoda'};
             const infoWindow = new google.maps.InfoWindow({
                 content: `<div style="min-width:150px">
                     <strong>${talep.gtpnr}</strong><br>

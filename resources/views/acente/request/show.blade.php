@@ -21,7 +21,7 @@
         /* Durum badge'leri */
         .badge-beklemede      { background: #6c757d; color: #fff; }
         .badge-islemde        { background: #0d6efd; color: #fff; }
-        .badge-fiyatlandirıldi { background: #ffc107; color: #000; }
+        .badge-fiyatlandirildi { background: #ffc107; color: #000; }
         .badge-depozitoda     { background: #6f42c1; color: #fff; }
         .badge-biletlendi     { background: #198754; color: #fff; }
         .badge-iade           { background: #dc3545; color: #fff; }
@@ -71,7 +71,7 @@
     $statusEtiketMap = [
         'beklemede'      => 'Beklemede',
         'islemde'        => 'İşlemde',
-        'fiyatlandirıldi'=> 'Fiyatlandırıldı',
+        'fiyatlandirildi'=> 'Fiyatlandırıldı',
         'depozitoda'     => 'Depozitoda',
         'biletlendi'     => 'Biletlendi',
         'iade'           => 'İade',
@@ -357,10 +357,10 @@
                             </td>
                         </tr>
                         @endif
-                        @if($talep->notes)
+                        @if($acenteNotu)
                         <tr>
-                            <th><i class="fas fa-sticky-note text-warning me-1"></i>Notlar</th>
-                            <td style="white-space:pre-line;">{{ $talep->notes }}</td>
+                            <th><i class="fas fa-sticky-note text-warning me-1"></i>Acente Notu</th>
+                            <td style="white-space:pre-line;">{{ $acenteNotu }}</td>
                         </tr>
                         @endif
                         <tr>
@@ -852,6 +852,7 @@ async function aiAnalizBaslat() {
     const pax      = {{ $talep->pax_total ?? 0 }};
     const tarih    = "{{ $talep->segments->first()?->departure_date }}";
     const amac     = "{{ $talep->flight_purpose ?? '' }}";
+    const acenteNotu = @json($acenteNotu);
 
     @php
     $offerData = $talep->offers->map(fn($o) => [
@@ -883,8 +884,9 @@ async function aiAnalizBaslat() {
 
     const prompt = `Sen bir havacılık operasyon uzmanısın. Aşağıdaki grup uçuşu için KISA ve ÖZET analiz yap.
 
-TALEP: ${fromIata} → ${toIata} | ${pax} PAX | ${tarih} | ${amac || '-'}
-TEKLİF: ${teklifBilgisi}
+TALEP: ${fromIata} ? ${toIata} | ${pax} PAX | ${tarih} | ${amac || '-'}
+ACENTE NOTU: ${acenteNotu || '-'}
+YONETICI MESAJLARI / TEKLIF NOTLARI: ${teklifBilgisi}
 
 4 ayrı Bootstrap card oluştur. Her card MAX 4-5 madde, kısa cümleler, emoji ikon kullan.
 

@@ -20,7 +20,7 @@
         [data-theme="light"] .opsiyon-var { color: #d4a000; }
         .badge-beklemede       { background: #6c757d; color: #fff; }
         .badge-islemde         { background: #0d6efd; color: #fff; }
-        .badge-fiyatlandirıldi { background: #ffc107; color: #000; }
+        .badge-fiyatlandirildi { background: #ffc107; color: #000; }
         .badge-depozitoda      { background: #6f42c1; color: #fff; }
         .badge-biletlendi      { background: #198754; color: #fff; }
         .badge-iade            { background: #dc3545; color: #fff; }
@@ -71,7 +71,7 @@
             'tumu'           => ['etiket' => 'Tümü',            'class' => 'btn-light text-dark', 'sayi' => array_sum($durumSayilari->toArray())],
             'beklemede'      => ['etiket' => 'Beklemede',       'class' => 'btn-secondary',       'sayi' => $durumSayilari['beklemede'] ?? 0],
             'islemde'        => ['etiket' => 'İşlemde',         'class' => 'btn-info text-dark',  'sayi' => $durumSayilari['islemde'] ?? 0],
-            'fiyatlandirıldi'=> ['etiket' => 'Fiyatlandırıldı', 'class' => 'btn-warning text-dark','sayi'=> $durumSayilari['fiyatlandirıldi'] ?? 0],
+            'fiyatlandirildi'=> ['etiket' => 'Fiyatlandırıldı', 'class' => 'btn-warning text-dark','sayi'=> $durumSayilari['fiyatlandirildi'] ?? 0],
             'depozitoda'     => ['etiket' => 'Depozitoda',      'class' => 'btn-primary',         'sayi' => $durumSayilari['depozitoda'] ?? 0],
             'biletlendi'     => ['etiket' => 'Biletlendi',      'class' => 'btn-success',         'sayi' => $durumSayilari['biletlendi'] ?? 0],
             'iade'           => ['etiket' => 'İade',            'class' => 'btn-danger',          'sayi' => $durumSayilari['iade'] ?? 0],

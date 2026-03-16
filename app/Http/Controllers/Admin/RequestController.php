@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Request as TalepModel;
 use App\Models\Offer;
+use App\Models\Request as RequestModel;
 use App\Models\RequestLog;
 use App\Models\RequestPayment;
 use App\Services\EmailService;
@@ -17,7 +18,12 @@ use Illuminate\Support\Facades\Http;
 class RequestController extends Controller
 {
     // Aktif olmayan statüler — varsayılan görünümde gizlenir
-    private array $pasifStatusler = ['biletlendi', 'olumsuz', 'iade', 'iptal'];
+    private array $pasifStatusler = [
+        RequestModel::STATUS_BILETLENDI,
+        RequestModel::STATUS_OLUMSUZ,
+        RequestModel::STATUS_IADE,
+        RequestModel::STATUS_IPTAL,
+    ];
 
     public function index(Request $request)
     {
@@ -74,32 +80,41 @@ class RequestController extends Controller
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
 
-        if ($talep->status === 'biletlendi') {
-            return back()->with('error', 'Biletlenmiş talepler değiştirilemez.');
+        if ($talep->status === RequestModel::STATUS_BILETLENDI) {
+            return back()->with('error', 'Biletlenmis talepler degistirilemez.');
         }
 
-        $geçerliDurumlar = ['beklemede', 'islemde', 'fiyatlandirıldi', 'depozitoda', 'biletlendi', 'iade', 'olumsuz'];
-        if (!in_array($request->status, $geçerliDurumlar)) {
-            return back()->with('error', 'Geçersiz durum.');
+        $gecerliDurumlar = [
+            RequestModel::STATUS_BEKLEMEDE,
+            RequestModel::STATUS_ISLEMDE,
+            RequestModel::STATUS_FIYATLANDIRILDI,
+            RequestModel::STATUS_DEPOZITODA,
+            RequestModel::STATUS_BILETLENDI,
+            RequestModel::STATUS_IADE,
+            RequestModel::STATUS_OLUMSUZ,
+        ];
+        $yeniDurum = RequestModel::normalizeStatus($request->status);
+
+        if (!in_array($yeniDurum, $gecerliDurumlar, true)) {
+            return back()->with('error', 'Gecersiz durum.');
         }
 
         $eskiDurum = $talep->status;
-        $talep->update(['status' => $request->status]);
+        $talep->update(['status' => $yeniDurum]);
 
         RequestLog::create([
             'request_id'  => $talep->id,
             'action'      => 'durum_degisti',
-            'description' => 'Durum değişti: ' . $eskiDurum . ' → ' . $request->status,
+            'description' => 'Durum degisti: ' . $eskiDurum . ' -> ' . $yeniDurum,
             'user_id'     => auth()->id(),
         ]);
 
-        // Acenteye durum değişikliği emaili
         if ($talep->user_id) {
             $acenteUrl = route('acente.requests.show', $talep->gtpnr);
-            (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $request->status, $acenteUrl);
+            (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
         }
 
-        return back()->with('success', 'Durum güncellendi.');
+        return back()->with('success', 'Durum guncellendi.');
     }
 
     public function storeOffer(Request $request, $gtpnr)
@@ -140,7 +155,7 @@ class RequestController extends Controller
             'created_by'            => auth()->user()->name,
         ]);
 
-        $talep->update(['status' => 'fiyatlandirıldi']);
+        $talep->update(['status' => RequestModel::STATUS_FIYATLANDIRILDI]);
 
         RequestLog::create([
             'request_id'  => $talep->id,
@@ -464,7 +479,7 @@ Ham veri:
         $teklif = Offer::where('request_id', $talep->id)->findOrFail($offer);
         $teklif->update(['is_visible' => !$teklif->is_visible]);
 
-        $durum = $teklif->is_visible ? 'acenteye gösterildi' : 'acenteden gizlendi';
+        $durum = $teklif->is_visible ? 'acenteye gosterildi' : 'acenteden gizlendi';
 
         RequestLog::create([
             'request_id'  => $talep->id,

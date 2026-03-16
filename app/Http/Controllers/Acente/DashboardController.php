@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Controller;
 use App\Models\Request as TalepModel;
+use App\Models\Request as RequestModel;
 
 class DashboardController extends Controller
 {
@@ -19,9 +20,9 @@ class DashboardController extends Controller
 
         $istatistik = [
             'toplam'          => $talepler->count(),
-            'beklemede'       => $talepler->where('status', 'beklemede')->count(),
+            'beklemede'      => $talepler->where('status', 'beklemede')->count(),
             'islemde'         => $talepler->where('status', 'islemde')->count(),
-            'fiyatlandirıldi' => $talepler->where('status', 'fiyatlandirıldi')->count(),
+            'fiyatlandirildi' => $talepler->where('status', 'fiyatlandirildi')->count(),
             'iptal'           => $talepler->where('status', 'iptal')->count(),
             'biletlendi'      => $talepler->where('status', 'biletlendi')->count(),
             'depozitoda'      => $talepler->where('status', 'depozitoda')->count(),

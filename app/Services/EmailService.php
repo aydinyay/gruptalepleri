@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BroadcastNotification;
+use App\Models\Request as TalepModel;
 use App\Models\RequestNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -93,7 +94,7 @@ class EmailService
         $durumEtiket = [
             'beklemede'       => 'Beklemede',
             'islemde'         => 'İşlemde',
-            'fiyatlandirıldi' => 'Fiyatlandırıldı',
+            'fiyatlandirildi' => 'Fiyatlandırıldı',
             'depozitoda'      => 'Depozitoda',
             'biletlendi'      => 'Biletlendi ✅',
             'iade'            => 'İade',
