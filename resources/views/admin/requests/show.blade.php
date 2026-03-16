@@ -92,7 +92,7 @@
             </div>
             <div class="col-12 col-lg-auto">
                 <div class="ops-actions">
-                    <button type="button" data-admin-tab-jump="offers" data-bs-toggle="modal" data-bs-target="#createOfferModal" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Yeni Teklif</button>
+                    <a href="#offers" data-admin-tab-jump="offers" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Yeni Teklif</a>
                     <a href="#offers" data-admin-tab-jump="offers" data-scroll-target="#status-update-card" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt me-1"></i>Durum Guncelle</a>
                     <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Gorunumu</a>
                     <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">Taleplere Don</a>
@@ -420,12 +420,7 @@
             {{-- MEVCUT TEKLİFLER --}}
             @if($talep->offers->count() > 0)
             <div class="card mb-3 ops-tab-section" data-tab-section="offers">
-                <div class="card-header py-2 fw-bold d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                    <span>Mevcut Teklifler ({{ $talep->offers->count() }})</span>
-                    <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createOfferModal">
-                        <i class="fas fa-plus me-1"></i>Yeni Teklif
-                    </button>
-                </div>
+                <div class="card-header py-2 fw-bold">Mevcut Teklifler ({{ $talep->offers->count() }})</div>
                 <div class="card-body py-2">
                     @foreach($talep->offers as $teklif)
                     <div class="border rounded p-2 mb-2 small {{ !$teklif->is_visible ? 'opacity-50 border-dashed' : '' }}" style="{{ !$teklif->is_visible ? 'border-style:dashed!important;' : '' }}">
@@ -554,12 +549,7 @@
             <div class="card mb-3 ops-tab-section" data-tab-section="payments">
                 <div class="card-header py-2 fw-bold d-flex justify-content-between align-items-center">
                     <span>💳 Muhasebe & Ödemeler</span>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <span class="badge bg-secondary">{{ $talep->payments->count() }} kayıt</span>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPaymentModal">
-                            <i class="fas fa-plus me-1"></i>Ödeme Ekle
-                        </button>
-                    </div>
+                    <span class="badge bg-secondary">{{ $talep->payments->count() }} kayıt</span>
                 </div>
                 <div class="card-body py-2">
 
@@ -740,30 +730,6 @@
             </div>
             @endif
 
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="createOfferModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title fw-bold mb-0"><i class="fas fa-plus me-2"></i>Yeni Teklif</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="create-offer-modal-body"></div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="createPaymentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title fw-bold mb-0"><i class="fas fa-plus me-2"></i>Ödeme Ekle</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="create-payment-modal-body"></div>
         </div>
     </div>
 </div>
@@ -1041,24 +1007,6 @@ adminRequestActivateTab(
     window.location.hash.replace('#', '') || localStorage.getItem(OPS_TAB_STORAGE_KEY) || 'summary',
     false
 );
-
-function moveRequestFormToModal(formId, modalBodyId) {
-    const form = document.getElementById(formId);
-    const modalBody = document.getElementById(modalBodyId);
-    if (!form || !modalBody) {
-        return;
-    }
-
-    const sourceCard = form.closest('.card');
-    if (sourceCard) {
-        sourceCard.classList.add('d-none');
-    }
-
-    modalBody.appendChild(form);
-}
-
-moveRequestFormToModal('offer-form', 'create-offer-modal-body');
-moveRequestFormToModal('payment-form', 'create-payment-modal-body');
 
 async function aiFormatlaAcenteye(offerId, rawNote) {
     const btn = document.getElementById('fmt-btn-' + offerId);
