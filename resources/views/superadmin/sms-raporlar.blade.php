@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMS Raporlar — Superadmin</title>
+    <title>SMS Raporları — Süperadmin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -88,7 +88,7 @@
                         <th>Talep</th>
                         <th>Kanal</th>
                         <th>Alıcı</th>
-                        <th>Numara/Email</th>
+                        <th>Numara/E-posta</th>
                         <th>Mesaj</th>
                         <th>Durum</th>
                         <th>Gönderim</th>
@@ -110,7 +110,7 @@
                         </td>
                         <td>
                             @if($log->channel === 'email')
-                                <span class="badge bg-info text-dark">Email</span>
+                                <span class="badge bg-info text-dark">E-posta</span>
                             @else
                                 <span class="badge bg-success">SMS</span>
                             @endif
