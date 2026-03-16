@@ -11,6 +11,43 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
 $action = $_GET['action'] ?? 'status';
+
+if ($action === 'export-sync-json') {
+    set_time_limit(300);
+
+    $tables = [
+        'users',
+        'agencies',
+        'requests',
+        'flight_segments',
+        'offers',
+        'request_logs',
+        'request_payments',
+        'request_notifications',
+        'sms_notification_settings',
+        'opsiyon_uyari_ayarlari',
+        'opsiyon_uyari_gonderimler',
+        'kullanici_bildirimleri',
+        'broadcast_notifications',
+        'sistem_ayarlari',
+    ];
+
+    $payload = [
+        'exported_at' => now()->toIso8601String(),
+        'tables' => [],
+    ];
+
+    foreach ($tables as $table) {
+        if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+            $payload['tables'][$table] = \Illuminate\Support\Facades\DB::table($table)->get()->map(fn($r) => (array) $r)->all();
+        }
+    }
+
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 ob_start();
 
 if ($action === 'migrate') {
