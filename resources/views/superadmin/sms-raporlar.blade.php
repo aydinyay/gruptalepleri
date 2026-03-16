@@ -59,6 +59,22 @@
     </div>
 
     <div class="card shadow-sm mb-3">
+        <div class="card-body py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="fw-semibold">
+                <i class="fas fa-wallet text-success me-1"></i>SMS Kalan Bakiye
+            </div>
+            <div class="text-end">
+                @if(($smsBalance['available'] ?? false) && isset($smsBalance['balance']))
+                    <div class="h5 mb-0">{{ number_format((float) $smsBalance['balance'], 2, ',', '.') }}</div>
+                    <small class="text-muted">kredi</small>
+                @else
+                    <div class="text-muted small">{{ $smsBalance['message'] ?? 'Bakiye bilgisi alinamadi.' }}</div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
         <div class="card-body py-2">
             <form method="GET" class="row g-2 align-items-end">
                 <input type="hidden" name="channel" value="{{ $activeChannel }}">
@@ -121,6 +137,7 @@
                         <th>Mesaj</th>
                         <th>Durum</th>
                         <th>Gonderim</th>
+                        <th>Teslim/Okundu</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -174,6 +191,32 @@
                                 -
                             @endif
                         </td>
+                        <td style="font-size:0.75rem;">
+                            @if($log->channel === 'sms')
+                                @if($log->delivery_status === 'delivered')
+                                    <span class="badge bg-success">Iletildi</span>
+                                    @if($log->delivered_at)
+                                        <div class="text-muted mt-1">{{ $log->delivered_at->format('d.m H:i') }}</div>
+                                    @endif
+                                @elseif($log->delivery_status === 'undelivered')
+                                    <span class="badge bg-danger">Iletilemedi</span>
+                                @elseif($log->delivery_status)
+                                    <span class="badge bg-secondary">{{ $log->delivery_status }}</span>
+                                @elseif($log->status === 'sent')
+                                    <span class="badge bg-warning text-dark">Takip bekleniyor</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            @else
+                                @if($log->delivery_status === 'delivered')
+                                    <span class="badge bg-success">Iletildi</span>
+                                @elseif($log->delivery_status)
+                                    <span class="badge bg-secondary">{{ $log->delivery_status }}</span>
+                                @else
+                                    <span class="text-muted">Okundu/Goruldu verisi yok</span>
+                                @endif
+                            @endif
+                        </td>
                         <td>
                             <form method="POST" action="{{ route('superadmin.sms.log.sil', $log->id) }}"
                                   onsubmit="return confirm('Bu log silinsin mi?')">
@@ -186,7 +229,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">Kayit bulunamadi.</td>
+                        <td colspan="10" class="text-center text-muted py-4">Kayit bulunamadi.</td>
                     </tr>
                     @endforelse
                 </tbody>

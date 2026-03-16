@@ -11,6 +11,7 @@ use App\Models\SistemAyar;
 use App\Models\SmsNotificationSetting;
 use App\Models\RequestNotification;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 
 class SuperadminController extends Controller
@@ -439,7 +440,8 @@ class SuperadminController extends Controller
         $channelCounts['all'] = $channelCounts['sms'] + $channelCounts['email'];
 
         $logs = $query->paginate(50)->withQueryString();
+        $smsBalance = (new SmsService())->getBalance();
 
-        return view('superadmin.sms-raporlar', compact('logs', 'channel', 'channelCounts'));
+        return view('superadmin.sms-raporlar', compact('logs', 'channel', 'channelCounts', 'smsBalance'));
     }
 }
