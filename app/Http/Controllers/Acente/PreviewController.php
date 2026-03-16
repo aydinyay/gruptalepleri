@@ -28,7 +28,20 @@ class PreviewController extends Controller
 
     public function startFromRequest(string $gtpnr)
     {
-        abort_unless(in_array(auth()->user()->role, ['admin', 'superadmin'], true), 403);
+        $authUser = auth()->user();
+        abort_unless($authUser, 403);
+
+        // Acentenin bu URL'yi dogrudan acmasi durumunda 403 yerine kendi talep ekranina yonlendir.
+        if (! in_array($authUser->role, ['admin', 'superadmin'], true)) {
+            $query = TalepModel::where('gtpnr', $gtpnr);
+            if ($authUser->role === 'acente') {
+                $query->where('user_id', $authUser->id);
+            }
+
+            $talep = $query->firstOrFail();
+
+            return redirect()->route('acente.requests.show', $talep->gtpnr);
+        }
 
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $user = User::where('role', 'acente')->findOrFail($talep->user_id);
