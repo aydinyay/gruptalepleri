@@ -530,8 +530,8 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <div class="stat-big">
                 <span class="counter" data-target="{{ $stats['toplam_destinasyon'] }}">0</span><span class="stat-suffix">+</span>
             </div>
-            <div class="stat-desc">Havalimanına Boarding</div>
-            <div class="stat-sub">Uçuş yapılan unique<br>IATA destinasyonu</div>
+            <div class="stat-desc">Havalimanına Uçuş</div>
+            <div class="stat-sub">Uçuş yapılan benzersiz<br>IATA destinasyonu</div>
         </div>
     </div>
 

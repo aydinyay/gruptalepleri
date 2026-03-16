@@ -257,7 +257,7 @@
                                 <div style="color:rgba(255,255,255,.5);font-size:.75rem">İstanbul</div>
                             </div>
                             <div class="flex-grow-1 text-center">
-                                <div style="color:var(--brand-red);font-size:.75rem">Direct</div>
+                                <div style="color:var(--brand-red);font-size:.75rem">Direkt</div>
                                 <div style="border-top:2px dashed rgba(255,255,255,.2);margin:4px 0;position:relative">
                                     <i class="fas fa-plane" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:.8rem;color:var(--brand-red)"></i>
                                 </div>
