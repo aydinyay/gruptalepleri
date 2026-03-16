@@ -457,8 +457,10 @@ class SmsService
             return ['ok' => false, 'message' => 'Originator bos olamaz.'];
         }
 
-        $cacheKey = 'sms:originator:' . md5($this->kno . '|' . $this->username . '|' . $this->originator);
-        return Cache::remember($cacheKey, now()->addMinutes(15), function (): array {
+        $strict = (bool) config('services.sms.strict_originator_check', false);
+
+        $cacheKey = 'sms:originator:' . md5($this->kno . '|' . $this->username . '|' . $this->originator . '|' . (int) $strict);
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($strict): array {
             $url = (string) config('services.sms.originator_list_url', 'http://www.toplusmsyolla.com/orjinatorliste.php');
             if ($url === '') {
                 return ['ok' => true, 'message' => null];
@@ -479,6 +481,13 @@ class SmsService
             $normalizedOriginator = $this->normalizeText($this->originator);
 
             if ($normalizedOriginator !== '' && str_contains($normalizedList, $normalizedOriginator)) {
+                return ['ok' => true, 'message' => null];
+            }
+
+            if (! $strict) {
+                Log::warning('SMS originator listesinde tam eslesme bulunamadi, strict kapali oldugu icin gonderime izin verildi.', [
+                    'originator' => $this->originator,
+                ]);
                 return ['ok' => true, 'message' => null];
             }
 
