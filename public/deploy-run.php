@@ -4,6 +4,10 @@
  * Delete this file after deployment.
  */
 
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('html_errors', '1');
+
 $providedKey = (string) ($_GET['key'] ?? '');
 $expectedKey = (string) (getenv('DEPLOY_RUN_KEY') ?: 'gtp2026deploy');
 
@@ -13,9 +17,40 @@ if ($providedKey === '' || !hash_equals($expectedKey, $providedKey)) {
 }
 
 define('LARAVEL_START', microtime(true));
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+$baseCandidates = array_filter([
+    realpath(__DIR__ . '/..'),
+    realpath(__DIR__),
+    realpath(dirname(__DIR__, 2)),
+]);
+
+$basePath = null;
+foreach ($baseCandidates as $candidate) {
+    if (is_file($candidate . '/vendor/autoload.php') && is_file($candidate . '/bootstrap/app.php')) {
+        $basePath = $candidate;
+        break;
+    }
+}
+
+if ($basePath === null) {
+    http_response_code(500);
+    echo '<pre>Bootstrap path bulunamadi.
+Kontrol edilen yollar:
+' . htmlspecialchars(implode("\n", $baseCandidates), ENT_QUOTES, 'UTF-8') . '</pre>';
+    exit;
+}
+
+try {
+    require $basePath . '/vendor/autoload.php';
+    $app = require $basePath . '/bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo '<pre>Laravel bootstrap hatasi:
+' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "\n\n" .
+        htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') . '</pre>';
+    exit;
+}
 
 $action = (string) ($_GET['action'] ?? 'status');
 $output = '';
