@@ -109,7 +109,12 @@
 
         liste.querySelectorAll('.notif-item').forEach((el) => {
             el.addEventListener('click', function(e) {
-                if (e.target.closest('.notif-ignore-click')) {
+                if (e.target.closest('.notif-secim')) {
+                    e.stopPropagation();
+                    return;
+                }
+
+                if (e.target.closest('.notif-herkesten-sil')) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
