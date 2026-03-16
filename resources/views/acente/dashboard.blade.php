@@ -41,7 +41,9 @@
             </div>
         </div>
         @foreach($dashboardStatusOrder as $statusKey)
-            @php($meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey))
+            @php
+                $meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey);
+            @endphp
             <div class="col-6 col-md-2">
                 <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid {{ $meta['bg'] }}">
                     <div class="stat-number" style="color:{{ $meta['bg'] }}">{{ $istatistik[$statusKey] ?? 0 }}</div>
@@ -56,7 +58,9 @@
         <div class="map-filters d-flex align-items-center gap-2 flex-wrap">
             <small class="text-muted me-2">Filtre:</small>
             @foreach($dashboardStatusOrder as $statusKey)
-                @php($meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey))
+                @php
+                    $meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey);
+                @endphp
                 <span class="badge filter-badge"
                       data-status="{{ $statusKey }}"
                       style="background:{{ $meta['bg'] }};color:{{ $meta['text'] }};"
