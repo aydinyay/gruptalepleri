@@ -44,6 +44,8 @@ return [
         'admin_phone'   => env('SMS_ADMIN_PHONE'),
         'notify_phone'  => env('SMS_NOTIFY_PHONE'),
         'balance_url'   => env('SMS_BALANCE_URL'),
+        'delivery_report_url' => env('SMS_DELIVERY_REPORT_URL', 'http://www.toplusmsyolla.com/smsrapor.php'),
+        'originator_list_url' => env('SMS_ORIGINATOR_LIST_URL', 'http://www.toplusmsyolla.com/orjinatorliste.php'),
         'balance_timeout' => (int) env('SMS_BALANCE_TIMEOUT', 10),
     ],
 
