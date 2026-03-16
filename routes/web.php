@@ -63,6 +63,11 @@ Route::get('/dashboard', function () {
     };
 })->middleware(['auth'])->name('dashboard');
 
+// Kısa talep linki: SMS/email içinde paylaşılabilir.
+Route::middleware(['auth'])->get('/t/{gtpnr}', function (string $gtpnr) {
+    return redirect()->route('admin.requests.show', $gtpnr);
+})->name('requests.short');
+
 // Havalimanı & havayolu arama (giriş yapmış tüm roller)
 Route::middleware(['auth'])->group(function () {
     Route::get('/airports/search', [AirportController::class, 'search'])->name('airports.search');

@@ -72,7 +72,7 @@ class CheckOpsiyonExpiry extends Command
                     $saatKaldi = (int) $simdi->diffInHours($opsTs, false);
                     $gtpnr     = $teklif->request?->gtpnr ?? '—';
                     $airline   = $teklif->airline ?? '—';
-                    $url       = route('admin.requests.show', $gtpnr);
+                    $url       = route('requests.short', $gtpnr);
 
                     // Push bildirimi
                     if ($ayar->push_aktif) {
@@ -81,7 +81,7 @@ class CheckOpsiyonExpiry extends Command
 
                     // SMS
                     if ($ayar->sms_aktif) {
-                        $msg = "OPSİYON UYARISI: {$gtpnr} / {$airline} — {$saatKaldi} saat sonra opsiyon doluyor! {$opsTs->format('d.m.Y H:i')}";
+                        $msg = "OPSİYON UYARISI: {$gtpnr} / {$airline} — {$saatKaldi} saat sonra opsiyon doluyor! {$opsTs->format('d.m.Y H:i')}" . PHP_EOL . $url;
                         $smsService->sendByEvent('opsiyon_uyarisi', $teklif->request_id, $msg);
                     }
 
