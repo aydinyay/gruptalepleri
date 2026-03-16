@@ -20,16 +20,17 @@ class CheckOpsiyonExpiry extends Command
 
     public function handle(): void
     {
+        $simdi = now();
         // Ayarlanan aralık kontrolü — Task Scheduler her dakika çağırır ama
         // komut kendi ayarına göre atlayıp atlamayacağına karar verir
         $aralikDakika = (int) SistemAyar::get('opsiyon_check_aralik', 15);
         $sonCalisma   = Cache::get('opsiyon_check_son_calisma');
 
-        if ($sonCalisma && Carbon::parse($sonCalisma)->diffInMinutes(now()) < $aralikDakika) {
+        if ($sonCalisma && Carbon::parse($sonCalisma)->diffInMinutes($simdi) < $aralikDakika) {
             return; // Henüz erken, atla
         }
 
-        Cache::put('opsiyon_check_son_calisma', now()->toISOString(), 1440);
+        Cache::put('opsiyon_check_son_calisma', $simdi->toISOString(), 1440);
 
         $ayarlar = OpsiyonUyariAyar::aktifler();
 
@@ -39,7 +40,6 @@ class CheckOpsiyonExpiry extends Command
 
         // option_date + option_time olan, henüz dolmamış teklifler
         $teklifler = Offer::whereNotNull('option_date')
-            ->whereRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') > NOW()")
             ->with('request')
             ->get();
 
@@ -48,15 +48,19 @@ class CheckOpsiyonExpiry extends Command
         $emailService = new EmailService();
 
         foreach ($ayarlar as $ayar) {
-            $hedefZaman = Carbon::now()->addHours($ayar->saat_oncesi);
+            $hedefZaman = $simdi->copy()->addHours($ayar->saat_oncesi);
             // Bu saat_oncesi penceresinde olan teklifler: şu an ile hedefZaman arasında dolan
-            $pencereBaslangic = Carbon::now();
+            $pencereBaslangic = $simdi->copy();
             $pencereBitis     = $hedefZaman;
 
             foreach ($teklifler as $teklif) {
                 $opsTs = Carbon::parse(
                     $teklif->option_date . ' ' . ($teklif->option_time ?? '23:59')
                 );
+
+                if (! $opsTs->isFuture()) {
+                    continue;
+                }
 
                 // Bu teklif bu pencerede mi?
                 if ($opsTs->between($pencereBaslangic, $pencereBitis)) {
@@ -65,7 +69,7 @@ class CheckOpsiyonExpiry extends Command
                         continue;
                     }
 
-                    $saatKaldi = (int) Carbon::now()->diffInHours($opsTs, false);
+                    $saatKaldi = (int) $simdi->diffInHours($opsTs, false);
                     $gtpnr     = $teklif->request?->gtpnr ?? '—';
                     $airline   = $teklif->airline ?? '—';
                     $url       = route('admin.requests.show', $gtpnr);
