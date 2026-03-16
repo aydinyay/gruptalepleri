@@ -144,16 +144,17 @@ class SmsService
 
         try {
             $timeout = (int) config('services.sms.balance_timeout', 10);
-            $payload = http_build_query([
+            $query = http_build_query([
                 'kno' => $this->kno,
+                'kul_ad' => $this->username,
                 'kulad' => $this->username,
                 'sifre' => $this->password,
             ]);
 
+            $requestUrl = str_contains($url, '?') ? "{$url}&{$query}" : "{$url}?{$query}";
+
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_URL, $requestUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
@@ -162,6 +163,29 @@ class SmsService
             $curlError = curl_error($ch);
             $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
+
+            if ($body === false || $httpCode >= 400) {
+                // Bazi hesaplarda POST beklenebildigi icin fallback.
+                $payload = http_build_query([
+                    'kno' => $this->kno,
+                    'kul_ad' => $this->username,
+                    'kulad' => $this->username,
+                    'sifre' => $this->password,
+                ]);
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+                $body = curl_exec($ch);
+                $curlError = curl_error($ch);
+                $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+            }
 
             if ($body === false) {
                 return [
@@ -182,7 +206,7 @@ class SmsService
             }
 
             $raw = trim((string) $body);
-            $balance = $this->extractFirstNumber($raw);
+            $balance = $this->extractBalanceNumber($raw);
 
             if ($balance === null) {
                 return [
@@ -274,12 +298,18 @@ class SmsService
         return $bugun->isFuture() ? $bugun : $bugun->addDay();
     }
 
-    private function extractFirstNumber(string $text): ?float
+    private function extractBalanceNumber(string $text): ?float
     {
-        if (preg_match('/-?\d+(?:[.,]\d+)?/', $text, $matches) !== 1) {
+        if (preg_match('/kalan\s*bakiye\s*=\s*(-?\d+(?:[.,]\d+)?)/i', $text, $matches) === 1) {
+            return (float) str_replace(',', '.', $matches[1]);
+        }
+
+        // Fallback: sadece saf sayi yaniti gelirse kabul et.
+        $trimmed = trim($text);
+        if (preg_match('/^-?\d+(?:[.,]\d+)?$/', $trimmed) !== 1) {
             return null;
         }
 
-        return (float) str_replace(',', '.', $matches[0]);
+        return (float) str_replace(',', '.', $trimmed);
     }
 }
