@@ -40,6 +40,24 @@
             justify-content: flex-end;
         }
         .ops-actions .btn { white-space: nowrap; }
+        .ops-tabs {
+            border-bottom: 0;
+            gap: .35rem;
+        }
+        .ops-tabs .nav-item { margin-bottom: .35rem; }
+        .ops-tabs .nav-link {
+            border: 1px solid rgba(0,0,0,.08);
+            color: #495057;
+            font-weight: 600;
+            padding: .45rem .8rem;
+        }
+        .ops-tabs .nav-link.active {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+        .ops-tab-section { display: none; }
+        .ops-tab-section.is-active { display: block; }
         @media (max-width: 991.98px) {
             .ops-sticky-header { top: .35rem; }
             .ops-actions { justify-content: flex-start; margin-top: .6rem; }
@@ -74,8 +92,8 @@
             </div>
             <div class="col-12 col-lg-auto">
                 <div class="ops-actions">
-                    <a href="#offer-form" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Yeni Teklif</a>
-                    <a href="#status-update-card" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt me-1"></i>Durum Guncelle</a>
+                    <a href="#offers" data-admin-tab-jump="offers" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Yeni Teklif</a>
+                    <a href="#offers" data-admin-tab-jump="offers" data-scroll-target="#status-update-card" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt me-1"></i>Durum Guncelle</a>
                     <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Gorunumu</a>
                     <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">Taleplere Don</a>
                 </div>
@@ -108,13 +126,20 @@
         <div class="alert alert-danger alert-dismissible fade show py-2">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
+    <ul class="nav nav-tabs ops-tabs mb-3" id="ops-tabs-nav" role="tablist">
+        <li class="nav-item" role="presentation"><button type="button" class="nav-link active" data-admin-tab="summary">Özet</button></li>
+        <li class="nav-item" role="presentation"><button type="button" class="nav-link" data-admin-tab="offers">Teklifler</button></li>
+        <li class="nav-item" role="presentation"><button type="button" class="nav-link" data-admin-tab="payments">Ödemeler</button></li>
+        <li class="nav-item" role="presentation"><button type="button" class="nav-link" data-admin-tab="history">Geçmiş</button></li>
+    </ul>
+
     <div class="row g-3">
 
         {{-- SOL KOLON --}}
         <div class="col-md-7">
 
             {{-- TALEP BİLGİLERİ --}}
-            <div class="card mb-3">
+            <div class="card mb-3 ops-tab-section is-active" data-tab-section="summary">
                 <div class="card-header py-2 d-flex justify-content-between align-items-center">
                     <span class="fw-bold">📋 Talep Bilgileri</span>
                     @php
@@ -151,7 +176,7 @@
             </div>
 
             {{-- SEGMENTLER --}}
-            <div class="card mb-3" id="status-update-card">
+            <div class="card mb-3 ops-tab-section is-active" data-tab-section="summary">
                 <div class="card-header py-2 fw-bold">✈️ Uçuş Segmentleri</div>
                 <div class="card-body py-2">
                     @foreach($talep->segments as $s)
@@ -167,7 +192,7 @@
             </div>
 
             {{-- AI PARSE KUTUSU --}}
-            <div class="card mb-3 border-warning">
+            <div class="card mb-3 border-warning ops-tab-section" data-tab-section="offers">
                 <div class="card-header py-2 fw-bold bg-warning bg-opacity-10">
                     🤖 Operasyon Notu → AI ile Doldur
                 </div>
@@ -184,7 +209,7 @@
             </div>
 
             {{-- TEKLİF FORMU --}}
-            <div class="card mb-3">
+            <div class="card mb-3 ops-tab-section" data-tab-section="offers">
                 <div class="card-header py-2 fw-bold">💰 Teklif / Rezervasyon Bilgileri Ekle</div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.requests.offer', $talep->gtpnr) }}" id="offer-form">
@@ -287,7 +312,7 @@
             </div>
 
             {{-- ÖDEME KAYDET --}}
-            <div class="card mb-3">
+            <div class="card mb-3 ops-tab-section" data-tab-section="payments">
                 <div class="card-header py-2 fw-bold">💳 Ödeme Kaydet</div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.requests.payment', $talep->gtpnr) }}" id="payment-form">
@@ -369,7 +394,7 @@
         <div class="col-md-5">
 
             {{-- DURUM GÜNCELLE --}}
-            <div class="card mb-3">
+            <div class="card mb-3 ops-tab-section is-active" data-tab-section="summary" id="status-update-card">
                 <div class="card-header py-2 fw-bold">🔄 Durum Güncelle</div>
                 <div class="card-body py-2">
                     @if($talep->status === 'biletlendi')
@@ -394,7 +419,7 @@
 
             {{-- MEVCUT TEKLİFLER --}}
             @if($talep->offers->count() > 0)
-            <div class="card mb-3">
+            <div class="card mb-3 ops-tab-section" data-tab-section="offers">
                 <div class="card-header py-2 fw-bold">Mevcut Teklifler ({{ $talep->offers->count() }})</div>
                 <div class="card-body py-2">
                     @foreach($talep->offers as $teklif)
@@ -521,7 +546,7 @@
                 $yuzde = $toplamTutar > 0 ? min(100, round(($toplamOdenen / $toplamTutar) * 100)) : 0;
                 $odenenCurrency = $ilkTeklif?->currency ?? 'TRY';
             @endphp
-            <div class="card mb-3">
+            <div class="card mb-3 ops-tab-section" data-tab-section="payments">
                 <div class="card-header py-2 fw-bold d-flex justify-content-between align-items-center">
                     <span>💳 Muhasebe & Ödemeler</span>
                     <span class="badge bg-secondary">{{ $talep->payments->count() }} kayıt</span>
@@ -627,7 +652,7 @@
             </div>
 
             {{-- TİMELINE --}}
-            <div class="card">
+            <div class="card ops-tab-section" data-tab-section="history">
                 <div class="card-header py-2 fw-bold">📅 Geçmiş</div>
                 <div class="card-body py-2 small">
                     <div class="text-muted mb-1">{{ $talep->created_at->format('d.m.Y H:i') }} — Talep oluşturuldu</div>
@@ -656,7 +681,7 @@
 
             {{-- BİLDİRİMLER --}}
             @if($talep->notifications->isNotEmpty())
-            <div class="card mt-3">
+            <div class="card mt-3 ops-tab-section" data-tab-section="history">
                 <div class="card-header py-2 fw-bold d-flex justify-content-between align-items-center">
                     <span>📲 SMS Bildirimleri</span>
                     <span class="badge bg-secondary">{{ $talep->notifications->count() }}</span>
@@ -922,6 +947,66 @@
 <script>
 const CSRF = '{{ csrf_token() }}';
 const PARSE_URL = '{{ route("admin.requests.ai-parse", $talep->gtpnr) }}';
+const OPS_TAB_STORAGE_KEY = 'admin_request_show_active_tab';
+
+function adminRequestActivateTab(tabName, shouldPersist = true) {
+    const allowedTabs = ['summary', 'offers', 'payments', 'history'];
+    const activeTab = allowedTabs.includes(tabName) ? tabName : 'summary';
+
+    document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+        const isActive = button.getAttribute('data-admin-tab') === activeTab;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    document.querySelectorAll('[data-tab-section]').forEach((section) => {
+        const isActiveSection = section.getAttribute('data-tab-section') === activeTab;
+        section.classList.toggle('is-active', isActiveSection);
+    });
+
+    if (shouldPersist) {
+        localStorage.setItem(OPS_TAB_STORAGE_KEY, activeTab);
+    }
+
+    if (window.location.hash.replace('#', '') !== activeTab) {
+        history.replaceState(null, '', '#' + activeTab);
+    }
+}
+
+document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+    button.addEventListener('click', () => {
+        adminRequestActivateTab(button.getAttribute('data-admin-tab'));
+    });
+});
+
+document.querySelectorAll('[data-admin-tab-jump]').forEach((trigger) => {
+    trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        const tabName = trigger.getAttribute('data-admin-tab-jump') || 'summary';
+        adminRequestActivateTab(tabName);
+
+        const scrollTarget = trigger.getAttribute('data-scroll-target');
+        if (!scrollTarget) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            const targetElement = document.querySelector(scrollTarget);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+});
+
+window.addEventListener('hashchange', () => {
+    adminRequestActivateTab(window.location.hash.replace('#', ''), false);
+});
+
+adminRequestActivateTab(
+    window.location.hash.replace('#', '') || localStorage.getItem(OPS_TAB_STORAGE_KEY) || 'summary',
+    false
+);
 
 async function aiFormatlaAcenteye(offerId, rawNote) {
     const btn = document.getElementById('fmt-btn-' + offerId);
