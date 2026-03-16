@@ -14,6 +14,7 @@
             ✈️ GrupTalepleri
         </a>
         <div class="d-flex align-items-center gap-2">
+            @php($gorunenKullanici = $_acentePreviewUser ?? auth()->user())
             <a href="{{ route('acente.dashboard') }}"
                class="nav-lc {{ $active === 'dashboard' ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-list me-1"></i>Taleplerim
@@ -27,7 +28,7 @@
             </button>
             <a href="{{ route('acente.profil') }}"
                class="nav-lc d-none d-md-inline {{ $active === 'profil' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-user-cog me-1"></i>{{ auth()->user()->name }}
+                <i class="fas fa-user-cog me-1"></i>{{ $gorunenKullanici->name }}
             </a>
             <a href="https://wa.me/{{ $_adminTelefon ?? '905324262630' }}" target="_blank"
                class="btn btn-sm btn-success px-2" title="WhatsApp Destek">
@@ -42,3 +43,16 @@
         </div>
     </div>
 </nav>
+
+@if($_acentePreviewMode ?? false)
+<div class="container-fluid px-4 py-2 border-bottom" style="background:#fff3cd;">
+    <div class="d-flex flex-wrap align-items-center gap-2 small">
+        <span class="fw-bold text-dark">Admin Onizleme Modu</span>
+        <span class="text-muted">{{ $_acentePreviewUser?->name }} acentesinin gordugu sayfalari goruyorsunuz.</span>
+        <form method="POST" action="{{ route('acente.preview.stop') }}" class="ms-auto">
+            @csrf
+            <button class="btn btn-sm btn-outline-dark">Onizlemeyi Kapat</button>
+        </form>
+    </div>
+</div>
+@endif

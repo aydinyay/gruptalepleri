@@ -54,8 +54,31 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
+            $previewUser = null;
+            $previewMode = false;
+
+            if (auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'], true)) {
+                $previewUserId = session('acente_preview_user_id');
+                if ($previewUserId) {
+                    try {
+                        $previewUser = \App\Models\User::with('agency')
+                            ->where('role', 'acente')
+                            ->find($previewUserId);
+                        $previewMode = (bool) $previewUser;
+                        if (! $previewMode) {
+                            session()->forget('acente_preview_user_id');
+                        }
+                    } catch (\Throwable $e) {
+                        $previewUser = null;
+                        $previewMode = false;
+                    }
+                }
+            }
+
             $view->with('_adminTelefon', $adminTelefon)
-                 ->with('_superadminTelefon', $superadminTelefon);
+                 ->with('_superadminTelefon', $superadminTelefon)
+                 ->with('_acentePreviewMode', $previewMode)
+                 ->with('_acentePreviewUser', $previewUser);
         });
     }
 }

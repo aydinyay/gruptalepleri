@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Controller;
 use App\Models\Request as TalepModel;
+use App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
 use App\Models\Request as RequestModel;
 
 class DashboardController extends Controller
 {
+    use ResolvesPreviewUser;
+
     public function index()
     {
-        $user = auth()->user();
+        $user = $this->acenteActor();
         $agency = $user->agency;
 
         $talepler = TalepModel::where('user_id', $user->id)

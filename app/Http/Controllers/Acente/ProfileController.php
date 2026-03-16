@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,15 +11,21 @@ use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
+    use ResolvesPreviewUser;
+
     public function edit()
     {
-        $user   = Auth::user();
+        $user   = $this->acenteActor();
         $acente = $user->agency;
         return view('acente.profil', compact('user', 'acente'));
     }
 
     public function update(Request $request)
     {
+        if ($blocked = $this->blockPreviewWrites()) {
+            return $blocked;
+        }
+
         $user = Auth::user();
 
         $request->validate([
@@ -62,6 +69,10 @@ class ProfileController extends Controller
 
     public function updatePassword(Request $request)
     {
+        if ($blocked = $this->blockPreviewWrites()) {
+            return $blocked;
+        }
+
         $request->validate([
             'current_password' => 'required',
             'password'         => ['required', 'confirmed', Password::min(8)],

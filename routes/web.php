@@ -157,6 +157,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
 });
 
+Route::middleware(['auth'])->prefix('acente/onizleme')->name('acente.preview.')->group(function () {
+    Route::get('/baslat/{user}', [\App\Http\Controllers\Acente\PreviewController::class, 'start'])->name('start');
+    Route::get('/talep/{gtpnr}', [\App\Http\Controllers\Acente\PreviewController::class, 'startFromRequest'])->name('request');
+    Route::post('/bitir', [\App\Http\Controllers\Acente\PreviewController::class, 'stop'])->name('stop');
+});
+
 // Acente
 Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Acente\DashboardController::class, 'index'])->name('dashboard');

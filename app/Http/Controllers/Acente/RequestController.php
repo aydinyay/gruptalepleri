@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
 use App\Models\Airport;
 use App\Models\Request as TalepModel;
 use App\Models\RequestLog;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Http;
 
 class RequestController extends Controller
 {
+    use ResolvesPreviewUser;
+
     public function create()
     {
         return view('acente.request.create');
@@ -22,6 +25,10 @@ class RequestController extends Controller
 
     public function store(Request $request)
     {
+        if ($blocked = $this->blockPreviewWrites()) {
+            return $blocked;
+        }
+
         $validated = $request->validate([
             'agency_name' => 'required|string',
             'phone' => 'required|string',
@@ -116,7 +123,9 @@ class RequestController extends Controller
     public function aiAnaliz(Request $request, $gtpnr)
     {
         $query = TalepModel::where('gtpnr', $gtpnr);
-        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+        if ($this->isAcentePreviewMode()) {
+            $query->where('user_id', $this->acenteActor()->id);
+        } elseif (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
             $query->where('user_id', auth()->id());
         }
         $query->firstOrFail();
@@ -151,8 +160,14 @@ class RequestController extends Controller
 
     public function aiKaydet(Request $request, $gtpnr)
     {
+        if ($blocked = $this->blockPreviewWrites()) {
+            return $blocked;
+        }
+
         $query = TalepModel::where('gtpnr', $gtpnr);
-        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+        if ($this->isAcentePreviewMode()) {
+            $query->where('user_id', $this->acenteActor()->id);
+        } elseif (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
             $query->where('user_id', auth()->id());
         }
         $talep = $query->firstOrFail();
@@ -168,8 +183,12 @@ class RequestController extends Controller
 
     public function acceptOffer(Request $request, $gtpnr, $offer)
     {
+        if ($blocked = $this->blockPreviewWrites()) {
+            return $blocked;
+        }
+
         $talep = TalepModel::where('gtpnr', $gtpnr)
-            ->where('user_id', auth()->id())
+            ->where('user_id', $this->acenteActor()->id)
             ->with('offers')
             ->firstOrFail();
 
@@ -214,7 +233,9 @@ class RequestController extends Controller
             ->with(['segments', 'offers', 'logs.user', 'payments', 'notifications']);
 
         // Admin/superadmin tüm talepleri görebilir; acente sadece kendi talebini
-        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+        if ($this->isAcentePreviewMode()) {
+            $query->where('user_id', $this->acenteActor()->id);
+        } elseif (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
             $query->where('user_id', auth()->id());
         }
 

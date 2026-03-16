@@ -36,7 +36,7 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">← Talepler</a>
-            <a href="/acente/talep/{{ $talep->gtpnr }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Görünümü →</a>
+            <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Görünümü →</a>
         </div>
     </div>
 
@@ -1048,3 +1048,4 @@ document.getElementById('sil-onayla-btn').addEventListener('click', function () 
 </script>
 </body>
 </html>
+
