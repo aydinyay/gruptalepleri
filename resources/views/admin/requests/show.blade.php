@@ -93,7 +93,7 @@
             <div class="col-12 col-lg-auto">
                 <div class="ops-actions">
                     <button type="button" data-admin-tab-jump="offers" data-bs-toggle="modal" data-bs-target="#createOfferModal" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Yeni Teklif</button>
-                    <a href="#summary" data-admin-tab-jump="summary" data-scroll-target="#status-update-card" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt me-1"></i>Durum Guncelle</a>
+                    <a href="#offers" data-admin-tab-jump="offers" data-scroll-target="#status-update-card" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt me-1"></i>Durum Guncelle</a>
                     <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">Acente Gorunumu</a>
                     <a href="{{ route('admin.requests.index') }}" class="btn btn-outline-secondary btn-sm">Taleplere Don</a>
                 </div>
