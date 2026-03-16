@@ -62,6 +62,7 @@
         <div class="card-body py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="fw-semibold">
                 <i class="fas fa-wallet text-success me-1"></i>SMS Kalan Bakiye
+                <div class="small text-muted mt-1">Saglayici: TopluSMSYolla</div>
             </div>
             <div class="text-end">
                 @if(($smsBalance['available'] ?? false) && isset($smsBalance['balance']))
@@ -72,6 +73,28 @@
                 @endif
             </div>
         </div>
+        @if(($smsInfo['available'] ?? false))
+        <div class="card-footer bg-white py-2">
+            <div class="row g-2" style="font-size:0.8rem;">
+                <div class="col-6 col-md-3">
+                    <span class="text-muted d-block">SMS Birim Fiyat</span>
+                    <span class="fw-semibold">{{ isset($smsInfo['unit_price']) ? number_format((float) $smsInfo['unit_price'], 3, ',', '.') . ' TL' : '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted d-block">Numarali Kalan SMS</span>
+                    <span class="fw-semibold">{{ isset($smsInfo['remaining_numbered_sms']) ? number_format((float) $smsInfo['remaining_numbered_sms'], 3, ',', '.') : '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted d-block">Baslikli Birim Fiyat</span>
+                    <span class="fw-semibold">{{ isset($smsInfo['header_unit_price']) ? number_format((float) $smsInfo['header_unit_price'], 3, ',', '.') . ' TL' : '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted d-block">Baslikli Kalan SMS</span>
+                    <span class="fw-semibold">{{ isset($smsInfo['remaining_header_sms']) ? number_format((float) $smsInfo['remaining_header_sms'], 3, ',', '.') : '-' }}</span>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     <div class="card shadow-sm mb-3">
@@ -113,6 +136,14 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-bold"><i class="fas fa-sms me-1"></i>SMS / E-posta Kayitlari</span>
             <div class="d-flex align-items-center gap-2">
+                <form method="POST" action="{{ route('superadmin.sms.log.durum-guncelle') }}"
+                      onsubmit="return confirm('Gonderilmis SMS kayitlarinin teslim durumu guncellensin mi?')">
+                    @csrf
+                    <input type="hidden" name="limit" value="120">
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2">
+                        <i class="fas fa-rotate me-1"></i>SMS Durumlarini Guncelle
+                    </button>
+                </form>
                 <span class="badge bg-secondary">Toplam: {{ $logs->total() }}</span>
                 @if($logs->total() > 0)
                 <form method="POST" action="{{ route('superadmin.sms.log.hepsini-sil') }}"
@@ -200,6 +231,10 @@
                                     @endif
                                 @elseif($log->delivery_status === 'undelivered')
                                     <span class="badge bg-danger">Iletilemedi</span>
+                                @elseif($log->delivery_status === 'pending')
+                                    <span class="badge bg-secondary">Bekliyor</span>
+                                @elseif($log->delivery_status === 'unknown')
+                                    <span class="badge bg-secondary">Bilinmiyor</span>
                                 @elseif($log->delivery_status)
                                     <span class="badge bg-secondary">{{ $log->delivery_status }}</span>
                                 @elseif($log->status === 'sent')
