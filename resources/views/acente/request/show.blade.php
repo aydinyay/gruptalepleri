@@ -85,6 +85,13 @@
     $ilkTeklif = $gosterilecekTeklifler->firstWhere('is_accepted', true)
               ?? $gosterilecekTeklifler->first();
 
+    // Acentenin ilk talep notu (admin teklif metniyle aynıysa tekrar göstermeyelim)
+    $yoneticiMesajlari = $talep->offers->pluck('offer_text')->filter(fn ($mesaj) => filled(trim((string) $mesaj)));
+    $acenteNotu = filled(trim((string) $talep->notes)) ? trim((string) $talep->notes) : null;
+    if ($acenteNotu && $yoneticiMesajlari->contains(fn ($mesaj) => trim((string) $mesaj) === $acenteNotu)) {
+        $acenteNotu = null;
+    }
+
     // Opsiyon geri sayım (header için)
     $opsiyonKalan = null;
     $opsiyonRenk  = 'secondary';
