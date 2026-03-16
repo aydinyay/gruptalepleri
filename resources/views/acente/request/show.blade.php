@@ -18,15 +18,6 @@
         .ozet-kutu .etiket { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: #6c757d; }
         .ozet-kutu .deger { font-size: 0.95rem; font-weight: 700; margin-top: 2px; }
 
-        /* Durum badge'leri */
-        .badge-beklemede      { background: #6c757d; color: #fff; }
-        .badge-islemde        { background: #0d6efd; color: #fff; }
-        .badge-fiyatlandirildi { background: #ffc107; color: #000; }
-        .badge-depozitoda     { background: #6f42c1; color: #fff; }
-        .badge-biletlendi     { background: #198754; color: #fff; }
-        .badge-iade           { background: #dc3545; color: #fff; }
-        .badge-olumsuz        { background: #343a40; color: #fff; }
-
         /* Talep bilgileri tablosu */
         .bilgi-tablo th { font-size: 0.78rem; color: #6c757d; font-weight: 600; width: 38%; padding: 7px 12px; border-color: #f0f2f5; }
         .bilgi-tablo td { font-size: 0.88rem; padding: 7px 12px; border-color: #f0f2f5; }
@@ -68,17 +59,9 @@
 
 @php
     // ── Temel hesaplamalar ──
-    $statusEtiketMap = [
-        'beklemede'      => 'Beklemede',
-        'islemde'        => 'İşlemde',
-        'fiyatlandirildi'=> 'Fiyatlandırıldı',
-        'depozitoda'     => 'Depozitoda',
-        'biletlendi'     => 'Biletlendi',
-        'iade'           => 'İade',
-        'olumsuz'        => 'Olumsuz',
-    ];
-    $statusEtiket = $statusEtiketMap[$talep->status] ?? ucfirst($talep->status);
-    $statusClass  = 'badge-' . $talep->status;
+    $statusMeta = \App\Models\Request::statusMeta($talep->status);
+    $statusEtiket = $statusMeta['label'];
+    $statusStyle = 'background:' . $statusMeta['bg'] . ';color:' . $statusMeta['text'] . ';';
 
     // İlk görünür ve fiyatlı teklif
     $gosterilecekTeklifler = $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
@@ -179,7 +162,7 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge {{ $statusClass }} fs-6 px-3 py-2">{{ $statusEtiket }}</span>
+                    <span class="badge fs-6 px-3 py-2" style="{{ $statusStyle }}">{{ $statusEtiket }}</span>
                     <x-iade-badge :talep="$talep" :showForAcente="true" />
                 </div>
             </div>

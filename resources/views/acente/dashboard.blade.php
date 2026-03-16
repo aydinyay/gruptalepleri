@@ -27,6 +27,10 @@
 <x-navbar-acente active="dashboard" />
 
 <div class="container-fluid px-4">
+    @php
+        $statusMetaMap = \App\Models\Request::statusMetaMap();
+        $dashboardStatusOrder = ['beklemede', 'islemde', 'fiyatlandirildi', 'iptal', 'biletlendi', 'depozitoda'];
+    @endphp
 
     {{-- ÖZET KARTLAR --}}
     <div class="row g-3 mb-4">
@@ -36,54 +40,28 @@
                 <div class="text-muted small">Toplam</div>
             </div>
         </div>
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #6c757d">
-                <div class="stat-number text-secondary">{{ $istatistik['beklemede'] }}</div>
-                <div class="text-muted small">Beklemede</div>
+        @foreach($dashboardStatusOrder as $statusKey)
+            @php($meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey))
+            <div class="col-6 col-md-2">
+                <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid {{ $meta['bg'] }}">
+                    <div class="stat-number" style="color:{{ $meta['bg'] }}">{{ $istatistik[$statusKey] ?? 0 }}</div>
+                    <div class="text-muted small">{{ $meta['label'] }}</div>
+                </div>
             </div>
-        </div>
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #0d6efd">
-                <div class="stat-number text-primary">{{ $istatistik['islemde'] }}</div>
-                <div class="text-muted small">İşlemde</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #ffc107">
-                <div class="stat-number text-warning">{{ $istatistik['fiyatlandirildi'] }}</div>
-                <div class="text-muted small">Fiyatlandırıldı</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #dc3545">
-                <div class="stat-number text-danger">{{ $istatistik['iptal'] }}</div>
-                <div class="text-muted small">İptal</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #198754">
-                <div class="stat-number text-success">{{ $istatistik['biletlendi'] }}</div>
-                <div class="text-muted small">Biletlendi</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid #6f42c1">
-                <div class="stat-number" style="color:#6f42c1">{{ $istatistik['depozitoda'] }}</div>
-                <div class="text-muted small">Depozitoda</div>
-            </div>
-        </div>
+        @endforeach
     </div>
 
     {{-- HARİTA --}}
     <div class="card shadow-sm mb-4">
         <div class="map-filters d-flex align-items-center gap-2 flex-wrap">
             <small class="text-muted me-2">Filtre:</small>
-            <span class="badge filter-badge bg-secondary" data-status="beklemede" onclick="toggleFilter(this)">Beklemede</span>
-            <span class="badge filter-badge bg-primary" data-status="islemde" onclick="toggleFilter(this)">İşlemde</span>
-            <span class="badge filter-badge bg-warning text-dark" data-status="fiyatlandirildi" onclick="toggleFilter(this)">Fiyatlandırıldı</span>
-            <span class="badge filter-badge bg-danger" data-status="iptal" onclick="toggleFilter(this)">İptal</span>
-            <span class="badge filter-badge bg-success" data-status="biletlendi" onclick="toggleFilter(this)">Biletlendi</span>
-            <span class="badge filter-badge" data-status="depozitoda" style="background:#6f42c1" onclick="toggleFilter(this)">Depozitoda</span>
+            @foreach($dashboardStatusOrder as $statusKey)
+                @php($meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey))
+                <span class="badge filter-badge"
+                      data-status="{{ $statusKey }}"
+                      style="background:{{ $meta['bg'] }};color:{{ $meta['text'] }};"
+                      onclick="toggleFilter(this)">{{ $meta['label'] }}</span>
+            @endforeach
         </div>
         <div id="map"></div>
     </div>
@@ -107,21 +85,9 @@
                     </tr>
                 </thead>
                 <tbody id="talepTablosu">
-                    @php
-                    $statusConfig = [
-                        'beklemede'       => ['bg'=>'#6c757d','color'=>'#fff','label'=>'Beklemede'],
-                        'islemde'         => ['bg'=>'#0d6efd','color'=>'#fff','label'=>'İşlemde'],
-                        'fiyatlandirildi' => ['bg'=>'#ffc107','color'=>'#000','label'=>'Fiyatlandırıldı'],
-                        'iptal'           => ['bg'=>'#dc3545','color'=>'#fff','label'=>'İptal'],
-                        'olumsuz'         => ['bg'=>'#343a40','color'=>'#fff','label'=>'Olumsuz'],
-                        'biletlendi'      => ['bg'=>'#198754','color'=>'#fff','label'=>'Biletlendi'],
-                        'depozitoda'      => ['bg'=>'#6f42c1','color'=>'#fff','label'=>'Depozitoda'],
-                        'iade'            => ['bg'=>'#e94560','color'=>'#fff','label'=>'İade'],
-                    ];
-                    @endphp
                     @forelse($talepler as $talep)
                     @php
-                        $sc = $statusConfig[$talep->status] ?? ['bg'=>'#6c757d','color'=>'#fff','label'=>$talep->status];
+                        $sc = \App\Models\Request::statusMeta($talep->status);
                         $segs = $talep->segments->sortBy('order');
                         $ilkSeg = $segs->first();
 
@@ -178,7 +144,7 @@
                         </td>
                         <td>{!! $opsiyonHtml !!}</td>
                         <td class="text-center">
-                            <span class="badge" style="background:{{ $sc['bg'] }};color:{{ $sc['color'] }};">{{ $sc['label'] }}</span>
+                            <span class="badge" style="background:{{ $sc['bg'] }};color:{{ $sc['text'] }};">{{ $sc['label'] }}</span>
                         </td>
                     </tr>
                     @empty
@@ -198,14 +164,9 @@
 <script>
 const haritaVerisi = @json($haritaVerisi);
 let aktifFiltre = null; // null = hepsi göster
-const statusRenkler = {
-    'beklemede':       '#6c757d',
-    'islemde':         '#0d6efd',
-    'fiyatlandirildi': '#ffc107',
-    'iptal':           '#dc3545',
-    'biletlendi':      '#198754',
-    'depozitoda':      '#6f42c1',
-};
+const statusMeta = @json($statusMetaMap);
+const statusRenkler = Object.fromEntries(Object.entries(statusMeta).map(([status, meta]) => [status, meta.bg]));
+const statusEtiketler = Object.fromEntries(Object.entries(statusMeta).map(([status, meta]) => [status, meta.label]));
 const havalimanları = {
     'IST': {lat:41.2753,lng:28.7519}, 'SAW': {lat:40.8985,lng:29.3092},
     'ESB': {lat:40.1281,lng:32.9951}, 'AYT': {lat:36.8987,lng:30.7992},
@@ -255,7 +216,6 @@ function cizRotalar() {
                 map: map
             });
 
-            const statusEtiketler = {'beklemede':'Beklemede','islemde':'İşlemde','fiyatlandirildi':'Fiyatlandırıldı','iptal':'İptal','biletlendi':'Biletlendi','depozitoda':'Depozitoda'};
             const infoWindow = new google.maps.InfoWindow({
                 content: `<div style="min-width:150px">
                     <strong>${talep.gtpnr}</strong><br>

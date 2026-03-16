@@ -26,6 +26,17 @@ class Request extends Model
         'depozitoda' => self::STATUS_DEPOZITODA,
     ];
 
+    public const STATUS_META = [
+        self::STATUS_BEKLEMEDE => ['label' => 'Beklemede', 'bg' => '#6c757d', 'text' => '#ffffff'],
+        self::STATUS_ISLEMDE => ['label' => 'İşlemde', 'bg' => '#0d6efd', 'text' => '#ffffff'],
+        self::STATUS_FIYATLANDIRILDI => ['label' => 'Fiyatlandırıldı', 'bg' => '#ffc107', 'text' => '#000000'],
+        self::STATUS_DEPOZITODA => ['label' => 'Depozitoda', 'bg' => '#6f42c1', 'text' => '#ffffff'],
+        self::STATUS_BILETLENDI => ['label' => 'Biletlendi', 'bg' => '#198754', 'text' => '#ffffff'],
+        self::STATUS_IADE => ['label' => 'İade', 'bg' => '#dc3545', 'text' => '#ffffff'],
+        self::STATUS_OLUMSUZ => ['label' => 'Olumsuz', 'bg' => '#343a40', 'text' => '#ffffff'],
+        self::STATUS_IPTAL => ['label' => 'İptal', 'bg' => '#dc3545', 'text' => '#ffffff'],
+    ];
+
     public const TRIP_TYPE_ALIASES = [
         'multi_city' => self::TRIP_TYPE_MULTI,
         'multicity' => self::TRIP_TYPE_MULTI,
@@ -99,6 +110,25 @@ class Request extends Model
         }
 
         return self::STATUS_ALIASES[$normalized] ?? $normalized;
+    }
+
+    public static function statusMeta(?string $value): array
+    {
+        $normalized = static::normalizeStatus($value);
+        if (! $normalized) {
+            return ['label' => 'Bilinmiyor', 'bg' => '#6c757d', 'text' => '#ffffff'];
+        }
+
+        return self::STATUS_META[$normalized] ?? [
+            'label' => ucfirst(str_replace('_', ' ', $normalized)),
+            'bg' => '#6c757d',
+            'text' => '#ffffff',
+        ];
+    }
+
+    public static function statusMetaMap(): array
+    {
+        return self::STATUS_META;
     }
 
     public static function normalizeTripType(?string $value): ?string
