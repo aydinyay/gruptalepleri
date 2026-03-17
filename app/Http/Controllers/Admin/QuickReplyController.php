@@ -7,11 +7,13 @@ use App\Models\Agency;
 use App\Models\QuickReplySession;
 use App\Models\Request as RequestModel;
 use App\Models\User;
-use App\Services\GtpnrService;
+use App\Services\SmsService;
 use App\Services\QuickReplyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
 class QuickReplyController extends Controller
@@ -214,6 +216,7 @@ class QuickReplyController extends Controller
         $membershipMode = $validated['membership_mode'];
         $resolvedUser = null;
         $resolvedAgency = null;
+        $isNewAccountCreated = false;
 
         if ($membershipMode === 'member' || $membershipMode === 'auto') {
             [$resolvedUser, $resolvedAgency] = $this->resolveExistingMember(
@@ -224,7 +227,7 @@ class QuickReplyController extends Controller
         }
 
         if ($membershipMode === 'non_member') {
-            [$resolvedUser, $resolvedAgency] = $this->resolveNonMember(
+            [$resolvedUser, $resolvedAgency, $isNewAccountCreated] = $this->resolveNonMember(
                 $requestModel,
                 $validated['new_account'] ?? [],
                 isset($validated['selected_user_id']) ? (int) $validated['selected_user_id'] : null,
@@ -250,6 +253,16 @@ class QuickReplyController extends Controller
             return redirect()
                 ->route($this->indexRouteName(), ['session' => $session->id])
                 ->with('error', 'Teklif kaydı oluşturulamadı. Lütfen verileri kontrol edip tekrar deneyin.');
+        }
+
+        if ($isNewAccountCreated) {
+            $this->sendOnboardingAccess($resolvedUser, $resolvedAgency, $requestModel);
+            $quickReplyService->addLog($session, auth()->id(), 'session.onboarding_sent', [
+                'user_id' => $resolvedUser->id,
+                'agency_id' => $resolvedAgency?->id,
+                'email' => $resolvedUser->email,
+                'phone' => $resolvedUser->phone,
+            ]);
         }
 
         $session->update([
@@ -351,18 +364,18 @@ class QuickReplyController extends Controller
 
     /**
      * @param  array<string, mixed>  $newAccount
-     * @return array{0:?User,1:?Agency}
+     * @return array{0:?User,1:?Agency,2:bool}
      */
     private function resolveNonMember(RequestModel $requestModel, array $newAccount, ?int $selectedUserId, ?int $selectedAgencyId): array
     {
         if ($selectedUserId) {
             $user = User::with('agency')->find($selectedUserId);
-            return [$user, $user?->agency];
+            return [$user, $user?->agency, false];
         }
 
         if ($selectedAgencyId) {
             $agency = Agency::with('user')->find($selectedAgencyId);
-            return [$agency?->user, $agency];
+            return [$agency?->user, $agency, false];
         }
 
         $agencyName = trim((string) ($newAccount['agency_name'] ?? ''));
@@ -371,7 +384,7 @@ class QuickReplyController extends Controller
         $email = trim((string) ($newAccount['email'] ?? ''));
 
         if ($agencyName === '' || $contactName === '' || $phone === '' || $email === '') {
-            return [null, null];
+            return [null, null, false];
         }
 
         $existing = User::query()
@@ -380,7 +393,7 @@ class QuickReplyController extends Controller
             })
             ->first();
         if ($existing) {
-            return [$existing, $existing->agency];
+            return [$existing, $existing->agency, false];
         }
 
         $password = Str::password(10);
@@ -405,7 +418,7 @@ class QuickReplyController extends Controller
         // Yeni kullanıcı/şifre bilgilendirmesini session meta içinde tutuyoruz.
         $requestModel->refresh();
 
-        return [$user, $agency];
+        return [$user, $agency, true];
     }
 
     private function attachRequestToUser(RequestModel $requestModel, User $user, ?Agency $agency): void
@@ -463,5 +476,36 @@ class QuickReplyController extends Controller
             ->first();
 
         return $createdOffer?->id;
+    }
+
+    private function sendOnboardingAccess(User $user, ?Agency $agency, RequestModel $requestModel): void
+    {
+        try {
+            $token = Password::broker()->createToken($user);
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $user->email,
+            ], false));
+
+            $subject = 'Grup Talepleri Hesap Erişimi';
+            $agencyName = $agency?->company_title ?: $agency?->tourism_title ?: $requestModel->agency_name;
+            $message = "Merhaba {$user->name},\n\n"
+                . "{$agencyName} için hesabınız oluşturuldu.\n"
+                . "Talebinizi görmek için aşağıdaki bağlantıdan şifrenizi belirleyin:\n{$resetUrl}\n\n"
+                . "Talep No: {$requestModel->gtpnr}\n"
+                . "Giriş: " . url('/login') . "\n\n"
+                . "Grup Talepleri";
+
+            Mail::raw($message, static function ($mail) use ($user, $subject): void {
+                $mail->to($user->email, $user->name)->subject($subject);
+            });
+
+            if (! empty($user->phone)) {
+                $sms = "Grup Talepleri hesabiniz olusturuldu. Sifre belirleme linki: {$resetUrl}";
+                (new SmsService())->send($requestModel->id, 'acente', $user->name, (string) $user->phone, $sms);
+            }
+        } catch (\Throwable) {
+            // Erişim bilgilendirmesi hata verse de ana teklif akışı başarısız sayılmaz.
+        }
     }
 }
