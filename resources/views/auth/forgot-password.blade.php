@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="mb-4 text-sm text-gray-600">
-        Şifrenizi mi unuttunuz? Sorun değil. E-posta adresinizi girin, size yeni şifre belirleyebileceğiniz bağlantıyı gönderelim.
+        Sifrenizi mi unuttunuz? Sorun degil. E-posta adresinizi girin, size yeni sifre belirleyebileceginiz baglantiyi gonderelim.
     </div>
 
     <!-- Session Status -->
@@ -17,7 +17,7 @@
         </div>
 
         <div class="flex items-center justify-end mt-4">
-            <x-primary-button>Şifre Sıfırlama Bağlantısı Gönder</x-primary-button>
+            <x-primary-button>Sifre Sifirlama Baglantisi Gonder</x-primary-button>
         </div>
     </form>
 </x-guest-layout>
