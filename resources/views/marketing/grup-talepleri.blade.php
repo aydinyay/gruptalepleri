@@ -139,6 +139,7 @@
         }
     </style>
 
+    @verbatim
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -157,7 +158,9 @@
       }
     }
     </script>
+    @endverbatim
 
+    @verbatim
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -168,7 +171,9 @@
       "description": "Acenteler icin grup ucus talep, teklif toplama ve operasyon yonetim sayfasi."
     }
     </script>
+    @endverbatim
 
+    @verbatim
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -217,6 +222,7 @@
       ]
     }
     </script>
+    @endverbatim
 </head>
 <body>
     <header class="hero">
