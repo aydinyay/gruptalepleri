@@ -115,6 +115,7 @@ class AiCelebrationCalendarService
         return match ($rule) {
             'second_sunday_may' => $this->nthWeekdayOfMonth($year, 5, 7, 2),
             'third_sunday_june' => $this->nthWeekdayOfMonth($year, 6, 7, 3),
+            'last_monday_march' => $this->lastWeekdayOfMonth($year, 3, 1),
             default => null,
         };
     }
@@ -129,5 +130,17 @@ class AiCelebrationCalendarService
             ->addWeeks(max($nth - 1, 0))
             ->startOfDay();
     }
-}
 
+    private function lastWeekdayOfMonth(int $year, int $month, int $isoWeekday): CarbonImmutable
+    {
+        $date = CarbonImmutable::create($year, $month, 1, 0, 0, 0, config('app.timezone', 'UTC'))
+            ->endOfMonth()
+            ->startOfDay();
+
+        while ($date->dayOfWeekIso !== $isoWeekday) {
+            $date = $date->subDay();
+        }
+
+        return $date;
+    }
+}
