@@ -225,6 +225,7 @@ class SuperadminController extends Controller
         ];
 
         if ($activeTab === 'ai') {
+            $today = now()->startOfDay();
             $campaignBaseQuery = AiCelebrationCampaign::query()
                 ->with(['creator', 'approver', 'publisher', 'dismisser'])
                 ->withCount([
@@ -236,6 +237,11 @@ class SuperadminController extends Controller
 
             $aiCampaigns = (clone $campaignBaseQuery)
                 ->where('status', '!=', AiCelebrationCampaign::STATUS_DISMISSED)
+                ->where(function ($query) use ($today) {
+                    $query
+                        ->whereNull('event_date')
+                        ->orWhereDate('event_date', '>=', $today);
+                })
                 ->limit(40)
                 ->get();
 
@@ -292,7 +298,7 @@ class SuperadminController extends Controller
         $this->assertSuperadmin();
 
         $validated = $request->validate([
-            'days' => 'nullable|integer|min:1|max:14',
+            'days' => 'nullable|integer|min:1|max:30',
             'force_refresh' => 'nullable|boolean',
         ]);
 
