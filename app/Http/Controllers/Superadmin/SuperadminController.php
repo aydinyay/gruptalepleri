@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AiCelebrationCampaign;
 use App\Models\Agency;
 use App\Models\BroadcastNotification;
 use App\Models\KullaniciBildirimi;
@@ -11,7 +12,9 @@ use App\Models\SistemAyar;
 use App\Models\SmsNotificationSetting;
 use App\Models\RequestNotification;
 use App\Models\User;
+use App\Services\AiCelebrationService;
 use App\Services\SmsService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SuperadminController extends Controller
@@ -175,6 +178,351 @@ class SuperadminController extends Controller
         ];
 
         return view('superadmin.sms-ayarlari', compact('ayarlar', 'events', 'opsiyonAyarlar', 'schedulerAralik', 'smsBaslangic', 'smsBitis', 'notificationSystems'));
+    }
+
+    public function siteAyarlari(Request $request)
+    {
+        $allowedTabs = ['bildirim', 'sms', 'duyuru', 'rapor', 'ai'];
+        $activeTab = $request->query('sekme', 'bildirim');
+        if (! in_array($activeTab, $allowedTabs, true)) {
+            $activeTab = 'bildirim';
+        }
+
+        $notificationSystems = [
+            'sms' => SistemAyar::smsEnabled(),
+            'email' => SistemAyar::emailEnabled(),
+            'push' => SistemAyar::pushEnabled(),
+            'broadcast' => SistemAyar::broadcastEnabled(),
+        ];
+
+        $stats = [
+            'sms_kural' => SmsNotificationSetting::count(),
+            'opsiyon_kural' => OpsiyonUyariAyar::count(),
+            'duyuru' => BroadcastNotification::count(),
+            'iletisim_log' => RequestNotification::count(),
+        ];
+
+        $schedulerAralik = (int) SistemAyar::get('opsiyon_check_aralik', 1440);
+        $smsBaslangic = SistemAyar::get('sms_baslangic_saat', '08:00');
+        $smsBitis = SistemAyar::get('sms_bitis_saat', '21:00');
+        $opsiyonAyarlar = OpsiyonUyariAyar::orderBy('saat_oncesi', 'desc')->limit(5)->get();
+        $recentSmsRules = SmsNotificationSetting::orderByDesc('updated_at')->limit(5)->get();
+        $recentBroadcasts = BroadcastNotification::with('sender')->orderByDesc('created_at')->limit(5)->get();
+        $recentLogs = RequestNotification::orderByDesc('created_at')->limit(5)->get();
+        $channelCounts = [
+            'sms' => RequestNotification::where('channel', 'sms')->count(),
+            'email' => RequestNotification::where('channel', 'email')->count(),
+        ];
+
+        $aiModuleEnabled = SistemAyar::aiCelebrationEnabled();
+        $aiCampaigns = collect();
+        $aiDismissedCampaigns = collect();
+        $aiStats = [
+            'toplam' => 0,
+            'yayinda' => 0,
+            'taslak' => 0,
+            'istenmeyen' => 0,
+        ];
+
+        if ($activeTab === 'ai') {
+            $campaignBaseQuery = AiCelebrationCampaign::query()
+                ->with(['creator', 'approver', 'publisher', 'dismisser'])
+                ->withCount([
+                    'userStates as seen_users_count' => fn ($query) => $query->where('seen_count', '>', 0),
+                    'userStates as closed_users_count' => fn ($query) => $query->whereNotNull('closed_at'),
+                ])
+                ->orderByDesc('publish_starts_at')
+                ->orderByDesc('event_date');
+
+            $aiCampaigns = (clone $campaignBaseQuery)
+                ->where('status', '!=', AiCelebrationCampaign::STATUS_DISMISSED)
+                ->limit(40)
+                ->get();
+
+            $aiDismissedCampaigns = (clone $campaignBaseQuery)
+                ->where('status', AiCelebrationCampaign::STATUS_DISMISSED)
+                ->limit(25)
+                ->get();
+
+            $aiStats = [
+                'toplam' => AiCelebrationCampaign::count(),
+                'yayinda' => AiCelebrationCampaign::publishedActive()->count(),
+                'taslak' => AiCelebrationCampaign::whereIn('status', [
+                    AiCelebrationCampaign::STATUS_DRAFT,
+                    AiCelebrationCampaign::STATUS_APPROVED,
+                ])->count(),
+                'istenmeyen' => AiCelebrationCampaign::where('status', AiCelebrationCampaign::STATUS_DISMISSED)->count(),
+            ];
+        }
+
+        return view(
+            'superadmin.site-ayarlari',
+            compact(
+                'activeTab',
+                'notificationSystems',
+                'stats',
+                'schedulerAralik',
+                'smsBaslangic',
+                'smsBitis',
+                'opsiyonAyarlar',
+                'recentSmsRules',
+                'recentBroadcasts',
+                'recentLogs',
+                'channelCounts',
+                'aiModuleEnabled',
+                'aiCampaigns',
+                'aiDismissedCampaigns',
+                'aiStats'
+            )
+        );
+    }
+
+    public function aiKutlamaAyarGuncelle(Request $request)
+    {
+        $this->assertSuperadmin();
+        SistemAyar::set(SistemAyar::KEY_AI_CELEBRATION_ENABLED, $request->boolean('ai_celebration_enabled'));
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'AI kutlama modul ayari guncellendi.');
+    }
+
+    public function aiKutlamaTara(Request $request, AiCelebrationService $aiCelebrationService)
+    {
+        $this->assertSuperadmin();
+
+        $validated = $request->validate([
+            'days' => 'nullable|integer|min:1|max:14',
+            'force_refresh' => 'nullable|boolean',
+        ]);
+
+        $days = (int) ($validated['days'] ?? 7);
+        $forceRefresh = (bool) ($validated['force_refresh'] ?? false);
+        $sonuc = $aiCelebrationService->scanUpcomingSuggestions($days, $forceRefresh, auth()->id());
+
+        $mesaj = sprintf(
+            'Tarama tamamlandi. Yeni:%d Uretilen:%d Mevcut:%d Istenmeyen atlandi:%d',
+            $sonuc['created'],
+            $sonuc['generated'],
+            $sonuc['existing'],
+            $sonuc['skipped_dismissed']
+        );
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', $mesaj);
+    }
+
+    public function aiKutlamaManuelOlustur(Request $request, AiCelebrationService $aiCelebrationService)
+    {
+        $this->assertSuperadmin();
+
+        $validated = $request->validate([
+            'event_name' => 'required|string|max:160',
+            'event_date' => 'nullable|date',
+            'category' => 'nullable|string|max:50',
+            'topic_prompt' => 'required|string|max:5000',
+            'display_mode' => 'nullable|in:banner,popup,card',
+            'frequency_cap' => 'nullable|integer|min:1|max:20',
+            'priority' => 'nullable|integer|min:1|max:999',
+            'show_on_public' => 'nullable|boolean',
+            'publish_starts_at' => 'nullable|date',
+            'publish_ends_at' => 'nullable|date|after_or_equal:publish_starts_at',
+        ]);
+
+        $aiCelebrationService->createManualSuggestion([
+            'event_name' => $validated['event_name'],
+            'event_date' => $validated['event_date'] ?? null,
+            'category' => $validated['category'] ?? 'genel',
+            'topic_prompt' => $validated['topic_prompt'],
+            'display_mode' => $validated['display_mode'] ?? AiCelebrationCampaign::DISPLAY_BANNER,
+            'frequency_cap' => (int) ($validated['frequency_cap'] ?? 1),
+            'priority' => (int) ($validated['priority'] ?? 100),
+            'show_on_public' => (bool) ($validated['show_on_public'] ?? false),
+            'publish_starts_at' => $this->parseDateTime($request->input('publish_starts_at')),
+            'publish_ends_at' => $this->parseDateTime($request->input('publish_ends_at')),
+        ], auth()->id());
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'Manuel AI kutlama onerisi olusturuldu.');
+    }
+
+    public function aiKutlamaYenidenUret(
+        Request $request,
+        AiCelebrationCampaign $campaign,
+        AiCelebrationService $aiCelebrationService
+    ) {
+        $this->assertSuperadmin();
+
+        $aiCelebrationService->generateContent($campaign, $request->input('topic_prompt'), auth()->id());
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'AI icerigi yeniden uretildi.');
+    }
+
+    public function aiKutlamaGuncelle(
+        Request $request,
+        AiCelebrationCampaign $campaign,
+        AiCelebrationService $aiCelebrationService
+    ) {
+        $this->assertSuperadmin();
+
+        $this->validateAiCampaignUpdate($request);
+
+        $aiCelebrationService->updateCampaign(
+            $campaign,
+            $this->aiCampaignPayloadFromRequest($request),
+            auth()->id()
+        );
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'AI kutlama kaydi guncellendi.');
+    }
+
+    public function aiKutlamaYayinla(
+        Request $request,
+        AiCelebrationCampaign $campaign,
+        AiCelebrationService $aiCelebrationService
+    ) {
+        $this->assertSuperadmin();
+
+        $editableFields = [
+            'event_name',
+            'event_date',
+            'category',
+            'title',
+            'message',
+            'cta_text',
+            'cta_url',
+            'topic_prompt',
+            'display_mode',
+            'frequency_cap',
+            'priority',
+            'publish_starts_at',
+            'publish_ends_at',
+            'show_on_public',
+            'show_on_authenticated',
+        ];
+
+        $updatedCampaign = $campaign->fresh();
+        if ($request->hasAny($editableFields)) {
+            $this->validateAiCampaignUpdate($request);
+
+            $updatedCampaign = $aiCelebrationService->updateCampaign(
+                $campaign,
+                $this->aiCampaignPayloadFromRequest($request),
+                auth()->id()
+            );
+        }
+
+        if (blank($updatedCampaign->title) || blank($updatedCampaign->message) || blank($updatedCampaign->image_path)) {
+            $updatedCampaign = $aiCelebrationService->generateContent($updatedCampaign, $updatedCampaign->topic_prompt, auth()->id());
+        }
+
+        $aiCelebrationService->publishCampaign($updatedCampaign, auth()->id());
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'AI kutlama yayina alindi.');
+    }
+
+    public function aiKutlamaDurdur(AiCelebrationCampaign $campaign, AiCelebrationService $aiCelebrationService)
+    {
+        $this->assertSuperadmin();
+
+        $aiCelebrationService->stopCampaign($campaign, auth()->id());
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'AI kutlama yayini durduruldu.');
+    }
+
+    public function aiKutlamaIstenmeyen(AiCelebrationCampaign $campaign, AiCelebrationService $aiCelebrationService)
+    {
+        $this->assertSuperadmin();
+
+        $aiCelebrationService->dismissCampaign($campaign, auth()->id(), 'Superadmin tarafindan istenmeyen olarak isaretlendi.');
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'Kayit istenmeyen listesine tasindi.');
+    }
+
+    public function aiKutlamaGeriAl(AiCelebrationCampaign $campaign, AiCelebrationService $aiCelebrationService)
+    {
+        $this->assertSuperadmin();
+
+        $aiCelebrationService->restoreCampaign($campaign, auth()->id());
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'ai'])
+            ->with('success', 'Kayit istenmeyen listesinden geri alindi.');
+    }
+
+    public function aiKutlamaOnizleme(AiCelebrationCampaign $campaign)
+    {
+        $this->assertSuperadmin();
+
+        return view('superadmin.ai-kutlama-preview', compact('campaign'));
+    }
+
+    private function validateAiCampaignUpdate(Request $request): void
+    {
+        $request->validate([
+            'event_name' => 'required|string|max:160',
+            'event_date' => 'nullable|date',
+            'category' => 'nullable|string|max:50',
+            'title' => 'required|string|max:160',
+            'message' => 'required|string|max:3000',
+            'cta_text' => 'nullable|string|max:120',
+            'cta_url' => 'nullable|string|max:500',
+            'topic_prompt' => 'nullable|string|max:5000',
+            'display_mode' => 'required|in:banner,popup,card',
+            'frequency_cap' => 'required|integer|min:1|max:20',
+            'priority' => 'required|integer|min:1|max:999',
+            'publish_starts_at' => 'nullable|date',
+            'publish_ends_at' => 'nullable|date|after_or_equal:publish_starts_at',
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function aiCampaignPayloadFromRequest(Request $request): array
+    {
+        return [
+            'event_name' => $request->input('event_name'),
+            'event_date' => $request->input('event_date') ?: null,
+            'category' => $request->input('category', 'genel'),
+            'title' => $request->input('title'),
+            'message' => $request->input('message'),
+            'cta_text' => $request->input('cta_text'),
+            'cta_url' => $request->input('cta_url'),
+            'topic_prompt' => $request->input('topic_prompt'),
+            'display_mode' => $request->input('display_mode', AiCelebrationCampaign::DISPLAY_BANNER),
+            'show_on_public' => $request->boolean('show_on_public'),
+            'show_on_authenticated' => $request->boolean('show_on_authenticated', true),
+            'frequency_cap' => (int) $request->input('frequency_cap', 1),
+            'priority' => (int) $request->input('priority', 100),
+            'publish_starts_at' => $this->parseDateTime($request->input('publish_starts_at')),
+            'publish_ends_at' => $this->parseDateTime($request->input('publish_ends_at')),
+        ];
+    }
+
+    private function parseDateTime(?string $value): ?Carbon
+    {
+        if (! $value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function bildirimSistemleriGuncelle(Request $request)

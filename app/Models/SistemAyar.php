@@ -11,6 +11,7 @@ class SistemAyar extends Model
     public const KEY_EMAIL_ENABLED = 'email_enabled';
     public const KEY_PUSH_ENABLED = 'push_enabled';
     public const KEY_BROADCAST_ENABLED = 'broadcast_enabled';
+    public const KEY_AI_CELEBRATION_ENABLED = 'ai_celebration_enabled';
 
     protected $table      = 'sistem_ayarlari';
     protected $primaryKey = 'key';
@@ -71,5 +72,10 @@ class SistemAyar extends Model
     public static function broadcastEnabled(): bool
     {
         return static::bool(static::KEY_BROADCAST_ENABLED, true);
+    }
+
+    public static function aiCelebrationEnabled(): bool
+    {
+        return static::bool(static::KEY_AI_CELEBRATION_ENABLED, true);
     }
 }

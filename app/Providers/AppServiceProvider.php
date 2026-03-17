@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\AiCelebrationService;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -29,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             static $adminTelefon     = null;
             static $superadminTelefon = null;
+            static $activeAiCampaignByViewer = [];
 
             if ($adminTelefon === null) {
                 try {
@@ -75,10 +77,33 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
+            $activeAiCelebration = null;
+            try {
+                $request = request();
+                $isAiSettingsPage = $request->is('superadmin/ai-kutlama/*')
+                    || ($request->is('superadmin/site-ayarlari') && $request->query('sekme') === 'ai');
+
+                if (! $isAiSettingsPage) {
+                    $viewerKey = auth()->check()
+                        ? ('user_' . auth()->id())
+                        : ('guest_' . ($request->cookie('gtp_guest') ?: session()->getId() ?: $request->ip()));
+
+                    if (! array_key_exists($viewerKey, $activeAiCampaignByViewer)) {
+                        $activeAiCampaignByViewer[$viewerKey] = app(AiCelebrationService::class)
+                            ->activeCampaignForRequest($request, auth()->user());
+                    }
+
+                    $activeAiCelebration = $activeAiCampaignByViewer[$viewerKey];
+                }
+            } catch (\Throwable $e) {
+                $activeAiCelebration = null;
+            }
+
             $view->with('_adminTelefon', $adminTelefon)
                  ->with('_superadminTelefon', $superadminTelefon)
                  ->with('_acentePreviewMode', $previewMode)
-                 ->with('_acentePreviewUser', $previewUser);
+                 ->with('_acentePreviewUser', $previewUser)
+                 ->with('_activeAiCelebration', $activeAiCelebration);
         });
     }
 }

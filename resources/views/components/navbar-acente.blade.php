@@ -100,3 +100,5 @@
     </div>
 </div>
 @endif
+
+<x-ai-kutlama-widget />
