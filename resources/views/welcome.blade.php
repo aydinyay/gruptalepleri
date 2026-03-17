@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 {{-- SEO --}}
 <title>GrupTalepleri — Grup Uçuş ve Charter Talep Platformu | TÜRSAB A Grubu</title>
@@ -409,6 +410,8 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 </style>
 </head>
 <body>
+
+<x-ai-kutlama-widget />
 
 {{-- NAVİGASYON --}}
 <nav>

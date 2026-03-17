@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Grup Talepleri | GrupTalepleri.com | Group Ticket</title>
     <meta name="description" content="Grup Talepleri platformu ile 10+ yolcu grup ucus taleplerinizi hizli toplayin, teklifleri karsilastirin ve operasyon surecini tek panelden yonetin.">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -225,6 +226,7 @@
     @endverbatim
 </head>
 <body>
+    <x-ai-kutlama-widget />
     <header class="hero">
         <div class="container">
             <a class="brand" href="https://gruptalepleri.com"><strong>Grup</strong>Talepleri</a>

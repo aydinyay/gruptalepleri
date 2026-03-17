@@ -41,3 +41,5 @@
         </div>
     </div>
 </nav>
+
+<x-ai-kutlama-widget />
