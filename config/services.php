@@ -34,6 +34,9 @@ return [
 
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
+        'text_model' => env('GEMINI_TEXT_MODEL', 'gemini-2.5-flash'),
+        'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.0-flash-preview-image-generation'),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 60),
     ],
 
     'sms' => [
