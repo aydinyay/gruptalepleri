@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -77,10 +78,45 @@ class AiCelebrationService
                 $stats['existing']++;
             }
 
+            $sourceFieldsChanged = false;
+            if (
+                ! $campaign->wasRecentlyCreated
+                && $campaign->source_key !== null
+                && $campaign->status === AiCelebrationCampaign::STATUS_DRAFT
+            ) {
+                $newEventName = (string) ($item['event_name'] ?? $campaign->event_name);
+                $newCategory = (string) ($item['category'] ?? $campaign->category);
+                $newTopicPrompt = (string) ($item['default_prompt'] ?? $campaign->topic_prompt);
+                $newPriority = (int) ($item['priority'] ?? $campaign->priority);
+
+                if ($campaign->event_name !== $newEventName) {
+                    $campaign->event_name = $newEventName;
+                    $sourceFieldsChanged = true;
+                }
+                if ($campaign->category !== $newCategory) {
+                    $campaign->category = $newCategory;
+                    $sourceFieldsChanged = true;
+                }
+                if ((string) $campaign->topic_prompt !== $newTopicPrompt) {
+                    $campaign->topic_prompt = $newTopicPrompt;
+                    $sourceFieldsChanged = true;
+                }
+                if ((int) $campaign->priority !== $newPriority) {
+                    $campaign->priority = $newPriority;
+                    $sourceFieldsChanged = true;
+                }
+
+                if ($sourceFieldsChanged) {
+                    $campaign->updated_by = $actorId ?? $campaign->updated_by;
+                    $campaign->save();
+                }
+            }
+
             $needsGeneration = $campaign->wasRecentlyCreated
                 || blank($campaign->title)
                 || blank($campaign->message)
-                || blank($campaign->image_path);
+                || blank($campaign->image_path)
+                || $sourceFieldsChanged;
 
             if ($needsGeneration) {
                 $this->generateContent($campaign, $campaign->topic_prompt, $actorId);
@@ -97,7 +133,7 @@ class AiCelebrationService
 
         $campaign = AiCelebrationCampaign::create([
             'source_key' => null,
-            'event_name' => (string) ($data['event_name'] ?? 'Ozel Gun'),
+            'event_name' => (string) ($data['event_name'] ?? 'Özel Gün'),
             'event_date' => $data['event_date'] ?? null,
             'category' => (string) ($data['category'] ?? 'genel'),
             'status' => AiCelebrationCampaign::STATUS_DRAFT,
@@ -130,7 +166,7 @@ class AiCelebrationService
         $campaign->fill([
             'title' => (string) ($textData['title'] ?? $campaign->title ?? ''),
             'message' => (string) ($textData['message'] ?? $campaign->message ?? ''),
-            'cta_text' => (string) ($textData['cta_text'] ?? $campaign->cta_text ?? 'Detaylari Gor'),
+            'cta_text' => (string) ($textData['cta_text'] ?? $campaign->cta_text ?? 'Detayları Gör'),
             'cta_url' => $this->normalizeCtaUrl((string) ($textData['cta_url'] ?? $campaign->cta_url ?? '/dashboard')),
             'visual_prompt' => $visualPrompt,
             'ai_payload' => array_merge($existingPayload, [
@@ -370,21 +406,24 @@ class AiCelebrationService
     {
         $fallback = $this->fallbackTextSuggestion($campaign, $topicPrompt);
         $apiKey = (string) config('services.gemini.key');
+        $model = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
+        $timeout = max(10, (int) config('services.gemini.timeout', 45));
         if ($apiKey === '') {
             return $fallback;
         }
 
         $prompt = implode("\n", [
-            'Sen GrupTalepleri.com B2B platformu icin kutlama icerigi ureten bir asistansin.',
-            'Sadece JSON dondur. Markdown veya aciklama yazma.',
+            'Sen GrupTalepleri.com B2B platformu için kutlama içeriği üreten bir asistansın.',
+            'Sadece JSON döndür. Markdown veya açıklama yazma.',
             'JSON semasi:',
             '{"title":"", "message":"", "cta_text":"", "cta_url":"", "visual_prompt":""}',
             'Kurallar:',
             '- title en fazla 60 karakter',
             '- message en fazla 240 karakter',
+            '- Metinler Türkçe ve doğal olsun, Türkçe karakterleri doğru kullan (ç, ğ, ı, İ, ö, ş, ü)',
             '- Metin sade, kurumsal ve pozitif olsun',
-            '- Hicbir sekilde fiyat, indirim, spam, siyasi ifade olmasin',
-            '- cta_url mutlak URL olmak zorunda degil, /dashboard kullanilabilir',
+            '- Hiçbir şekilde fiyat, indirim, spam, siyasi ifade olmasın',
+            '- cta_url mutlak URL olmak zorunda değil, /dashboard kullanılabilir',
             'Etkinlik adi: ' . $campaign->event_name,
             'Kategori: ' . $campaign->category,
             'Etkinlik tarihi: ' . ($campaign->event_date?->format('Y-m-d') ?? '-'),
@@ -392,8 +431,8 @@ class AiCelebrationService
         ]);
 
         try {
-            $response = Http::timeout(45)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}",
+            $response = Http::timeout($timeout)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
                 [
                     'contents' => [['parts' => [['text' => $prompt]]]],
                     'generationConfig' => [
@@ -407,7 +446,7 @@ class AiCelebrationService
         }
 
         if ($response->failed()) {
-            Log::warning('AI kutlama metin uretimi basarisiz HTTP: ' . $response->status());
+            Log::warning('AI kutlama metin uretimi basarisiz: ' . $this->extractGeminiError($response));
             return $fallback;
         }
 
@@ -431,75 +470,97 @@ class AiCelebrationService
      */
     private function generateImage(AiCelebrationCampaign $campaign, string $visualPrompt): array
     {
-        $prompt = trim($visualPrompt) !== '' ? trim($visualPrompt) : ('GrupTalepleri icin ' . $campaign->event_name . ' kutlama gorseli');
+        $prompt = trim($visualPrompt) !== ''
+            ? trim($visualPrompt)
+            : ('GrupTalepleri için ' . $campaign->event_name . ' kutlama görseli');
         $apiKey = (string) config('services.gemini.key');
+        $timeout = max(10, (int) config('services.gemini.timeout', 60));
+        $models = $this->geminiImageModels();
 
         if ($apiKey !== '') {
-            try {
-                $response = Http::timeout(60)->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key={$apiKey}",
-                    [
-                        'contents' => [[
-                            'parts' => [[
-                                'text' => $prompt . '. Metin yazma, sadece gorsel uret.',
+            $errors = [];
+            foreach ($models as $model) {
+                try {
+                    $response = Http::timeout($timeout)->post(
+                        "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                        [
+                            'contents' => [[
+                                'parts' => [[
+                                    'text' => $prompt . '. Üzerinde yazı olmayan, temiz ve kurumsal bir görsel üret.',
+                                ]],
                             ]],
-                        ]],
-                        'generationConfig' => [
-                            'responseModalities' => ['TEXT', 'IMAGE'],
-                        ],
-                    ]
-                );
-
-                if ($response->ok()) {
-                    $parts = (array) data_get($response->json(), 'candidates.0.content.parts', []);
-                    foreach ($parts as $part) {
-                        $inlineData = $part['inlineData'] ?? $part['inline_data'] ?? null;
-                        if (! is_array($inlineData)) {
-                            continue;
-                        }
-
-                        $base64 = (string) ($inlineData['data'] ?? '');
-                        if ($base64 === '') {
-                            continue;
-                        }
-
-                        $binary = base64_decode($base64, true);
-                        if ($binary === false) {
-                            continue;
-                        }
-
-                        $mimeType = strtolower((string) ($inlineData['mimeType'] ?? $inlineData['mime_type'] ?? 'image/png'));
-                        $extension = str_contains($mimeType, 'jpeg') || str_contains($mimeType, 'jpg') ? 'jpg' : 'png';
-
-                        $storedPath = $this->storeImageBinary($campaign, $binary, $extension);
-                        if ($storedPath !== null) {
-                            return [
-                                'path' => $storedPath,
-                                'source' => 'gemini',
-                                'error' => null,
-                            ];
-                        }
-
-                        return [
-                            'path' => null,
-                            'source' => 'none',
-                            'error' => 'AI gorseli kaydedilemedi.',
-                        ];
-                    }
+                            'generationConfig' => [
+                                'responseModalities' => ['TEXT', 'IMAGE'],
+                            ],
+                        ]
+                    );
+                } catch (\Throwable $exception) {
+                    $errors[] = "{$model}: " . $exception->getMessage();
+                    Log::warning('AI kutlama gorsel uretimi baglanti hatasi', [
+                        'model' => $model,
+                        'error' => $exception->getMessage(),
+                    ]);
+                    continue;
                 }
 
-                Log::warning('AI kutlama gorsel uretimi cevabinda image verisi yok.');
-                return $this->fallbackImageResult($campaign, 'Gemini gorsel cevabinda image verisi yok.');
-            } catch (\Throwable $exception) {
-                Log::warning('AI kutlama gorsel uretimi fallback: ' . $exception->getMessage());
-                return $this->fallbackImageResult($campaign, 'Gemini gorsel uretimi hatasi: ' . $exception->getMessage());
+                if (! $response->ok()) {
+                    $errors[] = "{$model}: " . $this->extractGeminiError($response);
+                    Log::warning('AI kutlama gorsel uretimi basarisiz HTTP', [
+                        'model' => $model,
+                        'status' => $response->status(),
+                        'body' => Str::limit((string) $response->body(), 600),
+                    ]);
+                    continue;
+                }
+
+                $parts = (array) data_get($response->json(), 'candidates.0.content.parts', []);
+                foreach ($parts as $part) {
+                    $inlineData = $part['inlineData'] ?? $part['inline_data'] ?? null;
+                    if (! is_array($inlineData)) {
+                        continue;
+                    }
+
+                    $base64 = (string) ($inlineData['data'] ?? '');
+                    if ($base64 === '') {
+                        continue;
+                    }
+
+                    $binary = base64_decode($base64, true);
+                    if ($binary === false) {
+                        continue;
+                    }
+
+                    $mimeType = strtolower((string) ($inlineData['mimeType'] ?? $inlineData['mime_type'] ?? 'image/png'));
+                    $extension = str_contains($mimeType, 'jpeg') || str_contains($mimeType, 'jpg') ? 'jpg' : 'png';
+
+                    $storedPath = $this->storeImageBinary($campaign, $binary, $extension);
+                    if ($storedPath !== null) {
+                        return [
+                            'path' => $storedPath,
+                            'source' => 'gemini',
+                            'error' => null,
+                        ];
+                    }
+
+                    return [
+                        'path' => null,
+                        'source' => 'none',
+                        'error' => 'AI görseli üretildi ancak dosyaya kaydedilemedi.',
+                    ];
+                }
+
+                $errors[] = "{$model}: yanıtta image verisi yok";
             }
 
-            Log::warning('AI kutlama gorsel uretimi basarisiz HTTP: ' . $response->status());
-            return $this->fallbackImageResult($campaign, 'Gemini gorsel HTTP hatasi: ' . $response->status());
+            $errorMessage = 'Gemini görsel üretimi başarısız.';
+            if (! empty($errors)) {
+                $errorMessage .= ' ' . implode(' | ', $errors);
+            }
+
+            return $this->fallbackImageResult($campaign, $errorMessage);
         }
 
-        return $this->fallbackImageResult($campaign, 'Gemini API key tanimli degil.');
+        return $this->fallbackImageResult($campaign, 'Gemini API anahtarı tanımlı değil.');
     }
 
     /**
@@ -544,10 +605,10 @@ class AiCelebrationService
 
         return [
             'title' => $title,
-            'message' => 'Grup Talepleri ailesi olarak ' . $eventName . ' gununuzu ictenlikle kutlar, bereketli bir gun dileriz.',
-            'cta_text' => 'Talepleri Gor',
+            'message' => 'Grup Talepleri ailesi olarak ' . $eventName . ' gününüzü içtenlikle kutlar, bereketli bir gün dileriz.',
+            'cta_text' => 'Talepleri Gör',
             'cta_url' => '/dashboard',
-            'visual_prompt' => trim($eventName . ' icin mavi-kirmizi tonlarda modern, temiz ve kurumsal kutlama afisi. GrupTalepleri stili.'),
+            'visual_prompt' => trim($eventName . ' için mavi-kırmızı tonlarda modern, temiz ve kurumsal kutlama afişi. GrupTalepleri stili.'),
         ];
     }
 
@@ -595,7 +656,25 @@ class AiCelebrationService
             return null;
         }
 
-        $safeTitle = htmlspecialchars(Str::limit($campaign->event_name, 40, ''), ENT_QUOTES, 'UTF-8');
+        $rawTitle = trim((string) ($campaign->title ?: $campaign->event_name));
+        $titleLines = $this->buildSvgTitleLines($rawTitle);
+        $lineCount = count($titleLines);
+        $fontSize = $lineCount === 1 ? 64 : ($lineCount === 2 ? 56 : 48);
+        $lineHeight = $lineCount === 1 ? 74 : ($lineCount === 2 ? 66 : 58);
+        $startY = $lineCount === 1 ? 300 : ($lineCount === 2 ? 270 : 245);
+
+        $tspans = [];
+        foreach ($titleLines as $index => $line) {
+            $safeLine = htmlspecialchars($line, ENT_QUOTES, 'UTF-8');
+            if ($index === 0) {
+                $tspans[] = '<tspan x="80" dy="0">' . $safeLine . '</tspan>';
+                continue;
+            }
+
+            $tspans[] = '<tspan x="80" dy="' . $lineHeight . '">' . $safeLine . '</tspan>';
+        }
+
+        $titleMarkup = implode('', $tspans);
         $safeSub = htmlspecialchars('GrupTalepleri', ENT_QUOTES, 'UTF-8');
 
         $svg = <<<SVG
@@ -609,7 +688,7 @@ class AiCelebrationService
   <rect width="1200" height="628" fill="url(#bg)"/>
   <circle cx="1020" cy="120" r="220" fill="#e94560" opacity="0.15"/>
   <circle cx="120" cy="560" r="180" fill="#4ea8ff" opacity="0.18"/>
-  <text x="80" y="300" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="64" font-weight="700">{$safeTitle}</text>
+  <text x="80" y="{$startY}" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="{$fontSize}" font-weight="700">{$titleMarkup}</text>
   <text x="80" y="360" fill="#ff6f8a" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="600">{$safeSub}</text>
 </svg>
 SVG;
@@ -627,6 +706,79 @@ SVG;
         }
 
         return '/uploads/ai-kutlama/' . $fileName;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function buildSvgTitleLines(string $title): array
+    {
+        $normalized = trim((string) preg_replace('/\s+/u', ' ', $title));
+        if ($normalized === '') {
+            return ['Özel Gün'];
+        }
+
+        $wrapped = preg_split('/\n/u', wordwrap($normalized, 24, "\n", true)) ?: [$normalized];
+        $wrapped = array_values(array_filter(array_map(static fn ($line) => trim((string) $line), $wrapped)));
+        if (empty($wrapped)) {
+            return ['Özel Gün'];
+        }
+
+        $maxLines = 3;
+        if (count($wrapped) <= $maxLines) {
+            return $wrapped;
+        }
+
+        $lines = array_slice($wrapped, 0, $maxLines);
+        $last = (string) end($lines);
+        $last = rtrim($last, '. ');
+        if (mb_strlen($last, 'UTF-8') > 1) {
+            $last = mb_substr($last, 0, mb_strlen($last, 'UTF-8') - 1, 'UTF-8');
+        }
+        $lines[$maxLines - 1] = rtrim($last) . '…';
+
+        return $lines;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function geminiImageModels(): array
+    {
+        $configuredModel = (string) config('services.gemini.image_model', 'gemini-2.0-flash-preview-image-generation');
+
+        $models = array_filter([
+            trim($configuredModel),
+            'gemini-2.0-flash-preview-image-generation',
+            'gemini-2.0-flash-exp-image-generation',
+        ]);
+
+        return array_values(array_unique($models));
+    }
+
+    private function extractGeminiError(Response $response): string
+    {
+        $status = (int) $response->status();
+        $payload = $response->json();
+
+        $message = trim((string) data_get($payload, 'error.message', ''));
+        $apiStatus = trim((string) data_get($payload, 'error.status', ''));
+        $reason = trim((string) data_get($payload, 'error.details.0.reason', ''));
+
+        $parts = ['HTTP ' . $status];
+        if ($apiStatus !== '') {
+            $parts[] = $apiStatus;
+        }
+        if ($reason !== '') {
+            $parts[] = $reason;
+        }
+        if ($message !== '') {
+            $parts[] = $message;
+        } else {
+            $parts[] = Str::limit(trim((string) $response->body()), 240);
+        }
+
+        return implode(' | ', array_filter($parts));
     }
 
     /**
