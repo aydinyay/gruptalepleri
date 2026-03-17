@@ -27,14 +27,6 @@
                class="nav-lc {{ in_array($active, ['site-ayarlar', 'sms-ayarlar'], true) ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-cogs me-1"></i>Site Ayarlari
             </a>
-            <a href="{{ route('superadmin.sms.raporlar') }}"
-               class="nav-lc {{ $active === 'sms-raporlar' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-chart-bar me-1"></i>SMS Raporlar
-            </a>
-            <a href="{{ route('superadmin.broadcast.gecmisi') }}"
-               class="nav-lc {{ $active === 'broadcast' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-bullhorn me-1"></i>Duyuru
-            </a>
             <x-notification-bell />
             <a href="{{ route('profile.edit') }}"
                class="nav-lc d-none d-md-inline border-start border-secondary ps-3 ms-1">
