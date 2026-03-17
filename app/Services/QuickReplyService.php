@@ -421,8 +421,26 @@ class QuickReplyService
 
     private function extractGtpnr(string $text): ?string
     {
-        if (preg_match('/\b([A-Z]{2,3}-[A-Z0-9]{6}|[A-Z0-9]{6})\b/u', strtoupper($text), $matches) === 1) {
-            return strtoupper((string) $matches[1]);
+        preg_match_all('/\b([A-Z]{2,3}-[A-Z0-9]{6}|[A-Z0-9]{6})\b/u', strtoupper($text), $matches);
+        $tokens = array_values(array_unique($matches[1] ?? []));
+        if (empty($tokens)) {
+            return null;
+        }
+
+        foreach ($tokens as $token) {
+            $exists = RequestModel::query()
+                ->whereRaw('UPPER(gtpnr) = ?', [strtoupper($token)])
+                ->exists();
+            if ($exists) {
+                return strtoupper($token);
+            }
+        }
+
+        // Veritabaninda yoksa sadece tireli formati aday kabul et, aksi halde null don.
+        foreach ($tokens as $token) {
+            if (str_contains($token, '-')) {
+                return strtoupper($token);
+            }
         }
 
         return null;
