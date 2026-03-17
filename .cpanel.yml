@@ -3,4 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/gruprez1/public_html
     - /bin/mkdir -p "$DEPLOYPATH"
-    - /usr/bin/git archive --format=tar HEAD | /bin/tar -xf - -C "$DEPLOYPATH"
+    - git checkout-index -a -f --prefix="$DEPLOYPATH/"
