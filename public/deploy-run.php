@@ -44,6 +44,7 @@ try {
     require $basePath . '/vendor/autoload.php';
     $app = require $basePath . '/bootstrap/app.php';
     $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
 } catch (Throwable $e) {
     http_response_code(500);
     echo '<pre>Laravel bootstrap hatasi:
