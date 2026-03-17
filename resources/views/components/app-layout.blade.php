@@ -6,6 +6,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="robots" content="noindex, nofollow, noarchive">
+        <meta name="googlebot" content="noindex, nofollow, noarchive">
 
         <title>{{ config('app.name') && strcasecmp(config('app.name'), 'Laravel') !== 0 ? config('app.name') : 'GrupTalepleri' }}</title>
 
