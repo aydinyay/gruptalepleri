@@ -11,6 +11,7 @@ use App\Models\SistemAyar;
 use App\Models\SmsNotificationSetting;
 use App\Models\RequestNotification;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 
 class SuperadminController extends Controller
@@ -312,6 +313,27 @@ class SuperadminController extends Controller
 
     // ── BİLDİRİM SİLME ───────────────────────────────────────────────────────
 
+    public function smsTeslimDurumlariGuncelle(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $limit = (int) $request->input('limit', 100);
+        $limit = max(1, min(300, $limit));
+
+        $sonuc = (new SmsService())->refreshDeliveryStatuses($limit);
+        $mesaj = sprintf(
+            'SMS durum guncelleme tamamlandi. Kontrol:%d Guncel:%d Iletildi:%d Iletilemedi:%d Bekliyor:%d Hata:%d',
+            $sonuc['checked'],
+            $sonuc['updated'],
+            $sonuc['delivered'],
+            $sonuc['undelivered'],
+            $sonuc['pending'],
+            $sonuc['errors']
+        );
+
+        return back()->with('success', $mesaj);
+    }
+
     public function bildirimSil(KullaniciBildirimi $bildirim)
     {
         // Sadece kendi bildirimini silebilir
@@ -399,21 +421,54 @@ class SuperadminController extends Controller
 
     public function smsRaporlar(Request $request)
     {
+        $channel = $request->input('channel', 'all');
+        if (! in_array($channel, ['all', 'sms', 'email'], true)) {
+            $channel = 'all';
+        }
+
+        $sharedFilters = function ($queryBuilder) use ($request): void {
+            if ($request->filled('recipient')) {
+                $queryBuilder->where('recipient', $request->recipient);
+            }
+            if ($request->filled('status')) {
+                $queryBuilder->where('status', $request->status);
+            }
+            if ($request->filled('tarih')) {
+                $queryBuilder->whereDate('created_at', $request->tarih);
+            }
+        };
+
         $query = RequestNotification::with('request')
             ->orderBy('created_at', 'desc');
 
-        if ($request->filled('recipient')) {
-            $query->where('recipient', $request->recipient);
+        $sharedFilters($query);
+
+        if ($channel !== 'all') {
+            $query->where('channel', $channel);
         }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('tarih')) {
-            $query->whereDate('created_at', $request->tarih);
-        }
+
+        $countQuery = RequestNotification::query();
+        $sharedFilters($countQuery);
+        $groupedCounts = $countQuery
+            ->selectRaw('channel, count(*) as total')
+            ->groupBy('channel')
+            ->pluck('total', 'channel');
+
+        $channelCounts = [
+            'sms' => (int) ($groupedCounts['sms'] ?? 0),
+            'email' => (int) ($groupedCounts['email'] ?? 0),
+        ];
+        $channelCounts['all'] = $channelCounts['sms'] + $channelCounts['email'];
 
         $logs = $query->paginate(50)->withQueryString();
+        $smsInfo = (new SmsService())->getAccountInfo();
+        $smsBalance = [
+            'available' => $smsInfo['available'],
+            'balance' => $smsInfo['balance'],
+            'raw' => $smsInfo['raw'],
+            'message' => $smsInfo['message'],
+        ];
 
-        return view('superadmin.sms-raporlar', compact('logs'));
+        return view('superadmin.sms-raporlar', compact('logs', 'channel', 'channelCounts', 'smsBalance', 'smsInfo'));
     }
 }

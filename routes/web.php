@@ -105,6 +105,7 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
 
     // SMS Raporlar
     Route::get('/sms-raporlar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsRaporlar'])->name('sms.raporlar');
+    Route::post('/sms-raporlar/durum-guncelle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsTeslimDurumlariGuncelle'])->name('sms.log.durum-guncelle');
     Route::delete('/sms-raporlar/{log}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsLogSil'])->name('sms.log.sil');
     Route::post('/sms-raporlar/hepsini-sil', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsLogHepsiniSil'])->name('sms.log.hepsini-sil');
 
