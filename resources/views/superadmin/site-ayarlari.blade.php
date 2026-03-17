@@ -355,17 +355,301 @@
     @endif
 
     @if($activeTab === 'ai')
-        <div class="card shadow-sm border-info">
+        <div class="card shadow-sm border-info mb-3">
             <div class="card-header fw-bold d-flex align-items-center gap-2" style="background:#e8f4fd;border-bottom:1px solid #b8daff;">
                 <i class="fas fa-robot text-info"></i>
                 <span>AI Kutlama ve Ozel Gun Modulu</span>
             </div>
+            <div class="card-body py-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <form method="POST" action="{{ route('superadmin.ai-kutlama.ayar') }}" class="d-flex align-items-center gap-3">
+                        @csrf
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="ai_celebration_enabled" name="ai_celebration_enabled" value="1" {{ ($aiModuleEnabled ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="ai_celebration_enabled">AI kutlama modulu aktif</label>
+                        </div>
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="fas fa-save me-1"></i>Kaydet
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ route('superadmin.ai-kutlama.tara') }}" class="d-flex align-items-center gap-2 flex-wrap">
+                        @csrf
+                        <label class="small text-muted mb-0">Tarama gunu</label>
+                        <input type="number" min="1" max="14" name="days" value="7" class="form-control form-control-sm" style="max-width:90px;">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="force_refresh" name="force_refresh" value="1">
+                            <label class="form-check-label small" for="force_refresh">Cache sifirla</label>
+                        </div>
+                        <button class="btn btn-sm btn-info text-white" type="submit">
+                            <i class="fas fa-sync-alt me-1"></i>7 Gunu Tara
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-lg-3">
+                <div class="card kpi-card shadow-sm p-3">
+                    <div class="fw-bold fs-5">{{ $aiStats['toplam'] ?? 0 }}</div>
+                    <div class="text-muted small">Toplam Kampanya</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card kpi-card shadow-sm p-3">
+                    <div class="fw-bold fs-5 text-success">{{ $aiStats['yayinda'] ?? 0 }}</div>
+                    <div class="text-muted small">Yayinda</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card kpi-card shadow-sm p-3">
+                    <div class="fw-bold fs-5 text-primary">{{ $aiStats['taslak'] ?? 0 }}</div>
+                    <div class="text-muted small">Taslak / Onayli</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card kpi-card shadow-sm p-3">
+                    <div class="fw-bold fs-5 text-danger">{{ $aiStats['istenmeyen'] ?? 0 }}</div>
+                    <div class="text-muted small">Istenmeyen</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="fas fa-magic me-1 text-info"></i>Manuel AI Onerisi Uret
+            </div>
             <div class="card-body">
-                <p class="mb-2">Bu adimda hedeflenen akis:</p>
-                <p class="mb-1 small text-muted">1. Sistem onumuzdeki 7 gunu tarar ve ozel gun onerileri uretir.</p>
-                <p class="mb-1 small text-muted">2. Superadmin gorsel/metni duzenler, onaylar ve yayin saatini belirler.</p>
-                <p class="mb-1 small text-muted">3. Kullanicida tekil gosterim kurali ile spam olusmadan yayinlanir.</p>
-                <p class="mb-0 small text-muted">4. Kim gordu / kim kapatti raporlanir, silinenler istenmeyen listesine gider.</p>
+                <form method="POST" action="{{ route('superadmin.ai-kutlama.manual') }}">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-4">
+                            <label class="form-label small mb-1">Ozel gun / konu</label>
+                            <input type="text" name="event_name" class="form-control form-control-sm" required placeholder="Orn: Ramazan Bayrami">
+                        </div>
+                        <div class="col-6 col-lg-2">
+                            <label class="form-label small mb-1">Tarih</label>
+                            <input type="date" name="event_date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6 col-lg-2">
+                            <label class="form-label small mb-1">Gosterim</label>
+                            <select name="display_mode" class="form-select form-select-sm">
+                                <option value="banner">Top Banner</option>
+                                <option value="popup">Popup</option>
+                                <option value="card">Dashboard Card</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-lg-2">
+                            <label class="form-label small mb-1">Frekans</label>
+                            <input type="number" min="1" max="20" name="frequency_cap" value="1" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6 col-lg-2">
+                            <label class="form-label small mb-1">Oncelik</label>
+                            <input type="number" min="1" max="999" name="priority" value="100" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12 col-lg-3">
+                            <label class="form-label small mb-1">Yayin baslangic</label>
+                            <input type="datetime-local" name="publish_starts_at" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12 col-lg-3">
+                            <label class="form-label small mb-1">Yayin bitis</label>
+                            <input type="datetime-local" name="publish_ends_at" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12 col-lg-6 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="show_on_public" value="1" id="manual_show_on_public">
+                                <label class="form-check-label small" for="manual_show_on_public">
+                                    Uye girisi gerekmeyen sayfalarda da goster
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small mb-1">Gemini konu/prompt</label>
+                            <textarea name="topic_prompt" rows="3" class="form-control" required placeholder="Kutlama dili, ton, gorsel tarz beklentisi..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-info text-white" type="submit">
+                            <i class="fas fa-sparkles me-1"></i>AI Onerisi Olustur
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">Aktif / Taslak Kayitlar</div>
+            <div class="card-body">
+                @if(($aiCampaigns ?? collect())->isEmpty())
+                    <div class="text-muted small">Henuz AI kutlama kaydi yok.</div>
+                @else
+                    @foreach($aiCampaigns as $campaign)
+                        @php
+                            $statusColor = match($campaign->status) {
+                                'published' => 'success',
+                                'approved' => 'primary',
+                                default => 'secondary'
+                            };
+                        @endphp
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+                                <div>
+                                    <div class="fw-bold">{{ $campaign->event_name }}</div>
+                                    <div class="small text-muted">
+                                        Tarih: {{ $campaign->event_date?->format('d.m.Y') ?? '-' }} ·
+                                        Gosterim: {{ strtoupper($campaign->display_mode) }} ·
+                                        Goren: {{ $campaign->seen_users_count ?? 0 }} ·
+                                        Kapatan: {{ $campaign->closed_users_count ?? 0 }}
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-{{ $statusColor }}">{{ strtoupper($campaign->status) }}</span>
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('superadmin.ai-kutlama.onizleme', $campaign) }}" target="_blank">Onizleme</a>
+                                    <form method="POST" action="{{ route('superadmin.ai-kutlama.yeniden-uret', $campaign) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-info">Yeniden Uret</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                @if($campaign->image_path)
+                                    <div class="col-12 col-lg-3">
+                                        <img src="{{ $campaign->image_path }}" alt="AI gorsel" class="img-fluid rounded border">
+                                    </div>
+                                @endif
+                                <div class="col-12 {{ $campaign->image_path ? 'col-lg-9' : '' }}">
+                                    <form method="POST" action="{{ route('superadmin.ai-kutlama.guncelle', $campaign) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="show_on_authenticated" value="1">
+                                        <div class="row g-2">
+                                            <div class="col-12 col-lg-4">
+                                                <label class="form-label small mb-1">Ozel gun</label>
+                                                <input type="text" name="event_name" value="{{ $campaign->event_name }}" class="form-control form-control-sm" required>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label class="form-label small mb-1">Tarih</label>
+                                                <input type="date" name="event_date" value="{{ $campaign->event_date?->format('Y-m-d') }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label class="form-label small mb-1">Kategori</label>
+                                                <input type="text" name="category" value="{{ $campaign->category }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label class="form-label small mb-1">Gosterim</label>
+                                                <select name="display_mode" class="form-select form-select-sm">
+                                                    <option value="banner" {{ $campaign->display_mode === 'banner' ? 'selected' : '' }}>Banner</option>
+                                                    <option value="popup" {{ $campaign->display_mode === 'popup' ? 'selected' : '' }}>Popup</option>
+                                                    <option value="card" {{ $campaign->display_mode === 'card' ? 'selected' : '' }}>Card</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label class="form-label small mb-1">Frekans</label>
+                                                <input type="number" min="1" max="20" name="frequency_cap" value="{{ $campaign->frequency_cap }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label class="form-label small mb-1">Oncelik</label>
+                                                <input type="number" min="1" max="999" name="priority" value="{{ $campaign->priority }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6 col-lg-5">
+                                                <label class="form-label small mb-1">Baslik</label>
+                                                <input type="text" name="title" value="{{ $campaign->title }}" class="form-control form-control-sm" required>
+                                            </div>
+                                            <div class="col-6 col-lg-3">
+                                                <label class="form-label small mb-1">Buton Metni</label>
+                                                <input type="text" name="cta_text" value="{{ $campaign->cta_text }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-12 col-lg-4">
+                                                <label class="form-label small mb-1">Buton Linki</label>
+                                                <input type="text" name="cta_url" value="{{ $campaign->cta_url }}" class="form-control form-control-sm" placeholder="/dashboard">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small mb-1">Mesaj</label>
+                                                <textarea name="message" rows="3" class="form-control form-control-sm" required>{{ $campaign->message }}</textarea>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small mb-1">AI Topic Prompt</label>
+                                                <textarea name="topic_prompt" rows="2" class="form-control form-control-sm">{{ $campaign->topic_prompt }}</textarea>
+                                            </div>
+                                            <div class="col-6 col-lg-4">
+                                                <label class="form-label small mb-1">Yayin Baslangic</label>
+                                                <input type="datetime-local" name="publish_starts_at" value="{{ $campaign->publish_starts_at?->format('Y-m-d\\TH:i') }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6 col-lg-4">
+                                                <label class="form-label small mb-1">Yayin Bitis</label>
+                                                <input type="datetime-local" name="publish_ends_at" value="{{ $campaign->publish_ends_at?->format('Y-m-d\\TH:i') }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-12 col-lg-4 d-flex align-items-end">
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="show_on_public" value="1" id="show_public_{{ $campaign->id }}" {{ $campaign->show_on_public ? 'checked' : '' }}>
+                                                    <label class="form-check-label small" for="show_public_{{ $campaign->id }}">Public sayfalarda goster</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 d-flex flex-wrap gap-2">
+                                            <button class="btn btn-sm btn-primary" type="submit">Kaydet</button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('superadmin.ai-kutlama.yayinla', $campaign) }}" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-sm btn-success" type="submit">Yayina Al</button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('superadmin.ai-kutlama.durdur', $campaign) }}" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-warning" type="submit">Yayindan Kaldir</button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('superadmin.ai-kutlama.istenmeyen', $campaign) }}" class="d-inline" onsubmit="return confirm('Bu kayit istenmeyen listesine tasinsin mi?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Istenmeyen Yap</button>
+                                    </form>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold text-danger">Istenmeyen Listesi</div>
+            <div class="card-body">
+                @if(($aiDismissedCampaigns ?? collect())->isEmpty())
+                    <div class="text-muted small">Istenmeyen listesinde kayit yok.</div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Etkinlik</th>
+                                    <th>Tarih</th>
+                                    <th>Neden</th>
+                                    <th>Islem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($aiDismissedCampaigns as $dismissedCampaign)
+                                    <tr>
+                                        <td>{{ $dismissedCampaign->event_name }}</td>
+                                        <td>{{ $dismissedCampaign->event_date?->format('d.m.Y') ?? '-' }}</td>
+                                        <td>{{ $dismissedCampaign->dismiss_reason ?: '-' }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ route('superadmin.ai-kutlama.geri-al', $dismissedCampaign) }}">
+                                                @csrf
+                                                <button class="btn btn-sm btn-outline-primary" type="submit">Geri Al</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
     @endif

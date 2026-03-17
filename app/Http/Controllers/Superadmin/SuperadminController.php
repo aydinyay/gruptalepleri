@@ -389,13 +389,34 @@ class SuperadminController extends Controller
     ) {
         $this->assertSuperadmin();
 
-        $this->validateAiCampaignUpdate($request);
+        $editableFields = [
+            'event_name',
+            'event_date',
+            'category',
+            'title',
+            'message',
+            'cta_text',
+            'cta_url',
+            'topic_prompt',
+            'display_mode',
+            'frequency_cap',
+            'priority',
+            'publish_starts_at',
+            'publish_ends_at',
+            'show_on_public',
+            'show_on_authenticated',
+        ];
 
-        $updatedCampaign = $aiCelebrationService->updateCampaign(
-            $campaign,
-            $this->aiCampaignPayloadFromRequest($request),
-            auth()->id()
-        );
+        $updatedCampaign = $campaign->fresh();
+        if ($request->hasAny($editableFields)) {
+            $this->validateAiCampaignUpdate($request);
+
+            $updatedCampaign = $aiCelebrationService->updateCampaign(
+                $campaign,
+                $this->aiCampaignPayloadFromRequest($request),
+                auth()->id()
+            );
+        }
 
         if (blank($updatedCampaign->title) || blank($updatedCampaign->message) || blank($updatedCampaign->image_path)) {
             $updatedCampaign = $aiCelebrationService->generateContent($updatedCampaign, $updatedCampaign->topic_prompt, auth()->id());
