@@ -177,8 +177,14 @@ class SuperadminController extends Controller
         return view('superadmin.sms-ayarlari', compact('ayarlar', 'events', 'opsiyonAyarlar', 'schedulerAralik', 'smsBaslangic', 'smsBitis', 'notificationSystems'));
     }
 
-    public function siteAyarlari()
+    public function siteAyarlari(Request $request)
     {
+        $allowedTabs = ['bildirim', 'sms', 'duyuru', 'rapor', 'ai'];
+        $activeTab = $request->query('sekme', 'bildirim');
+        if (! in_array($activeTab, $allowedTabs, true)) {
+            $activeTab = 'bildirim';
+        }
+
         $notificationSystems = [
             'sms' => SistemAyar::smsEnabled(),
             'email' => SistemAyar::emailEnabled(),
@@ -193,7 +199,34 @@ class SuperadminController extends Controller
             'iletisim_log' => RequestNotification::count(),
         ];
 
-        return view('superadmin.site-ayarlari', compact('notificationSystems', 'stats'));
+        $schedulerAralik = (int) SistemAyar::get('opsiyon_check_aralik', 1440);
+        $smsBaslangic = SistemAyar::get('sms_baslangic_saat', '08:00');
+        $smsBitis = SistemAyar::get('sms_bitis_saat', '21:00');
+        $opsiyonAyarlar = OpsiyonUyariAyar::orderBy('saat_oncesi', 'desc')->limit(5)->get();
+        $recentSmsRules = SmsNotificationSetting::orderByDesc('updated_at')->limit(5)->get();
+        $recentBroadcasts = BroadcastNotification::with('sender')->orderByDesc('created_at')->limit(5)->get();
+        $recentLogs = RequestNotification::orderByDesc('created_at')->limit(5)->get();
+        $channelCounts = [
+            'sms' => RequestNotification::where('channel', 'sms')->count(),
+            'email' => RequestNotification::where('channel', 'email')->count(),
+        ];
+
+        return view(
+            'superadmin.site-ayarlari',
+            compact(
+                'activeTab',
+                'notificationSystems',
+                'stats',
+                'schedulerAralik',
+                'smsBaslangic',
+                'smsBitis',
+                'opsiyonAyarlar',
+                'recentSmsRules',
+                'recentBroadcasts',
+                'recentLogs',
+                'channelCounts'
+            )
+        );
     }
 
     public function bildirimSistemleriGuncelle(Request $request)
