@@ -396,6 +396,33 @@ class QuickReplyController extends Controller
             return [$existing, $existing->agency, false];
         }
 
+        $normalizedNeedle = $this->normalizeComparable($agencyName);
+        if ($normalizedNeedle !== '') {
+            $agencyPool = Agency::with('user')
+                ->select(['id', 'user_id', 'company_title', 'tourism_title'])
+                ->limit(300)
+                ->get();
+
+            $bestAgency = null;
+            $bestPercent = 0.0;
+            foreach ($agencyPool as $candidate) {
+                $candidateName = $candidate->company_title ?: $candidate->tourism_title;
+                if (! $candidateName) {
+                    continue;
+                }
+
+                similar_text($normalizedNeedle, $this->normalizeComparable($candidateName), $percent);
+                if ($percent > $bestPercent) {
+                    $bestPercent = $percent;
+                    $bestAgency = $candidate;
+                }
+            }
+
+            if ($bestAgency && $bestPercent >= 85) {
+                return [$bestAgency->user, $bestAgency, false];
+            }
+        }
+
         $password = Str::password(10);
         $user = User::create([
             'name' => $contactName,
@@ -507,5 +534,17 @@ class QuickReplyController extends Controller
         } catch (\Throwable) {
             // Erişim bilgilendirmesi hata verse de ana teklif akışı başarısız sayılmaz.
         }
+    }
+
+    private function normalizeComparable(string $value): string
+    {
+        $value = mb_strtolower(trim($value), 'UTF-8');
+        $value = strtr($value, [
+            'ç' => 'c', 'ğ' => 'g', 'ı' => 'i', 'ö' => 'o', 'ş' => 's', 'ü' => 'u',
+            'Ç' => 'c', 'Ğ' => 'g', 'İ' => 'i', 'Ö' => 'o', 'Ş' => 's', 'Ü' => 'u',
+        ]);
+        $value = preg_replace('/[^a-z0-9\s]/', ' ', $value) ?? $value;
+        $value = preg_replace('/\s+/', ' ', $value) ?? $value;
+        return trim($value);
     }
 }
