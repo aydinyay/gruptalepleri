@@ -54,6 +54,11 @@ Route::get('/', function () {
     return view('welcome', compact('stats'));
 });
 
+// SEO odakli landing sayfasi (public)
+Route::get('/grup-talepleri', function () {
+    return view('marketing.grup-talepleri');
+})->name('marketing.grup-talepleri');
+
 Route::get('/dashboard', function () {
     $user = auth()->user();
     return match($user->role) {
