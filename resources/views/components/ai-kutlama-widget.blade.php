@@ -28,12 +28,26 @@
                 border-bottom: 1px solid rgba(255, 255, 255, 0.18);
             }
             .ai-kutlama-body { padding: .9rem 1rem 1rem; }
-            .ai-kutlama-title { font-weight: 700; font-size: 1rem; margin-bottom: .35rem; }
+            .ai-kutlama-title {
+                font-weight: 700;
+                font-size: 1rem;
+                margin-bottom: .35rem;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
             .ai-kutlama-message {
                 font-size: .86rem;
                 color: rgba(255,255,255,.88);
                 line-height: 1.42;
                 margin-bottom: .55rem;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+            .ai-kutlama-head { min-width: 0; }
+            .ai-kutlama-event {
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                line-height: 1.28;
             }
             .ai-kutlama-brand {
                 display: inline-flex;
@@ -98,15 +112,15 @@
     >
         <div class="ai-kutlama-surface">
             @if($activeCampaign->image_path)
-                <img src="{{ $activeCampaign->image_path }}" alt="Kutlama Gorseli" class="ai-kutlama-media">
+                <img src="{{ $activeCampaign->image_path }}" alt="Kutlama Görseli" class="ai-kutlama-media">
             @endif
             <div class="ai-kutlama-body">
                 <div class="d-flex justify-content-between align-items-start gap-2">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 ai-kutlama-head">
                         <span class="ai-kutlama-brand">GT</span>
-                        <span class="small text-white-50">{{ $activeCampaign->event_name }}</span>
+                        <span class="small text-white-50 ai-kutlama-event">{{ $activeCampaign->event_name }}</span>
                     </div>
-                    <button type="button" class="ai-kutlama-close" data-ai-close aria-label="Kapat">×</button>
+                    <button type="button" class="ai-kutlama-close" data-ai-close aria-label="Kapat">&times;</button>
                 </div>
                 <div class="ai-kutlama-title">{{ $activeCampaign->title }}</div>
                 <div class="ai-kutlama-message">{{ $activeCampaign->message }}</div>
@@ -167,4 +181,3 @@
     })();
     </script>
 @endif
-

@@ -399,7 +399,7 @@
             <div class="col-6 col-lg-3">
                 <div class="card kpi-card shadow-sm p-3">
                     <div class="fw-bold fs-5 text-success">{{ $aiStats['yayinda'] ?? 0 }}</div>
-                    <div class="text-muted small">Yayinda</div>
+                    <div class="text-muted small">Yayında</div>
                 </div>
             </div>
             <div class="col-6 col-lg-3">
@@ -411,7 +411,7 @@
             <div class="col-6 col-lg-3">
                 <div class="card kpi-card shadow-sm p-3">
                     <div class="fw-bold fs-5 text-danger">{{ $aiStats['istenmeyen'] ?? 0 }}</div>
-                    <div class="text-muted small">Istenmeyen</div>
+                    <div class="text-muted small">İstenmeyen</div>
                 </div>
             </div>
         </div>
@@ -425,7 +425,7 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-12 col-lg-4">
-                            <label class="form-label small mb-1">Ozel gun / konu</label>
+                            <label class="form-label small mb-1">Özel gün / konu</label>
                             <input type="text" name="event_name" class="form-control form-control-sm" required placeholder="Orn: Ramazan Bayrami">
                         </div>
                         <div class="col-6 col-lg-2">
@@ -433,7 +433,7 @@
                             <input type="date" name="event_date" class="form-control form-control-sm">
                         </div>
                         <div class="col-6 col-lg-2">
-                            <label class="form-label small mb-1">Gosterim</label>
+                            <label class="form-label small mb-1">Gösterim</label>
                             <select name="display_mode" class="form-select form-select-sm">
                                 <option value="banner">Top Banner</option>
                                 <option value="popup">Popup</option>
@@ -445,22 +445,22 @@
                             <input type="number" min="1" max="20" name="frequency_cap" value="1" class="form-control form-control-sm">
                         </div>
                         <div class="col-6 col-lg-2">
-                            <label class="form-label small mb-1">Oncelik</label>
+                            <label class="form-label small mb-1">Öncelik</label>
                             <input type="number" min="1" max="999" name="priority" value="100" class="form-control form-control-sm">
                         </div>
                         <div class="col-12 col-lg-3">
-                            <label class="form-label small mb-1">Yayin baslangic</label>
+                            <label class="form-label small mb-1">Yayın başlangıç</label>
                             <input type="datetime-local" name="publish_starts_at" class="form-control form-control-sm">
                         </div>
                         <div class="col-12 col-lg-3">
-                            <label class="form-label small mb-1">Yayin bitis</label>
+                            <label class="form-label small mb-1">Yayın bitiş</label>
                             <input type="datetime-local" name="publish_ends_at" class="form-control form-control-sm">
                         </div>
                         <div class="col-12 col-lg-6 d-flex align-items-end">
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="show_on_public" value="1" id="manual_show_on_public">
                                 <label class="form-check-label small" for="manual_show_on_public">
-                                    Uye girisi gerekmeyen sayfalarda da goster
+                                    Üye girişi gerekmeyen sayfalarda da göster
                                 </label>
                             </div>
                         </div>
@@ -471,7 +471,7 @@
                     </div>
                     <div class="mt-3">
                         <button class="btn btn-sm btn-info text-white" type="submit">
-                            <i class="fas fa-sparkles me-1"></i>AI Onerisi Olustur
+                            <i class="fas fa-sparkles me-1"></i>AI Önerisi Oluştur
                         </button>
                     </div>
                 </form>
@@ -479,10 +479,10 @@
         </div>
 
         <div class="card shadow-sm mb-4">
-            <div class="card-header fw-bold">Aktif / Taslak Kayitlar</div>
+            <div class="card-header fw-bold">Aktif / Taslak Kayıtlar</div>
             <div class="card-body">
                 @if(($aiCampaigns ?? collect())->isEmpty())
-                    <div class="text-muted small">Henuz AI kutlama kaydi yok.</div>
+                    <div class="text-muted small">Henüz AI kutlama kaydı yok.</div>
                 @else
                     @foreach($aiCampaigns as $campaign)
                         @php
@@ -507,15 +507,15 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
                                     @if($imageSource === 'gemini')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Gorsel: AI</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Görsel: AI</span>
                                     @elseif($imageSource === 'fallback')
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Gorsel: Fallback</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Görsel: Fallback</span>
                                     @endif
                                     <span class="badge bg-{{ $statusColor }}">{{ strtoupper($campaign->status) }}</span>
-                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('superadmin.ai-kutlama.onizleme', $campaign) }}" target="_blank">Onizleme</a>
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('superadmin.ai-kutlama.onizleme', $campaign) }}" target="_blank">Önizleme</a>
                                     <form method="POST" action="{{ route('superadmin.ai-kutlama.yeniden-uret', $campaign) }}" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-info">Yeniden Uret</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-info">Yeniden Üret</button>
                                     </form>
                                 </div>
                             </div>
@@ -536,7 +536,7 @@
                                         <input type="hidden" name="show_on_authenticated" value="1">
                                         <div class="row g-2">
                                             <div class="col-12 col-lg-4">
-                                                <label class="form-label small mb-1">Ozel gun</label>
+                                                <label class="form-label small mb-1">Özel gün</label>
                                                 <input type="text" name="event_name" value="{{ $campaign->event_name }}" class="form-control form-control-sm" required>
                                             </div>
                                             <div class="col-6 col-lg-2">
@@ -548,7 +548,7 @@
                                                 <input type="text" name="category" value="{{ $campaign->category }}" class="form-control form-control-sm">
                                             </div>
                                             <div class="col-6 col-lg-2">
-                                                <label class="form-label small mb-1">Gosterim</label>
+                                                <label class="form-label small mb-1">Gösterim</label>
                                                 <select name="display_mode" class="form-select form-select-sm">
                                                     <option value="banner" {{ $campaign->display_mode === 'banner' ? 'selected' : '' }}>Banner</option>
                                                     <option value="popup" {{ $campaign->display_mode === 'popup' ? 'selected' : '' }}>Popup</option>
@@ -560,11 +560,11 @@
                                                 <input type="number" min="1" max="20" name="frequency_cap" value="{{ $campaign->frequency_cap }}" class="form-control form-control-sm">
                                             </div>
                                             <div class="col-6 col-lg-2">
-                                                <label class="form-label small mb-1">Oncelik</label>
+                                                <label class="form-label small mb-1">Öncelik</label>
                                                 <input type="number" min="1" max="999" name="priority" value="{{ $campaign->priority }}" class="form-control form-control-sm">
                                             </div>
                                             <div class="col-6 col-lg-5">
-                                                <label class="form-label small mb-1">Baslik</label>
+                                                <label class="form-label small mb-1">Başlık</label>
                                                 <input type="text" name="title" value="{{ $campaign->title }}" class="form-control form-control-sm" required>
                                             </div>
                                             <div class="col-6 col-lg-3">
@@ -572,7 +572,7 @@
                                                 <input type="text" name="cta_text" value="{{ $campaign->cta_text }}" class="form-control form-control-sm">
                                             </div>
                                             <div class="col-12 col-lg-4">
-                                                <label class="form-label small mb-1">Buton Linki</label>
+                                                <label class="form-label small mb-1">Buton linki</label>
                                                 <input type="text" name="cta_url" value="{{ $campaign->cta_url }}" class="form-control form-control-sm" placeholder="/dashboard">
                                             </div>
                                             <div class="col-12">
@@ -584,17 +584,17 @@
                                                 <textarea name="topic_prompt" rows="2" class="form-control form-control-sm">{{ $campaign->topic_prompt }}</textarea>
                                             </div>
                                             <div class="col-6 col-lg-4">
-                                                <label class="form-label small mb-1">Yayin Baslangic</label>
+                                                <label class="form-label small mb-1">Yayın başlangıç</label>
                                                 <input type="datetime-local" name="publish_starts_at" value="{{ $campaign->publish_starts_at?->format('Y-m-d\\TH:i') }}" class="form-control form-control-sm">
                                             </div>
                                             <div class="col-6 col-lg-4">
-                                                <label class="form-label small mb-1">Yayin Bitis</label>
+                                                <label class="form-label small mb-1">Yayın bitiş</label>
                                                 <input type="datetime-local" name="publish_ends_at" value="{{ $campaign->publish_ends_at?->format('Y-m-d\\TH:i') }}" class="form-control form-control-sm">
                                             </div>
                                             <div class="col-12 col-lg-4 d-flex align-items-end">
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" name="show_on_public" value="1" id="show_public_{{ $campaign->id }}" {{ $campaign->show_on_public ? 'checked' : '' }}>
-                                                    <label class="form-check-label small" for="show_public_{{ $campaign->id }}">Public sayfalarda goster</label>
+                                                    <label class="form-check-label small" for="show_public_{{ $campaign->id }}">Public sayfalarda göster</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -604,18 +604,18 @@
 
                                     <form method="POST" action="{{ route('superadmin.ai-kutlama.yayinla', $campaign) }}" class="d-inline">
                                         @csrf
-                                        <button class="btn btn-sm btn-success" type="submit">Yayina Al</button>
+                                        <button class="btn btn-sm btn-success" type="submit">Yayına Al</button>
                                     </form>
 
                                     <form method="POST" action="{{ route('superadmin.ai-kutlama.durdur', $campaign) }}" class="d-inline">
                                         @csrf
-                                        <button class="btn btn-sm btn-outline-warning" type="submit">Yayindan Kaldir</button>
+                                        <button class="btn btn-sm btn-outline-warning" type="submit">Yayından Kaldır</button>
                                     </form>
 
                                     <form method="POST" action="{{ route('superadmin.ai-kutlama.istenmeyen', $campaign) }}" class="d-inline" onsubmit="return confirm('Bu kayit istenmeyen listesine tasinsin mi?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger" type="submit">Istenmeyen Yap</button>
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">İstenmeyen Yap</button>
                                     </form>
                                         </div>
                                 </div>
@@ -627,10 +627,10 @@
         </div>
 
         <div class="card shadow-sm">
-            <div class="card-header fw-bold text-danger">Istenmeyen Listesi</div>
+            <div class="card-header fw-bold text-danger">İstenmeyen Listesi</div>
             <div class="card-body">
                 @if(($aiDismissedCampaigns ?? collect())->isEmpty())
-                    <div class="text-muted small">Istenmeyen listesinde kayit yok.</div>
+                    <div class="text-muted small">İstenmeyen listesinde kayıt yok.</div>
                 @else
                     <div class="table-responsive">
                         <table class="table table-sm align-middle">
