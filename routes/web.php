@@ -85,6 +85,16 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
         return view('superadmin.dashboard');
     })->name('dashboard');
     Route::get('/site-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'siteAyarlari'])->name('site.ayarlar');
+    Route::post('/ai-kutlama/ayar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaAyarGuncelle'])->name('ai-kutlama.ayar');
+    Route::post('/ai-kutlama/tara', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaTara'])->name('ai-kutlama.tara');
+    Route::post('/ai-kutlama/manual', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaManuelOlustur'])->name('ai-kutlama.manual');
+    Route::post('/ai-kutlama/{campaign}/yeniden-uret', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaYenidenUret'])->name('ai-kutlama.yeniden-uret');
+    Route::patch('/ai-kutlama/{campaign}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaGuncelle'])->name('ai-kutlama.guncelle');
+    Route::post('/ai-kutlama/{campaign}/yayinla', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaYayinla'])->name('ai-kutlama.yayinla');
+    Route::post('/ai-kutlama/{campaign}/durdur', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaDurdur'])->name('ai-kutlama.durdur');
+    Route::delete('/ai-kutlama/{campaign}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaIstenmeyen'])->name('ai-kutlama.istenmeyen');
+    Route::post('/ai-kutlama/{campaign}/geri-al', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaGeriAl'])->name('ai-kutlama.geri-al');
+    Route::get('/ai-kutlama/{campaign}/onizleme', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaOnizleme'])->name('ai-kutlama.onizleme');
 
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');
@@ -232,5 +242,9 @@ Route::middleware('auth')->prefix('bildirimler')->name('bildirimler.')->group(fu
         return response()->json(['ok' => true]);
     })->name('hepsini-oku');
 });
+
+Route::post('/ai-kutlama/{campaign}/goruldu', [\App\Http\Controllers\AiCelebrationController::class, 'seen'])->name('ai-kutlama.seen');
+Route::post('/ai-kutlama/{campaign}/kapatildi', [\App\Http\Controllers\AiCelebrationController::class, 'closed'])->name('ai-kutlama.closed');
+Route::post('/ai-kutlama/{campaign}/tiklandi', [\App\Http\Controllers\AiCelebrationController::class, 'clicked'])->name('ai-kutlama.clicked');
 
 require __DIR__.'/auth.php';
