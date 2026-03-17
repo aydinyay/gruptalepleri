@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Hızlı Yanıtla</title>
     @include('admin.partials.theme-styles')
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        body { font-family: 'Segoe UI', sans-serif; }
         .qr-card { border-radius: 14px; border: 1px solid rgba(0,0,0,.08); }
         .qr-box { border: 1px solid rgba(0,0,0,.1); border-radius: 12px; padding: 12px; background: #fff; }
         .qr-label { font-size: .76rem; color: #6c757d; text-transform: uppercase; letter-spacing: .03em; }
@@ -243,12 +247,13 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                             @else
                                 <div class="table-responsive">
                                     <table class="table table-sm qr-table mb-0">
-                                        <thead><tr><th>GTPNR</th><th>Acente</th><th>PAX</th><th>Skor</th></tr></thead>
+                                        <thead><tr><th>GTPNR</th><th>Rota</th><th>Gidiş</th><th>PAX</th><th>Skor</th></tr></thead>
                                         <tbody>
                                         @foreach($requestCandidates as $cand)
                                             <tr>
                                                 <td>{{ $cand['gtpnr'] ?? '-' }}</td>
-                                                <td>{{ $cand['agency_name'] ?? '-' }}</td>
+                                                <td>{{ ($cand['from_iata'] ?? '-') . ' - ' . ($cand['to_iata'] ?? '-') }}</td>
+                                                <td>{{ $cand['departure_date'] ?? '-' }}</td>
                                                 <td>{{ $cand['pax_total'] ?? '-' }}</td>
                                                 <td><span class="badge bg-primary">{{ $cand['score'] ?? 0 }}</span></td>
                                             </tr>
@@ -266,7 +271,7 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
         <div class="card qr-card shadow-sm mb-4">
             <div class="card-header fw-bold">3) Düzeltme ve Seçim</div>
             <div class="card-body">
-                <form method="POST" action="{{ route($routeNamePrefix . '.save-review', $activeSession) }}">
+                <form method="POST" action="{{ route($routeNamePrefix . '.save-review', $activeSession) }}" class="js-quick-reply-sync">
                     @csrf
                     @method('PATCH')
                     <div class="row g-3">
@@ -280,18 +285,26 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Talep / GTPNR</label>
-                            <select name="selected_request_id" class="form-select">
+                            <select name="selected_request_id" class="form-select js-request-select">
                                 <option value="">Seçiniz</option>
                                 @foreach($requestCandidates as $cand)
-                                    <option value="{{ $cand['request_id'] }}" @selected((int)$activeSession->selected_request_id === (int)$cand['request_id'])>
-                                        {{ $cand['gtpnr'] }} · {{ $cand['agency_name'] }} · {{ $cand['score'] }}
+                                    <option value="{{ $cand['request_id'] }}"
+                                            data-request-user-id="{{ $cand['user_id'] ?? '' }}"
+                                            data-request-agency-id="{{ $cand['agency_id'] ?? '' }}"
+                                            data-request-agency-name="{{ $cand['agency_name'] ?? '' }}"
+                                            @selected((int)$activeSession->selected_request_id === (int)$cand['request_id'])>
+                                        {{ $cand['gtpnr'] }}
+                                        · {{ ($cand['from_iata'] ?? '-') . '-' . ($cand['to_iata'] ?? '-') }}
+                                        · PAX {{ $cand['pax_total'] ?? '-' }}
+                                        · {{ $cand['score'] }}
                                     </option>
                                 @endforeach
                             </select>
+                            <div class="form-text">Talep seçildiğinde acente adayı ve kullanıcı ID otomatik doldurulur.</div>
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Acente adayı</label>
-                            <select name="selected_agency_id" class="form-select">
+                            <select name="selected_agency_id" class="form-select js-agency-select">
                                 <option value="">Seçiniz</option>
                                 @foreach($agencyCandidates as $cand)
                                     <option value="{{ $cand['agency_id'] }}" @selected((int)$activeSession->selected_agency_id === (int)$cand['agency_id'])>
@@ -302,7 +315,7 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Manuel kullanıcı ID (opsiyonel)</label>
-                            <input type="number" class="form-control" name="selected_user_id" value="{{ $activeSession->selected_user_id }}">
+                            <input type="number" class="form-control js-user-id-input" name="selected_user_id" value="{{ $activeSession->selected_user_id }}">
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Acente</label>
@@ -357,7 +370,7 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
         <div class="card qr-card shadow-sm mb-5">
             <div class="card-header fw-bold">4) Son Onay ve Kayıt</div>
             <div class="card-body">
-                <form method="POST" action="{{ route($routeNamePrefix . '.confirm', $activeSession) }}">
+                <form method="POST" action="{{ route($routeNamePrefix . '.confirm', $activeSession) }}" class="js-quick-reply-sync">
                     @csrf
                     <div class="row g-3">
                         <div class="col-12 col-lg-4">
@@ -370,18 +383,26 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Seçilen Talep</label>
-                            <select name="selected_request_id" class="form-select" required>
+                            <select name="selected_request_id" class="form-select js-request-select" required>
                                 <option value="">Seçiniz</option>
                                 @foreach($requestCandidates as $cand)
-                                    <option value="{{ $cand['request_id'] }}" @selected((int)$activeSession->selected_request_id === (int)$cand['request_id'])>
-                                        {{ $cand['gtpnr'] }} · {{ $cand['agency_name'] }} · {{ $cand['score'] }}
+                                    <option value="{{ $cand['request_id'] }}"
+                                            data-request-user-id="{{ $cand['user_id'] ?? '' }}"
+                                            data-request-agency-id="{{ $cand['agency_id'] ?? '' }}"
+                                            data-request-agency-name="{{ $cand['agency_name'] ?? '' }}"
+                                            @selected((int)$activeSession->selected_request_id === (int)$cand['request_id'])>
+                                        {{ $cand['gtpnr'] }}
+                                        · {{ ($cand['from_iata'] ?? '-') . '-' . ($cand['to_iata'] ?? '-') }}
+                                        · PAX {{ $cand['pax_total'] ?? '-' }}
+                                        · {{ $cand['score'] }}
                                     </option>
                                 @endforeach
                             </select>
+                            <div class="form-text">Talep seçildiğinde acente adayı ve kullanıcı ID otomatik doldurulur.</div>
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Seçilen Acente (opsiyonel)</label>
-                            <select name="selected_agency_id" class="form-select">
+                            <select name="selected_agency_id" class="form-select js-agency-select">
                                 <option value="">Seçiniz</option>
                                 @foreach($agencyCandidates as $cand)
                                     <option value="{{ $cand['agency_id'] }}" @selected((int)$activeSession->selected_agency_id === (int)$cand['agency_id'])>
@@ -392,7 +413,7 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                         </div>
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Seçilen Kullanıcı ID (opsiyonel)</label>
-                            <input type="number" class="form-control" name="selected_user_id" value="{{ $activeSession->selected_user_id }}">
+                            <input type="number" class="form-control js-user-id-input" name="selected_user_id" value="{{ $activeSession->selected_user_id }}">
                         </div>
                         <div class="col-12">
                             <hr>
@@ -551,8 +572,57 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
             }
         });
     })();
+
+    (function () {
+        const forms = document.querySelectorAll('.js-quick-reply-sync');
+        if (!forms.length) return;
+
+        const ensureAgencyOption = (agencySelect, agencyId, agencyName) => {
+            if (!agencySelect || !agencyId) return;
+            const exists = Array.from(agencySelect.options).some((opt) => String(opt.value) === String(agencyId));
+            if (exists) return;
+
+            const option = document.createElement('option');
+            option.value = String(agencyId);
+            option.textContent = `${agencyName || ('Acente #' + agencyId)} · otomatik`;
+            agencySelect.appendChild(option);
+        };
+
+        const bindForm = (form) => {
+            const requestSelect = form.querySelector('.js-request-select');
+            const agencySelect = form.querySelector('.js-agency-select');
+            const userInput = form.querySelector('.js-user-id-input');
+            if (!requestSelect) return;
+
+            const syncFromRequest = () => {
+                const option = requestSelect.options[requestSelect.selectedIndex];
+                if (!option || !option.value) {
+                    return;
+                }
+
+                const requestUserId = option.dataset.requestUserId || '';
+                const requestAgencyId = option.dataset.requestAgencyId || '';
+                const requestAgencyName = option.dataset.requestAgencyName || '';
+
+                if (userInput && requestUserId) {
+                    userInput.value = requestUserId;
+                }
+
+                if (agencySelect && requestAgencyId) {
+                    ensureAgencyOption(agencySelect, requestAgencyId, requestAgencyName);
+                    agencySelect.value = requestAgencyId;
+                }
+            };
+
+            requestSelect.addEventListener('change', syncFromRequest);
+            syncFromRequest();
+        };
+
+        forms.forEach(bindForm);
+    })();
 </script>
 
 @include('admin.partials.theme-script')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -204,12 +204,14 @@ class QuickReplyService
     {
         $gtpnr = strtoupper(trim((string) ($parsed['gtpnr'] ?? '')));
         if ($gtpnr !== '') {
-            $direct = RequestModel::with(['segments', 'user'])->whereRaw('UPPER(gtpnr) = ?', [$gtpnr])->first();
+            $direct = RequestModel::with(['segments', 'user.agency'])->whereRaw('UPPER(gtpnr) = ?', [$gtpnr])->first();
             if ($direct) {
                 return [[
                     'request_id' => $direct->id,
                     'gtpnr' => $direct->gtpnr,
                     'agency_name' => $direct->agency_name,
+                    'user_id' => $direct->user_id,
+                    'agency_id' => $direct->user?->agency?->id,
                     'status' => $direct->status,
                     'pax_total' => $direct->pax_total,
                     'from_iata' => $direct->segments->first()?->from_iata,
@@ -222,7 +224,7 @@ class QuickReplyService
         }
 
         $query = RequestModel::query()
-            ->with(['segments', 'user'])
+            ->with(['segments', 'user.agency'])
             ->whereIn('status', [
                 RequestModel::STATUS_BEKLEMEDE,
                 RequestModel::STATUS_ISLEMDE,
@@ -250,11 +252,14 @@ class QuickReplyService
                 continue;
             }
 
-            $firstSeg = $request->segments->first();
+            $firstSeg = $this->pickDisplaySegment($request, (string) ($parsed['from_iata'] ?? ''), (string) ($parsed['to_iata'] ?? ''))
+                ?: $request->segments->first();
             $candidates[] = [
                 'request_id' => $request->id,
                 'gtpnr' => $request->gtpnr,
                 'agency_name' => $request->agency_name,
+                'user_id' => $request->user_id,
+                'agency_id' => $request->user?->agency?->id,
                 'status' => $request->status,
                 'pax_total' => $request->pax_total,
                 'from_iata' => $firstSeg?->from_iata,
@@ -702,26 +707,93 @@ class QuickReplyService
             }
         }
 
-        $firstSeg = $request->segments->first();
+        $segments = $request->segments;
+        $firstSeg = $segments->first();
         $parsedFrom = strtoupper((string) ($parsed['from_iata'] ?? ''));
         $parsedTo = strtoupper((string) ($parsed['to_iata'] ?? ''));
-        if ($firstSeg && $parsedFrom !== '' && strtoupper((string) $firstSeg->from_iata) === $parsedFrom) {
-            $score += 10;
-        }
-        if ($firstSeg && $parsedTo !== '' && strtoupper((string) $firstSeg->to_iata) === $parsedTo) {
-            $score += 10;
+        if ($segments->isNotEmpty()) {
+            $hasExactRoute = false;
+            $hasReverseRoute = false;
+            $fromMatched = false;
+            $toMatched = false;
+
+            foreach ($segments as $segment) {
+                $segFrom = strtoupper((string) $segment->from_iata);
+                $segTo = strtoupper((string) $segment->to_iata);
+
+                if ($parsedFrom !== '' && $segFrom === $parsedFrom) {
+                    $fromMatched = true;
+                }
+                if ($parsedTo !== '' && $segTo === $parsedTo) {
+                    $toMatched = true;
+                }
+
+                if ($parsedFrom !== '' && $parsedTo !== '' && $segFrom === $parsedFrom && $segTo === $parsedTo) {
+                    $hasExactRoute = true;
+                    break;
+                }
+                if ($parsedFrom !== '' && $parsedTo !== '' && $segFrom === $parsedTo && $segTo === $parsedFrom) {
+                    $hasReverseRoute = true;
+                }
+            }
+
+            if ($hasExactRoute) {
+                $score += 20;
+            } elseif ($hasReverseRoute) {
+                $score += 8;
+            } else {
+                if ($fromMatched) {
+                    $score += 6;
+                }
+                if ($toMatched) {
+                    $score += 6;
+                }
+            }
         }
 
         $parsedDeparture = (string) ($parsed['departure_date'] ?? '');
-        if ($firstSeg && $parsedDeparture !== '' && $firstSeg->departure_date) {
-            $firstDate = Carbon::parse($firstSeg->departure_date);
+        if ($parsedDeparture !== '' && $segments->isNotEmpty()) {
             try {
                 $parsedDate = Carbon::parse($parsedDeparture);
-                $days = $firstDate->diffInDays($parsedDate, false);
-                if ($days === 0) {
+                $bestDiff = null;
+
+                foreach ($segments as $segment) {
+                    if (! $segment->departure_date) {
+                        continue;
+                    }
+                    $segmentDate = Carbon::parse($segment->departure_date);
+                    $diff = abs($segmentDate->diffInDays($parsedDate, false));
+                    $bestDiff = $bestDiff === null ? $diff : min($bestDiff, $diff);
+                }
+
+                if ($bestDiff === 0) {
                     $score += 15;
-                } elseif (abs($days) <= 1) {
+                } elseif ($bestDiff !== null && $bestDiff <= 1) {
                     $score += 8;
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        $parsedReturn = (string) ($parsed['return_date'] ?? '');
+        if ($parsedReturn !== '' && $segments->isNotEmpty()) {
+            try {
+                $parsedReturnDate = Carbon::parse($parsedReturn);
+                $bestReturnDiff = null;
+
+                foreach ($segments as $segment) {
+                    if (! $segment->departure_date) {
+                        continue;
+                    }
+                    $segmentDate = Carbon::parse($segment->departure_date);
+                    $diff = abs($segmentDate->diffInDays($parsedReturnDate, false));
+                    $bestReturnDiff = $bestReturnDiff === null ? $diff : min($bestReturnDiff, $diff);
+                }
+
+                if ($bestReturnDiff === 0) {
+                    $score += 10;
+                } elseif ($bestReturnDiff !== null && $bestReturnDiff <= 1) {
+                    $score += 5;
                 }
             } catch (\Throwable) {
             }
@@ -736,5 +808,28 @@ class QuickReplyService
         }
 
         return min($score, 100.0);
+    }
+
+    private function pickDisplaySegment(RequestModel $request, string $from, string $to): mixed
+    {
+        $from = strtoupper(trim($from));
+        $to = strtoupper(trim($to));
+        $segments = $request->segments;
+
+        if ($segments->isEmpty()) {
+            return null;
+        }
+
+        if ($from !== '' && $to !== '') {
+            $exact = $segments->first(static function ($segment) use ($from, $to): bool {
+                return strtoupper((string) $segment->from_iata) === $from
+                    && strtoupper((string) $segment->to_iata) === $to;
+            });
+            if ($exact) {
+                return $exact;
+            }
+        }
+
+        return $segments->first();
     }
 }

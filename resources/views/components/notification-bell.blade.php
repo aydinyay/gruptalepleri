@@ -95,7 +95,7 @@
                     ${IS_SUPERADMIN ? `<input type="checkbox" class="form-check-input mt-1 notif-secim notif-ignore-click" data-id="${b.id}" title="Seç">` : ''}
                     <div style="font-size:1.1rem;flex-shrink:0;padding-top:2px;">${typeIcon(b.type)}</div>
                     <div style="min-width:0;flex:1;">
-                        <div class="fw-bold" style="font-size:0.82rem;${b.is_read ? '' : 'color:#1a1a2e;'}">${escHtml(b.title)}</div>
+                        <div class="fw-bold" style="font-size:0.82rem;">${escHtml(b.title)}</div>
                         <div class="text-muted" style="font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(b.message)}</div>
                         <div class="text-muted" style="font-size:0.7rem;">${b.created_at ? b.created_at.substring(0,16).replace('T',' ') : ''}</div>
                     </div>
