@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hızlı Yanıtla</title>
-    @if(auth()->user()->role === 'superadmin')
-        @include('superadmin.partials.theme-styles')
-    @else
-        @include('admin.partials.theme-styles')
-    @endif
+    @include('admin.partials.theme-styles')
     <style>
         .qr-card { border-radius: 14px; border: 1px solid rgba(0,0,0,.08); }
         .qr-box { border: 1px solid rgba(0,0,0,.1); border-radius: 12px; padding: 12px; background: #fff; }
@@ -557,10 +553,6 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
     })();
 </script>
 
-@if(auth()->user()->role === 'superadmin')
-    @include('superadmin.partials.theme-script')
-@else
-    @include('admin.partials.theme-script')
-@endif
+@include('admin.partials.theme-script')
 </body>
 </html>
