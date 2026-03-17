@@ -10,6 +10,7 @@
 <meta name="keywords" content="grup uçuş, charter uçuş, grup bilet, grup charter, grup seyahat, turizm acentesi, TÜRSAB, grup talep, toplu bilet, grup rezervasyon, İstanbul, uçuş talebi">
 <meta name="author" content="Grup Talepleri Turizm San. ve Tic. Ltd. Şti.">
 <meta name="robots" content="index, follow">
+<meta name="google-site-verification" content="oJBcfHCB3GVznFvX2GiILkM76tc4pm0z2lQibnY0Hws">
 <link rel="canonical" href="https://gruptalepleri.com">
 
 {{-- Open Graph (Facebook, WhatsApp, LinkedIn paylaşımlarında görünen önizleme) --}}
