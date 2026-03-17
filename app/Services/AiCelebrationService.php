@@ -662,6 +662,8 @@ class AiCelebrationService
         $fontSize = $lineCount === 1 ? 64 : ($lineCount === 2 ? 56 : 48);
         $lineHeight = $lineCount === 1 ? 74 : ($lineCount === 2 ? 66 : 58);
         $startY = $lineCount === 1 ? 300 : ($lineCount === 2 ? 270 : 245);
+        $titleBottomY = $startY + (($lineCount - 1) * $lineHeight);
+        $brandY = max(360, min(560, $titleBottomY + 86));
 
         $tspans = [];
         foreach ($titleLines as $index => $line) {
@@ -690,7 +692,7 @@ class AiCelebrationService
   <circle cx="1020" cy="120" r="220" fill="#e94560" opacity="0.15"/>
   <circle cx="120" cy="560" r="180" fill="#4ea8ff" opacity="0.18"/>
   <text x="80" y="{$startY}" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="{$fontSize}" font-weight="700">{$titleMarkup}</text>
-  <text x="80" y="360" fill="#ff6f8a" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="600">{$safeSub}</text>
+  <text x="80" y="{$brandY}" fill="#ff6f8a" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="600">{$safeSub}</text>
 </svg>
 SVG;
 
