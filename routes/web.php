@@ -98,6 +98,8 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::get('/hizli-yanitla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'index'])->name('quick-reply.index');
     Route::post('/hizli-yanitla/parse', [\App\Http\Controllers\Admin\QuickReplyController::class, 'parse'])->name('quick-reply.parse');
     Route::patch('/hizli-yanitla/{session}', [\App\Http\Controllers\Admin\QuickReplyController::class, 'saveReview'])->name('quick-reply.save-review');
+    Route::post('/hizli-yanitla/{session}/onayla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'confirm'])->name('quick-reply.confirm');
+    Route::get('/hizli-yanitla/acente-ara', [\App\Http\Controllers\Admin\QuickReplyController::class, 'agencySearch'])->name('quick-reply.agency-search');
 
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');
@@ -167,6 +169,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/hizli-yanitla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'index'])->name('quick-reply.index');
     Route::post('/hizli-yanitla/parse', [\App\Http\Controllers\Admin\QuickReplyController::class, 'parse'])->name('quick-reply.parse');
     Route::patch('/hizli-yanitla/{session}', [\App\Http\Controllers\Admin\QuickReplyController::class, 'saveReview'])->name('quick-reply.save-review');
+    Route::post('/hizli-yanitla/{session}/onayla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'confirm'])->name('quick-reply.confirm');
+    Route::get('/hizli-yanitla/acente-ara', [\App\Http\Controllers\Admin\QuickReplyController::class, 'agencySearch'])->name('quick-reply.agency-search');
 
     // Eski sistem arşiv görüntüleyici
     Route::get('/eski-sistem', [\App\Http\Controllers\Admin\EskiSistemController::class, 'index'])->name('eski-sistem');
