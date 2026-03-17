@@ -746,13 +746,17 @@ SVG;
      */
     private function geminiImageModels(): array
     {
-        $configuredModel = (string) config('services.gemini.image_model', 'gemini-2.0-flash-preview-image-generation');
+        $configuredModel = (string) config('services.gemini.image_model', 'gemini-2.5-flash-image');
+        $fallbackRaw = (string) config('services.gemini.image_model_fallbacks', '');
+        $fallbackModels = array_filter(array_map(
+            static fn (string $model): string => trim($model),
+            explode(',', $fallbackRaw)
+        ));
 
-        $models = array_filter([
-            trim($configuredModel),
-            'gemini-2.0-flash-preview-image-generation',
-            'gemini-2.0-flash-exp-image-generation',
-        ]);
+        $models = array_filter(array_merge(
+            [trim($configuredModel)],
+            $fallbackModels
+        ));
 
         return array_values(array_unique($models));
     }
