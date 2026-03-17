@@ -413,6 +413,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 <nav>
     <a href="/" class="logo">✈ Grup<span>Talepleri</span></a>
     <div class="nav-links">
+        <a href="{{ route('marketing.grup-talepleri') }}" class="nav-item">Grup Talepleri</a>
         <a href="#nasil" class="nav-item">Nasıl Çalışır</a>
         <a href="#neden" class="nav-item">Neden Biz</a>
         <a href="#kimler" class="nav-item">Kimler İçin</a>
