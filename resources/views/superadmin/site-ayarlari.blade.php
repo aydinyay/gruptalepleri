@@ -378,7 +378,7 @@
                         <label class="small text-muted mb-0">Tarama gunu</label>
                         <input type="number" min="1" max="14" name="days" value="7" class="form-control form-control-sm" style="max-width:90px;">
                         <div class="form-check mb-0">
-                            <input class="form-check-input" type="checkbox" id="force_refresh" name="force_refresh" value="1">
+                            <input class="form-check-input" type="checkbox" id="force_refresh" name="force_refresh" value="1" checked>
                             <label class="form-check-label small" for="force_refresh">Cache sifirla</label>
                         </div>
                         <button class="btn btn-sm btn-info text-white" type="submit">
