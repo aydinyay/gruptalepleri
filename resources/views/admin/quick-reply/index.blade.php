@@ -465,7 +465,15 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                         </div>
                     </div>
                     <div class="alert alert-warning mt-3 mb-3">
-                        <strong>Onay:</strong> Bu işlem mevcut teklif kaydı akışını tetikler (SMS, e-posta, push ve log süreçleri dahil).
+                        @if($activeSession->selectedRequest)
+                            <strong>Onay:</strong>
+                            Bu cevabı <strong>{{ $activeSession->selectedRequest->agency_name }}</strong> acentesinin
+                            <strong>{{ $activeSession->selectedRequest->gtpnr }}</strong> talebine cevap olarak kaydediyorum.
+                            Onaylıyor musunuz?
+                        @else
+                            <strong>Onay:</strong> Bu cevap için seçtiğiniz talebe kayıt yapacağım. Onaylıyor musunuz?
+                        @endif
+                        <div class="small mt-1">İşlem sonrası mevcut teklif akışı tetiklenir (SMS, e-posta, push ve log süreçleri dahil).</div>
                     </div>
                     <button class="btn btn-success">
                         <i class="fas fa-check me-1"></i>Evet, bu talebe cevap olarak kaydet
