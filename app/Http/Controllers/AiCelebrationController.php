@@ -14,6 +14,10 @@ class AiCelebrationController extends Controller
         AiCelebrationCampaign $campaign,
         AiCelebrationService $aiCelebrationService
     ): JsonResponse {
+        if ($campaign->status !== AiCelebrationCampaign::STATUS_PUBLISHED) {
+            return response()->json(['ok' => false], 404);
+        }
+
         $aiCelebrationService->markSeen($campaign, auth()->user());
 
         return $this->withGuestCookie(
@@ -29,6 +33,10 @@ class AiCelebrationController extends Controller
         AiCelebrationCampaign $campaign,
         AiCelebrationService $aiCelebrationService
     ): JsonResponse {
+        if ($campaign->status !== AiCelebrationCampaign::STATUS_PUBLISHED) {
+            return response()->json(['ok' => false], 404);
+        }
+
         $aiCelebrationService->markClosed($campaign, auth()->user());
 
         return $this->withGuestCookie(
@@ -44,6 +52,10 @@ class AiCelebrationController extends Controller
         AiCelebrationCampaign $campaign,
         AiCelebrationService $aiCelebrationService
     ): JsonResponse {
+        if ($campaign->status !== AiCelebrationCampaign::STATUS_PUBLISHED) {
+            return response()->json(['ok' => false], 404);
+        }
+
         $aiCelebrationService->markClicked($campaign, auth()->user());
 
         return $this->withGuestCookie(
@@ -83,4 +95,3 @@ class AiCelebrationController extends Controller
         ));
     }
 }
-
