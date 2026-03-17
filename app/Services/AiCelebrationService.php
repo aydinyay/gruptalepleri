@@ -678,6 +678,7 @@ class AiCelebrationService
         $safeSub = htmlspecialchars('GrupTalepleri', ENT_QUOTES, 'UTF-8');
 
         $svg = <<<SVG
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">

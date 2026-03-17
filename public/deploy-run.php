@@ -201,6 +201,34 @@ try {
                 $output .= "Git update basarisiz oldugu icin clear adimlari atlandi.\n";
             }
         }
+    } elseif ($action === 'ai-refresh') {
+        set_time_limit(300);
+        $days = (int) ($_GET['days'] ?? 30);
+        $days = max(1, min(30, $days));
+        $actorId = (int) ($_GET['actor'] ?? 1);
+        $actorId = max(1, $actorId);
+
+        /** @var \App\Services\AiCelebrationService $aiService */
+        $aiService = $app->make(\App\Services\AiCelebrationService::class);
+        $stats = $aiService->scanUpcomingSuggestions($days, true, $actorId);
+
+        $output .= "AI scan stats: " . json_encode($stats, JSON_UNESCAPED_UNICODE) . "\n";
+
+        $refreshed = 0;
+        $campaigns = \App\Models\AiCelebrationCampaign::query()
+            ->whereNotNull('source_key')
+            ->where('status', \App\Models\AiCelebrationCampaign::STATUS_DRAFT)
+            ->whereDate('event_date', '>=', now()->toDateString())
+            ->orderBy('event_date')
+            ->limit(200)
+            ->get();
+
+        foreach ($campaigns as $campaign) {
+            $aiService->generateContent($campaign, $campaign->topic_prompt, $actorId);
+            $refreshed++;
+        }
+
+        $output .= "AI refreshed draft campaigns: {$refreshed}\n\n";
     } else {
         $output .= "Bilinmeyen action: {$action}\n";
     }
@@ -235,6 +263,7 @@ try {
 <a href="?key=<?= urlencode($providedKey) ?>&action=git-status" class="btn blue">Git Status</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=git-update&branch=<?= urlencode($deployBranch) ?>" class="btn green" onclick="return confirm('Git update calissin mi?')">Git Update (<?= htmlspecialchars($deployBranch, ENT_QUOTES, 'UTF-8') ?>)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=deploy-work&branch=<?= urlencode($deployBranch) ?>" class="btn green" onclick="return confirm('Git update + full clear calissin mi?')">Deploy Work</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=ai-refresh&days=30&actor=1" class="btn blue" onclick="return confirm('AI kayitlari yenilensin mi?')">AI Refresh</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=import-airports" class="btn green" onclick="return confirm('Havalimanlari ice aktarilsin mi?')">Import Airports</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=import-airlines" class="btn green" onclick="return confirm('Havayollari ice aktarilsin mi?')">Import Airlines</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=sync-legacy-offers" class="btn green" onclick="return confirm('Eski sistem opsiyon sync calissin mi?')">Legacy Offer Sync</a>
