@@ -95,6 +95,9 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::delete('/ai-kutlama/{campaign}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaIstenmeyen'])->name('ai-kutlama.istenmeyen');
     Route::post('/ai-kutlama/{campaign}/geri-al', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaGeriAl'])->name('ai-kutlama.geri-al');
     Route::get('/ai-kutlama/{campaign}/onizleme', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaOnizleme'])->name('ai-kutlama.onizleme');
+    Route::get('/hizli-yanitla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'index'])->name('quick-reply.index');
+    Route::post('/hizli-yanitla/parse', [\App\Http\Controllers\Admin\QuickReplyController::class, 'parse'])->name('quick-reply.parse');
+    Route::patch('/hizli-yanitla/{session}', [\App\Http\Controllers\Admin\QuickReplyController::class, 'saveReview'])->name('quick-reply.save-review');
 
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');
@@ -161,6 +164,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::patch('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'updateOffer'])->name('requests.offer.update');
     Route::post('/talepler/{gtpnr}/teklif/{offer}/toggle', [\App\Http\Controllers\Admin\RequestController::class, 'toggleOffer'])->name('requests.offer.toggle');
     Route::delete('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'deleteOffer'])->name('requests.offer.delete');
+    Route::get('/hizli-yanitla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'index'])->name('quick-reply.index');
+    Route::post('/hizli-yanitla/parse', [\App\Http\Controllers\Admin\QuickReplyController::class, 'parse'])->name('quick-reply.parse');
+    Route::patch('/hizli-yanitla/{session}', [\App\Http\Controllers\Admin\QuickReplyController::class, 'saveReview'])->name('quick-reply.save-review');
 
     // Eski sistem arşiv görüntüleyici
     Route::get('/eski-sistem', [\App\Http\Controllers\Admin\EskiSistemController::class, 'index'])->name('eski-sistem');
