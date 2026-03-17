@@ -123,7 +123,9 @@ class AiCelebrationService
     ): AiCelebrationCampaign {
         $textData = $this->generateTextSuggestion($campaign, $topicPrompt);
         $visualPrompt = (string) ($textData['visual_prompt'] ?? $campaign->visual_prompt ?? '');
-        $imagePath = $this->generateImage($campaign, $visualPrompt);
+        $imageResult = $this->generateImage($campaign, $visualPrompt);
+        $imagePath = $imageResult['path'] ?? null;
+        $existingPayload = is_array($campaign->ai_payload) ? $campaign->ai_payload : [];
 
         $campaign->fill([
             'title' => (string) ($textData['title'] ?? $campaign->title ?? ''),
@@ -131,12 +133,13 @@ class AiCelebrationService
             'cta_text' => (string) ($textData['cta_text'] ?? $campaign->cta_text ?? 'Detaylari Gor'),
             'cta_url' => $this->normalizeCtaUrl((string) ($textData['cta_url'] ?? $campaign->cta_url ?? '/dashboard')),
             'visual_prompt' => $visualPrompt,
-            'ai_payload' => [
+            'ai_payload' => array_merge($existingPayload, [
                 'text' => $textData,
                 'generated_at' => now()->toISOString(),
-            ],
+                'image_generation' => $imageResult,
+            ]),
             'image_path' => $imagePath ?? $campaign->image_path,
-            'is_ai_generated' => true,
+            'is_ai_generated' => ($imageResult['source'] ?? null) === 'gemini',
             'updated_by' => $actorId ?? $campaign->updated_by,
         ]);
 
@@ -423,7 +426,10 @@ class AiCelebrationService
         ];
     }
 
-    private function generateImage(AiCelebrationCampaign $campaign, string $visualPrompt): ?string
+    /**
+     * @return array{path:?string,source:string,error:?string}
+     */
+    private function generateImage(AiCelebrationCampaign $campaign, string $visualPrompt): array
     {
         $prompt = trim($visualPrompt) !== '' ? trim($visualPrompt) : ('GrupTalepleri icin ' . $campaign->event_name . ' kutlama gorseli');
         $apiKey = (string) config('services.gemini.key');
@@ -465,15 +471,35 @@ class AiCelebrationService
                         $mimeType = strtolower((string) ($inlineData['mimeType'] ?? $inlineData['mime_type'] ?? 'image/png'));
                         $extension = str_contains($mimeType, 'jpeg') || str_contains($mimeType, 'jpg') ? 'jpg' : 'png';
 
-                        return $this->storeImageBinary($campaign, $binary, $extension);
+                        $storedPath = $this->storeImageBinary($campaign, $binary, $extension);
+                        if ($storedPath !== null) {
+                            return [
+                                'path' => $storedPath,
+                                'source' => 'gemini',
+                                'error' => null,
+                            ];
+                        }
+
+                        return [
+                            'path' => null,
+                            'source' => 'none',
+                            'error' => 'AI gorseli kaydedilemedi.',
+                        ];
                     }
                 }
+
+                Log::warning('AI kutlama gorsel uretimi cevabinda image verisi yok.');
+                return $this->fallbackImageResult($campaign, 'Gemini gorsel cevabinda image verisi yok.');
             } catch (\Throwable $exception) {
                 Log::warning('AI kutlama gorsel uretimi fallback: ' . $exception->getMessage());
+                return $this->fallbackImageResult($campaign, 'Gemini gorsel uretimi hatasi: ' . $exception->getMessage());
             }
+
+            Log::warning('AI kutlama gorsel uretimi basarisiz HTTP: ' . $response->status());
+            return $this->fallbackImageResult($campaign, 'Gemini gorsel HTTP hatasi: ' . $response->status());
         }
 
-        return $this->storeFallbackSvg($campaign);
+        return $this->fallbackImageResult($campaign, 'Gemini API key tanimli degil.');
     }
 
     /**
@@ -602,5 +628,25 @@ SVG;
 
         return '/uploads/ai-kutlama/' . $fileName;
     }
-}
 
+    /**
+     * @return array{path:?string,source:string,error:?string}
+     */
+    private function fallbackImageResult(AiCelebrationCampaign $campaign, string $errorMessage): array
+    {
+        $fallbackPath = $this->storeFallbackSvg($campaign);
+        if ($fallbackPath !== null) {
+            return [
+                'path' => $fallbackPath,
+                'source' => 'fallback',
+                'error' => $errorMessage,
+            ];
+        }
+
+        return [
+            'path' => null,
+            'source' => 'none',
+            'error' => $errorMessage . ' Fallback da kaydedilemedi.',
+        ];
+    }
+}

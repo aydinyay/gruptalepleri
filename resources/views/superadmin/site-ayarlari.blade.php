@@ -376,13 +376,13 @@
                     <form method="POST" action="{{ route('superadmin.ai-kutlama.tara') }}" class="d-flex align-items-center gap-2 flex-wrap">
                         @csrf
                         <label class="small text-muted mb-0">Tarama gunu</label>
-                        <input type="number" min="1" max="14" name="days" value="7" class="form-control form-control-sm" style="max-width:90px;">
+                        <input type="number" min="1" max="30" name="days" value="7" class="form-control form-control-sm" style="max-width:90px;">
                         <div class="form-check mb-0">
                             <input class="form-check-input" type="checkbox" id="force_refresh" name="force_refresh" value="1" checked>
                             <label class="form-check-label small" for="force_refresh">Cache sifirla</label>
                         </div>
                         <button class="btn btn-sm btn-info text-white" type="submit">
-                            <i class="fas fa-sync-alt me-1"></i>7 Gunu Tara
+                            <i class="fas fa-sync-alt me-1"></i>Secileni Tara
                         </button>
                     </form>
                 </div>
@@ -491,6 +491,8 @@
                                 'approved' => 'primary',
                                 default => 'secondary'
                             };
+                            $imageSource = data_get($campaign->ai_payload, 'image_generation.source');
+                            $imageError = data_get($campaign->ai_payload, 'image_generation.error');
                         @endphp
                         <div class="border rounded-3 p-3 mb-3">
                             <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
@@ -504,6 +506,11 @@
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
+                                    @if($imageSource === 'gemini')
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Gorsel: AI</span>
+                                    @elseif($imageSource === 'fallback')
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Gorsel: Fallback</span>
+                                    @endif
                                     <span class="badge bg-{{ $statusColor }}">{{ strtoupper($campaign->status) }}</span>
                                     <a class="btn btn-sm btn-outline-secondary" href="{{ route('superadmin.ai-kutlama.onizleme', $campaign) }}" target="_blank">Onizleme</a>
                                     <form method="POST" action="{{ route('superadmin.ai-kutlama.yeniden-uret', $campaign) }}" class="d-inline">
@@ -517,6 +524,9 @@
                                 @if($campaign->image_path)
                                     <div class="col-12 col-lg-3">
                                         <img src="{{ $campaign->image_path }}" alt="AI gorsel" class="img-fluid rounded border">
+                                        @if($imageError)
+                                            <div class="small text-warning mt-2">Not: {{ $imageError }}</div>
+                                        @endif
                                     </div>
                                 @endif
                                 <div class="col-12 {{ $campaign->image_path ? 'col-lg-9' : '' }}">
