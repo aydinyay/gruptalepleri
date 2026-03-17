@@ -14,3 +14,4 @@ Disallow: /acente/
 Disallow: /t/
 
 Sitemap: https://gruptalepleri.com/sitemap.xml
+Sitemap: https://gruptalepleri.com/sitemap_index.xml
