@@ -356,7 +356,7 @@
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="{{ route('superadmin.sms.ayarlar') }}" class="quick-action">
+                        <a href="{{ route('superadmin.site.ayarlar') }}" class="quick-action">
                             <i class="fas fa-bell"></i>
                             <span>SMS Ayarları</span>
                         </a>

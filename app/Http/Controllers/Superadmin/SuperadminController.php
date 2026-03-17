@@ -177,6 +177,25 @@ class SuperadminController extends Controller
         return view('superadmin.sms-ayarlari', compact('ayarlar', 'events', 'opsiyonAyarlar', 'schedulerAralik', 'smsBaslangic', 'smsBitis', 'notificationSystems'));
     }
 
+    public function siteAyarlari()
+    {
+        $notificationSystems = [
+            'sms' => SistemAyar::smsEnabled(),
+            'email' => SistemAyar::emailEnabled(),
+            'push' => SistemAyar::pushEnabled(),
+            'broadcast' => SistemAyar::broadcastEnabled(),
+        ];
+
+        $stats = [
+            'sms_kural' => SmsNotificationSetting::count(),
+            'opsiyon_kural' => OpsiyonUyariAyar::count(),
+            'duyuru' => BroadcastNotification::count(),
+            'iletisim_log' => RequestNotification::count(),
+        ];
+
+        return view('superadmin.site-ayarlari', compact('notificationSystems', 'stats'));
+    }
+
     public function bildirimSistemleriGuncelle(Request $request)
     {
         SistemAyar::set(SistemAyar::KEY_SMS_ENABLED, $request->boolean('sms_enabled'));

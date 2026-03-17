@@ -11,7 +11,7 @@
         <a href="{{ route('superadmin.dashboard') }}"
            style="color:#e94560!important;font-weight:700;font-size:1.2rem;text-decoration:none;"
            class="navbar-brand">
-            ✈️ GrupTalepleri
+            GrupTalepleri
             <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);font-weight:400;margin-left:4px;">SUPERADMIN</span>
         </a>
         <div class="d-flex align-items-center gap-2">
@@ -23,9 +23,9 @@
                class="nav-lc {{ $active === 'acenteler' ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-building me-1"></i>Acenteler
             </a>
-            <a href="{{ route('superadmin.sms.ayarlar') }}"
-               class="nav-lc {{ $active === 'sms-ayarlar' ? 'nav-lc-active' : '' }}">
-                <i class="fas fa-sms me-1"></i>SMS Ayarları
+            <a href="{{ route('superadmin.site.ayarlar') }}"
+               class="nav-lc {{ in_array($active, ['site-ayarlar', 'sms-ayarlar'], true) ? 'nav-lc-active' : '' }}">
+                <i class="fas fa-cogs me-1"></i>Site Ayarlari
             </a>
             <a href="{{ route('superadmin.sms.raporlar') }}"
                class="nav-lc {{ $active === 'sms-raporlar' ? 'nav-lc-active' : '' }}">
@@ -42,7 +42,7 @@
             </a>
             <form method="POST" action="{{ route('logout') }}" class="d-inline ms-1">
                 @csrf
-                <button class="btn btn-sm btn-outline-light" title="Çıkış">
+                <button class="btn btn-sm btn-outline-light" title="Cikis">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </form>
