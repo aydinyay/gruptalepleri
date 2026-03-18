@@ -74,11 +74,6 @@ Route::get('/dashboard', function () {
     };
 })->middleware(['auth'])->name('dashboard');
 
-// Izole ornek: GitHub benzeri navbar prototipi
-Route::middleware(['auth'])->get('/ornek/github-navbar', function () {
-    return view('demo.github-navbar-prototype');
-})->name('demo.github-navbar');
-
 // Kısa talep linki: SMS/email içinde paylaşılabilir.
 Route::middleware(['auth'])->get('/t/{gtpnr}', function (string $gtpnr) {
     return redirect()->route('admin.requests.show', $gtpnr);
