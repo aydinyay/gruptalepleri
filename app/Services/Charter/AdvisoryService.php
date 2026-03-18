@@ -152,6 +152,19 @@ class AdvisoryService
             if (filter_var($payload['jet']['round_trip'] ?? false, FILTER_VALIDATE_BOOL) && ! empty($payload['jet']['return_date'])) {
                 $detailScore++;
             }
+            if (
+                filter_var($payload['jet']['different_return_route'] ?? false, FILTER_VALIDATE_BOOL)
+                && ! empty($payload['jet']['return_from_iata'])
+                && ! empty($payload['jet']['return_to_iata'])
+            ) {
+                $detailScore++;
+            }
+            if (
+                filter_var($payload['jet']['multi_leg'] ?? false, FILTER_VALIDATE_BOOL)
+                && (int) ($payload['jet']['segments_count'] ?? 0) > 0
+            ) {
+                $detailScore++;
+            }
         } elseif ($transportType === CharterRequest::TYPE_HELICOPTER) {
             if (! empty($payload['helicopter']['pickup'])) {
                 $detailScore++;
@@ -215,7 +228,21 @@ class AdvisoryService
             && filter_var($payload['jet']['round_trip'] ?? false, FILTER_VALIDATE_BOOL)
             && empty($payload['jet']['return_date'])
         ) {
-            $score -= 20;
+            $score -= 30;
+        }
+        if (
+            $transportType === CharterRequest::TYPE_JET
+            && filter_var($payload['jet']['different_return_route'] ?? false, FILTER_VALIDATE_BOOL)
+            && (empty($payload['jet']['return_from_iata']) || empty($payload['jet']['return_to_iata']))
+        ) {
+            $score -= 30;
+        }
+        if (
+            $transportType === CharterRequest::TYPE_JET
+            && filter_var($payload['jet']['multi_leg'] ?? false, FILTER_VALIDATE_BOOL)
+            && (int) ($payload['jet']['segments_count'] ?? 0) <= 0
+        ) {
+            $score -= 30;
         }
 
         if ($transportType === CharterRequest::TYPE_AIRLINER && ! $isFlexible) {
@@ -272,6 +299,20 @@ class AdvisoryService
             && empty($payload['jet']['return_date'])
         ) {
             $messages[] = 'Gidiş - dönüş seçiminde dönüş tarihi girmeniz teklif kalitesini artırır.';
+        }
+        if (
+            $transportType === CharterRequest::TYPE_JET
+            && filter_var($payload['jet']['different_return_route'] ?? false, FILTER_VALIDATE_BOOL)
+            && (empty($payload['jet']['return_from_iata']) || empty($payload['jet']['return_to_iata']))
+        ) {
+            $messages[] = 'Dönüş rotası farklı seçiminde dönüş kalkış ve varış noktalarını girin.';
+        }
+        if (
+            $transportType === CharterRequest::TYPE_JET
+            && filter_var($payload['jet']['multi_leg'] ?? false, FILTER_VALIDATE_BOOL)
+            && (int) ($payload['jet']['segments_count'] ?? 0) <= 0
+        ) {
+            $messages[] = 'Çoklu uçuş seçtiyseniz en az bir ek parkur satırı ekleyin.';
         }
 
         if (empty($messages)) {

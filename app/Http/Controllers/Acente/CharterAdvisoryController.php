@@ -26,6 +26,11 @@ class CharterAdvisoryController extends Controller
             'jet.flight_hours_estimate' => 'nullable|integer|min:0|max:1000',
             'jet.round_trip' => 'nullable|boolean',
             'jet.return_date' => 'nullable|date',
+            'jet.different_return_route' => 'nullable|boolean',
+            'jet.return_from_iata' => 'nullable|string|max:10',
+            'jet.return_to_iata' => 'nullable|string|max:10',
+            'jet.multi_leg' => 'nullable|boolean',
+            'jet.segments_count' => 'nullable|integer|min:0|max:20',
             'jet.luggage_count' => 'nullable|integer|min:0|max:100',
             'jet.cabin_preference' => 'nullable|string|max:120',
 

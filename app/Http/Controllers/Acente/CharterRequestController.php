@@ -37,6 +37,14 @@ class CharterRequestController extends Controller
             'jet.flight_hours_estimate' => 'nullable|integer|min:0|max:1000',
             'jet.round_trip' => 'nullable|boolean',
             'jet.return_date' => 'nullable|date|after_or_equal:departure_date',
+            'jet.different_return_route' => 'nullable|boolean',
+            'jet.return_from_iata' => 'nullable|string|max:10',
+            'jet.return_to_iata' => 'nullable|string|max:10',
+            'jet.multi_leg' => 'nullable|boolean',
+            'jet.segments' => 'nullable|array|max:10',
+            'jet.segments.*.from_iata' => 'nullable|string|max:10',
+            'jet.segments.*.to_iata' => 'nullable|string|max:10',
+            'jet.segments.*.departure_date' => 'nullable|date',
             'jet.pet_onboard' => 'nullable|boolean',
             'jet.vip_catering' => 'nullable|boolean',
             'jet.wifi_required' => 'nullable|boolean',
@@ -69,6 +77,54 @@ class CharterRequestController extends Controller
                 ->withInput();
         }
 
+        if (
+            ($validated['transport_type'] ?? '') === CharterRequest::TYPE_JET
+            && (bool) ($validated['jet']['round_trip'] ?? false)
+            && (bool) ($validated['jet']['different_return_route'] ?? false)
+            && (
+                empty($validated['jet']['return_from_iata'])
+                || empty($validated['jet']['return_to_iata'])
+            )
+        ) {
+            return back()
+                ->withErrors(['jet.return_from_iata' => 'Dönüş rotası farklıysa dönüş kalkış ve varış noktaları zorunludur.'])
+                ->withInput();
+        }
+
+        if (
+            ($validated['transport_type'] ?? '') === CharterRequest::TYPE_JET
+            && (bool) ($validated['jet']['multi_leg'] ?? false)
+        ) {
+            $segments = collect($validated['jet']['segments'] ?? [])
+                ->map(function ($segment) {
+                    return [
+                        'from_iata' => strtoupper(trim((string) ($segment['from_iata'] ?? ''))),
+                        'to_iata' => strtoupper(trim((string) ($segment['to_iata'] ?? ''))),
+                        'departure_date' => trim((string) ($segment['departure_date'] ?? '')),
+                    ];
+                })
+                ->filter(function ($segment) {
+                    return collect($segment)->filter()->count() > 0;
+                })
+                ->values();
+
+            $hasIncompleteSegment = $segments->contains(function ($segment) {
+                return empty($segment['from_iata']) || empty($segment['to_iata']) || empty($segment['departure_date']);
+            });
+
+            if ($hasIncompleteSegment) {
+                return back()
+                    ->withErrors(['jet.segments' => 'Çoklu uçuş satırlarında kalkış, varış ve tarih birlikte girilmelidir.'])
+                    ->withInput();
+            }
+
+            if ($segments->isEmpty()) {
+                return back()
+                    ->withErrors(['jet.segments' => 'Çoklu uçuş için en az bir ek parkur girilmelidir.'])
+                    ->withInput();
+            }
+        }
+
         $charterRequest = DB::transaction(function () use ($validated) {
             $charterRequest = CharterRequest::query()->create([
                 'user_id' => auth()->id(),
@@ -97,8 +153,43 @@ class CharterRequestController extends Controller
                     }
                 }
 
+                foreach (['return_date', 'different_return_route', 'return_from_iata', 'return_to_iata', 'multi_leg', 'segments'] as $specKey) {
+                    unset($specsJson[$specKey]);
+                }
+
                 if (! empty($validated['jet']['return_date'])) {
                     $specsJson['return_date'] = $validated['jet']['return_date'];
+                }
+
+                if (! empty($validated['jet']['different_return_route'])) {
+                    $specsJson['different_return_route'] = true;
+                    if (! empty($validated['jet']['return_from_iata'])) {
+                        $specsJson['return_from_iata'] = strtoupper(trim((string) $validated['jet']['return_from_iata']));
+                    }
+                    if (! empty($validated['jet']['return_to_iata'])) {
+                        $specsJson['return_to_iata'] = strtoupper(trim((string) $validated['jet']['return_to_iata']));
+                    }
+                }
+
+                if (! empty($validated['jet']['multi_leg'])) {
+                    $segmentPayload = collect($validated['jet']['segments'] ?? [])
+                        ->map(function ($segment) {
+                            return [
+                                'from_iata' => strtoupper(trim((string) ($segment['from_iata'] ?? ''))),
+                                'to_iata' => strtoupper(trim((string) ($segment['to_iata'] ?? ''))),
+                                'departure_date' => trim((string) ($segment['departure_date'] ?? '')),
+                            ];
+                        })
+                        ->filter(function ($segment) {
+                            return ! empty($segment['from_iata']) && ! empty($segment['to_iata']) && ! empty($segment['departure_date']);
+                        })
+                        ->values()
+                        ->all();
+
+                    if (! empty($segmentPayload)) {
+                        $specsJson['multi_leg'] = true;
+                        $specsJson['segments'] = $segmentPayload;
+                    }
                 }
 
                 CharterJetRequest::query()->create([

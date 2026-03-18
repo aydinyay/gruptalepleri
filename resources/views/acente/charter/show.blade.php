@@ -21,6 +21,65 @@
     $jetDetail = $charterRequest->jetDetail;
     $jetSpecs = is_array($jetDetail?->specs_json) ? $jetDetail->specs_json : [];
     $jetReturnDate = $jetSpecs['return_date'] ?? null;
+    $jetReturnDateFormatted = null;
+    if ($jetReturnDate) {
+        try {
+            $jetReturnDateFormatted = \Carbon\Carbon::parse($jetReturnDate)->format('d.m.Y');
+        } catch (\Throwable $e) {
+            $jetReturnDateFormatted = (string) $jetReturnDate;
+        }
+    }
+    $jetDifferentReturnRoute = (bool) ($jetSpecs['different_return_route'] ?? false);
+    $jetReturnFromIata = strtoupper((string) ($jetSpecs['return_from_iata'] ?? $charterRequest->to_iata));
+    $jetReturnToIata = strtoupper((string) ($jetSpecs['return_to_iata'] ?? $charterRequest->from_iata));
+    $jetSegmentsRaw = $jetSpecs['segments'] ?? [];
+    $jetSegments = collect(is_array($jetSegmentsRaw) ? $jetSegmentsRaw : [])
+        ->map(function ($segment) {
+            return [
+                'from_iata' => strtoupper(trim((string) ($segment['from_iata'] ?? ''))),
+                'to_iata' => strtoupper(trim((string) ($segment['to_iata'] ?? ''))),
+                'departure_date' => trim((string) ($segment['departure_date'] ?? '')),
+            ];
+        })
+        ->filter(function ($segment) {
+            return ! empty($segment['from_iata']) && ! empty($segment['to_iata']) && ! empty($segment['departure_date']);
+        })
+        ->values();
+
+    $flightPlanRows = collect([
+        [
+            'label' => 'Ana Parkur',
+            'from_iata' => strtoupper((string) $charterRequest->from_iata),
+            'to_iata' => strtoupper((string) $charterRequest->to_iata),
+            'departure_date' => optional($charterRequest->departure_date)->format('d.m.Y') ?: '-',
+        ],
+    ]);
+
+    if ($jetDetail?->round_trip) {
+        $flightPlanRows->push([
+            'label' => $jetDifferentReturnRoute ? 'Dönüş (Farklı Rota)' : 'Dönüş',
+            'from_iata' => $jetReturnFromIata,
+            'to_iata' => $jetReturnToIata,
+            'departure_date' => $jetReturnDateFormatted ?: '-',
+        ]);
+    }
+
+    $jetSegments->each(function ($segment, $index) use ($flightPlanRows) {
+        $segmentDate = $segment['departure_date'];
+        try {
+            $segmentDate = \Carbon\Carbon::parse($segment['departure_date'])->format('d.m.Y');
+        } catch (\Throwable $e) {
+            $segmentDate = $segment['departure_date'];
+        }
+
+        $flightPlanRows->push([
+            'label' => 'Ek Parkur #' . ($index + 1),
+            'from_iata' => $segment['from_iata'],
+            'to_iata' => $segment['to_iata'],
+            'departure_date' => $segmentDate,
+        ]);
+    });
+
     $jetPreferenceMap = [
         'ekonomik_jet' => 'Ekonomik Jet Öncelikli',
         'vip_jet' => 'VIP Jet Öncelikli',
@@ -85,19 +144,35 @@
                         <div class="col-6 col-md-3"><div class="text-muted small">Grup Tipi</div><div class="fw-bold">{{ $charterRequest->group_type ?: '-' }}</div></div>
 
                         @if($charterRequest->transport_type === 'jet')
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-md-4">
                                 <div class="text-muted small">Uçak Tercihi</div>
                                 <div class="fw-bold">{{ $jetPreference }}</div>
                             </div>
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-md-4">
                                 <div class="text-muted small">Dönüş Tarihi</div>
                                 <div class="fw-bold">
                                     @if($jetDetail?->round_trip)
-                                        {{ $jetReturnDate ? \Carbon\Carbon::parse($jetReturnDate)->format('d.m.Y') : 'Belirtilmedi' }}
+                                        {{ $jetReturnDateFormatted ?: 'Belirtilmedi' }}
                                     @else
                                         Tek Yön
                                     @endif
                                 </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="text-muted small">Dönüş Rota Tipi</div>
+                                <div class="fw-bold">
+                                    @if(!$jetDetail?->round_trip)
+                                        -
+                                    @elseif($jetDifferentReturnRoute)
+                                        Farklı Rota
+                                    @else
+                                        Ana Rotanın Tersi
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="text-muted small">Çoklu Uçuş</div>
+                                <div class="fw-bold">{{ $jetSegments->isNotEmpty() ? 'Evet (' . $jetSegments->count() . ' ek parkur)' : 'Hayır' }}</div>
                             </div>
                             <div class="col-12">
                                 <div class="text-muted small">Jet Hizmetleri</div>
@@ -107,6 +182,31 @@
                                     @empty
                                         <span class="text-muted">Özel hizmet seçilmedi.</span>
                                     @endforelse
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="text-muted small mb-1">Uçuş Planı</div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0 align-middle">
+                                        <thead>
+                                        <tr>
+                                            <th>Parkur</th>
+                                            <th>Kalkış</th>
+                                            <th>Varış</th>
+                                            <th>Tarih</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($flightPlanRows as $planRow)
+                                            <tr>
+                                                <td>{{ $planRow['label'] }}</td>
+                                                <td>{{ $planRow['from_iata'] }}</td>
+                                                <td>{{ $planRow['to_iata'] }}</td>
+                                                <td>{{ $planRow['departure_date'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         @endif
