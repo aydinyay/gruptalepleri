@@ -28,6 +28,8 @@
         .charter-create-page .field-micro { font-size:.74rem; color:#6b7280; margin-top:.25rem; }
         .charter-create-page .transport-fields { border:1px dashed #d4d8e1; border-radius:12px; padding:.95rem; background:#fcfdff; }
         .charter-create-page .advisory-sticky { position:sticky; top:1rem; }
+        .charter-create-page .charter-advisory-card { border-radius:12px; overflow:hidden; }
+        .charter-create-page .charter-advisory-card .card-body { max-height:calc(100vh - 150px); overflow-y:auto; overflow-x:hidden; }
         .charter-create-page .charter-advisory-message { font-size:.82rem; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.65rem; padding:.5rem .65rem; }
         .charter-create-page .charter-advisory-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.5rem; }
         .charter-create-page .charter-advisory-item { border:1px solid #e5e7eb; border-radius:.6rem; padding:.5rem .55rem; background:#fff; }
@@ -41,9 +43,36 @@
         .charter-create-page .advisory-summary { border:1px solid #d4d8e1; border-radius:10px; background:#fafcff; padding:.6rem .7rem; font-size:.81rem; }
         .charter-create-page .advisory-summary .value { font-weight:700; color:#111827; }
         .charter-create-page .submit-note { font-size:.82rem; color:#374151; margin-top:.45rem; }
+        .charter-create-page #jetFields .form-check { display:flex; align-items:flex-start; gap:.45rem; margin-top:.35rem !important; }
+        .charter-create-page #jetFields .form-check .form-check-input { float:none; margin-left:0; margin-top:.22rem; }
+        .charter-create-page #jetFields .form-check .form-check-label { margin-left:0; line-height:1.25; }
+
+        html[data-theme="dark"] .charter-create-page .card-box { border-color:#2d4371; }
+        html[data-theme="dark"] .charter-create-page .charter-section-title { color:#9fb2d9; }
+        html[data-theme="dark"] .charter-create-page .transport-card { background:#0f1e3d; border-color:#2d4371; color:#e5e7eb; }
+        html[data-theme="dark"] .charter-create-page .transport-card .desc { color:#9fb2d9; }
+        html[data-theme="dark"] .charter-create-page .transport-card.active { background:#162f61; border-color:#4f83ff; box-shadow:0 0 0 .16rem rgba(79,131,255,.2); }
+        html[data-theme="dark"] .charter-create-page .field-micro,
+        html[data-theme="dark"] .charter-create-page .submit-note { color:#aab8d8; }
+        html[data-theme="dark"] .charter-create-page .transport-fields { background:#0f1d36; border-color:#2d4371; }
+        html[data-theme="dark"] .charter-create-page .transport-fields h6,
+        html[data-theme="dark"] .charter-create-page .transport-fields .form-label,
+        html[data-theme="dark"] .charter-create-page .transport-fields .form-check-label,
+        html[data-theme="dark"] .charter-create-page .transport-fields summary { color:#e5e7eb; }
+        html[data-theme="dark"] .charter-create-page .charter-advisory-message { background:#10254d; border-color:#345fb4; color:#9bc3ff; }
+        html[data-theme="dark"] .charter-create-page .charter-advisory-item,
+        html[data-theme="dark"] .charter-create-page .charter-advisory-step { background:#0f1d36; border-color:#2d4371; }
+        html[data-theme="dark"] .charter-create-page .charter-advisory-label { color:#9fb2d9; }
+        html[data-theme="dark"] .charter-create-page .charter-advisory-value,
+        html[data-theme="dark"] .charter-create-page .charter-advisory-list,
+        html[data-theme="dark"] .charter-create-page .advisory-summary .value { color:#e5e7eb; }
+        html[data-theme="dark"] .charter-create-page .charter-advisory-step.active { background:#1b3b74; border-color:#4f83ff; color:#d9e8ff; }
+        html[data-theme="dark"] .charter-create-page .charter-advisory-disclaimer { color:#9fb2d9; border-top-color:#2d4371; }
+        html[data-theme="dark"] .charter-create-page .advisory-summary { background:#0f1d36; border-color:#2d4371; color:#e5e7eb; }
         @media (max-width: 991.98px) {
             .charter-create-page .transport-cards { grid-template-columns:1fr; }
             .charter-create-page .charter-advisory-grid { grid-template-columns:1fr; }
+            .charter-create-page .charter-advisory-card .card-body { max-height:none; overflow:visible; }
         }
     </style>
 </head>
