@@ -86,18 +86,18 @@
 <body class="theme-scope charter-create-page">
 <x-navbar-acente active="charter" />
 
-@php($transportOld = old('transport_type', 'jet'))
-@php($fromIataOld = old('from_iata', ''))
-@php($toIataOld = old('to_iata', ''))
-@php($oldExtras = old('extras', []))
-@php($jetOld = old('jet', []))
-@php($jetRoundTripOld = (bool) data_get($jetOld, 'round_trip', false))
-@php($jetReturnDateOld = data_get($jetOld, 'return_date', ''))
-@php($jetDifferentReturnRouteOld = (bool) data_get($jetOld, 'different_return_route', false))
-@php($jetReturnFromIataOld = data_get($jetOld, 'return_from_iata', ''))
-@php($jetReturnToIataOld = data_get($jetOld, 'return_to_iata', ''))
-@php($jetMultiLegOld = (bool) data_get($jetOld, 'multi_leg', false))
 @php
+    $transportOld = old('transport_type', 'jet');
+    $fromIataOld = old('from_iata', '');
+    $toIataOld = old('to_iata', '');
+    $oldExtras = old('extras', []);
+    $jetOld = old('jet', []);
+    $jetRoundTripOld = (bool) data_get($jetOld, 'round_trip', false);
+    $jetReturnDateOld = data_get($jetOld, 'return_date', '');
+    $jetDifferentReturnRouteOld = (bool) data_get($jetOld, 'different_return_route', false);
+    $jetReturnFromIataOld = data_get($jetOld, 'return_from_iata', '');
+    $jetReturnToIataOld = data_get($jetOld, 'return_to_iata', '');
+    $jetMultiLegOld = (bool) data_get($jetOld, 'multi_leg', false);
     $jetSegmentsOldRaw = data_get($jetOld, 'segments');
     $jetSegmentsOld = is_array($jetSegmentsOldRaw) ? $jetSegmentsOldRaw : [];
 @endphp
@@ -114,7 +114,7 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-    @if($errors->any())
+    @if(isset($errors) && $errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $error)
