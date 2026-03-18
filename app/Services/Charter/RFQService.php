@@ -130,6 +130,8 @@ class RFQService
             'Tarih: ' . (optional($request->departure_date)->format('d.m.Y') ?: '-'),
             'Pax: ' . ((string) ($request->pax ?: '-')),
             'Esnek Tarih: ' . ($request->is_flexible ? 'Evet' : 'Hayir'),
+            'Yolcu Dagilimi: ' . $this->passengerBreakdown($request),
+            'Bagaj: ' . $this->baggageInfo($request),
         ];
 
         if (! empty($request->group_type)) {
@@ -146,6 +148,7 @@ class RFQService
                 $lines[] = 'Donus: ' . $returnFrom . ' -> ' . $returnTo . ' | Tarih: ' . $returnDate;
             } else {
                 $lines[] = 'Donus: ' . $returnFrom . ' -> ' . $returnTo . ' (donus tarihi net degil, alternatifli paylasabilirsiniz)';
+                $lines[] = 'Donus Tarih Araligi: Belirtilmedi (ornek: 30.03.2026 - 02.04.2026 gibi iletebilirsiniz)';
             }
         }
 
@@ -201,12 +204,23 @@ class RFQService
         $lines[] = '- Ucak tipi/modeli';
         $lines[] = '- Toplam fiyat + para birimi';
         $lines[] = '- Fiyata dahil/haric kalemler';
-        $lines[] = '- Slot/permit/handling durumu';
-        $lines[] = '- Opsiyon suresi (teklif gecerlilik)';
+        $lines[] = '- Slot/permit/handling durumu (dahil/haric aciklayin)';
+        $lines[] = '- Opsiyon suresi (teklif gecerlilik, TSI saatine gore)';
         $lines[] = '- Iptal/degisiklik sartlari';
         $lines[] = '- Musaitlik teyidi';
+        $lines[] = '- Odeme kosullari (on odeme orani / vade / fatura para birimi)';
+        $lines[] = '- Operasyon belgeleri (AOC / sigorta) uygunluk teyidi';
         $lines[] = '';
-        $lines[] = 'Mumkunse teklifinizi ' . $this->responseDeadlineText() . "'e kadar paylasabilir misiniz?";
+        $lines[] = 'Mumkunse teklifinizi ' . $this->responseDeadlineText() . " (TSI, UTC+3)'e kadar paylasabilir misiniz?";
+        $lines[] = '';
+        $lines[] = 'Teklif Cevap Formati (hizli yanit icin):';
+        $lines[] = 'Model:';
+        $lines[] = 'Toplam Fiyat + Para Birimi:';
+        $lines[] = 'Dahil / Haric Kalemler:';
+        $lines[] = 'Opsiyon Suresi:';
+        $lines[] = 'Musaitlik:';
+        $lines[] = 'Iptal / Degisiklik Sartlari:';
+        $lines[] = 'Ek Not:';
 
         $lines[] = '';
         $lines[] = 'Tesekkurler.';
@@ -289,6 +303,54 @@ class RFQService
             CharterRequest::TYPE_AIRLINER => 'Charter Ucak',
             default => strtoupper($transportType),
         };
+    }
+
+    private function passengerBreakdown(CharterRequest $request): string
+    {
+        $jetSpecs = is_array($request->jetDetail?->specs_json) ? $request->jetDetail->specs_json : [];
+        $adults = $jetSpecs['adult_count'] ?? $jetSpecs['adults'] ?? null;
+        $children = $jetSpecs['child_count'] ?? $jetSpecs['children'] ?? null;
+        $infants = $jetSpecs['infant_count'] ?? $jetSpecs['infants'] ?? null;
+
+        if ($adults === null && $children === null && $infants === null) {
+            return 'Belirtilmedi (yetiskin/cocuk/bebek dagilimi teyit edilebilir).';
+        }
+
+        $parts = [];
+        if ($adults !== null) {
+            $parts[] = 'Yetiskin: ' . (int) $adults;
+        }
+        if ($children !== null) {
+            $parts[] = 'Cocuk: ' . (int) $children;
+        }
+        if ($infants !== null) {
+            $parts[] = 'Bebek: ' . (int) $infants;
+        }
+
+        return implode(', ', $parts);
+    }
+
+    private function baggageInfo(CharterRequest $request): string
+    {
+        $jet = $request->jetDetail;
+        if (! $jet) {
+            return 'Belirtilmedi (adet/toplam kg belirtilebilir).';
+        }
+
+        $count = $jet->luggage_count;
+        $hasSpecial = (bool) $jet->special_luggage;
+
+        if ($count !== null && $hasSpecial) {
+            return "Adet: {$count} + Ozel bagaj mevcut.";
+        }
+        if ($count !== null) {
+            return "Adet: {$count}.";
+        }
+        if ($hasSpecial) {
+            return 'Ozel bagaj mevcut (adet/olcu teyidi bekleniyor).';
+        }
+
+        return 'Belirtilmedi (adet/toplam kg belirtilebilir).';
     }
 
     /**
