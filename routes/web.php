@@ -238,6 +238,7 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
 
     Route::get('/charter/talep', [\App\Http\Controllers\Acente\CharterRequestController::class, 'create'])->name('charter.create');
     Route::post('/charter/talep', [\App\Http\Controllers\Acente\CharterRequestController::class, 'store'])->name('charter.store');
+    Route::get('/charter/talep/advisory', \App\Http\Controllers\Acente\CharterAdvisoryController::class)->name('charter.advisory');
     Route::get('/charter/talep/{charterRequest}', [\App\Http\Controllers\Acente\CharterRequestController::class, 'show'])->name('charter.show');
     Route::post('/charter/talep/{charterRequest}/sales-quotes/{salesQuote}/kabul', [\App\Http\Controllers\Acente\CharterRequestController::class, 'acceptSalesQuote'])->name('charter.accept');
 
