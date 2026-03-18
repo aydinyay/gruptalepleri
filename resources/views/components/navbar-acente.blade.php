@@ -58,7 +58,7 @@
                    class="nav-lc {{ $active === 'dashboard' ? 'nav-lc-active' : '' }}">
                     <i class="fas fa-list me-1"></i>Taleplerim
                 </a>
-                <a href="{{ route('acente.charter.create') }}"
+                <a href="{{ route('acente.charter.index') }}"
                    class="nav-lc {{ $active === 'charter' ? 'nav-lc-active' : '' }}">
                     <i class="fas fa-helicopter me-1"></i>Air Charter
                 </a>

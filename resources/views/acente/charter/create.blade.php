@@ -111,7 +111,10 @@
             <h4 class="mb-1 fw-bold"><i class="fas fa-helicopter me-2 text-danger"></i>Air Charter Talep Oluştur</h4>
             <div class="text-muted small">Jet, helikopter ve charter uçak taleplerini bu ekrandan açabilirsiniz.</div>
         </div>
-        <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-secondary btn-sm">Panele Dön</a>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('acente.charter.index') }}" class="btn btn-outline-primary btn-sm">Charter Taleplerim</a>
+            <a href="{{ route('acente.dashboard') }}" class="btn btn-outline-secondary btn-sm">Panele Dön</a>
+        </div>
     </div>
 
     @if(session('success'))

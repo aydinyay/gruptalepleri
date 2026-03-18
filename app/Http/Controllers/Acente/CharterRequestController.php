@@ -17,6 +17,33 @@ use Illuminate\Support\Facades\DB;
 
 class CharterRequestController extends Controller
 {
+    public function index(Request $request)
+    {
+        $transportType = (string) $request->query('transport_type', '');
+        $status = (string) $request->query('status', '');
+
+        $query = CharterRequest::query()
+            ->where('user_id', auth()->id())
+            ->with(['salesQuotes', 'booking'])
+            ->latest();
+
+        if (in_array($transportType, [CharterRequest::TYPE_JET, CharterRequest::TYPE_HELICOPTER, CharterRequest::TYPE_AIRLINER], true)) {
+            $query->where('transport_type', $transportType);
+        }
+
+        if ($status !== '') {
+            $query->where('status', $status);
+        }
+
+        $requests = $query->paginate(15)->withQueryString();
+
+        return view('acente.charter.index', [
+            'requests' => $requests,
+            'transportType' => $transportType,
+            'status' => $status,
+        ]);
+    }
+
     public function create()
     {
         return view('acente.charter.create');

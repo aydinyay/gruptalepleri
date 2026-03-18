@@ -107,7 +107,8 @@
                 {{ optional($charterRequest->departure_date)->format('d.m.Y') }}
             </div>
         </div>
-        <div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('acente.charter.index') }}" class="btn btn-outline-primary btn-sm">Charter Taleplerim</a>
             <a href="{{ route('acente.charter.create') }}" class="btn btn-outline-secondary btn-sm">Yeni Charter Talebi</a>
         </div>
     </div>
