@@ -2,10 +2,16 @@
 
 namespace Tests\Feature\Charter;
 
+use App\Models\CharterExtra;
+use App\Models\CharterJetRequest;
+use App\Models\CharterQuote;
+use App\Models\CharterRfqSupplier;
 use App\Models\CharterRequest;
 use App\Models\User;
+use App\Services\Charter\RFQService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class CharterFlowTest extends TestCase
@@ -183,5 +189,121 @@ class CharterFlowTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.charter.index'))->assertOk();
         $this->actingAs($admin)->get(route('admin.charter.show', $charterRequest))->assertOk();
+    }
+
+    public function test_rfq_dispatch_uses_current_request_data_and_logs_snapshot(): void
+    {
+        CharterRfqSupplier::query()->create([
+            'name' => 'Test Supplier',
+            'email' => 'supplier@example.com',
+            'phone' => '905551112233',
+            'service_types' => [CharterRequest::TYPE_JET],
+            'is_active' => true,
+        ]);
+
+        $charterRequest = CharterRequest::query()->create([
+            'requester_type' => 'agency',
+            'transport_type' => CharterRequest::TYPE_JET,
+            'status' => CharterRequest::STATUS_AI_QUOTED,
+            'name' => 'Test Agency',
+            'email' => 'agency@example.com',
+            'phone' => '905550001122',
+            'from_iata' => 'SAW',
+            'to_iata' => 'AYT',
+            'departure_date' => Carbon::create(2026, 3, 29),
+            'pax' => 5,
+            'is_flexible' => true,
+            'group_type' => 'Is adamlari',
+            'notes' => 'Lounge hizmeti de istiyorlar',
+            'ai_price_min' => 28520,
+            'ai_price_max' => 36580,
+            'ai_currency' => 'EUR',
+        ]);
+
+        CharterJetRequest::query()->create([
+            'charter_request_id' => $charterRequest->id,
+            'round_trip' => true,
+            'pet_onboard' => true,
+            'specs_json' => [
+                'return_date' => '2026-03-31',
+                'return_from_iata' => 'AYT',
+                'return_to_iata' => 'SAW',
+            ],
+        ]);
+
+        CharterExtra::query()->create([
+            'charter_request_id' => $charterRequest->id,
+            'title' => 'Yer Hizmeti',
+            'agency_note' => 'Lounge kullanimi',
+            'status' => 'pending_pricing',
+        ]);
+
+        Mail::shouldReceive('raw')
+            ->once()
+            ->withArgs(function (string $text, callable $callback) use ($charterRequest): bool {
+                return str_contains($text, 'Talep No: #' . $charterRequest->id)
+                    && str_contains($text, 'Rota: SAW -> AYT')
+                    && str_contains($text, 'PAX: 5')
+                    && str_contains($text, 'Talep Notu: Lounge hizmeti de istiyorlar')
+                    && str_contains($text, 'Ekstra Talepler: Yer Hizmeti (Lounge kullanimi)');
+            });
+
+        $result = app(RFQService::class)->dispatch($charterRequest->fresh());
+
+        $this->assertSame(1, $result['sent']);
+        $this->assertSame(0, $result['failed']);
+        $this->assertDatabaseHas('charter_quotes', [
+            'charter_request_id' => $charterRequest->id,
+            'quote_type' => 'rfq',
+            'status' => 'sent',
+        ]);
+
+        $quote = CharterQuote::query()
+            ->where('charter_request_id', $charterRequest->id)
+            ->where('quote_type', 'rfq')
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($quote);
+        $this->assertSame($charterRequest->id, (int) data_get($quote->payload, 'request_id'));
+        $this->assertSame('SAW - AYT', (string) data_get($quote->payload, 'route'));
+        $this->assertSame('SAW', (string) data_get($quote->payload, 'request_snapshot.from_iata'));
+        $this->assertSame('AYT', (string) data_get($quote->payload, 'request_snapshot.to_iata'));
+    }
+
+    public function test_send_rfq_stops_when_request_confirmation_id_mismatches(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'email' => 'admin-rfq-confirm@example.com',
+        ]);
+
+        $charterRequest = CharterRequest::query()->create([
+            'requester_type' => 'agency',
+            'transport_type' => CharterRequest::TYPE_JET,
+            'status' => CharterRequest::STATUS_AI_QUOTED,
+            'name' => 'Agency',
+            'email' => 'agency-confirm@example.com',
+            'phone' => '905550009999',
+            'from_iata' => 'IST',
+            'to_iata' => 'ADB',
+            'departure_date' => now()->addDays(8)->toDateString(),
+            'pax' => 4,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.charter.send-rfq', $charterRequest), [
+            'request_id_confirm' => $charterRequest->id + 999,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->assertDatabaseMissing('charter_quotes', [
+            'charter_request_id' => $charterRequest->id,
+            'quote_type' => 'rfq',
+        ]);
+        $this->assertDatabaseHas('charter_requests', [
+            'id' => $charterRequest->id,
+            'status' => CharterRequest::STATUS_AI_QUOTED,
+        ]);
     }
 }

@@ -84,7 +84,9 @@
                 <div class="card-body d-grid gap-2">
                     <form method="POST" action="{{ route($routePrefix . '.send-rfq', $charterRequest) }}">
                         @csrf
+                        <input type="hidden" name="request_id_confirm" value="{{ $charterRequest->id }}">
                         <button class="btn btn-primary w-100">RFQ Dagitimini Baslat</button>
+                        <div class="small text-muted mt-1">Talep #{{ $charterRequest->id }} · {{ strtoupper($charterRequest->from_iata) }}-{{ strtoupper($charterRequest->to_iata) }} · PAX {{ $charterRequest->pax }}</div>
                     </form>
                     @if(auth()->user()->role === 'superadmin')
                         <a href="{{ route('superadmin.charter.rfq-suppliers.index') }}" class="btn btn-outline-secondary w-100">RFQ Alicilarini Yonet</a>

@@ -206,12 +206,23 @@ class CharterController extends Controller
         return back()->with('success', 'Satis teklifi olusturuldu ve acenteye hazir.');
     }
 
-    public function sendRfq(CharterRequest $charterRequest, RFQService $rfqService): RedirectResponse
+    public function sendRfq(Request $request, CharterRequest $charterRequest, RFQService $rfqService): RedirectResponse
     {
         $this->assertAuthorized();
 
+        $confirmedId = (int) $request->input('request_id_confirm', 0);
+        if ($confirmedId > 0 && $confirmedId !== (int) $charterRequest->id) {
+            return back()->with('error', 'RFQ gonderimi durduruldu: talep dogrulamasi basarisiz.');
+        }
+
+        $charterRequest->refresh();
         $result = $rfqService->dispatch($charterRequest);
-        return back()->with('success', "RFQ dagitimi tamamlandi. Gonderilen: {$result['sent']} / Hata: {$result['failed']}");
+
+        $routeLabel = strtoupper((string) ($charterRequest->from_iata ?: '-')) . '-' . strtoupper((string) ($charterRequest->to_iata ?: '-'));
+        return back()->with(
+            'success',
+            "RFQ #{$charterRequest->id} ({$routeLabel}) dagitimi tamamlandi. Gonderilen: {$result['sent']} / Hata: {$result['failed']}"
+        );
     }
 
     public function storePayment(Request $request, CharterBooking $booking, PaymentService $paymentService): RedirectResponse
