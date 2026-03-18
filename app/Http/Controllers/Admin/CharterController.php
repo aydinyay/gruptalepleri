@@ -216,7 +216,7 @@ class CharterController extends Controller
         }
 
         $charterRequest->refresh();
-        $result = $rfqService->dispatch($charterRequest);
+        $result = $rfqService->dispatch($charterRequest, null, auth()->user());
 
         $routeLabel = strtoupper((string) ($charterRequest->from_iata ?: '-')) . '-' . strtoupper((string) ($charterRequest->to_iata ?: '-'));
         return back()->with(

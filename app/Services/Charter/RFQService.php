@@ -7,6 +7,7 @@ use App\Models\CharterQuote;
 use App\Models\CharterRequest;
 use App\Models\CharterSalesQuote;
 use App\Models\SistemAyar;
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
@@ -15,7 +16,7 @@ class RFQService
     /**
      * @return array{sent:int,failed:int,targets:array<int,array<string,mixed>>}
      */
-    public function dispatch(CharterRequest $request, ?CharterSalesQuote $salesQuote = null): array
+    public function dispatch(CharterRequest $request, ?CharterSalesQuote $salesQuote = null, ?User $sender = null): array
     {
         $request->loadMissing(['jetDetail', 'helicopterDetail', 'airlinerDetail', 'extras', 'user']);
 
@@ -50,7 +51,12 @@ class RFQService
                     $payload['error'] = 'Supplier e-posta bilgisi bos.';
                 } else {
                     $subject = $this->buildSubject($request);
-                    $text = $this->buildMailBody($request, $rfqReference);
+                    $text = $this->buildMailBody(
+                        $request,
+                        $rfqReference,
+                        (string) ($supplier['name'] ?? 'Degerli Is Ortagimiz'),
+                        $sender
+                    );
                     Mail::raw($text, static function ($mail) use ($supplier, $subject): void {
                         $mail->to($supplier['email'], $supplier['name'] ?? 'Supplier')->subject($subject);
                     });
@@ -89,9 +95,10 @@ class RFQService
 
     private function buildSubject(CharterRequest $request): string
     {
+        $serviceLabel = $this->serviceLabel((string) $request->transport_type);
         $route = strtoupper((string) $request->from_iata) . '-' . strtoupper((string) $request->to_iata);
         $date = optional($request->departure_date)->format('d.m.Y') ?: '-';
-        return "RFQ #{$request->id} | {$route} | {$date} | PAX {$request->pax}";
+        return "RFQ - {$serviceLabel} Talebi | {$route} | {$date} | {$request->pax} Pax";
     }
 
     private function buildRfqReference(CharterRequest $request): string
@@ -99,17 +106,29 @@ class RFQService
         return 'RFQ-' . $request->id . '-' . now()->format('YmdHis');
     }
 
-    private function buildMailBody(CharterRequest $request, string $rfqReference): string
+    private function buildMailBody(CharterRequest $request, string $rfqReference, string $supplierName, ?User $sender): string
     {
+        $company = $this->companyContext();
+        $senderContext = $this->senderContext($sender);
+        $serviceLabel = $this->serviceLabel((string) $request->transport_type);
+        $from = strtoupper((string) ($request->from_iata ?: '-'));
+        $to = strtoupper((string) ($request->to_iata ?: '-'));
+
         $lines = [
-            'Yeni Air Charter RFQ Talebi',
-            '==========================',
+            (string) $company['brand'],
+            (string) $company['legal_name'],
+            (string) $company['unit'],
+            '',
+            'Merhaba, sayin ' . trim($supplierName),
+            '',
+            'Asagidaki charter talebi icin net operasyon teklifinizi rica ederiz.',
+            '',
             'RFQ Referansi: ' . $rfqReference,
             'Talep No: #' . $request->id,
-            'Servis Tipi: ' . strtoupper((string) $request->transport_type),
-            'Rota: ' . strtoupper((string) ($request->from_iata ?: '-')) . ' -> ' . strtoupper((string) ($request->to_iata ?: '-')),
-            'Gidis Tarihi: ' . (optional($request->departure_date)->format('d.m.Y') ?: '-'),
-            'PAX: ' . ((string) ($request->pax ?: '-')),
+            'Ucus Tipi: ' . $serviceLabel,
+            'Rota: ' . $from . ' -> ' . $to,
+            'Tarih: ' . (optional($request->departure_date)->format('d.m.Y') ?: '-'),
+            'Pax: ' . ((string) ($request->pax ?: '-')),
             'Esnek Tarih: ' . ($request->is_flexible ? 'Evet' : 'Hayir'),
         ];
 
@@ -123,7 +142,11 @@ class RFQService
             $returnDate = $jetSpecs['return_date'] ?? null;
             $returnFrom = strtoupper((string) ($jetSpecs['return_from_iata'] ?? $request->to_iata));
             $returnTo = strtoupper((string) ($jetSpecs['return_to_iata'] ?? $request->from_iata));
-            $lines[] = 'Donus: ' . $returnFrom . ' -> ' . $returnTo . ' | Tarih: ' . ($returnDate ?: '-');
+            if (! empty($returnDate)) {
+                $lines[] = 'Donus: ' . $returnFrom . ' -> ' . $returnTo . ' | Tarih: ' . $returnDate;
+            } else {
+                $lines[] = 'Donus: ' . $returnFrom . ' -> ' . $returnTo . ' (donus tarihi net degil, alternatifli paylasabilirsiniz)';
+            }
         }
 
         $segments = collect($jetSpecs['segments'] ?? [])->filter(function ($segment): bool {
@@ -170,24 +193,102 @@ class RFQService
             ->filter()
             ->values();
         if ($extras->isNotEmpty()) {
-            $lines[] = 'Ekstra Talepler: ' . $extras->implode(', ');
-        }
-
-        if ($request->ai_price_min !== null && $request->ai_price_max !== null) {
-            $lines[] = 'AI On Aralik: '
-                . number_format((float) $request->ai_price_min, 0, ',', '.')
-                . ' - '
-                . number_format((float) $request->ai_price_max, 0, ',', '.')
-                . ' '
-                . ($request->ai_currency ?: 'EUR');
+            $lines[] = 'Ek Hizmet: ' . $extras->implode(' / ');
         }
 
         $lines[] = '';
-        $lines[] = 'Lutfen teklifinizi bu e-postaya yanitlayarak ya da operasyon kanalimiz uzerinden iletin.';
-        $lines[] = 'Tesekkurler,';
-        $lines[] = 'GrupTalepleri Operasyon';
+        $lines[] = 'Teklifte ozellikle belirtmenizi rica ederiz:';
+        $lines[] = '- Ucak tipi/modeli';
+        $lines[] = '- Toplam fiyat + para birimi';
+        $lines[] = '- Fiyata dahil/haric kalemler';
+        $lines[] = '- Slot/permit/handling durumu';
+        $lines[] = '- Opsiyon suresi (teklif gecerlilik)';
+        $lines[] = '- Iptal/degisiklik sartlari';
+        $lines[] = '- Musaitlik teyidi';
+        $lines[] = '';
+        $lines[] = 'Mumkunse teklifinizi ' . $this->responseDeadlineText() . "'e kadar paylasabilir misiniz?";
+
+        $lines[] = '';
+        $lines[] = 'Tesekkurler.';
+        $lines[] = '';
+        $lines[] = trim((string) $senderContext['name']);
+        $lines[] = trim((string) $senderContext['role']) . ' | ' . (string) $company['brand'];
+        $lines[] = 'E-posta: ' . trim((string) $senderContext['email']);
+        $lines[] = 'Telefon: ' . trim((string) $senderContext['phone']);
+        $lines[] = (string) $company['brand'] . ' Telefon: ' . (string) $company['phone'];
+        $lines[] = (string) $company['website'];
+        $lines[] = '';
+        $lines[] = '---';
+        $lines[] = (string) $company['legal_name'];
+        $lines[] = 'Adres: ' . (string) $company['address'];
+        $lines[] = 'Tel: ' . (string) $company['phone'] . ' | E-posta: ' . (string) $company['support_email'];
+        $lines[] = 'Web: ' . (string) $company['website'];
+        $lines[] = '';
+        $lines[] = 'Bu e-posta yalnizca ilgili alici icindir. Yanlislikla aldiysaniz lutfen siliniz.';
 
         return implode("\n", $lines);
+    }
+
+    private function responseDeadlineText(): string
+    {
+        $deadlineHour = (int) config('charter.rfq_deadline_hour', 16);
+        $deadlineAt = now()->copy()->setTime($deadlineHour, 0, 0);
+        if ($deadlineAt->lessThan(now())) {
+            $deadlineAt->addDay();
+        }
+
+        return $deadlineAt->format('d.m.Y H:i');
+    }
+
+    /**
+     * @return array{brand:string,legal_name:string,unit:string,address:string,phone:string,support_email:string,website:string}
+     */
+    private function companyContext(): array
+    {
+        return [
+            'brand' => (string) config('charter.company.brand', 'GrupTalepleri.com'),
+            'legal_name' => (string) config('charter.company.legal_name', 'GrupTalepleri Turizm Organizasyon ve Tic. Ltd. Sti.'),
+            'unit' => (string) config('charter.company.unit', 'Kurumsal Charter Operasyon Birimi'),
+            'address' => (string) config('charter.company.address', 'Inonu Mah. Cumhuriyet Cad. No:93/12 Sisli / Istanbul'),
+            'phone' => (string) config('charter.company.phone', '+90 535 415 47 99'),
+            'support_email' => (string) config('charter.company.support_email', 'destek@gruptalepleri.com'),
+            'website' => (string) config('charter.company.website', 'www.gruptalepleri.com'),
+        ];
+    }
+
+    /**
+     * @return array{name:string,role:string,email:string,phone:string}
+     */
+    private function senderContext(?User $sender): array
+    {
+        $mailFrom = (string) config('mail.from.address', 'noreply@gruptalepleri.com');
+        $companyPhone = (string) config('charter.company.phone', '+90 535 415 47 99');
+        if (! $sender) {
+            return [
+                'name' => 'GrupTalepleri Operasyon',
+                'role' => 'Operasyon',
+                'email' => $mailFrom,
+                'phone' => $companyPhone,
+            ];
+        }
+
+        $roleLabel = $sender->role === 'superadmin' ? 'Superadmin' : ($sender->role === 'admin' ? 'Admin' : ucfirst((string) $sender->role));
+        return [
+            'name' => (string) ($sender->name ?: 'GrupTalepleri Operasyon'),
+            'role' => $roleLabel,
+            'email' => (string) ($sender->email ?: $mailFrom),
+            'phone' => (string) ($sender->phone ?: $companyPhone),
+        ];
+    }
+
+    private function serviceLabel(string $transportType): string
+    {
+        return match ($transportType) {
+            CharterRequest::TYPE_JET => 'Ozel Jet',
+            CharterRequest::TYPE_HELICOPTER => 'Helikopter',
+            CharterRequest::TYPE_AIRLINER => 'Charter Ucak',
+            default => strtoupper($transportType),
+        };
     }
 
     /**

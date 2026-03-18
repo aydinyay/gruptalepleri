@@ -242,10 +242,12 @@ class CharterFlowTest extends TestCase
             ->once()
             ->withArgs(function (string $text, callable $callback) use ($charterRequest): bool {
                 return str_contains($text, 'Talep No: #' . $charterRequest->id)
+                    && str_contains($text, 'Ucus Tipi: Ozel Jet')
                     && str_contains($text, 'Rota: SAW -> AYT')
-                    && str_contains($text, 'PAX: 5')
+                    && str_contains($text, 'Pax: 5')
                     && str_contains($text, 'Talep Notu: Lounge hizmeti de istiyorlar')
-                    && str_contains($text, 'Ekstra Talepler: Yer Hizmeti (Lounge kullanimi)');
+                    && str_contains($text, 'Ek Hizmet: Yer Hizmeti (Lounge kullanimi)')
+                    && str_contains($text, 'Merhaba, sayin Test Supplier');
             });
 
         $result = app(RFQService::class)->dispatch($charterRequest->fresh());
