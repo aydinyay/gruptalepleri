@@ -12,6 +12,7 @@ class SistemAyar extends Model
     public const KEY_PUSH_ENABLED = 'push_enabled';
     public const KEY_BROADCAST_ENABLED = 'broadcast_enabled';
     public const KEY_AI_CELEBRATION_ENABLED = 'ai_celebration_enabled';
+    public const KEY_CHARTER_RFQ_MAX_SUPPLIERS = 'charter_rfq_max_suppliers';
 
     protected $table      = 'sistem_ayarlari';
     protected $primaryKey = 'key';
@@ -77,5 +78,16 @@ class SistemAyar extends Model
     public static function aiCelebrationEnabled(): bool
     {
         return static::bool(static::KEY_AI_CELEBRATION_ENABLED, true);
+    }
+
+    public static function charterRfqMaxSuppliers(int $default = 10): int
+    {
+        $value = static::get(static::KEY_CHARTER_RFQ_MAX_SUPPLIERS, (string) $default);
+
+        if (is_numeric($value)) {
+            return max(1, (int) $value);
+        }
+
+        return max(1, $default);
     }
 }

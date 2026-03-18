@@ -27,6 +27,10 @@
                class="nav-lc {{ $active === 'charter' ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-helicopter me-1"></i>Air Charter
             </a>
+            <a href="{{ route('superadmin.charter.rfq-suppliers.index') }}"
+               class="nav-lc {{ $active === 'charter-rfq-suppliers' ? 'nav-lc-active' : '' }}">
+                <i class="fas fa-paper-plane me-1"></i>RFQ Tedarikciler
+            </a>
             <a href="{{ route('superadmin.site.ayarlar') }}"
                class="nav-lc {{ in_array($active, ['site-ayarlar', 'sms-ayarlar'], true) ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-cogs me-1"></i>Site Ayarlari
