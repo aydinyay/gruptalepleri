@@ -59,6 +59,12 @@ Route::get('/grup-talepleri', function () {
     return view('marketing.grup-talepleri');
 })->name('marketing.grup-talepleri');
 
+// Air Charter public lead sayfalari
+Route::get('/private-jet-kiralama', [\App\Http\Controllers\Marketing\CharterLeadController::class, 'jet'])->name('charter.public.jet');
+Route::get('/helikopter-kiralama', [\App\Http\Controllers\Marketing\CharterLeadController::class, 'helicopter'])->name('charter.public.helicopter');
+Route::get('/charter-ucak', [\App\Http\Controllers\Marketing\CharterLeadController::class, 'airliner'])->name('charter.public.airliner');
+Route::post('/charter-talep', [\App\Http\Controllers\Marketing\CharterLeadController::class, 'store'])->name('charter.public.store');
+
 Route::get('/dashboard', function () {
     $user = auth()->user();
     return match($user->role) {
@@ -84,6 +90,18 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::get('/dashboard', function () {
         return view('superadmin.dashboard');
     })->name('dashboard');
+
+    Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
+    Route::get('/charter/{charterRequest}', [\App\Http\Controllers\Admin\CharterController::class, 'show'])->name('charter.show');
+    Route::post('/charter/{charterRequest}/rfq', [\App\Http\Controllers\Admin\CharterController::class, 'sendRfq'])->name('charter.send-rfq');
+    Route::post('/charter/{charterRequest}/supplier-quotes', [\App\Http\Controllers\Admin\CharterController::class, 'storeSupplierQuote'])->name('charter.supplier-quotes.store');
+    Route::post('/charter/{charterRequest}/sales-quotes', [\App\Http\Controllers\Admin\CharterController::class, 'createSalesQuote'])->name('charter.sales-quotes.store');
+    Route::patch('/charter/{charterRequest}/extras/{extra}', [\App\Http\Controllers\Admin\CharterController::class, 'priceExtra'])->name('charter.extras.price');
+    Route::post('/charter/bookings/{booking}/payments', [\App\Http\Controllers\Admin\CharterController::class, 'storePayment'])->name('charter.payments.store');
+    Route::post('/charter/payments/{payment}/approve', [\App\Http\Controllers\Admin\CharterController::class, 'approvePayment'])->name('charter.payments.approve');
+    Route::post('/charter/payments/{payment}/reject', [\App\Http\Controllers\Admin\CharterController::class, 'rejectPayment'])->name('charter.payments.reject');
+    Route::post('/charter/bookings/{booking}/start-operation', [\App\Http\Controllers\Admin\CharterController::class, 'startOperation'])->name('charter.bookings.start-operation');
+
     Route::get('/site-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'siteAyarlari'])->name('site.ayarlar');
     Route::post('/ai-kutlama/ayar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaAyarGuncelle'])->name('ai-kutlama.ayar');
     Route::post('/ai-kutlama/tara', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaTara'])->name('ai-kutlama.tara');
@@ -154,6 +172,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         return view('admin.dashboard');
     })->name('dashboard');
 
+    Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
+    Route::get('/charter/{charterRequest}', [\App\Http\Controllers\Admin\CharterController::class, 'show'])->name('charter.show');
+    Route::post('/charter/{charterRequest}/rfq', [\App\Http\Controllers\Admin\CharterController::class, 'sendRfq'])->name('charter.send-rfq');
+    Route::post('/charter/{charterRequest}/supplier-quotes', [\App\Http\Controllers\Admin\CharterController::class, 'storeSupplierQuote'])->name('charter.supplier-quotes.store');
+    Route::post('/charter/{charterRequest}/sales-quotes', [\App\Http\Controllers\Admin\CharterController::class, 'createSalesQuote'])->name('charter.sales-quotes.store');
+    Route::patch('/charter/{charterRequest}/extras/{extra}', [\App\Http\Controllers\Admin\CharterController::class, 'priceExtra'])->name('charter.extras.price');
+    Route::post('/charter/bookings/{booking}/payments', [\App\Http\Controllers\Admin\CharterController::class, 'storePayment'])->name('charter.payments.store');
+    Route::post('/charter/payments/{payment}/approve', [\App\Http\Controllers\Admin\CharterController::class, 'approvePayment'])->name('charter.payments.approve');
+    Route::post('/charter/payments/{payment}/reject', [\App\Http\Controllers\Admin\CharterController::class, 'rejectPayment'])->name('charter.payments.reject');
+    Route::post('/charter/bookings/{booking}/start-operation', [\App\Http\Controllers\Admin\CharterController::class, 'startOperation'])->name('charter.bookings.start-operation');
+
     Route::get('/talepler', [\App\Http\Controllers\Admin\RequestController::class, 'index'])->name('requests.index');
     Route::get('/talepler/{gtpnr}', [\App\Http\Controllers\Admin\RequestController::class, 'show'])->name('requests.show');
     Route::post('/talepler/{gtpnr}/durum', [\App\Http\Controllers\Admin\RequestController::class, 'updateStatus'])->name('requests.status');
@@ -206,6 +235,11 @@ Route::middleware(['auth'])->prefix('acente/onizleme')->name('acente.preview.')-
 // Acente
 Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Acente\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/charter/talep', [\App\Http\Controllers\Acente\CharterRequestController::class, 'create'])->name('charter.create');
+    Route::post('/charter/talep', [\App\Http\Controllers\Acente\CharterRequestController::class, 'store'])->name('charter.store');
+    Route::get('/charter/talep/{charterRequest}', [\App\Http\Controllers\Acente\CharterRequestController::class, 'show'])->name('charter.show');
+    Route::post('/charter/talep/{charterRequest}/sales-quotes/{salesQuote}/kabul', [\App\Http\Controllers\Acente\CharterRequestController::class, 'acceptSalesQuote'])->name('charter.accept');
 
     Route::get('/talep/olustur', [\App\Http\Controllers\Acente\RequestController::class, 'create'])->name('requests.create');
     Route::post('/talep/olustur', [\App\Http\Controllers\Acente\RequestController::class, 'store'])->name('requests.store');

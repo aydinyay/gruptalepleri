@@ -58,6 +58,10 @@
                    class="nav-lc {{ $active === 'dashboard' ? 'nav-lc-active' : '' }}">
                     <i class="fas fa-list me-1"></i>Taleplerim
                 </a>
+                <a href="{{ route('acente.charter.create') }}"
+                   class="nav-lc {{ $active === 'charter' ? 'nav-lc-active' : '' }}">
+                    <i class="fas fa-helicopter me-1"></i>Air Charter
+                </a>
                 <a href="{{ route('acente.requests.create') }}" class="btn btn-sm btn-danger px-3 d-none d-md-inline-block">
                     <i class="fas fa-plus me-1"></i>Yeni Talep
                 </a>
