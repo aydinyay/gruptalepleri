@@ -24,6 +24,8 @@ class CharterAdvisoryController extends Controller
 
             'jet' => 'nullable|array',
             'jet.flight_hours_estimate' => 'nullable|integer|min:0|max:1000',
+            'jet.round_trip' => 'nullable|boolean',
+            'jet.return_date' => 'nullable|date',
             'jet.luggage_count' => 'nullable|integer|min:0|max:100',
             'jet.cabin_preference' => 'nullable|string|max:120',
 
@@ -44,4 +46,3 @@ class CharterAdvisoryController extends Controller
         return response()->json($advisoryService->build($validated));
     }
 }
-

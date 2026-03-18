@@ -24,7 +24,7 @@ class AdvisoryService
         $duration = $this->estimateDuration($transportType, $fromIata, $toIata);
 
         $quality = $this->resolvePreparationStatus($transportType, $payload, $fromIata, $toIata, $departureDate, $pax);
-        $operational = $this->resolveOperationalStatus($transportType, $fromIata, $toIata, $departureDate, $pax, $isFlexible);
+        $operational = $this->resolveOperationalStatus($transportType, $payload, $fromIata, $toIata, $departureDate, $pax, $isFlexible);
         $suggestions = $this->buildMissingSuggestions($transportType, $payload, $fromIata, $toIata, $departureDate, $pax);
 
         return [
@@ -143,13 +143,13 @@ class AdvisoryService
 
         $detailScore = 0;
         if ($transportType === CharterRequest::TYPE_JET) {
-            if (! empty($payload['jet']['flight_hours_estimate'])) {
-                $detailScore++;
-            }
             if (! empty($payload['jet']['cabin_preference'])) {
                 $detailScore++;
             }
             if (! empty($payload['jet']['luggage_count'])) {
+                $detailScore++;
+            }
+            if (filter_var($payload['jet']['round_trip'] ?? false, FILTER_VALIDATE_BOOL) && ! empty($payload['jet']['return_date'])) {
                 $detailScore++;
             }
         } elseif ($transportType === CharterRequest::TYPE_HELICOPTER) {
@@ -188,7 +188,7 @@ class AdvisoryService
     /**
      * @return array{label:string,color:string}
      */
-    private function resolveOperationalStatus(string $transportType, string $fromIata, string $toIata, string $departureDate, int $pax, bool $isFlexible): array
+    private function resolveOperationalStatus(string $transportType, array $payload, string $fromIata, string $toIata, string $departureDate, int $pax, bool $isFlexible): array
     {
         $score = 100;
 
@@ -207,6 +207,14 @@ class AdvisoryService
         }
 
         if ($transportType === CharterRequest::TYPE_JET && $pax > 12) {
+            $score -= 20;
+        }
+
+        if (
+            $transportType === CharterRequest::TYPE_JET
+            && filter_var($payload['jet']['round_trip'] ?? false, FILTER_VALIDATE_BOOL)
+            && empty($payload['jet']['return_date'])
+        ) {
             $score -= 20;
         }
 
@@ -247,7 +255,7 @@ class AdvisoryService
         }
 
         if ($transportType === CharterRequest::TYPE_JET && empty($payload['jet']['cabin_preference'])) {
-            $messages[] = 'Jet taleplerinde kabin tercihi eklemek operatör eşleşmesini hızlandırır.';
+            $messages[] = 'Jet taleplerinde uçak tercihi (ekonomik/VIP/farketmez) eklemek operatör eşleşmesini hızlandırır.';
         }
 
         if ($transportType === CharterRequest::TYPE_HELICOPTER && empty($payload['helicopter']['landing_details'])) {
@@ -256,6 +264,14 @@ class AdvisoryService
 
         if ($transportType === CharterRequest::TYPE_AIRLINER && empty($payload['airliner']['route_notes'])) {
             $messages[] = 'Charter uçak taleplerinde rota notu eklemek teklif kalitesini artırır.';
+        }
+
+        if (
+            $transportType === CharterRequest::TYPE_JET
+            && filter_var($payload['jet']['round_trip'] ?? false, FILTER_VALIDATE_BOOL)
+            && empty($payload['jet']['return_date'])
+        ) {
+            $messages[] = 'Gidiş - dönüş seçiminde dönüş tarihi girmeniz teklif kalitesini artırır.';
         }
 
         if (empty($messages)) {
@@ -296,4 +312,3 @@ class AdvisoryService
         return "Yaklaşık {$hours} sa {$remaining} dk";
     }
 }
-

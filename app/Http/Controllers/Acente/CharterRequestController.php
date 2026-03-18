@@ -36,6 +36,7 @@ class CharterRequestController extends Controller
 
             'jet.flight_hours_estimate' => 'nullable|integer|min:0|max:1000',
             'jet.round_trip' => 'nullable|boolean',
+            'jet.return_date' => 'nullable|date|after_or_equal:departure_date',
             'jet.pet_onboard' => 'nullable|boolean',
             'jet.vip_catering' => 'nullable|boolean',
             'jet.wifi_required' => 'nullable|boolean',
@@ -58,6 +59,16 @@ class CharterRequestController extends Controller
             'extras.*.agency_note' => 'nullable|string|max:1000',
         ]);
 
+        if (
+            ($validated['transport_type'] ?? '') === CharterRequest::TYPE_JET
+            && (bool) ($validated['jet']['round_trip'] ?? false)
+            && empty($validated['jet']['return_date'])
+        ) {
+            return back()
+                ->withErrors(['jet.return_date' => 'Gidiş - dönüş seçiminde dönüş tarihi zorunludur.'])
+                ->withInput();
+        }
+
         $charterRequest = DB::transaction(function () use ($validated) {
             $charterRequest = CharterRequest::query()->create([
                 'user_id' => auth()->id(),
@@ -77,6 +88,19 @@ class CharterRequestController extends Controller
             ]);
 
             if ($validated['transport_type'] === CharterRequest::TYPE_JET) {
+                $specsJson = [];
+                $rawSpecsJson = $validated['jet']['specs_json'] ?? null;
+                if (is_string($rawSpecsJson) && trim($rawSpecsJson) !== '') {
+                    $decodedSpecs = json_decode($rawSpecsJson, true);
+                    if (is_array($decodedSpecs)) {
+                        $specsJson = $decodedSpecs;
+                    }
+                }
+
+                if (! empty($validated['jet']['return_date'])) {
+                    $specsJson['return_date'] = $validated['jet']['return_date'];
+                }
+
                 CharterJetRequest::query()->create([
                     'charter_request_id' => $charterRequest->id,
                     'flight_hours_estimate' => $validated['jet']['flight_hours_estimate'] ?? null,
@@ -88,9 +112,7 @@ class CharterRequestController extends Controller
                     'luggage_count' => $validated['jet']['luggage_count'] ?? null,
                     'cabin_preference' => $validated['jet']['cabin_preference'] ?? null,
                     'airport_slot_note' => $validated['jet']['airport_slot_note'] ?? null,
-                    'specs_json' => isset($validated['jet']['specs_json'])
-                        ? json_decode((string) $validated['jet']['specs_json'], true)
-                        : null,
+                    'specs_json' => ! empty($specsJson) ? $specsJson : null,
                 ]);
             } elseif ($validated['transport_type'] === CharterRequest::TYPE_HELICOPTER) {
                 CharterHelicopterRequest::query()->create([

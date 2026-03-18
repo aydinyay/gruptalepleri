@@ -43,6 +43,8 @@
         .charter-create-page .advisory-summary { border:1px solid #d4d8e1; border-radius:10px; background:#fafcff; padding:.6rem .7rem; font-size:.81rem; }
         .charter-create-page .advisory-summary .value { font-weight:700; color:#111827; }
         .charter-create-page .submit-note { font-size:.82rem; color:#374151; margin-top:.45rem; }
+        .charter-create-page .auto-derived-note { font-size:.78rem; border:1px dashed #cbd5e1; border-radius:.6rem; padding:.55rem .65rem; color:#475569; background:#f8fafc; }
+        .charter-create-page .js-return-date-wrap { transition:all .2s ease; }
         .charter-create-page #jetFields .form-check { display:flex; align-items:flex-start; gap:.45rem; margin-top:.35rem !important; }
         .charter-create-page #jetFields .form-check .form-check-input { float:none; margin-left:0; margin-top:.22rem; }
         .charter-create-page #jetFields .form-check .form-check-label { margin-left:0; line-height:1.25; }
@@ -69,6 +71,7 @@
         html[data-theme="dark"] .charter-create-page .charter-advisory-step.active { background:#1b3b74; border-color:#4f83ff; color:#d9e8ff; }
         html[data-theme="dark"] .charter-create-page .charter-advisory-disclaimer { color:#9fb2d9; border-top-color:#2d4371; }
         html[data-theme="dark"] .charter-create-page .advisory-summary { background:#0f1d36; border-color:#2d4371; color:#e5e7eb; }
+        html[data-theme="dark"] .charter-create-page .auto-derived-note { background:#0f1d36; border-color:#2d4371; color:#9fb2d9; }
         @media (max-width: 991.98px) {
             .charter-create-page .transport-cards { grid-template-columns:1fr; }
             .charter-create-page .charter-advisory-grid { grid-template-columns:1fr; }
@@ -83,6 +86,9 @@
 @php($fromIataOld = old('from_iata', ''))
 @php($toIataOld = old('to_iata', ''))
 @php($oldExtras = old('extras', []))
+@php($jetOld = old('jet', []))
+@php($jetRoundTripOld = (bool) data_get($jetOld, 'round_trip', false))
+@php($jetReturnDateOld = data_get($jetOld, 'return_date', ''))
 
 <div class="container py-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -188,33 +194,47 @@
                         <div id="jetFields" class="transport-fields">
                             <h6 class="fw-bold mb-3">Jet Detayları (Gelişmiş Alan)</h6>
                             <div class="row g-3">
-                                <div class="col-6 col-lg-3">
-                                    <label class="form-label">Tahmini Uçuş Süresi (Saat)</label>
-                                    <input type="number" name="jet[flight_hours_estimate]" class="form-control" value="{{ old('jet.flight_hours_estimate') }}">
+                                <div class="col-12 col-lg-5">
+                                    <label class="form-label">Tahmini Uçuş Süresi</label>
+                                    <div class="auto-derived-note">
+                                        Rota ve ucus turune gore sistem tarafindan hesaplanir.
+                                        Canli Talep Rehberi panelinde anlik gorunur.
+                                    </div>
                                 </div>
                                 <div class="col-6 col-lg-3">
                                     <label class="form-label">Bagaj Adedi</label>
                                     <input type="number" name="jet[luggage_count]" class="form-control" value="{{ old('jet.luggage_count') }}">
                                 </div>
-                                <div class="col-12 col-lg-3">
-                                    <label class="form-label">Kabin Tercihi</label>
-                                    <input name="jet[cabin_preference]" class="form-control" value="{{ old('jet.cabin_preference') }}">
+                                <div class="col-12 col-lg-4">
+                                    <label class="form-label">Ucak Tercihi</label>
+                                    <select name="jet[cabin_preference]" class="form-select">
+                                        <option value="" @selected(old('jet.cabin_preference') === null || old('jet.cabin_preference') === '')>Seciniz</option>
+                                        <option value="ekonomik_jet" @selected(old('jet.cabin_preference') === 'ekonomik_jet')>Ekonomik Jet Oncelikli</option>
+                                        <option value="vip_jet" @selected(old('jet.cabin_preference') === 'vip_jet')>VIP Jet Oncelikli</option>
+                                        <option value="farketmez" @selected(old('jet.cabin_preference') === 'farketmez')>Farketmez</option>
+                                    </select>
                                 </div>
                                 <div class="col-12 col-lg-3">
-                                    <label class="form-label">Slot Notu</label>
-                                    <input name="jet[airport_slot_note]" class="form-control" value="{{ old('jet.airport_slot_note') }}">
+                                    <label class="form-label">Operasyon Notu (Opsiyonel)</label>
+                                    <input name="jet[airport_slot_note]" class="form-control" value="{{ old('jet.airport_slot_note') }}" placeholder="Biliyorsaniz slot, terminal veya operasyon bilgisi yazabilirsiniz">
                                 </div>
                                 <div class="col-12">
-                                    <details>
-                                        <summary class="small text-muted">Teknik JSON (opsiyonel)</summary>
-                                        <textarea rows="2" name="jet[specs_json]" class="form-control mt-2">{{ old('jet.specs_json') }}</textarea>
-                                    </details>
+                                    <div class="field-micro">
+                                        Coklu parkur varsa Talep Notu alanina sira ile yazabilirsiniz.
+                                        Orn: 05 Nisan SAW-AYT, 07 Nisan AYT-TZX, 10 Nisan TZX-SAW.
+                                    </div>
+                                    <input type="hidden" name="jet[specs_json]" id="jetSpecsJsonInput" value="{{ old('jet.specs_json') }}">
                                 </div>
-                                <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="jet[round_trip]" value="1" title="Dönüş operasyonu da planlanıyorsa seçin" data-bs-toggle="tooltip" @checked(old('jet.round_trip'))><label class="form-check-label">Round Trip</label></div></div>
-                                <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="jet[pet_onboard]" value="1" title="Evcil hayvan transferi varsa seçin" data-bs-toggle="tooltip" @checked(old('jet.pet_onboard'))><label class="form-check-label">Pet</label></div></div>
+                                <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="jetRoundTripCheckbox" name="jet[round_trip]" value="1" title="Dönüş operasyonu da planlanıyorsa seçin" data-bs-toggle="tooltip" @checked(old('jet.round_trip'))><label class="form-check-label">Gidiş - Dönüş</label></div></div>
+                                <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="jet[pet_onboard]" value="1" title="Evcil hayvan transferi varsa seçin" data-bs-toggle="tooltip" @checked(old('jet.pet_onboard'))><label class="form-check-label">Evcil Hayvan</label></div></div>
                                 <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="jet[vip_catering]" value="1" title="Özel ikram talebi varsa seçin" data-bs-toggle="tooltip" @checked(old('jet.vip_catering'))><label class="form-check-label">VIP Catering</label></div></div>
                                 <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="jet[wifi_required]" value="1" title="Uçuş sırasında internet ihtiyacı varsa seçin" data-bs-toggle="tooltip" @checked(old('jet.wifi_required'))><label class="form-check-label">Wi-Fi</label></div></div>
                                 <div class="col-6 col-lg-2"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="jet[special_luggage]" value="1" title="Özel ebatlı bagaj/ekipman varsa seçin" data-bs-toggle="tooltip" @checked(old('jet.special_luggage'))><label class="form-check-label">Özel Bagaj</label></div></div>
+                                <div class="col-12 col-lg-4 js-return-date-wrap {{ $jetRoundTripOld ? '' : 'd-none' }}">
+                                    <label class="form-label">Dönüş Tarihi <span class="text-danger">*</span></label>
+                                    <input type="date" name="jet[return_date]" id="jetReturnDateInput" class="form-control" value="{{ old('jet.return_date') }}">
+                                    <div class="field-micro">Gidiş - dönüş seçiminde zorunludur.</div>
+                                </div>
                             </div>
                         </div>
 
@@ -352,6 +372,10 @@
     };
     const fromHidden = document.getElementById('fromIataHidden');
     const toHidden = document.getElementById('toIataHidden');
+    const jetRoundTripCheckbox = form.querySelector('input[name="jet[round_trip]"]');
+    const jetSpecsInput = document.getElementById('jetSpecsJsonInput');
+    const jetFieldsRow = document.querySelector('#jetFields .row.g-3');
+    const jetReturnDateOld = @json($jetReturnDateOld);
 
     const extrasWrap = document.getElementById('extrasWrap');
     const extraTemplate = document.getElementById('extraRowTemplate');
@@ -380,6 +404,52 @@
             else if (color === 'danger') el.classList.add('bg-danger');
             else el.classList.add('bg-secondary');
         });
+    };
+
+    const ensureReturnDateField = () => {
+        if (!jetFieldsRow) return null;
+
+        let wrap = form.querySelector('.js-return-date-wrap');
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.className = 'col-12 col-lg-4 js-return-date-wrap d-none';
+            wrap.innerHTML = `
+                <label class="form-label">Dönüş Tarihi <span class="text-danger">*</span></label>
+                <input type="date" name="jet[return_date]" id="jetReturnDateInput" class="form-control">
+                <div class="field-micro">Gidiş - dönüş seçiminde zorunludur.</div>
+            `;
+            jetFieldsRow.appendChild(wrap);
+        }
+
+        const input = wrap.querySelector('input[name="jet[return_date]"]');
+        if (input && jetReturnDateOld && !input.value) {
+            input.value = jetReturnDateOld;
+        }
+
+        return wrap;
+    };
+
+    const jetReturnDateWrap = ensureReturnDateField();
+    const jetReturnDateInput = form.querySelector('input[name="jet[return_date]"]');
+
+    const syncRoundTripField = () => {
+        if (!jetReturnDateWrap || !jetReturnDateInput || !jetRoundTripCheckbox) return;
+        const isJet = (transportInput.value || 'jet') === 'jet';
+        const shouldShow = isJet && jetRoundTripCheckbox.checked;
+
+        jetReturnDateWrap.classList.toggle('d-none', !shouldShow);
+        jetReturnDateInput.required = shouldShow;
+
+        const departureDate = form.querySelector('input[name="departure_date"]')?.value || '';
+        if (departureDate) {
+            jetReturnDateInput.min = departureDate;
+        } else {
+            jetReturnDateInput.removeAttribute('min');
+        }
+
+        if (!shouldShow) {
+            jetReturnDateInput.value = '';
+        }
     };
 
     const renderSuggestions = (items) => {
@@ -429,6 +499,7 @@
             if (!node) return;
             node.classList.toggle('d-none', key !== selected);
         });
+        syncRoundTripField();
     };
 
     transportCards.forEach((card) => {
@@ -438,6 +509,17 @@
         });
     });
     setTransport(transportInput.value || 'jet');
+
+    if (jetRoundTripCheckbox) {
+        jetRoundTripCheckbox.addEventListener('change', () => {
+            syncRoundTripField();
+            requestAdvisory();
+        });
+    }
+
+    form.querySelector('input[name="departure_date"]')?.addEventListener('change', () => {
+        syncRoundTripField();
+    });
 
     const buildAirportLine = (item) => {
         const iata = (item.iata || '').toUpperCase();
@@ -581,9 +663,10 @@
         'input[name="departure_date"]',
         'input[name="pax"]',
         'select[name="is_flexible"]',
-        'input[name="jet[flight_hours_estimate]"]',
         'input[name="jet[luggage_count]"]',
         'input[name="jet[cabin_preference]"]',
+        'input[name="jet[round_trip]"]',
+        'input[name="jet[return_date]"]',
         'input[name="helicopter[pickup]"]',
         'input[name="helicopter[dropoff]"]',
         'textarea[name="helicopter[landing_details]"]',
@@ -601,11 +684,12 @@
         params.set('departure_date', form.querySelector('input[name="departure_date"]')?.value || '');
         params.set('pax', form.querySelector('input[name="pax"]')?.value || '');
         params.set('is_flexible', form.querySelector('select[name="is_flexible"]')?.value || '0');
+        params.set('jet[round_trip]', jetRoundTripCheckbox?.checked ? '1' : '0');
 
         [
-            'input[name="jet[flight_hours_estimate]"]',
             'input[name="jet[luggage_count]"]',
             'input[name="jet[cabin_preference]"]',
+            'input[name="jet[return_date]"]',
             'input[name="helicopter[pickup]"]',
             'input[name="helicopter[dropoff]"]',
             'textarea[name="helicopter[landing_details]"]',
@@ -646,6 +730,34 @@
             return;
         }
 
+        const isJet = (transportInput.value || 'jet') === 'jet';
+        if (isJet && jetRoundTripCheckbox?.checked && !jetReturnDateInput?.value) {
+            e.preventDefault();
+            window.alert('Gidiş - dönüş seçiminde dönüş tarihi zorunludur.');
+            jetReturnDateInput?.focus();
+            return;
+        }
+
+        if (jetSpecsInput) {
+            let specsPayload = {};
+            try {
+                const parsed = JSON.parse(jetSpecsInput.value || '{}');
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    specsPayload = parsed;
+                }
+            } catch (_) {}
+
+            if (isJet && jetRoundTripCheckbox?.checked && jetReturnDateInput?.value) {
+                specsPayload.return_date = jetReturnDateInput.value;
+            } else {
+                delete specsPayload.return_date;
+            }
+
+            jetSpecsInput.value = Object.keys(specsPayload).length > 0
+                ? JSON.stringify(specsPayload)
+                : '';
+        }
+
         const prep = document.querySelector('.js-advisory-prep-badge')?.textContent?.trim() || '';
         if (prep === 'Eksik Bilgi Var') {
             const confirmed = window.confirm('Talep hazırlık durumunda eksik bilgi görünüyor. Yine de talebi kaydetmek istiyor musunuz?');
@@ -657,6 +769,7 @@
         new bootstrap.Tooltip(el);
     });
 
+    syncRoundTripField();
     requestAdvisory();
 })();
 </script>

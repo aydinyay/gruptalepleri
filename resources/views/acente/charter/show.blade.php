@@ -17,6 +17,25 @@
 <body class="theme-scope">
 <x-navbar-acente active="charter" />
 
+@php
+    $jetDetail = $charterRequest->jetDetail;
+    $jetSpecs = is_array($jetDetail?->specs_json) ? $jetDetail->specs_json : [];
+    $jetReturnDate = $jetSpecs['return_date'] ?? null;
+    $jetPreferenceMap = [
+        'ekonomik_jet' => 'Ekonomik Jet Öncelikli',
+        'vip_jet' => 'VIP Jet Öncelikli',
+        'farketmez' => 'Farketmez',
+    ];
+    $jetPreference = $jetPreferenceMap[$jetDetail?->cabin_preference] ?? ($jetDetail?->cabin_preference ?: '-');
+    $jetServiceTags = collect([
+        $jetDetail?->round_trip ? 'Gidiş - Dönüş' : null,
+        $jetDetail?->pet_onboard ? 'Evcil Hayvan' : null,
+        $jetDetail?->vip_catering ? 'VIP Catering' : null,
+        $jetDetail?->wifi_required ? 'Wi-Fi' : null,
+        $jetDetail?->special_luggage ? 'Özel Bagaj' : null,
+    ])->filter()->values();
+@endphp
+
 <div class="container py-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
@@ -47,11 +66,52 @@
                 <div class="card-header fw-bold">Talep Ozeti</div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-6 col-md-3"><div class="text-muted small">Durum</div><span class="badge bg-secondary status-pill">{{ $charterRequest->status }}</span></div>
+                        <div class="col-12 col-lg-6">
+                            <div class="text-muted small">Rota</div>
+                            <div class="fw-bold">{{ strtoupper($charterRequest->from_iata) }} → {{ strtoupper($charterRequest->to_iata) }}</div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="text-muted small">Gidiş Tarihi</div>
+                            <div class="fw-bold">{{ optional($charterRequest->departure_date)->format('d.m.Y') ?: '-' }}</div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="text-muted small">Durum</div>
+                            <span class="badge bg-secondary status-pill">{{ $charterRequest->status }}</span>
+                        </div>
+
                         <div class="col-6 col-md-3"><div class="text-muted small">PAX</div><div class="fw-bold">{{ $charterRequest->pax }}</div></div>
-                        <div class="col-6 col-md-3"><div class="text-muted small">Esnek Tarih</div><div class="fw-bold">{{ $charterRequest->is_flexible ? 'Evet' : 'Hayir' }}</div></div>
+                        <div class="col-6 col-md-3"><div class="text-muted small">Esnek Tarih</div><div class="fw-bold">{{ $charterRequest->is_flexible ? 'Evet' : 'Hayır' }}</div></div>
+                        <div class="col-6 col-md-3"><div class="text-muted small">Uçuş Türü</div><div class="fw-bold text-uppercase">{{ $charterRequest->transport_type }}</div></div>
                         <div class="col-6 col-md-3"><div class="text-muted small">Grup Tipi</div><div class="fw-bold">{{ $charterRequest->group_type ?: '-' }}</div></div>
-                        <div class="col-12"><div class="text-muted small">Not</div><div>{{ $charterRequest->notes ?: '-' }}</div></div>
+
+                        @if($charterRequest->transport_type === 'jet')
+                            <div class="col-12 col-md-6">
+                                <div class="text-muted small">Uçak Tercihi</div>
+                                <div class="fw-bold">{{ $jetPreference }}</div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="text-muted small">Dönüş Tarihi</div>
+                                <div class="fw-bold">
+                                    @if($jetDetail?->round_trip)
+                                        {{ $jetReturnDate ? \Carbon\Carbon::parse($jetReturnDate)->format('d.m.Y') : 'Belirtilmedi' }}
+                                    @else
+                                        Tek Yön
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="text-muted small">Jet Hizmetleri</div>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    @forelse($jetServiceTags as $tag)
+                                        <span class="badge bg-light text-dark border">{{ $tag }}</span>
+                                    @empty
+                                        <span class="text-muted">Özel hizmet seçilmedi.</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="col-12"><div class="text-muted small">Talep Notu</div><div>{{ $charterRequest->notes ?: '-' }}</div></div>
                     </div>
                 </div>
             </div>
