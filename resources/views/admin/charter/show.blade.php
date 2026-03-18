@@ -86,6 +86,9 @@
                         @csrf
                         <button class="btn btn-primary w-100">RFQ Dagitimini Baslat</button>
                     </form>
+                    @if(auth()->user()->role === 'superadmin')
+                        <a href="{{ route('superadmin.charter.rfq-suppliers.index') }}" class="btn btn-outline-secondary w-100">RFQ Alicilarini Yonet</a>
+                    @endif
                     @if($charterRequest->booking)
                         <div class="p-2 border rounded">
                             <div class="small text-muted">Booking Durumu</div>

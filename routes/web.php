@@ -92,6 +92,11 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     })->name('dashboard');
 
     Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
+    Route::get('/charter/rfq-tedarikciler', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'index'])->name('charter.rfq-suppliers.index');
+    Route::post('/charter/rfq-tedarikciler', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'store'])->name('charter.rfq-suppliers.store');
+    Route::patch('/charter/rfq-tedarikciler/{supplier}', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'update'])->name('charter.rfq-suppliers.update');
+    Route::delete('/charter/rfq-tedarikciler/{supplier}', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'destroy'])->name('charter.rfq-suppliers.destroy');
+    Route::post('/charter/rfq-tedarikciler/limit', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'updateMax'])->name('charter.rfq-suppliers.max');
     Route::get('/charter/{charterRequest}', [\App\Http\Controllers\Admin\CharterController::class, 'show'])->name('charter.show');
     Route::post('/charter/{charterRequest}/rfq', [\App\Http\Controllers\Admin\CharterController::class, 'sendRfq'])->name('charter.send-rfq');
     Route::post('/charter/{charterRequest}/supplier-quotes', [\App\Http\Controllers\Admin\CharterController::class, 'storeSupplierQuote'])->name('charter.supplier-quotes.store');

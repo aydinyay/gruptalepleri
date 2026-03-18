@@ -2,10 +2,13 @@
 
 namespace App\Services\Charter;
 
+use App\Models\CharterRfqSupplier;
 use App\Models\CharterQuote;
 use App\Models\CharterRequest;
 use App\Models\CharterSalesQuote;
+use App\Models\SistemAyar;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class RFQService
 {
@@ -14,10 +17,9 @@ class RFQService
      */
     public function dispatch(CharterRequest $request, ?CharterSalesQuote $salesQuote = null): array
     {
-        $suppliers = collect(config('charter.suppliers', []))
-            ->filter(static fn (array $supplier): bool => in_array($request->transport_type, $supplier['service_types'] ?? [], true))
-            ->take((int) config('charter.rfq_max_suppliers', 10))
-            ->values();
+        $maxSuppliers = SistemAyar::charterRfqMaxSuppliers((int) config('charter.rfq_max_suppliers', 10));
+
+        $suppliers = $this->resolveSuppliers($request, $maxSuppliers);
 
         $sent = 0;
         $failed = 0;
@@ -78,5 +80,44 @@ class RFQService
             'failed' => $failed,
             'targets' => $targets,
         ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    private function resolveSuppliers(CharterRequest $request, int $maxSuppliers)
+    {
+        if (Schema::hasTable('charter_rfq_suppliers')) {
+            $dbSuppliers = CharterRfqSupplier::query()
+                ->where('is_active', true)
+                ->whereNotNull('email')
+                ->where('email', '!=', '')
+                ->where(function ($query) use ($request): void {
+                    $query->whereJsonContains('service_types', $request->transport_type)
+                        ->orWhereNull('service_types')
+                        ->orWhereRaw('JSON_LENGTH(service_types) = 0');
+                })
+                ->orderBy('name')
+                ->limit($maxSuppliers)
+                ->get()
+                ->map(static function (CharterRfqSupplier $supplier): array {
+                    return [
+                        'name' => $supplier->name,
+                        'email' => $supplier->email,
+                        'phone' => $supplier->phone,
+                        'service_types' => $supplier->service_types ?? [],
+                    ];
+                })
+                ->values();
+
+            if ($dbSuppliers->isNotEmpty()) {
+                return $dbSuppliers;
+            }
+        }
+
+        return collect(config('charter.suppliers', []))
+            ->filter(static fn (array $supplier): bool => in_array($request->transport_type, $supplier['service_types'] ?? [], true))
+            ->take($maxSuppliers)
+            ->values();
     }
 }
