@@ -117,11 +117,34 @@ class QuickReplyController extends Controller
         ]);
 
         $payload = $validated['edited_payload'] ?? [];
+        $selectedRequestId = isset($validated['selected_request_id']) ? (int) $validated['selected_request_id'] : null;
+        $selectedAgencyId = isset($validated['selected_agency_id']) ? (int) $validated['selected_agency_id'] : null;
+        $selectedUserId = isset($validated['selected_user_id']) ? (int) $validated['selected_user_id'] : null;
+        $autoFilledFields = [];
+
+        if ($selectedRequestId) {
+            $selectedRequest = RequestModel::query()
+                ->with('user.agency')
+                ->find($selectedRequestId);
+
+            if ($selectedRequest) {
+                if (! $selectedUserId && $selectedRequest->user_id) {
+                    $selectedUserId = (int) $selectedRequest->user_id;
+                    $autoFilledFields[] = 'selected_user_id';
+                }
+
+                if (! $selectedAgencyId && $selectedRequest->user?->agency?->id) {
+                    $selectedAgencyId = (int) $selectedRequest->user->agency->id;
+                    $autoFilledFields[] = 'selected_agency_id';
+                }
+            }
+        }
+
         $session->update([
             'membership_mode' => $validated['membership_mode'],
-            'selected_request_id' => $validated['selected_request_id'] ?? null,
-            'selected_agency_id' => $validated['selected_agency_id'] ?? null,
-            'selected_user_id' => $validated['selected_user_id'] ?? null,
+            'selected_request_id' => $selectedRequestId,
+            'selected_agency_id' => $selectedAgencyId,
+            'selected_user_id' => $selectedUserId,
             'edited_payload' => $payload ?: null,
         ]);
 
@@ -129,6 +152,7 @@ class QuickReplyController extends Controller
             'selected_request_id' => $session->selected_request_id,
             'selected_agency_id' => $session->selected_agency_id,
             'selected_user_id' => $session->selected_user_id,
+            'auto_filled_fields' => $autoFilledFields,
             'edited_fields' => array_keys($payload),
         ]);
 
