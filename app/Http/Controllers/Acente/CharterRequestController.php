@@ -161,13 +161,21 @@ class CharterRequestController extends Controller
                     $specsJson['return_date'] = $validated['jet']['return_date'];
                 }
 
-                if (! empty($validated['jet']['different_return_route'])) {
-                    $specsJson['different_return_route'] = true;
-                    if (! empty($validated['jet']['return_from_iata'])) {
-                        $specsJson['return_from_iata'] = strtoupper(trim((string) $validated['jet']['return_from_iata']));
+                if (! empty($validated['jet']['round_trip'])) {
+                    $differentReturnRoute = (bool) ($validated['jet']['different_return_route'] ?? false);
+                    $returnFromIata = $differentReturnRoute
+                        ? strtoupper(trim((string) ($validated['jet']['return_from_iata'] ?? '')))
+                        : strtoupper(trim((string) ($validated['to_iata'] ?? '')));
+                    $returnToIata = $differentReturnRoute
+                        ? strtoupper(trim((string) ($validated['jet']['return_to_iata'] ?? '')))
+                        : strtoupper(trim((string) ($validated['from_iata'] ?? '')));
+
+                    $specsJson['different_return_route'] = $differentReturnRoute;
+                    if ($returnFromIata !== '') {
+                        $specsJson['return_from_iata'] = $returnFromIata;
                     }
-                    if (! empty($validated['jet']['return_to_iata'])) {
-                        $specsJson['return_to_iata'] = strtoupper(trim((string) $validated['jet']['return_to_iata']));
+                    if ($returnToIata !== '') {
+                        $specsJson['return_to_iata'] = $returnToIata;
                     }
                 }
 

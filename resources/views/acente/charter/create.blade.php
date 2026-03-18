@@ -29,7 +29,7 @@
         .charter-create-page .transport-fields { border:1px dashed #d4d8e1; border-radius:12px; padding:.95rem; background:#fcfdff; }
         .charter-create-page .advisory-sticky { position:sticky; top:1rem; }
         .charter-create-page .charter-advisory-card { border-radius:12px; overflow:hidden; }
-        .charter-create-page .charter-advisory-card .card-body { max-height:calc(100vh - 150px); overflow-y:auto; overflow-x:hidden; }
+        .charter-create-page .charter-advisory-card .card-body { max-height:none; overflow:visible; }
         .charter-create-page .charter-advisory-message { font-size:.82rem; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.65rem; padding:.5rem .65rem; }
         .charter-create-page .charter-advisory-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.5rem; }
         .charter-create-page .charter-advisory-item { border:1px solid #e5e7eb; border-radius:.6rem; padding:.5rem .55rem; background:#fff; }
@@ -76,6 +76,9 @@
         html[data-theme="dark"] .charter-create-page .auto-derived-note { background:#0f1d36; border-color:#2d4371; color:#9fb2d9; }
         html[data-theme="dark"] .charter-create-page .segment-row { border-color:#2d4371; background:#0f1d36; }
         html[data-theme="dark"] .charter-create-page .segment-row .segment-label { color:#9fb2d9; }
+        @media (max-width: 1199.98px) {
+            .charter-create-page .charter-advisory-grid { grid-template-columns:1fr; }
+        }
         @media (max-width: 991.98px) {
             .charter-create-page .transport-cards { grid-template-columns:1fr; }
             .charter-create-page .charter-advisory-grid { grid-template-columns:1fr; }
@@ -133,7 +136,7 @@
     </div>
 
     <div class="row g-3">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-7">
             <div class="card card-box shadow-sm">
                 <div class="card-body p-4">
                     <form method="POST" action="{{ route('acente.charter.store') }}" id="charterRequestForm">
@@ -239,7 +242,7 @@
                                 <div class="col-6 col-lg-3 js-different-return-toggle-wrap {{ $jetRoundTripOld ? '' : 'd-none' }}">
                                     <div class="form-check mt-2">
                                         <input class="form-check-input" type="checkbox" id="jetDifferentReturnRouteCheckbox" name="jet[different_return_route]" value="1" title="Dönüş parkuru farklıysa seçin" data-bs-toggle="tooltip" @checked($jetDifferentReturnRouteOld)>
-                                        <label class="form-check-label">Dönüş Rotası Farklı</label>
+                                        <label class="form-check-label">Dönüş Rotası Farklı (Opsiyonel)</label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-lg-2">
@@ -279,7 +282,7 @@
                                     <div class="field-micro">Gidiş - dönüş seçiminde zorunludur.</div>
                                 </div>
 
-                                <div class="col-12 js-return-route-wrap {{ ($jetRoundTripOld && $jetDifferentReturnRouteOld) ? '' : 'd-none' }}">
+                                <div class="col-12 js-return-route-wrap {{ $jetRoundTripOld ? '' : 'd-none' }}">
                                     <div class="row g-3">
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">Dönüş Kalkış Noktası <span class="text-danger">*</span></label>
@@ -298,7 +301,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="field-micro">Bu alanı yalnızca dönüş bacağı farklı parkursa doldurun.</div>
+                                    <div class="field-micro">Gidiş - dönüşte rota varsayılan olarak otomatik gelir. Dönüş parkuru farklıysa "Dönüş Rotası Farklı" seçeneğini açıp düzenleyin.</div>
                                 </div>
 
                                 <div class="col-12 js-multi-leg-wrap {{ $jetMultiLegOld ? '' : 'd-none' }}">
@@ -445,7 +448,7 @@
             </div>
         </div>
 
-        <div class="col-12 col-lg-4 d-none d-lg-block">
+        <div class="col-12 col-lg-5 d-none d-lg-block">
             <div class="advisory-sticky">
                 @include('acente.charter.partials.advisory-panel', [
                     'title' => 'Canlı Talep Rehberi',
@@ -617,14 +620,36 @@
             if (jetDifferentReturnRouteCheckbox) jetDifferentReturnRouteCheckbox.checked = false;
         }
 
-        const shouldShowReturnRoute = shouldShow && !!jetDifferentReturnRouteCheckbox?.checked;
-        if (jetReturnRouteWrap) jetReturnRouteWrap.classList.toggle('d-none', !shouldShowReturnRoute);
+        if (jetReturnRouteWrap) jetReturnRouteWrap.classList.toggle('d-none', !shouldShow);
 
-        if (!shouldShowReturnRoute) {
+        const hasDifferentReturnRoute = shouldShow && !!jetDifferentReturnRouteCheckbox?.checked;
+        const outboundFrom = (fromHidden?.value || '').trim().toUpperCase();
+        const outboundTo = (toHidden?.value || '').trim().toUpperCase();
+
+        if (shouldShow) {
+            if (!hasDifferentReturnRoute) {
+                const autoReturnFrom = outboundTo;
+                const autoReturnTo = outboundFrom;
+
+                if (jetReturnFromHidden) jetReturnFromHidden.value = autoReturnFrom;
+                if (jetReturnToHidden) jetReturnToHidden.value = autoReturnTo;
+                if (jetReturnFromSearch) jetReturnFromSearch.value = autoReturnFrom;
+                if (jetReturnToSearch) jetReturnToSearch.value = autoReturnTo;
+            }
+
+            if (jetReturnFromSearch) jetReturnFromSearch.disabled = !hasDifferentReturnRoute;
+            if (jetReturnToSearch) jetReturnToSearch.disabled = !hasDifferentReturnRoute;
+        } else {
             if (jetReturnFromHidden) jetReturnFromHidden.value = '';
             if (jetReturnToHidden) jetReturnToHidden.value = '';
-            if (jetReturnFromSearch) jetReturnFromSearch.value = '';
-            if (jetReturnToSearch) jetReturnToSearch.value = '';
+            if (jetReturnFromSearch) {
+                jetReturnFromSearch.value = '';
+                jetReturnFromSearch.disabled = false;
+            }
+            if (jetReturnToSearch) {
+                jetReturnToSearch.value = '';
+                jetReturnToSearch.disabled = false;
+            }
         }
 
         const shouldShowMultiLeg = isJet && !!jetMultiLegCheckbox?.checked;
@@ -755,6 +780,7 @@
                     hidden.value = (item.iata || '').toUpperCase();
                     input.value = buildAirportLine(item);
                     close();
+                    syncRoundTripField();
                     requestAdvisory();
                 });
                 results.appendChild(btn);
@@ -790,6 +816,7 @@
 
         input.addEventListener('input', () => {
             hidden.value = '';
+            syncRoundTripField();
             search();
             requestAdvisory();
         });
@@ -811,6 +838,7 @@
                 hidden.value = (items[focused].iata || '').toUpperCase();
                 input.value = buildAirportLine(items[focused]);
                 close();
+                syncRoundTripField();
                 requestAdvisory();
             } else if (e.key === 'Escape') {
                 close();
@@ -1036,14 +1064,18 @@
 
             if (isJet && jetRoundTripCheckbox?.checked) {
                 const differentReturnRoute = !!jetDifferentReturnRouteCheckbox?.checked;
+                const outboundFrom = (fromHidden?.value || '').trim().toUpperCase();
+                const outboundTo = (toHidden?.value || '').trim().toUpperCase();
+                const returnFromIata = differentReturnRoute
+                    ? (jetReturnFromHidden?.value || '').trim().toUpperCase()
+                    : outboundTo;
+                const returnToIata = differentReturnRoute
+                    ? (jetReturnToHidden?.value || '').trim().toUpperCase()
+                    : outboundFrom;
+
                 specsPayload.different_return_route = differentReturnRoute;
-                if (differentReturnRoute) {
-                    specsPayload.return_from_iata = (jetReturnFromHidden?.value || '').trim().toUpperCase();
-                    specsPayload.return_to_iata = (jetReturnToHidden?.value || '').trim().toUpperCase();
-                } else {
-                    delete specsPayload.return_from_iata;
-                    delete specsPayload.return_to_iata;
-                }
+                specsPayload.return_from_iata = returnFromIata;
+                specsPayload.return_to_iata = returnToIata;
             } else {
                 delete specsPayload.different_return_route;
                 delete specsPayload.return_from_iata;
