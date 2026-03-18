@@ -7,6 +7,7 @@ use App\Models\CharterRfqSupplier;
 use App\Models\SistemAyar;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class CharterRfqSupplierController extends Controller
@@ -20,16 +21,18 @@ class CharterRfqSupplierController extends Controller
     {
         $this->authorizeSuperadmin();
 
-        $suppliers = CharterRfqSupplier::query()
-            ->orderByDesc('is_active')
-            ->orderBy('name')
-            ->get();
+        $tableReady = $this->tableReady();
+
+        $suppliers = $tableReady
+            ? CharterRfqSupplier::query()->orderByDesc('is_active')->orderBy('name')->get()
+            : collect();
 
         $maxSuppliers = SistemAyar::charterRfqMaxSuppliers((int) config('charter.rfq_max_suppliers', 10));
 
         return view('superadmin.charter-rfq-suppliers', [
             'suppliers' => $suppliers,
             'maxSuppliers' => $maxSuppliers,
+            'tableReady' => $tableReady,
             'serviceTypeOptions' => [
                 'jet' => 'Private Jet',
                 'helicopter' => 'Helikopter',
@@ -41,6 +44,9 @@ class CharterRfqSupplierController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $this->authorizeSuperadmin();
+        if (! $this->tableReady()) {
+            return back()->with('error', 'RFQ tedarikci tablosu hazir degil. Once migration calistirin.');
+        }
 
         $data = $this->validated($request);
         CharterRfqSupplier::query()->create($data);
@@ -51,6 +57,9 @@ class CharterRfqSupplierController extends Controller
     public function update(Request $request, CharterRfqSupplier $supplier): RedirectResponse
     {
         $this->authorizeSuperadmin();
+        if (! $this->tableReady()) {
+            return back()->with('error', 'RFQ tedarikci tablosu hazir degil. Once migration calistirin.');
+        }
 
         $data = $this->validated($request);
         $supplier->update($data);
@@ -61,6 +70,9 @@ class CharterRfqSupplierController extends Controller
     public function destroy(CharterRfqSupplier $supplier): RedirectResponse
     {
         $this->authorizeSuperadmin();
+        if (! $this->tableReady()) {
+            return back()->with('error', 'RFQ tedarikci tablosu hazir degil. Once migration calistirin.');
+        }
         $supplier->delete();
 
         return back()->with('success', 'RFQ alicisi silindi.');
@@ -97,5 +109,10 @@ class CharterRfqSupplierController extends Controller
         $data['is_active'] = $request->boolean('is_active', false);
 
         return $data;
+    }
+
+    private function tableReady(): bool
+    {
+        return Schema::hasTable('charter_rfq_suppliers');
     }
 }

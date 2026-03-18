@@ -29,6 +29,9 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
     @if($errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0 ps-3">
@@ -38,12 +41,18 @@
             </ul>
         </div>
     @endif
+    @if(! $tableReady)
+        <div class="alert alert-warning">
+            RFQ tedarikci tablosu henuz olusmamis. Once migration calistirdiktan sonra bu ekran aktif olur.
+        </div>
+    @endif
 
     <div class="row g-3 mb-3">
         <div class="col-12 col-xl-4">
             <div class="card card-box shadow-sm h-100">
                 <div class="card-header fw-bold">RFQ Alicisi Ekle</div>
                 <div class="card-body">
+                    <fieldset @disabled(! $tableReady)>
                     <form method="POST" action="{{ route('superadmin.charter.rfq-suppliers.store') }}" class="row g-2">
                         @csrf
                         <div class="col-12">
@@ -81,6 +90,7 @@
                             <button class="btn btn-primary w-100">RFQ Alicisi Ekle</button>
                         </div>
                     </form>
+                    </fieldset>
                 </div>
             </div>
         </div>
