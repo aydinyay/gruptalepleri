@@ -226,10 +226,8 @@ class RFQService
         $lines[] = 'Tesekkurler.';
         $lines[] = '';
         $lines[] = trim((string) $senderContext['name']);
-        $lines[] = trim((string) $senderContext['role']) . ' | ' . (string) $company['brand'];
-        $lines[] = 'E-posta: ' . trim((string) $senderContext['email']);
+        $lines[] = 'E-posta: ' . (string) $company['support_email'];
         $lines[] = 'Telefon: ' . trim((string) $senderContext['phone']);
-        $lines[] = (string) $company['brand'] . ' Telefon: ' . (string) $company['phone'];
         $lines[] = (string) $company['website'];
         $lines[] = '';
         $lines[] = '---';
@@ -271,26 +269,20 @@ class RFQService
     }
 
     /**
-     * @return array{name:string,role:string,email:string,phone:string}
+     * @return array{name:string,phone:string}
      */
     private function senderContext(?User $sender): array
     {
-        $mailFrom = (string) config('mail.from.address', 'noreply@gruptalepleri.com');
         $companyPhone = (string) config('charter.company.phone', '+90 535 415 47 99');
         if (! $sender) {
             return [
                 'name' => 'GrupTalepleri Operasyon',
-                'role' => 'Operasyon',
-                'email' => $mailFrom,
                 'phone' => $companyPhone,
             ];
         }
 
-        $roleLabel = $sender->role === 'superadmin' ? 'Superadmin' : ($sender->role === 'admin' ? 'Admin' : ucfirst((string) $sender->role));
         return [
             'name' => (string) ($sender->name ?: 'GrupTalepleri Operasyon'),
-            'role' => $roleLabel,
-            'email' => (string) ($sender->email ?: $mailFrom),
             'phone' => (string) ($sender->phone ?: $companyPhone),
         ];
     }
