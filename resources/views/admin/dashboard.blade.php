@@ -205,10 +205,18 @@
                                 $kalanSaniye = \Carbon\Carbon::now()->diffInSeconds($opsTs, false);
                                 $kalanSaat = $kalanSaniye / 3600;
                                 $renk = $kalanSaat <= 6 ? 'danger' : ($kalanSaat <= 24 ? 'warning' : 'success');
+                                $airlineLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline);
                             @endphp
                             <tr>
                                 <td><strong>{{ $teklif->request?->gtpnr ?? '—' }}</strong></td>
-                                <td>{{ $teklif->airline ?? '—' }}</td>
+                                <td>
+                                    <span class="d-inline-flex align-items-center gap-2">
+                                        @if($airlineLogo['has_logo'])
+                                            <img src="{{ $airlineLogo['path'] }}" alt="{{ $airlineLogo['display_name'] }}" style="width:24px;height:24px;object-fit:contain;">
+                                        @endif
+                                        <span>{{ $teklif->airline ?? '—' }}</span>
+                                    </span>
+                                </td>
                                 <td class="text-muted">{{ $opsTs->format('d.m.Y H:i') }}</td>
                                 <td>
                                     <span class="countdown text-{{ $renk }}" data-ts="{{ $opsTs->timestamp }}">

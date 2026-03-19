@@ -209,11 +209,17 @@
                         $opsTs = \Carbon\Carbon::parse($teklif->option_date . ' ' . ($teklif->option_time ?? '23:59'));
                         $kalanSaat = \Carbon\Carbon::now()->diffInHours($opsTs, false);
                         $renk = $kalanSaat <= 6 ? 'danger' : 'warning';
+                        $airlineLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline);
                     @endphp
                     <div class="opsiyon-item d-flex justify-content-between align-items-center">
                         <div>
                             <span class="fw-bold">{{ $teklif->request?->gtpnr ?? '—' }}</span>
-                            <span class="text-muted ms-2">{{ $teklif->airline }}</span>
+                            <span class="text-muted ms-2 d-inline-flex align-items-center gap-2">
+                                @if($airlineLogo['has_logo'])
+                                    <img src="{{ $airlineLogo['path'] }}" alt="{{ $airlineLogo['display_name'] }}" style="width:22px;height:22px;object-fit:contain;">
+                                @endif
+                                <span>{{ $teklif->airline }}</span>
+                            </span>
                         </div>
                         <div class="text-end">
                             <span class="badge bg-{{ $renk }}">

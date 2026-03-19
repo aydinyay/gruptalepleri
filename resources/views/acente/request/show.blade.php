@@ -122,6 +122,7 @@
     $ilkSeg   = $segs->first();
     $sonSeg   = $segs->last();
     $tripType = \App\Models\Request::tripTypeLabel($talep->trip_type);
+    $airlineLogoService = app(\App\Services\AirlineLogoService::class);
 @endphp
 
 <div class="container-fluid px-3 py-3" style="max-width:1200px;">
@@ -384,9 +385,7 @@
 
                 @forelse($gosterilecekTeklifler as $teklif)
                 @php
-                    $tklKey  = strtolower(trim($teklif->airline ?? ''));
-                    $tklIata = $airlineIata[$tklKey] ?? null;
-                    $tklLogo = $tklIata ? "https://images.kiwi.com/airlines/64/{$tklIata}.png" : null;
+                    $tklLogo = $airlineLogoService->resolve($teklif->airline);
                 @endphp
                 <div class="teklif-card card p-0 {{ $teklif->is_accepted ? 'kabul-edildi' : '' }}">
                     <div class="card-body p-3">
@@ -394,8 +393,8 @@
                         {{-- Havayolu + kabul rozeti --}}
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center gap-2">
-                                @if($tklLogo)
-                                    <img src="{{ $tklLogo }}" alt="{{ $teklif->airline }}"
+                                @if($tklLogo['has_logo'])
+                                    <img src="{{ $tklLogo['path'] }}" alt="{{ $tklLogo['display_name'] }}"
                                          style="max-height:32px;max-width:90px;object-fit:contain;"
                                          onerror="this.style.display='none';this.nextElementSibling.style.display='';">
                                     <span class="fw-bold fs-5" style="display:none;">{{ $teklif->airline ?? '—' }}</span>

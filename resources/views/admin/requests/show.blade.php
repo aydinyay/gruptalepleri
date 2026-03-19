@@ -363,12 +363,16 @@
                 @if($talep->offers->count() > 0)
                 <div class="card-body py-3">
                     @foreach($talep->offers as $teklif)
+                    @php($offerLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline))
                     <div class="offer-card p-3 mb-3 {{ !$teklif->is_visible ? 'offer-hidden' : '' }} {{ $teklif->is_accepted ? 'offer-accepted' : '' }}"
                          style="background:rgba(0,0,0,.02);">
 
                         {{-- Başlık --}}
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex flex-wrap gap-1 align-items-center">
+                                @if($offerLogo['has_logo'])
+                                    <img src="{{ $offerLogo['path'] }}" alt="{{ $offerLogo['display_name'] }}" style="width:24px;height:24px;object-fit:contain;">
+                                @endif
                                 <strong>{{ $teklif->airline ?? '—' }}</strong>
                                 @if($teklif->airline_pnr)<span class="badge bg-primary" style="font-size:.7rem;">{{ $teklif->airline_pnr }}</span>@endif
                                 @if($teklif->flight_number)<span class="badge bg-secondary" style="font-size:.7rem;">{{ $teklif->flight_number }}</span>@endif
