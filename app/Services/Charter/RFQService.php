@@ -395,6 +395,7 @@ class RFQService
         $noticeHours = $this->hoursToDeparture($request);
         $marketClass = $this->resolveMarketClass($request, $cargoIntent);
         $targetModel = $this->resolveTargetModel($request, $cargoIntent);
+        $effectiveMaxSuppliers = $this->effectiveMaxSuppliers($maxSuppliers, $marketClass);
 
         if (Schema::hasTable('charter_rfq_suppliers')) {
             $dbSuppliers = CharterRfqSupplier::query()
@@ -450,7 +451,7 @@ class RFQService
 
                     return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
                 })
-                ->take($maxSuppliers)
+                ->take($effectiveMaxSuppliers)
                 ->values()
                 ->map(function (array $supplier): array {
                     unset($supplier['hard_passed'], $supplier['priority']);
@@ -465,8 +466,21 @@ class RFQService
 
         return collect(config('charter.suppliers', []))
             ->filter(static fn (array $supplier): bool => in_array($request->transport_type, $supplier['service_types'] ?? [], true))
-            ->take($maxSuppliers)
+            ->take($effectiveMaxSuppliers)
             ->values();
+    }
+
+    private function effectiveMaxSuppliers(int $baseLimit, string $marketClass): int
+    {
+        $baseLimit = max(1, $baseLimit);
+
+        return match ($marketClass) {
+            'cargo' => min($baseLimit, 3),
+            'small_group', 'helicopter' => min($baseLimit, 4),
+            'regional', 'narrowbody' => min($baseLimit, 5),
+            'widebody' => min($baseLimit, 4),
+            default => $baseLimit,
+        };
     }
 
     private function isCargoIntent(CharterRequest $request): bool
