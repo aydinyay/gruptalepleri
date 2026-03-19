@@ -371,7 +371,7 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex flex-wrap gap-1 align-items-center">
                                 @if($offerLogo['has_logo'])
-                                    <img src="{{ $offerLogo['path'] }}" alt="{{ $offerLogo['display_name'] }}" style="width:24px;height:24px;object-fit:contain;">
+                                    <img src="{{ $offerLogo['path'] }}" alt="{{ $offerLogo['display_name'] }}" style="width:30px;height:30px;object-fit:contain;">
                                 @endif
                                 <strong>{{ $teklif->airline ?? '—' }}</strong>
                                 @if($teklif->airline_pnr)<span class="badge bg-primary" style="font-size:.7rem;">{{ $teklif->airline_pnr }}</span>@endif

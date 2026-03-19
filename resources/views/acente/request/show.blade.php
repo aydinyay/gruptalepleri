@@ -286,6 +286,9 @@
                                 @if(count($paxDetay))
                                     <span class="text-muted ms-1" style="font-size:0.82rem;">({{ implode(', ', $paxDetay) }})</span>
                                 @endif
+                                @if($tklLogo['has_logo'])
+                                    <span class="fw-bold fs-5 lh-sm">{{ $teklif->airline ?? 'â€”' }}</span>
+                                @endif
                             </td>
                         </tr>
                         {{-- Uçuş türü --}}
@@ -392,14 +395,17 @@
 
                         {{-- Havayolu + kabul rozeti --}}
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-3">
                                 @if($tklLogo['has_logo'])
                                     <img src="{{ $tklLogo['path'] }}" alt="{{ $tklLogo['display_name'] }}"
-                                         style="max-height:32px;max-width:90px;object-fit:contain;"
-                                         onerror="this.style.display='none';this.nextElementSibling.style.display='';">
+                                         style="width:48px;height:48px;object-fit:contain;flex-shrink:0;"
+                                         onerror="this.style.display='none';">
                                     <span class="fw-bold fs-5" style="display:none;">{{ $teklif->airline ?? '—' }}</span>
                                 @else
                                     <span class="fw-bold fs-5">{{ $teklif->airline ?? '—' }}</span>
+                                @endif
+                                @if($tklLogo['has_logo'])
+                                    <span class="fw-bold fs-5 lh-sm">{{ $teklif->airline ?? 'â€”' }}</span>
                                 @endif
                             </div>
                             <div class="d-flex align-items-center gap-2">

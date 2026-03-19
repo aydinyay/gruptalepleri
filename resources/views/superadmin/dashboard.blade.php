@@ -216,7 +216,7 @@
                             <span class="fw-bold">{{ $teklif->request?->gtpnr ?? '—' }}</span>
                             <span class="text-muted ms-2 d-inline-flex align-items-center gap-2">
                                 @if($airlineLogo['has_logo'])
-                                    <img src="{{ $airlineLogo['path'] }}" alt="{{ $airlineLogo['display_name'] }}" style="width:22px;height:22px;object-fit:contain;">
+                                    <img src="{{ $airlineLogo['path'] }}" alt="{{ $airlineLogo['display_name'] }}" style="width:24px;height:24px;object-fit:contain;">
                                 @endif
                                 <span>{{ $teklif->airline }}</span>
                             </span>
