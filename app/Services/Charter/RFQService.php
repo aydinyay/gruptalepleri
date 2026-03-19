@@ -34,6 +34,9 @@ class RFQService
                 'supplier_name' => $supplier['name'] ?? 'Supplier',
                 'email' => $supplier['email'] ?? null,
                 'phone' => $supplier['phone'] ?? null,
+                'supplier_kind' => $supplier['supplier_kind'] ?? null,
+                'selection_score' => $supplier['selection_score'] ?? null,
+                'selection_reason' => $supplier['selection_reason'] ?? null,
                 'service_type' => $request->transport_type,
                 'request_id' => $request->id,
                 'rfq_reference' => $rfqReference,
@@ -73,7 +76,8 @@ class RFQService
                 'quote_type' => 'rfq',
                 'status' => $status,
                 'title' => 'RFQ Dagitimi',
-                'description' => ($supplier['name'] ?? 'Supplier') . ' kanalina RFQ gonderimi (' . $rfqReference . ')',
+                'description' => ($supplier['name'] ?? 'Supplier') . ' kanalina RFQ gonderimi (' . $rfqReference . ')'
+                    . (! empty($supplier['selection_score']) ? ' | Skor: ' . $supplier['selection_score'] : ''),
                 'payload' => $payload + [
                     'request_snapshot' => $this->buildRequestSnapshot($request),
                 ],
@@ -386,6 +390,12 @@ class RFQService
      */
     private function resolveSuppliers(CharterRequest $request, int $maxSuppliers)
     {
+        $pax = max(0, (int) ($request->pax ?? 0));
+        $cargoIntent = $this->isCargoIntent($request);
+        $noticeHours = $this->hoursToDeparture($request);
+        $marketClass = $this->resolveMarketClass($request, $cargoIntent);
+        $targetModel = $this->resolveTargetModel($request, $cargoIntent);
+
         if (Schema::hasTable('charter_rfq_suppliers')) {
             $dbSuppliers = CharterRfqSupplier::query()
                 ->where('is_active', true)
@@ -397,16 +407,54 @@ class RFQService
                         ->orWhere('service_types', '[]')
                         ->orWhere('service_types', '');
                 })
-                ->orderBy('name')
-                ->limit($maxSuppliers)
                 ->get()
-                ->map(static function (CharterRfqSupplier $supplier): array {
+                ->map(function (CharterRfqSupplier $supplier) use ($pax, $cargoIntent, $noticeHours, $marketClass, $targetModel): array {
+                    $hardCheck = $this->passesHardFilters(
+                        $supplier,
+                        $pax,
+                        $cargoIntent,
+                        $noticeHours,
+                        $marketClass
+                    );
+                    $score = $this->scoreSupplier(
+                        $supplier,
+                        $pax,
+                        $cargoIntent,
+                        $targetModel,
+                        $marketClass,
+                        $hardCheck['passed']
+                    );
                     return [
                         'name' => $supplier->name,
                         'email' => $supplier->email,
                         'phone' => $supplier->phone,
                         'service_types' => $supplier->service_types ?? [],
+                        'supplier_kind' => $supplier->supplier_kind ?: 'operator',
+                        'selection_score' => $score,
+                        'selection_reason' => $hardCheck['reason'],
+                        'hard_passed' => $hardCheck['passed'],
+                        'priority' => (int) ($supplier->priority ?? 100),
                     ];
+                })
+                ->filter(static fn (array $supplier): bool => (bool) ($supplier['hard_passed'] ?? false))
+                ->sort(function (array $a, array $b): int {
+                    $scoreDiff = ((float) ($b['selection_score'] ?? 0)) <=> ((float) ($a['selection_score'] ?? 0));
+                    if ($scoreDiff !== 0) {
+                        return $scoreDiff;
+                    }
+
+                    $priorityDiff = ((int) ($a['priority'] ?? 100)) <=> ((int) ($b['priority'] ?? 100));
+                    if ($priorityDiff !== 0) {
+                        return $priorityDiff;
+                    }
+
+                    return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
+                })
+                ->take($maxSuppliers)
+                ->values()
+                ->map(function (array $supplier): array {
+                    unset($supplier['hard_passed'], $supplier['priority']);
+                    return $supplier;
                 })
                 ->values();
 
@@ -419,5 +467,172 @@ class RFQService
             ->filter(static fn (array $supplier): bool => in_array($request->transport_type, $supplier['service_types'] ?? [], true))
             ->take($maxSuppliers)
             ->values();
+    }
+
+    private function isCargoIntent(CharterRequest $request): bool
+    {
+        $haystack = mb_strtolower(trim((string) $request->group_type . ' ' . (string) $request->notes));
+        if ($haystack === '') {
+            return false;
+        }
+
+        foreach (['cargo', 'kargo', 'freight', 'yuk', 'yük', 'load', 'pallet', 'il76', 'b747f'] as $keyword) {
+            if (str_contains($haystack, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hoursToDeparture(CharterRequest $request): ?int
+    {
+        if (! $request->departure_date) {
+            return null;
+        }
+
+        $hours = now()->diffInHours($request->departure_date->copy()->startOfDay(), false);
+        return $hours < 0 ? 0 : (int) $hours;
+    }
+
+    private function resolveMarketClass(CharterRequest $request, bool $cargoIntent): string
+    {
+        if ($cargoIntent) {
+            return 'cargo';
+        }
+
+        $pax = (int) ($request->pax ?? 0);
+        if ($request->transport_type === CharterRequest::TYPE_HELICOPTER) {
+            return 'helicopter';
+        }
+
+        if ($pax <= 18) {
+            return 'small_group';
+        }
+        if ($pax <= 50) {
+            return 'regional';
+        }
+        if ($pax <= 189) {
+            return 'narrowbody';
+        }
+
+        return 'widebody';
+    }
+
+    private function resolveTargetModel(CharterRequest $request, bool $cargoIntent): string
+    {
+        if ($cargoIntent) {
+            return 'cargo';
+        }
+
+        if ($request->transport_type === CharterRequest::TYPE_HELICOPTER) {
+            return 'full_charter';
+        }
+
+        $pax = (int) ($request->pax ?? 0);
+        return $pax >= 50 ? 'full_charter' : 'acmi';
+    }
+
+    /**
+     * @return array{passed:bool,reason:string}
+     */
+    private function passesHardFilters(
+        CharterRfqSupplier $supplier,
+        int $pax,
+        bool $cargoIntent,
+        ?int $noticeHours,
+        string $marketClass
+    ): array {
+        if ($supplier->is_cargo_operator && ! $cargoIntent) {
+            return ['passed' => false, 'reason' => 'Cargo operator, yolcu talebi degil.'];
+        }
+
+        if (! $supplier->is_cargo_operator && $cargoIntent) {
+            return ['passed' => false, 'reason' => 'Yolcu operatoru, cargo talebine uygun degil.'];
+        }
+
+        if ($supplier->min_pax !== null && $pax > 0 && $pax < (int) $supplier->min_pax) {
+            return ['passed' => false, 'reason' => 'Talep pax, minimum degerin altinda.'];
+        }
+
+        if ($supplier->max_pax !== null && $pax > 0 && $pax > (int) $supplier->max_pax) {
+            return ['passed' => false, 'reason' => 'Talep pax, maksimum degerin ustunde.'];
+        }
+
+        if ($supplier->is_premium_only && $pax > 0 && $pax < 80) {
+            return ['passed' => false, 'reason' => 'Premium-only operator, bu talep segmenti icin uygun degil.'];
+        }
+
+        if (
+            $supplier->min_notice_hours !== null
+            && $noticeHours !== null
+            && $noticeHours < (int) $supplier->min_notice_hours
+        ) {
+            return ['passed' => false, 'reason' => 'Talep aciliyeti minimum bildirim suresinin altinda.'];
+        }
+
+        if ($marketClass === 'small_group' && in_array((string) $supplier->supplier_kind, ['carrier', 'cargo'], true)) {
+            return ['passed' => false, 'reason' => 'Kucuk grup talebinde airline/cargo filtrelendi.'];
+        }
+
+        return ['passed' => true, 'reason' => 'Kural uyumu saglandi.'];
+    }
+
+    private function scoreSupplier(
+        CharterRfqSupplier $supplier,
+        int $pax,
+        bool $cargoIntent,
+        string $targetModel,
+        string $marketClass,
+        bool $hardPassed
+    ): float {
+        if (! $hardPassed) {
+            return 0;
+        }
+
+        $score = 50.0;
+
+        $priority = (int) ($supplier->priority ?? 100);
+        $score += max(0, 120 - $priority) / 10;
+
+        $models = collect((array) ($supplier->charter_models ?? []))->filter()->values();
+        if ($models->isNotEmpty() && $models->contains($targetModel)) {
+            $score += 14;
+        } elseif ($models->isNotEmpty() && $models->contains('full_charter') && in_array($targetModel, ['acmi', 'block_seat'], true)) {
+            $score += 8;
+        }
+
+        $kind = (string) ($supplier->supplier_kind ?: 'operator');
+        if ($cargoIntent) {
+            if (in_array($kind, ['cargo', 'carrier', 'hybrid'], true)) {
+                $score += 12;
+            }
+        } elseif ($marketClass === 'small_group') {
+            if (in_array($kind, ['operator', 'hybrid'], true)) {
+                $score += 12;
+            } elseif ($kind === 'broker') {
+                $score += 6;
+            }
+        } else {
+            if (in_array($kind, ['carrier', 'operator', 'hybrid'], true)) {
+                $score += 10;
+            } elseif ($kind === 'broker') {
+                $score += 5;
+            }
+        }
+
+        if ($pax > 0) {
+            if ($supplier->min_pax !== null && $supplier->max_pax !== null) {
+                $mid = ((int) $supplier->min_pax + (int) $supplier->max_pax) / 2;
+                $distance = abs($pax - $mid);
+                $score += max(0, 12 - min(12, $distance / 10));
+            } elseif ($supplier->max_pax !== null && $pax <= (int) $supplier->max_pax) {
+                $score += 4;
+            } elseif ($supplier->min_pax !== null && $pax >= (int) $supplier->min_pax) {
+                $score += 4;
+            }
+        }
+
+        return round($score, 2);
     }
 }

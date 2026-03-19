@@ -76,14 +76,55 @@
                                 </div>
                             @endforeach
                         </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Tedarikci Turu</label>
+                            <select name="supplier_kind" class="form-select" required>
+                                @foreach($supplierKindOptions as $key => $label)
+                                    <option value="{{ $key }}" @selected($key === 'operator')>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Oncelik (dusuk daha oncelikli)</label>
+                            <input type="number" min="1" max="999" name="priority" class="form-control" value="100">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold d-block">Charter Modeli</label>
+                            @foreach($charterModelOptions as $key => $label)
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="charter_models[]" value="{{ $key }}" id="new-model-{{ $key }}">
+                                    <label class="form-check-label" for="new-model-{{ $key }}">{{ $label }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-semibold">Min Pax</label>
+                            <input type="number" min="1" max="999" name="min_pax" class="form-control" placeholder="orn. 20">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-semibold">Max Pax</label>
+                            <input type="number" min="1" max="999" name="max_pax" class="form-control" placeholder="orn. 189">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-semibold">Min Bildirim Saati</label>
+                            <input type="number" min="0" max="720" name="min_notice_hours" class="form-control" placeholder="orn. 24">
+                        </div>
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Not (opsiyonel)</label>
-                            <input type="text" name="notes" class="form-control">
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Tedarikci notlari, kaynak, filo, eksik/fazla bilgi vb."></textarea>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="is_active" value="1" id="new-active" checked>
                                 <label class="form-check-label" for="new-active">Aktif</label>
+                            </div>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" name="is_premium_only" value="1" id="new-premium-only">
+                                <label class="form-check-label" for="new-premium-only">Sadece premium talepler</label>
+                            </div>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" name="is_cargo_operator" value="1" id="new-cargo-only">
+                                <label class="form-check-label" for="new-cargo-only">Cargo operator</label>
                             </div>
                         </div>
                         <div class="col-12">
@@ -123,6 +164,7 @@
                                 <th>Tedarikci</th>
                                 <th>E-posta</th>
                                 <th>Servis</th>
+                                <th>Kural</th>
                                 <th>Durum</th>
                                 <th class="text-end">Islem</th>
                             </tr>
@@ -137,6 +179,11 @@
                                         @foreach(($supplier->service_types ?? []) as $type)
                                             <span class="service-chip me-1">{{ strtoupper($type) }}</span>
                                         @endforeach
+                                    </td>
+                                    <td class="small text-muted">
+                                        <div>{{ strtoupper((string) ($supplier->supplier_kind ?? 'operator')) }}</div>
+                                        <div>PAX: {{ $supplier->min_pax ?? '-' }} - {{ $supplier->max_pax ?? '-' }}</div>
+                                        <div>Oncelik: {{ $supplier->priority ?? 100 }}</div>
                                     </td>
                                     <td>
                                         @if($supplier->is_active)
@@ -155,7 +202,7 @@
                                     </td>
                                 </tr>
                                 <tr class="collapse" id="edit-{{ $supplier->id }}">
-                                    <td colspan="6">
+                                    <td colspan="7">
                                         <form method="POST" action="{{ route('superadmin.charter.rfq-suppliers.update', $supplier) }}" class="row g-2 p-2">
                                             @csrf
                                             @method('PATCH')
@@ -170,19 +217,54 @@
                                                     </div>
                                                 @endforeach
                                             </div>
-                                            <div class="col-12 col-md-8"><input type="text" name="notes" class="form-control form-control-sm" value="{{ $supplier->notes }}" placeholder="Not"></div>
-                                            <div class="col-12 col-md-2 d-flex align-items-center">
+                                            <div class="col-12 col-md-3">
+                                                <select name="supplier_kind" class="form-select form-select-sm">
+                                                    @foreach($supplierKindOptions as $key => $label)
+                                                        <option value="{{ $key }}" @selected(($supplier->supplier_kind ?? 'operator') === $key)>{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <input type="number" min="1" max="999" name="priority" class="form-control form-control-sm" value="{{ $supplier->priority ?? 100 }}" placeholder="Oncelik">
+                                            </div>
+                                            <div class="col-6 col-md-2">
+                                                <input type="number" min="1" max="999" name="min_pax" class="form-control form-control-sm" value="{{ $supplier->min_pax }}" placeholder="Min pax">
+                                            </div>
+                                            <div class="col-6 col-md-2">
+                                                <input type="number" min="1" max="999" name="max_pax" class="form-control form-control-sm" value="{{ $supplier->max_pax }}" placeholder="Max pax">
+                                            </div>
+                                            <div class="col-12 col-md-2">
+                                                <input type="number" min="0" max="720" name="min_notice_hours" class="form-control form-control-sm" value="{{ $supplier->min_notice_hours }}" placeholder="Min saat">
+                                            </div>
+                                            <div class="col-12 col-md-8">
+                                                @foreach($charterModelOptions as $key => $label)
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="checkbox" name="charter_models[]" value="{{ $key }}" id="model-{{ $supplier->id }}-{{ $key }}" @checked(in_array($key, $supplier->charter_models ?? [], true))>
+                                                        <label class="form-check-label small" for="model-{{ $supplier->id }}-{{ $key }}">{{ $label }}</label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <div class="col-12 col-md-4 d-flex flex-wrap gap-3 align-items-center">
                                                 <div class="form-check form-switch">
                                                     <input class="form-check-input" type="checkbox" name="is_active" value="1" id="active-{{ $supplier->id }}" @checked($supplier->is_active)>
                                                     <label class="form-check-label small" for="active-{{ $supplier->id }}">Aktif</label>
                                                 </div>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="is_premium_only" value="1" id="premium-{{ $supplier->id }}" @checked($supplier->is_premium_only)>
+                                                    <label class="form-check-label small" for="premium-{{ $supplier->id }}">Premium</label>
+                                                </div>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="is_cargo_operator" value="1" id="cargo-{{ $supplier->id }}" @checked($supplier->is_cargo_operator)>
+                                                    <label class="form-check-label small" for="cargo-{{ $supplier->id }}">Cargo</label>
+                                                </div>
                                             </div>
+                                            <div class="col-12"><textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Not">{{ $supplier->notes }}</textarea></div>
                                             <div class="col-12 col-md-2 text-end"><button class="btn btn-sm btn-primary">Kaydet</button></div>
                                         </form>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="text-muted p-3">Kayitli RFQ alicisi yok.</td></tr>
+                                <tr><td colspan="7" class="text-muted p-3">Kayitli RFQ alicisi yok.</td></tr>
                             @endforelse
                             </tbody>
                         </table>
