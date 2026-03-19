@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\FinancePaymentPlan;
 use App\Models\FinanceReceiptSubmission;
 use App\Models\FinanceRecord;
 use App\Models\FinanceRefund;
@@ -29,9 +30,12 @@ class FinanceController extends Controller
                     'pending_transactions' => 0,
                     'pending_receipts' => 0,
                     'requested_refunds' => 0,
+                    'due_in_7_days' => 0,
+                    'overdue_installments' => 0,
                 ],
                 'agencyUsers' => collect(),
                 'openRecords' => collect(),
+                'plans' => collect(),
             ]);
         }
 
@@ -52,6 +56,19 @@ class FinanceController extends Controller
             'requested_refunds' => Schema::hasTable('finance_refunds')
                 ? FinanceRefund::query()->where('status', 'requested')->count()
                 : 0,
+            'due_in_7_days' => Schema::hasTable('finance_payment_plans')
+                ? FinancePaymentPlan::query()
+                    ->whereIn('status', ['planned', 'partial'])
+                    ->whereDate('due_date', '>=', now()->toDateString())
+                    ->whereDate('due_date', '<=', now()->addDays(7)->toDateString())
+                    ->count()
+                : 0,
+            'overdue_installments' => Schema::hasTable('finance_payment_plans')
+                ? FinancePaymentPlan::query()
+                    ->whereIn('status', ['planned', 'partial'])
+                    ->whereDate('due_date', '<', now()->toDateString())
+                    ->count()
+                : 0,
         ];
 
         $agencyUsers = User::query()
@@ -67,6 +84,14 @@ class FinanceController extends Controller
             ->limit(500)
             ->get(['id', 'document_ref', 'title', 'currency', 'status', 'agency_user_id', 'remaining_amount', 'paid_amount']);
 
-        return view('superadmin.finance.index', compact('coreReady', 'records', 'summary', 'agencyUsers', 'openRecords'));
+        $plans = Schema::hasTable('finance_payment_plans')
+            ? FinancePaymentPlan::query()
+                ->with(['record.agencyUser'])
+                ->orderBy('due_date')
+                ->limit(50)
+                ->get()
+            : collect();
+
+        return view('superadmin.finance.index', compact('coreReady', 'records', 'summary', 'agencyUsers', 'openRecords', 'plans'));
     }
 }

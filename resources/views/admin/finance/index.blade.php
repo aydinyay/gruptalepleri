@@ -223,6 +223,8 @@
                 </div>
             </div>
         </div>
+
+        @include('finance.partials.payment-plan-admin')
     @endif
 
     @include('finance.partials.overview')

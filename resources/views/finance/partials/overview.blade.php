@@ -49,6 +49,26 @@
                 </div>
             </div>
         @endif
+        @if(isset($summary['due_in_7_days']))
+            <div class="col-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted d-block">7 Gun Icinde Vadesi Gelen</small>
+                        <div class="fs-5 fw-bold text-primary">{{ (int) ($summary['due_in_7_days'] ?? 0) }}</div>
+                    </div>
+                </div>
+            </div>
+        @endif
+        @if(isset($summary['overdue_installments']))
+            <div class="col-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted d-block">Geciken Taksit</small>
+                        <div class="fs-5 fw-bold text-danger">{{ (int) ($summary['overdue_installments'] ?? 0) }}</div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <div class="card shadow-sm">

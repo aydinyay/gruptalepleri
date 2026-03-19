@@ -11,6 +11,7 @@ use App\Models\FinanceRecord;
 use App\Models\FinanceTransaction;
 use App\Models\Request as LegacyRequest;
 use App\Models\RequestPayment;
+use App\Services\Finance\FinancePaymentPlanService;
 use Illuminate\Support\Facades\Schema;
 
 class FinanceSyncService
@@ -323,6 +324,10 @@ class FinanceSyncService
             ],
             note: 'Payment allocation totals recalculated'
         );
+
+        if (Schema::hasTable('finance_payment_plans')) {
+            app(FinancePaymentPlanService::class)->syncForRecord($record->fresh());
+        }
     }
 
     private function estimateRequestGrossAmount(LegacyRequest $request): float

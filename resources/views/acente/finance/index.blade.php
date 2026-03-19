@@ -19,6 +19,22 @@
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger mb-3">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @if($coreReady)
         <div class="card shadow-sm mb-4">
             <div class="card-header fw-semibold">Havale / EFT Dekont Bildirimi</div>
@@ -114,6 +130,40 @@
                     @empty
                         <tr>
                             <td colspan="6" class="text-center text-muted py-3">Henuz dekont bildirimi yok.</td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header fw-semibold">Odeme Plani ve Vade Takibi</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Kayit</th>
+                        <th>Vade</th>
+                        <th>Taksit</th>
+                        <th>Odenen</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @forelse($plans as $plan)
+                        <tr>
+                            <td>{{ $plan->sequence }}</td>
+                            <td>{{ $plan->record->document_ref ?? ('#'.$plan->finance_record_id) }}</td>
+                            <td>{{ optional($plan->due_date)->format('d.m.Y') ?: '-' }}</td>
+                            <td>{{ number_format((float) $plan->amount, 2, ',', '.') }} {{ $plan->currency }}</td>
+                            <td>{{ number_format((float) $plan->paid_amount, 2, ',', '.') }} {{ $plan->currency }}</td>
+                            <td><span class="badge bg-secondary">{{ $plan->status }}</span></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">Planlanan taksit kaydi yok.</td>
                         </tr>
                     @endforelse
                     </tbody>

@@ -96,6 +96,8 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::post('/finans/manual-kayit', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualRecord'])->name('finance.manual-record.store');
     Route::post('/finans/manual-islem', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualTransaction'])->name('finance.manual-transaction.store');
     Route::post('/finans/iade', [\App\Http\Controllers\Admin\FinanceController::class, 'storeRefund'])->name('finance.refund.store');
+    Route::post('/finans/odeme-plani', [\App\Http\Controllers\Admin\FinanceController::class, 'storePaymentPlan'])->name('finance.payment-plan.store');
+    Route::patch('/finans/odeme-plani/{plan}', [\App\Http\Controllers\Admin\FinanceController::class, 'updatePaymentPlan'])->name('finance.payment-plan.update');
 
     Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
     Route::get('/charter/rfq-tedarikciler', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'index'])->name('charter.rfq-suppliers.index');
@@ -188,6 +190,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/finans/manual-kayit', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualRecord'])->name('finance.manual-record.store');
     Route::post('/finans/manual-islem', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualTransaction'])->name('finance.manual-transaction.store');
     Route::post('/finans/iade', [\App\Http\Controllers\Admin\FinanceController::class, 'storeRefund'])->name('finance.refund.store');
+    Route::post('/finans/odeme-plani', [\App\Http\Controllers\Admin\FinanceController::class, 'storePaymentPlan'])->name('finance.payment-plan.store');
+    Route::patch('/finans/odeme-plani/{plan}', [\App\Http\Controllers\Admin\FinanceController::class, 'updatePaymentPlan'])->name('finance.payment-plan.update');
 
     Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
     Route::get('/charter/{charterRequest}', [\App\Http\Controllers\Admin\CharterController::class, 'show'])->name('charter.show');

@@ -59,4 +59,9 @@ class FinanceRecord extends Model
     {
         return $this->hasMany(FinanceAllocation::class, 'finance_record_id');
     }
+
+    public function paymentPlans(): HasMany
+    {
+        return $this->hasMany(FinancePaymentPlan::class, 'finance_record_id');
+    }
 }

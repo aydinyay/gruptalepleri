@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\FinancePaymentPlan;
 use App\Models\FinanceReceiptSubmission;
 use App\Models\FinanceRecord;
 use App\Models\FinanceRefund;
 use App\Models\FinanceTransaction;
 use App\Models\User;
 use App\Services\Finance\FinanceCoreService;
+use App\Services\Finance\FinancePaymentPlanService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -36,9 +38,12 @@ class FinanceController extends Controller
                     'pending_transactions' => 0,
                     'pending_receipts' => 0,
                     'requested_refunds' => 0,
+                    'due_in_7_days' => 0,
+                    'overdue_installments' => 0,
                 ],
                 'agencyUsers' => collect(),
                 'openRecords' => collect(),
+                'plans' => collect(),
             ]);
         }
 
@@ -66,6 +71,19 @@ class FinanceController extends Controller
             'requested_refunds' => Schema::hasTable('finance_refunds')
                 ? FinanceRefund::query()->where('status', 'requested')->count()
                 : 0,
+            'due_in_7_days' => Schema::hasTable('finance_payment_plans')
+                ? FinancePaymentPlan::query()
+                    ->whereIn('status', ['planned', 'partial'])
+                    ->whereDate('due_date', '>=', now()->toDateString())
+                    ->whereDate('due_date', '<=', now()->addDays(7)->toDateString())
+                    ->count()
+                : 0,
+            'overdue_installments' => Schema::hasTable('finance_payment_plans')
+                ? FinancePaymentPlan::query()
+                    ->whereIn('status', ['planned', 'partial'])
+                    ->whereDate('due_date', '<', now()->toDateString())
+                    ->count()
+                : 0,
         ];
 
         $agencyUsers = User::query()
@@ -81,6 +99,14 @@ class FinanceController extends Controller
             ->limit(500)
             ->get(['id', 'document_ref', 'title', 'currency', 'status', 'agency_user_id', 'remaining_amount', 'paid_amount']);
 
+        $plans = Schema::hasTable('finance_payment_plans')
+            ? FinancePaymentPlan::query()
+                ->with(['record.agencyUser'])
+                ->orderBy('due_date')
+                ->limit(50)
+                ->get()
+            : collect();
+
         return view('admin.finance.index', compact(
             'coreReady',
             'records',
@@ -88,7 +114,8 @@ class FinanceController extends Controller
             'status',
             'serviceType',
             'agencyUsers',
-            'openRecords'
+            'openRecords',
+            'plans'
         ));
     }
 
@@ -159,5 +186,38 @@ class FinanceController extends Controller
         $financeCoreService->createRefund($record, $validated, (int) auth()->id());
 
         return back()->with('success', 'Iade kaydi olusturuldu.');
+    }
+
+    public function storePaymentPlan(Request $request, FinancePaymentPlanService $paymentPlanService): RedirectResponse
+    {
+        $this->assertAuthorized();
+
+        $validated = $request->validate([
+            'finance_record_id' => 'required|integer|exists:finance_records,id',
+            'first_due_date' => 'required|date',
+            'installment_count' => 'required|integer|min:1|max:24',
+            'interval_days' => 'nullable|integer|min:1|max:365',
+            'total_amount' => 'nullable|numeric|min:0.01',
+            'currency' => 'required|string|max:8',
+            'note' => 'nullable|string|max:2000',
+        ]);
+
+        $record = FinanceRecord::query()->findOrFail((int) $validated['finance_record_id']);
+        $paymentPlanService->createInstallmentPlan($record, $validated, (int) auth()->id());
+
+        return back()->with('success', 'Odeme plani olusturuldu.');
+    }
+
+    public function updatePaymentPlan(Request $request, FinancePaymentPlan $plan, FinancePaymentPlanService $paymentPlanService): RedirectResponse
+    {
+        $this->assertAuthorized();
+
+        $validated = $request->validate([
+            'status' => 'required|in:planned,cancelled',
+        ]);
+
+        $paymentPlanService->updateStatus($plan, (string) $validated['status'], (int) auth()->id());
+
+        return back()->with('success', 'Odeme plani durumu guncellendi.');
     }
 }

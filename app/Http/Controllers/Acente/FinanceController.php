@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Controller;
+use App\Models\FinancePaymentPlan;
 use App\Models\FinanceReceiptSubmission;
 use App\Models\FinanceRecord;
 use App\Models\FinanceTransaction;
@@ -25,13 +26,19 @@ class FinanceController extends Controller
                     'paid_total' => 0,
                     'remaining_total' => 0,
                     'pending_transactions' => 0,
+                    'due_in_7_days' => 0,
+                    'overdue_installments' => 0,
                 ],
+                'plans' => collect(),
             ]);
         }
 
         $records = FinanceRecord::query()
             ->where('agency_user_id', auth()->id())
-            ->with(['transactions' => fn ($q) => $q->latest()->limit(5)])
+            ->with([
+                'transactions' => fn ($q) => $q->latest()->limit(5),
+                'paymentPlans' => fn ($q) => $q->orderBy('sequence')->limit(12),
+            ])
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -60,8 +67,32 @@ class FinanceController extends Controller
                 ->where('payer_user_id', auth()->id())
                 ->whereIn('status', ['pending', 'awaiting_validation'])
                 ->count(),
+            'due_in_7_days' => Schema::hasTable('finance_payment_plans')
+                ? FinancePaymentPlan::query()
+                    ->whereHas('record', fn ($q) => $q->where('agency_user_id', auth()->id()))
+                    ->whereIn('status', ['planned', 'partial'])
+                    ->whereDate('due_date', '>=', now()->toDateString())
+                    ->whereDate('due_date', '<=', now()->addDays(7)->toDateString())
+                    ->count()
+                : 0,
+            'overdue_installments' => Schema::hasTable('finance_payment_plans')
+                ? FinancePaymentPlan::query()
+                    ->whereHas('record', fn ($q) => $q->where('agency_user_id', auth()->id()))
+                    ->whereIn('status', ['planned', 'partial'])
+                    ->whereDate('due_date', '<', now()->toDateString())
+                    ->count()
+                : 0,
         ];
 
-        return view('acente.finance.index', compact('coreReady', 'records', 'summary', 'submissions'));
+        $plans = Schema::hasTable('finance_payment_plans')
+            ? FinancePaymentPlan::query()
+                ->whereHas('record', fn ($q) => $q->where('agency_user_id', auth()->id()))
+                ->with('record')
+                ->orderBy('due_date')
+                ->limit(30)
+                ->get()
+            : collect();
+
+        return view('acente.finance.index', compact('coreReady', 'records', 'summary', 'submissions', 'plans'));
     }
 }
