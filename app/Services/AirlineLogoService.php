@@ -86,11 +86,7 @@ class AirlineLogoService
     {
         $iata = strtoupper(trim($iata));
 
-        if ($iata === '') {
-            return false;
-        }
-
-        if (! $this->ensureDirectory()) {
+        if ($iata === '' || ! $this->ensureDirectory()) {
             return false;
         }
 
@@ -139,7 +135,7 @@ class AirlineLogoService
         return Str::of($airline)
             ->ascii()
             ->lower()
-            ->replace(['—', '-', '_'], ' ')
+            ->replace(['-', '_'], ' ')
             ->replaceMatches('/\s+/', ' ')
             ->trim()
             ->value();
@@ -147,6 +143,10 @@ class AirlineLogoService
 
     protected function normalizeAndSavePng(string $binary, string $targetPath): bool
     {
+        if (! $this->canProcessImages()) {
+            return false;
+        }
+
         $sourceImage = @imagecreatefromstring($binary);
 
         if (! $sourceImage) {
@@ -201,6 +201,10 @@ class AirlineLogoService
 
     protected function makeWhitePixelsTransparent($image)
     {
+        if (! $this->canProcessImages()) {
+            return $image;
+        }
+
         imagealphablending($image, false);
         imagesavealpha($image, true);
 
@@ -238,7 +242,7 @@ class AirlineLogoService
 
         $defaultPath = $this->defaultPath();
 
-        if (File::exists($defaultPath)) {
+        if (File::exists($defaultPath) || ! $this->canProcessImages()) {
             return;
         }
 
@@ -267,6 +271,20 @@ class AirlineLogoService
 
         @imagepng($canvas, $defaultPath, 6);
         imagedestroy($canvas);
+    }
+
+    protected function canProcessImages(): bool
+    {
+        return extension_loaded('gd')
+            && function_exists('imagecreatefromstring')
+            && function_exists('imagecreatetruecolor')
+            && function_exists('imagepng')
+            && function_exists('imagesavealpha')
+            && function_exists('imagealphablending')
+            && function_exists('imagecopyresampled')
+            && function_exists('imagesetpixel')
+            && function_exists('imagefilledellipse')
+            && function_exists('imagefilledpolygon');
     }
 
     protected function ensureDirectory(): bool
