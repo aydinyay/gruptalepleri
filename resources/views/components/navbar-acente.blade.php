@@ -62,6 +62,10 @@
                    class="nav-lc {{ $active === 'charter' ? 'nav-lc-active' : '' }}">
                     <i class="fas fa-helicopter me-1"></i>Air Charter
                 </a>
+                <a href="{{ route('acente.finance.index') }}"
+                   class="nav-lc {{ $active === 'finance' ? 'nav-lc-active' : '' }}">
+                    <i class="fas fa-wallet me-1"></i>Finans
+                </a>
                 <a href="{{ route('acente.requests.create') }}" class="btn btn-sm btn-danger px-3 d-none d-md-inline-block">
                     <i class="fas fa-plus me-1"></i>Yeni Talep
                 </a>

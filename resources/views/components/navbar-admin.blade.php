@@ -27,6 +27,10 @@
                class="nav-lc {{ $active === 'charter' ? 'nav-lc-active' : '' }}">
                 <i class="fas fa-helicopter me-1"></i>Air Charter
             </a>
+            <a href="{{ route('admin.finance.index') }}"
+               class="nav-lc {{ $active === 'finance' ? 'nav-lc-active' : '' }}">
+                <i class="fas fa-wallet me-1"></i>Finans
+            </a>
             @if(auth()->user()->can_send_broadcast)
             <a href="{{ route('admin.broadcast.create') }}"
                class="nav-lc {{ $active === 'broadcast' ? 'nav-lc-active' : '' }}">

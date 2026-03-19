@@ -9,6 +9,7 @@ use App\Models\Request as RequestModel;
 use App\Models\RequestLog;
 use App\Models\RequestPayment;
 use App\Services\EmailService;
+use App\Services\Finance\FinanceSyncService;
 use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\Auth;
@@ -209,6 +210,11 @@ class RequestController extends Controller
                     'created_by'     => auth()->user()->name,
                 ]);
 
+                $yeniOdeme = $talep->payments()->latest('id')->first();
+                if ($yeniOdeme) {
+                    app(FinanceSyncService::class)->syncRequestPayment($yeniOdeme, auth()->id());
+                }
+
                 RequestLog::create([
                     'request_id'  => $talep->id,
                     'action'      => 'odeme_eklendi',
@@ -408,6 +414,11 @@ Ham veri:
             'created_by'     => auth()->user()->name,
         ]);
 
+        $yeniOdeme = $talep->payments()->latest('id')->first();
+        if ($yeniOdeme) {
+            app(FinanceSyncService::class)->syncRequestPayment($yeniOdeme, auth()->id());
+        }
+
         RequestLog::create([
             'request_id'  => $talep->id,
             'action'      => 'odeme_eklendi',
@@ -495,6 +506,7 @@ Ham veri:
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $odeme = RequestPayment::where('request_id', $talep->id)->findOrFail($payment);
+        app(FinanceSyncService::class)->deleteBySource('request_payment', (int) $odeme->id);
         $odeme->delete();
 
         RequestLog::create([
@@ -524,6 +536,8 @@ Ham veri:
             'payment_date'   => $request->payment_date,
             'status'         => $request->status ?? $odeme->status,
         ]);
+
+        app(FinanceSyncService::class)->syncRequestPayment($odeme->fresh(), auth()->id());
 
         RequestLog::create([
             'request_id'  => $talep->id,

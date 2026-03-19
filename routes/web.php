@@ -90,6 +90,12 @@ Route::middleware(['auth'])->prefix('superadmin')->name('superadmin.')->group(fu
     Route::get('/dashboard', function () {
         return view('superadmin.dashboard');
     })->name('dashboard');
+    Route::get('/finans', [\App\Http\Controllers\Superadmin\FinanceController::class, 'index'])->name('finance.index');
+    Route::get('/finans/dekontlar', [\App\Http\Controllers\Admin\FinanceReceiptController::class, 'index'])->name('finance.receipts.index');
+    Route::patch('/finans/dekontlar/{submission}', [\App\Http\Controllers\Admin\FinanceReceiptController::class, 'update'])->name('finance.receipts.update');
+    Route::post('/finans/manual-kayit', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualRecord'])->name('finance.manual-record.store');
+    Route::post('/finans/manual-islem', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualTransaction'])->name('finance.manual-transaction.store');
+    Route::post('/finans/iade', [\App\Http\Controllers\Admin\FinanceController::class, 'storeRefund'])->name('finance.refund.store');
 
     Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
     Route::get('/charter/rfq-tedarikciler', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'index'])->name('charter.rfq-suppliers.index');
@@ -176,6 +182,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+    Route::get('/finans', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
+    Route::get('/finans/dekontlar', [\App\Http\Controllers\Admin\FinanceReceiptController::class, 'index'])->name('finance.receipts.index');
+    Route::patch('/finans/dekontlar/{submission}', [\App\Http\Controllers\Admin\FinanceReceiptController::class, 'update'])->name('finance.receipts.update');
+    Route::post('/finans/manual-kayit', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualRecord'])->name('finance.manual-record.store');
+    Route::post('/finans/manual-islem', [\App\Http\Controllers\Admin\FinanceController::class, 'storeManualTransaction'])->name('finance.manual-transaction.store');
+    Route::post('/finans/iade', [\App\Http\Controllers\Admin\FinanceController::class, 'storeRefund'])->name('finance.refund.store');
 
     Route::get('/charter', [\App\Http\Controllers\Admin\CharterController::class, 'index'])->name('charter.index');
     Route::get('/charter/{charterRequest}', [\App\Http\Controllers\Admin\CharterController::class, 'show'])->name('charter.show');
@@ -240,6 +252,8 @@ Route::middleware(['auth'])->prefix('acente/onizleme')->name('acente.preview.')-
 // Acente
 Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Acente\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/finans', [\App\Http\Controllers\Acente\FinanceController::class, 'index'])->name('finance.index');
+    Route::post('/finans/dekont-bildirim', [\App\Http\Controllers\Acente\FinanceReceiptController::class, 'store'])->name('finance.receipts.store');
 
     Route::get('/charter', [\App\Http\Controllers\Acente\CharterRequestController::class, 'index'])->name('charter.index');
     Route::get('/charter/talep', [\App\Http\Controllers\Acente\CharterRequestController::class, 'create'])->name('charter.create');

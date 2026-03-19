@@ -4,9 +4,15 @@ namespace App\Services\Charter;
 
 use App\Models\CharterBooking;
 use App\Models\CharterPayment;
+use App\Services\Finance\FinanceSyncService;
 
 class PaymentService
 {
+    public function __construct(
+        private readonly FinanceSyncService $financeSyncService
+    ) {
+    }
+
     public function createPayment(CharterBooking $booking, array $payload): CharterPayment
     {
         $payment = CharterPayment::query()->create([
@@ -21,6 +27,8 @@ class PaymentService
             'admin_note' => $payload['admin_note'] ?? null,
         ]);
 
+        $this->financeSyncService->syncCharterPayment($payment, auth()->id());
+
         return $payment;
     }
 
@@ -33,6 +41,7 @@ class PaymentService
             'admin_note' => $note ?: $payment->admin_note,
         ]);
 
+        $this->financeSyncService->syncCharterPayment($payment->fresh(), $approvedByUserId);
         $this->recalculateBooking($payment->booking);
 
         return $payment->fresh();
@@ -47,6 +56,7 @@ class PaymentService
             'admin_note' => $note ?: $payment->admin_note,
         ]);
 
+        $this->financeSyncService->syncCharterPayment($payment->fresh(), $approvedByUserId);
         $this->recalculateBooking($payment->booking);
 
         return $payment->fresh();
@@ -80,4 +90,3 @@ class PaymentService
         return $booking->fresh();
     }
 }
-
