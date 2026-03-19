@@ -9,6 +9,7 @@ use App\Models\FinanceRecord;
 use App\Models\FinanceRefund;
 use App\Models\FinanceTransaction;
 use App\Models\User;
+use App\Services\Finance\FinancePositionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -36,6 +37,13 @@ class FinanceController extends Controller
                 'agencyUsers' => collect(),
                 'openRecords' => collect(),
                 'plans' => collect(),
+                'agencyBalances' => collect(),
+                'balanceSummary' => [
+                    'receivable_total' => 0.0,
+                    'payable_total' => 0.0,
+                    'pending_refund_total' => 0.0,
+                    'net_total' => 0.0,
+                ],
             ]);
         }
 
@@ -92,6 +100,19 @@ class FinanceController extends Controller
                 ->get()
             : collect();
 
-        return view('superadmin.finance.index', compact('coreReady', 'records', 'summary', 'agencyUsers', 'openRecords', 'plans'));
+        $positionData = app(FinancePositionService::class)->buildAgencyBalances(300);
+        $agencyBalances = $positionData['rows'];
+        $balanceSummary = $positionData['summary'];
+
+        return view('superadmin.finance.index', compact(
+            'coreReady',
+            'records',
+            'summary',
+            'agencyUsers',
+            'openRecords',
+            'plans',
+            'agencyBalances',
+            'balanceSummary'
+        ));
     }
 }

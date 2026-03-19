@@ -50,6 +50,10 @@
     @endif
 
     @if($coreReady)
+        @include('finance.partials.agency-balance-overview')
+    @endif
+
+    @if($coreReady)
         <div class="row g-3 mb-4">
             <div class="col-12 col-xl-4">
                 <div class="card shadow-sm h-100">

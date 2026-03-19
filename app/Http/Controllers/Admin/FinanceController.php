@@ -11,6 +11,7 @@ use App\Models\FinanceTransaction;
 use App\Models\User;
 use App\Services\Finance\FinanceCoreService;
 use App\Services\Finance\FinancePaymentPlanService;
+use App\Services\Finance\FinancePositionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -44,6 +45,13 @@ class FinanceController extends Controller
                 'agencyUsers' => collect(),
                 'openRecords' => collect(),
                 'plans' => collect(),
+                'agencyBalances' => collect(),
+                'balanceSummary' => [
+                    'receivable_total' => 0.0,
+                    'payable_total' => 0.0,
+                    'pending_refund_total' => 0.0,
+                    'net_total' => 0.0,
+                ],
             ]);
         }
 
@@ -107,6 +115,10 @@ class FinanceController extends Controller
                 ->get()
             : collect();
 
+        $positionData = app(FinancePositionService::class)->buildAgencyBalances(300);
+        $agencyBalances = $positionData['rows'];
+        $balanceSummary = $positionData['summary'];
+
         return view('admin.finance.index', compact(
             'coreReady',
             'records',
@@ -115,7 +127,9 @@ class FinanceController extends Controller
             'serviceType',
             'agencyUsers',
             'openRecords',
-            'plans'
+            'plans',
+            'agencyBalances',
+            'balanceSummary'
         ));
     }
 
