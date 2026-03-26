@@ -737,7 +737,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <p style="font-weight:600;color:rgba(255,255,255,0.75);">Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</p>
             <p>Vergi Dairesi: Beyoğlu VD</p>
             <p>Vergi No: 4110477529</p>
-            <p>Mersis / Ünvan:<br>Group Ticket Turizm Seyahat Acentası</p>
+            <p>Mersis No: 0411047752900001<br>Ünvan: Group Ticket Turizm Seyahat Acentası</p>
         </div>
 
     </div>
