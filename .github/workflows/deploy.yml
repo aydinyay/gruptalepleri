@@ -22,7 +22,7 @@ jobs:
           protocol: ftps
           port: 21
           security: loose
-          server-dir: /public_html/
+          server-dir: /gruptalepleri.com/public/
           exclude: |
             **/.git*
             **/.git*/**
@@ -34,5 +34,4 @@ jobs:
             **/storage/framework/views/**
             **/.env
             **/.env.*
-            **/deploy_update.zip
             **/*.zip
