@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy files via FTP
+      - name: Deploy via FTP (FTPS passive)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: gruprezervasyonlari.com
@@ -22,4 +22,5 @@ jobs:
           protocol: ftps
           port: 21
           security: loose
+          passive: true
           server-dir: gruptalepleri.com/public/
