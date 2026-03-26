@@ -22,5 +22,4 @@ jobs:
           protocol: ftps
           port: 21
           security: loose
-          server-dir: /gruptalepleri.com/public/
-          dangerous-clean-slate: false
+          server-dir: gruptalepleri.com/public/
