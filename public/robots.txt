@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /dashboard
+Disallow: /bildirimler
+Disallow: /profile
+Disallow: /admin/
+Disallow: /superadmin/
+Disallow: /acente/
+Disallow: /t/
+
+Sitemap: https://gruptalepleri.com/sitemap.xml
+Sitemap: https://gruptalepleri.com/sitemap_index.xml

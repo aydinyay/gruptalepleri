@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f3460"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="628" fill="url(#bg)"/>
+  <circle cx="1020" cy="120" r="220" fill="#e94560" opacity="0.15"/>
+  <circle cx="120" cy="560" r="180" fill="#4ea8ff" opacity="0.18"/>
+  <text x="80" y="270" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="56" font-weight="700"><tspan x="80" dy="0">Dünya Meteoroloji</tspan><tspan x="80" dy="66">Günü</tspan></text>
+  <text x="80" y="422" fill="#ff6f8a" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="600">GrupTalepleri</text>
+</svg>

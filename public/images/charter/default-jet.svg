@@ -1,0 +1,40 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="0.5" stop-color="#1E3A8A"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1220 170) rotate(126.87) scale(460 640)">
+      <stop stop-color="white" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="jet" x1="460" y1="470" x2="1180" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#CBD5E1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" rx="36" fill="url(#bg)"/>
+  <rect width="1600" height="900" rx="36" fill="url(#glow)"/>
+
+  <g opacity="0.18">
+    <path d="M-30 760C220 660 380 640 590 680C820 724 1020 818 1620 720" stroke="white" stroke-width="2"/>
+    <path d="M-10 690C250 580 420 560 640 602C860 644 1120 760 1620 630" stroke="white" stroke-width="2"/>
+  </g>
+
+  <g>
+    <path d="M360 455L800 412L1248 444L1248 486L796 522L360 483V455Z" fill="url(#jet)"/>
+    <path d="M642 430L525 295L608 284L730 424L642 430Z" fill="#E2E8F0"/>
+    <path d="M1005 443L1160 357L1226 362L1096 451L1005 443Z" fill="#E2E8F0"/>
+    <path d="M1005 479L1160 559L1226 556L1095 471L1005 479Z" fill="#CBD5E1"/>
+    <path d="M620 495L505 628L590 639L710 500L620 495Z" fill="#CBD5E1"/>
+    <rect x="740" y="444" width="190" height="28" rx="14" fill="#94A3B8"/>
+    <circle cx="1248" cy="465" r="16" fill="#F8FAFC"/>
+  </g>
+
+  <g fill="#F8FAFC" opacity="0.92" font-family="Inter, Arial, sans-serif">
+    <text x="80" y="118" font-size="52" font-weight="700">Premium Charter</text>
+    <text x="80" y="166" font-size="28" opacity="0.88">Hazir paketler ile hizli teklif akisi</text>
+  </g>
+</svg>

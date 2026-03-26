@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export APPPATH=/home/gruprez1
+    - export WEBPATH=/home/gruprez1/public_html
+    - /bin/mkdir -p "$APPPATH" "$WEBPATH"
+    - git checkout-index -a -f --prefix="$APPPATH/"
+    - /bin/cp -a "$APPPATH/public/." "$WEBPATH/"
