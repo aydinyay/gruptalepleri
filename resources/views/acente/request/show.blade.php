@@ -593,7 +593,7 @@
                                 <i class="fas fa-check-circle me-1"></i>Kabul Edildi
                             </span>
                             @endif
-                            <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - ' . ($teklif->airline ?? '') . ' teklifi hakkında sorum var') }}"
+                            <a href="https://wa.me/905354154799?text={{ urlencode($talep->gtpnr . ' - ' . ($teklif->airline ?? '') . ' teklifi hakkında sorum var') }}"
                                target="_blank" class="btn btn-outline-secondary btn-sm w-100 w-md-auto flex-md-fill">
                                 <i class="fab fa-whatsapp me-1"></i>Sor
                             </a>
@@ -610,7 +610,7 @@
                     <p class="fw-bold mb-1">Teklif hazırlanıyor...</p>
                     <small>Operasyon ekibimiz en kısa sürede dönecektir.</small>
                     <div class="mt-3">
-                        <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' numaralı talebim için bilgi almak istiyorum') }}"
+                        <a href="https://wa.me/905354154799?text={{ urlencode($talep->gtpnr . ' numaralı talebim için bilgi almak istiyorum') }}"
                            target="_blank" class="btn btn-outline-success btn-sm">
                             <i class="fab fa-whatsapp me-1"></i>Durumu Sor
                         </a>
