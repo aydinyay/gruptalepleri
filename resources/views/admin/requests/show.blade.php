@@ -748,7 +748,7 @@
                                     @if($odeme->payment_method){{ $odeme->payment_method }}@endif
                                     @if($odeme->bank_name) · {{ $odeme->bank_name }}@endif
                                     @if($odeme->payment_date) · {{ $odeme->payment_date->format('d.m.Y') }}@endif
-                                    @if($odeme->sender_masked) · {{ $odeme->sender_masked }}@if($odeme->account_masked) / {{ $odeme->account_masked }}@endif@endif
+                                    @if($odeme->sender_masked) · {{ $odeme->sender_masked }}@if($odeme->account_masked) / {{ $odeme->account_masked }}@endif @endif
                                 </div>
                                 @if($odeme->created_by)<div class="text-muted" style="font-size:.68rem;">Kaydeden: {{ $odeme->created_by }}</div>@endif
                             </div>

@@ -126,11 +126,23 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/show-last-error', function () {
         $log = storage_path('logs/laravel.log');
         if (!file_exists($log)) return response('Log yok');
-        $content = file_get_contents($log);
-        // Son [datetime] bloğunu bul
-        preg_match_all('/\[\d{4}-\d{2}-\d{2}[^\]]+\] \S+\.\S+: .+/m', $content, $m);
         $lastLines = array_slice(file($log), -120);
         return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
+    });
+
+    Route::get('/show-compiled-blade/{from}/{to}', function ($from, $to) {
+        $bladePath = resource_path('views/admin/requests/show.blade.php');
+        $compiledPath = storage_path('framework/views/' . md5($bladePath) . '.php');
+        // Force recompile
+        app('blade.compiler')->compile($bladePath);
+        if (!file_exists($compiledPath)) return response('Compiled file not found: ' . $compiledPath);
+        $lines = file($compiledPath);
+        $slice = array_slice($lines, max(0, $from - 1), $to - $from + 1, true);
+        $out = "File: $compiledPath (total ".count($lines)." lines)\n\n";
+        foreach ($slice as $i => $line) {
+            $out .= ($i + 1) . ": " . $line;
+        }
+        return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars($out) . '</pre>');
     });
 
 
