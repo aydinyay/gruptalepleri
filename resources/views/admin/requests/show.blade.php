@@ -614,6 +614,16 @@
                 </div>
                 @elseif($toplamTutar > 0)
                 <div class="card-body pb-0 pt-2">
+                    @if($planlanmamisKalan > 0 && $toplamOdenen > 0 && $hicBekleniyor)
+                    <div class="alert alert-warning py-2 px-3 mb-2 small d-flex align-items-start gap-2">
+                        <i class="fas fa-exclamation-triangle mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong>Acente bekliyor:</strong>
+                            {{ number_format($planlanmamisKalan,0) }} {{ $odenenCurrency }} için ödeme planı henüz girilmedi.
+                            Lütfen <strong>Ödeme Planla</strong> butonunu kullanın.
+                        </div>
+                    </div>
+                    @endif
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Tahsilat</span>
                         <span class="fw-bold">{{ number_format($toplamOdenen,0) }} / {{ number_format($toplamTutar,0) }} {{ $odenenCurrency }}</span>

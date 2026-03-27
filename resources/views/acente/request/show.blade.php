@@ -681,6 +681,9 @@
                         @if($ilkBekleniyor?->due_date && $opsiyonKalan > 0)
                             <strong>{{ number_format($ilkBekleniyor->amount, 0) }} {{ $ilkBekleniyor->currency }}</strong>
                             depozitonun son ödeme tarihi: <strong>{{ $ilkBekleniyor->due_date->format('d.m.Y') }}</strong>.
+                        @elseif($talep->status === 'depozitoda' && !$ilkBekleniyor && $kalanTutar > 0)
+                            Depozitonuz alındı, teşekkürler. Kalan <strong>{{ number_format($kalanTutar,0) }} {{ $muhCurrency }}</strong>
+                            için ödeme planı hazırlanıyor — yakında bildirim alacaksınız.
                         @elseif($kabulEdilenTeklif->option_date && !$opsiyonKullanildi && $opsiyonKalan > 0)
                             Opsiyon bitiş tarihi: <strong>{{ \Carbon\Carbon::parse($kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59'))->format('d.m.Y H:i') }}</strong>.
                         @elseif($kabulEdilenTeklif->deposit_amount && $talep->status !== 'depozitoda')
