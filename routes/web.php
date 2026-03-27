@@ -123,6 +123,32 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return view('superadmin.dashboard');
     })->name('dashboard');
 
+    // ── GEÇİCİ: Duplikat bekleniyor payment temizliği ──
+    Route::get('/run-payment-cleanup', function () {
+        $payments = \App\Models\RequestPayment::where('status', 'bekleniyor')->get();
+        $silinen = 0; $guncellenen = 0; $log = [];
+        foreach ($payments as $bek) {
+            $eslesen = \App\Models\RequestPayment::where('request_id', $bek->request_id)
+                ->where('sequence', $bek->sequence)
+                ->where('status', 'alindi')
+                ->first();
+            if ($eslesen) {
+                if (!$eslesen->due_date && $bek->due_date) {
+                    $eslesen->update(['due_date' => $bek->due_date]);
+                    $guncellenen++;
+                    $log[] = "↑ due_date kopyalandı → payment #{$eslesen->id} (request_id:{$bek->request_id} seq:{$bek->sequence})";
+                }
+                $bek->delete();
+                $silinen++;
+                $log[] = "✗ Duplikat bekleniyor silindi → payment #{$bek->id} (request_id:{$bek->request_id} seq:{$bek->sequence} tutar:{$bek->amount})";
+            }
+        }
+        return response('<pre style="font-family:monospace;padding:20px;">'
+            . "Tamamlandı.\nSilinen: $silinen | due_date güncellenen: $guncellenen\n\n"
+            . implode("\n", $log) . "\n\n[Route'u routes/web.php'den kaldırın]"
+            . '</pre>');
+    });
+
     Route::get('/yonetim/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
         ->defaults('group', 'yonetim')
         ->name('yonetim.hub');
