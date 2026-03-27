@@ -111,6 +111,11 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <span class="badge bg-secondary ms-1">{{ $gecmis->count() }}</span>
             </button>
         </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-scrape">
+                <i class="fas fa-satellite-dish me-1"></i>Veri Güncelleme
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -285,6 +290,80 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
             </div>
         </div>
 
+        {{-- VERİ GÜNCELLEME TAB --}}
+        <div class="tab-pane fade" id="tab-scrape">
+            <div class="card shadow-sm">
+                <div class="card-header py-2" style="background:#1a1a2e;color:#fff;">
+                    <i class="fas fa-satellite-dish me-2" style="color:#e94560;"></i>
+                    <span class="fw-bold">TÜRSAB Veri Güncelleme</span>
+                    <span class="float-end small text-white-50">Şu an DB'de: <strong id="scrDbTotal" class="text-white">—</strong> kayıt</span>
+                </div>
+                <div class="card-body">
+
+                    {{-- Durum satırı --}}
+                    <div class="d-flex flex-wrap gap-3 mb-3 align-items-center" id="scrStatusBar">
+                        <span class="small">Durum: <strong id="scrStatus">—</strong></span>
+                        <span class="small">Son belge no: <strong id="scrLastNo">—</strong></span>
+                        <span class="small">Hedef: <strong id="scrEndNo">—</strong></span>
+                        <span class="small">Toplam bulunan: <strong id="scrFound">—</strong></span>
+                        <span class="small text-muted" id="scrAt"></span>
+                    </div>
+
+                    {{-- İlerleme çubuğu --}}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span id="scrProgressLabel">—</span>
+                            <span id="scrPercent">—</span>
+                        </div>
+                        <div class="progress" style="height:16px;border-radius:8px;">
+                            <div id="scrProgressBar" class="progress-bar" role="progressbar"
+                                 style="width:0%;background:linear-gradient(90deg,#e94560,#c0392b);border-radius:8px;transition:width .4s;">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Kontroller --}}
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-2">
+                            <label class="form-label small mb-1">Başlangıç No</label>
+                            <input type="number" id="scrStart" class="form-control form-control-sm"
+                                   placeholder="Kaldığı yerden" min="1" max="99999">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small mb-1">Bitiş No</label>
+                            <input type="number" id="scrEnd" class="form-control form-control-sm"
+                                   value="18804" min="1" max="99999">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small mb-1">Batch (No/istek)</label>
+                            <input type="number" id="scrBatch" class="form-control form-control-sm"
+                                   value="50" min="1" max="200">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end gap-2 flex-wrap">
+                            <div class="form-check mt-1 me-2">
+                                <input class="form-check-input" type="checkbox" id="scrBeyond">
+                                <label class="form-check-label small" for="scrBeyond">18804+ yeni tarama</label>
+                            </div>
+                            <button class="btn btn-sm btn-success" id="scrStartBtn" onclick="scrapeBaslat()">
+                                <i class="fas fa-play me-1"></i>Başlat
+                            </button>
+                            <button class="btn btn-sm btn-danger d-none" id="scrStopBtn" onclick="scrapeDur()">
+                                <i class="fas fa-stop me-1"></i>Durdur
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="scrapeSifirla()">
+                                <i class="fas fa-redo me-1"></i>Sıfırla
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Log --}}
+                    <div id="scrLog" class="border rounded p-2" style="background:#f8f9fa;font-size:0.78rem;font-family:monospace;max-height:220px;overflow-y:auto;">
+                        <span class="text-muted">Log burada görünecek…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>{{-- /tab-content --}}
 
 </div>
@@ -332,6 +411,109 @@ function davetOnayla() {
         : `${sayi} acenteye davet emaili gönderilecek. Devam edilsin mi?`;
 
     return confirm(msg);
+}
+
+/* ── TÜRSAB Scraper ─────────────────────────────────────── */
+const SCRAPE_URL   = '{{ route("superadmin.tursab.scrape.start") }}';
+const STATUS_URL   = '{{ route("superadmin.tursab.scrape.status") }}';
+const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]').content;
+let   scrRunning   = false;
+let   scrStopFlag  = false;
+
+document.addEventListener('DOMContentLoaded', () => scrapeStatusYukle());
+
+function scrapeStatusYukle() {
+    fetch(STATUS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json()).then(d => scrapeGoster(d));
+}
+
+function scrapeGoster(d) {
+    const statusMap = { running:'Çalışıyor', idle:'Hazır', paused:'Duraklatıldı', error:'Hata' };
+    document.getElementById('scrStatus').textContent   = statusMap[d.status] || d.status;
+    document.getElementById('scrStatus').className     = d.status === 'running' ? 'text-success' : (d.status === 'error' ? 'text-danger' : 'text-secondary');
+    document.getElementById('scrLastNo').textContent   = d.last_no || '—';
+    document.getElementById('scrEndNo').textContent    = d.end_no  || '—';
+    document.getElementById('scrFound').textContent    = d.found   || '0';
+    document.getElementById('scrDbTotal').textContent  = d.db_total || '—';
+    document.getElementById('scrAt').textContent       = d.at ? 'Son çalışma: ' + d.at : '';
+    const pct = d.percent || 0;
+    document.getElementById('scrProgressBar').style.width = pct + '%';
+    document.getElementById('scrPercent').textContent  = pct + '%';
+    document.getElementById('scrProgressLabel').textContent = (d.last_no || 0) + ' / ' + (d.end_no || '?') + ' belge no işlendi';
+}
+
+function scrapeLog(msg, cls) {
+    const log = document.getElementById('scrLog');
+    const line = document.createElement('div');
+    line.className = cls || '';
+    line.textContent = new Date().toLocaleTimeString('tr') + ' — ' + msg;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+}
+
+async function scrapeBaslat() {
+    if (scrRunning) return;
+    scrRunning  = true;
+    scrStopFlag = false;
+    document.getElementById('scrStartBtn').classList.add('d-none');
+    document.getElementById('scrStopBtn').classList.remove('d-none');
+
+    const startVal  = document.getElementById('scrStart').value;
+    const endVal    = document.getElementById('scrEnd').value;
+    const batchVal  = document.getElementById('scrBatch').value;
+    const beyondVal = document.getElementById('scrBeyond').checked;
+
+    document.getElementById('scrLog').innerHTML = '';
+    scrapeLog('Tarama başlatıldı…');
+
+    let ilkIstek = true;
+
+    while (!scrStopFlag) {
+        const body = new URLSearchParams({
+            _token: CSRF_TOKEN,
+            end:    endVal,
+            batch:  batchVal,
+        });
+        if (ilkIstek && startVal) body.append('start', startVal);
+        if (beyondVal)             body.append('beyond', '1');
+        ilkIstek = false;
+
+        try {
+            const res  = await fetch(SCRAPE_URL, { method: 'POST', body });
+            if (!res.ok) { scrapeLog('HTTP hatası: ' + res.status, 'text-danger'); break; }
+            const d    = await res.json();
+            scrapeGoster(d);
+            scrapeLog('Batch bitti — Son no: ' + d.last_no + ' | Bulunan: ' + d.found + ' | DB: ' + d.db_total);
+
+            if (d.done || d.status === 'idle') {
+                scrapeLog('Tarama tamamlandı.', 'text-success fw-bold');
+                break;
+            }
+        } catch (e) {
+            scrapeLog('İstek hatası: ' + e.message, 'text-danger');
+            break;
+        }
+
+        await new Promise(r => setTimeout(r, 600)); // kısa nefes
+    }
+
+    scrRunning = false;
+    document.getElementById('scrStartBtn').classList.remove('d-none');
+    document.getElementById('scrStopBtn').classList.add('d-none');
+    if (scrStopFlag) scrapeLog('Kullanıcı tarafından durduruldu.', 'text-warning');
+}
+
+function scrapeDur() {
+    scrStopFlag = true;
+    scrapeLog('Durdurma isteği gönderildi…', 'text-warning');
+}
+
+function scrapeSifirla() {
+    if (!confirm('İlerleme sıfırlansın mı? (Veri silinmez, sadece sayaç sıfırlanır)')) return;
+    fetch(SCRAPE_URL, {
+        method: 'POST',
+        body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', batch: '1' })
+    }).then(r => r.json()).then(d => { scrapeGoster(d); scrapeLog('İlerleme sıfırlandı.', 'text-warning'); });
 }
 </script>
 </body>

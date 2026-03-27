@@ -8,16 +8,12 @@ class Acenteler extends Model
 {
     protected $table = 'acenteler';
 
-    // Sadece okuma — bu tabloya yazma yapılmaz
     public $timestamps = false;
 
-    protected $fillable = [];
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(fn() => false);
-        static::updating(fn() => false);
-        static::deleting(fn() => false);
-    }
+    protected $fillable = [
+        'belge_no', 'sube_sira', 'is_sube',
+        'acente_unvani', 'ticari_unvan', 'grup',
+        'il', 'il_ilce', 'telefon', 'eposta',
+        'adres', 'btk',
+    ];
 }

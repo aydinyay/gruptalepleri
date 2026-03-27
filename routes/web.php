@@ -246,6 +246,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/tursab-davet', [\App\Http\Controllers\TursabController::class, 'davetGonder'])->name('tursab.davet');
     Route::get('/tursab-kampanya', [\App\Http\Controllers\TursabController::class, 'kampanya'])->name('tursab.kampanya');
     Route::post('/tursab-toplu-davet', [\App\Http\Controllers\TursabController::class, 'topluDavet'])->name('tursab.toplu-davet');
+    Route::post('/tursab-scrape-start', [\App\Http\Controllers\TursabController::class, 'scrapeStart'])->name('tursab.scrape.start');
+    Route::get('/tursab-scrape-status', [\App\Http\Controllers\TursabController::class, 'scrapeStatus'])->name('tursab.scrape.status');
 
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');

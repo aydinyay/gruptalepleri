@@ -237,6 +237,60 @@ class TursabController extends Controller
         );
     }
 
+    /**
+     * Superadmin — Scraper başlat (bir batch çalıştır), JSON döndür.
+     */
+    public function scrapeStart(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $start  = $request->input('start');   // null = kaldığı yerden
+        $end    = (int) ($request->input('end', 18804));
+        $batch  = max(1, (int) ($request->input('batch', 50)));
+        $beyond = $request->boolean('beyond');
+        $reset  = $request->boolean('reset');
+
+        $args = [
+            '--end'   => (string) $end,
+            '--batch' => (string) $batch,
+        ];
+        if ($start)  $args['--start']  = (string) $start;
+        if ($beyond) $args['--beyond'] = true;
+        if ($reset)  $args['--reset']  = true;
+
+        \Artisan::call('tursab:scrape', $args);
+
+        return $this->scrapeStatus();
+    }
+
+    /**
+     * Superadmin — Scraper durum bilgisi.
+     */
+    public function scrapeStatus()
+    {
+        $this->assertSuperadmin();
+
+        $lastNo  = (int)    \App\Models\SistemAyar::get('tursab_scrape_last_no', '0');
+        $found   = (int)    \App\Models\SistemAyar::get('tursab_scrape_found',   '0');
+        $status  = (string) \App\Models\SistemAyar::get('tursab_scrape_status',  'idle');
+        $at      = (string) \App\Models\SistemAyar::get('tursab_scrape_at',      '');
+        $endNo   = (int)    \App\Models\SistemAyar::get('tursab_scrape_end',     '18804');
+
+        $total   = \App\Models\Acenteler::count();
+        $done    = ($lastNo > 0 && $lastNo >= $endNo);
+
+        return response()->json([
+            'status'   => $status,
+            'last_no'  => $lastNo,
+            'end_no'   => $endNo,
+            'found'    => $found,
+            'db_total' => $total,
+            'at'       => $at,
+            'done'     => $done,
+            'percent'  => $endNo > 0 ? round($lastNo / $endNo * 100, 1) : 0,
+        ]);
+    }
+
     private function assertSuperadmin(): void
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
