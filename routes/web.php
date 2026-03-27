@@ -130,19 +130,12 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
     });
 
-    Route::get('/show-compiled-blade/{from}/{to}', function ($from, $to) {
-        $bladePath = resource_path('views/admin/requests/show.blade.php');
-        $compiledPath = storage_path('framework/views/' . md5($bladePath) . '.php');
-        // Force recompile
-        app('blade.compiler')->compile($bladePath);
-        if (!file_exists($compiledPath)) return response('Compiled file not found: ' . $compiledPath);
-        $lines = file($compiledPath);
-        $slice = array_slice($lines, max(0, $from - 1), $to - $from + 1, true);
-        $out = "File: $compiledPath (total ".count($lines)." lines)\n\n";
-        foreach ($slice as $i => $line) {
-            $out .= ($i + 1) . ": " . $line;
-        }
-        return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars($out) . '</pre>');
+    Route::get('/clear-view-cache', function () {
+        $dir = storage_path('framework/views');
+        $files = glob($dir . '/*.php');
+        $deleted = 0;
+        foreach ($files as $f) { @unlink($f); $deleted++; }
+        return response('Silindi: ' . $deleted . ' dosya. View cache temizlendi.');
     });
 
 
