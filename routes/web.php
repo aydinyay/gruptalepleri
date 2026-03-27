@@ -123,13 +123,6 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return view('superadmin.dashboard');
     })->name('dashboard');
 
-    // GEÇİCİ — migration çalıştır, bir kez kullan sonra sil
-    Route::get('/run-migrate', function () {
-        $output = new \Symfony\Component\Console\Output\BufferedOutput();
-        \Artisan::call('migrate', ['--force' => true], $output);
-        return '<pre style="font-family:monospace;padding:20px;">' . htmlspecialchars($output->fetch()) . '</pre>';
-    });
-
     Route::get('/yonetim/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
         ->defaults('group', 'yonetim')
         ->name('yonetim.hub');
