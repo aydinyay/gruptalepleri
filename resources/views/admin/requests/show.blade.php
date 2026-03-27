@@ -333,7 +333,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small">Kişi Başı</label>
-                                    <input type="number" name="price_per_pax" id="f-price-pax" class="form-control form-control-sm" step="0.01">
+                                    <input type="number" name="price_per_pax" id="f-price-pax" class="form-control form-control-sm" step="0.01" oninput="depHesaplaFiyatDegisti('f')">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small text-muted">Maliyet <span class="fw-normal">(acenteye gizli)</span></label>
@@ -348,12 +348,12 @@
                                     <input type="number" name="profit_percent" id="f-profit-pct" class="form-control form-control-sm" step="0.01">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small">Dep. %</label>
-                                    <input type="number" name="deposit_rate" class="form-control form-control-sm" step="0.01">
+                                    <label class="form-label small">Dep. % <span class="text-muted fw-normal" id="f-dep-pct-hint"></span></label>
+                                    <input type="number" name="deposit_rate" id="f-deposit-rate" class="form-control form-control-sm" step="0.01" oninput="depHesapla('f')">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small">Dep. Tutarı</label>
-                                    <input type="number" name="deposit_amount" class="form-control form-control-sm" step="0.01">
+                                    <label class="form-label small">Dep. Tutarı <span class="text-muted fw-normal" id="f-dep-amt-hint"></span></label>
+                                    <input type="number" name="deposit_amount" id="f-deposit-amount" class="form-control form-control-sm" step="0.01" oninput="depHesapla('f', true)">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small">Opsiyon Tarihi</label>
@@ -775,10 +775,10 @@
                                 <option value="TRY">TRY</option><option value="USD">USD</option><option value="EUR">EUR</option>
                             </select>
                         </div>
-                        <div class="col-md-4"><label class="form-label small">Kişi Başı</label><input type="number" name="price_per_pax" id="e-price-pax" class="form-control form-control-sm" step="0.01"></div>
+                        <div class="col-md-4"><label class="form-label small">Kişi Başı</label><input type="number" name="price_per_pax" id="e-price-pax" class="form-control form-control-sm" step="0.01" oninput="depHesaplaFiyatDegisti('e')"></div>
                         <div class="col-md-4"><label class="form-label small">Maliyet</label><input type="number" name="cost_price" id="e-cost" class="form-control form-control-sm" step="0.01"></div>
-                        <div class="col-md-4"><label class="form-label small">Dep. %</label><input type="number" name="deposit_rate" id="e-deposit-rate" class="form-control form-control-sm" step="0.01"></div>
-                        <div class="col-md-4"><label class="form-label small">Dep. Tutarı</label><input type="number" name="deposit_amount" id="e-deposit-amount" class="form-control form-control-sm" step="0.01"></div>
+                        <div class="col-md-4"><label class="form-label small">Dep. % <span class="text-muted fw-normal" id="e-dep-pct-hint"></span></label><input type="number" name="deposit_rate" id="e-deposit-rate" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e')"></div>
+                        <div class="col-md-4"><label class="form-label small">Dep. Tutarı <span class="text-muted fw-normal" id="e-dep-amt-hint"></span></label><input type="number" name="deposit_amount" id="e-deposit-amount" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e', true)"></div>
                         <div class="col-md-2"><label class="form-label small">Opsiyon Tarihi</label><input type="date" name="option_date" id="e-option-date" class="form-control form-control-sm"></div>
                         <div class="col-md-2"><label class="form-label small">Opsiyon Saati</label><input type="time" name="option_time" id="e-option-time" class="form-control form-control-sm"></div>
                         <div class="col-12"><label class="form-label small">Teklif Notu (acenteye görünür)</label><textarea name="offer_text" id="e-offer-text" class="form-control form-control-sm" rows="2"></textarea></div>
@@ -1056,6 +1056,52 @@ if (statusNotifEmail) {
             ? '<i class="fas fa-envelope me-1 text-primary"></i>E-posta gönderilecek'
             : '<i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek';
     });
+}
+
+/* ── Depozito % ↔ Tutar Dinamik Hesaplama ───────────────────────────── */
+const TALEP_PAX_TOTAL = {{ $talep->pax_total ?? 1 }};
+
+function depToplamiAl(prefix) {
+    const fiyat = parseFloat(document.getElementById(prefix + '-price-pax')?.value) || 0;
+    const pax   = parseInt(document.getElementById(prefix + '-pax')?.value)
+               || (prefix === 'e' ? TALEP_PAX_TOTAL : TALEP_PAX_TOTAL);
+    return fiyat * pax;
+}
+
+function depHesapla(prefix, tutardanHesapla = false) {
+    const toplam  = depToplamiAl(prefix);
+    const rateEl  = document.getElementById(prefix + '-deposit-rate');
+    const amtEl   = document.getElementById(prefix + '-deposit-amount');
+    const pctHint = document.getElementById(prefix + '-dep-pct-hint');
+    const amtHint = document.getElementById(prefix + '-dep-amt-hint');
+
+    if (toplam <= 0) return;
+
+    if (!tutardanHesapla) {
+        // Yüzde girildi → tutarı hesapla
+        const rate = parseFloat(rateEl.value);
+        if (!isNaN(rate) && rate > 0) {
+            const amt = Math.round(toplam * rate / 100 * 100) / 100;
+            amtEl.value = amt;
+            if (amtHint) amtHint.textContent = '= ' + amt.toLocaleString('tr-TR') + ' (hesaplı)';
+        }
+    } else {
+        // Tutar girildi → yüzdeyi hesapla
+        const amt = parseFloat(amtEl.value);
+        if (!isNaN(amt) && amt > 0) {
+            const rate = Math.round(amt / toplam * 10000) / 100;
+            rateEl.value = rate;
+            if (pctHint) pctHint.textContent = '= %' + rate + ' (hesaplı)';
+        }
+    }
+}
+
+function depHesaplaFiyatDegisti(prefix) {
+    // Fiyat değiştiğinde, eğer yüzde girilmişse tutarı güncelle
+    const rateEl = document.getElementById(prefix + '-deposit-rate');
+    if (rateEl && parseFloat(rateEl.value) > 0) {
+        depHesapla(prefix, false);
+    }
 }
 </script>
 </body>

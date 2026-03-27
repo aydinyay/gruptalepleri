@@ -112,6 +112,15 @@
         $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
     }
 
+    // Opsiyon "Doldu" iken statü zaten opsiyon aşamasını geçmişse (depozito ödendi, biletlendi vb.)
+    // kırmızı "Doldu" yanıltıcıdır; nötr olarak göster.
+    $opsiyonKullanildi = $opsiyonKalan !== null
+        && $opsiyonKalan <= 0
+        && in_array($talep->status, ['depozitoda', 'biletlendi', 'iade', 'olumsuz', 'iptal']);
+    if ($opsiyonKullanildi) {
+        $opsiyonRenk = 'secondary';
+    }
+
     // Header fiyat hesaplamaları
     if ($kabulEdilenTeklif) {
         $headerKisiEtiketi  = 'Kişi Başı';
@@ -264,6 +273,8 @@
                         <div class="deger text-{{ $opsiyonRenk }}">
                             @if($opsiyonKalan === null)
                                 <span class="text-muted">—</span>
+                            @elseif($opsiyonKullanildi)
+                                <i class="fas fa-check-circle me-1"></i>Kullanıldı
                             @elseif($opsiyonKalan <= 0)
                                 <i class="fas fa-ban me-1"></i>Doldu
                             @else
@@ -536,7 +547,12 @@
                             $opsKalanSaat = $opsKalanSn / 3600;
                         @endphp
                         <div class="mb-3">
-                        @if($opsKalanSn <= 0)
+                        @if($opsKalanSn <= 0 && in_array($talep->status, ['depozitoda', 'biletlendi', 'iade', 'olumsuz', 'iptal']))
+                            <div class="alert alert-secondary text-center fw-bold py-2 mb-0">
+                                <i class="fas fa-check-circle me-1"></i>Opsiyon kullanıldı
+                                <div class="small fw-normal text-muted">{{ $opsDt->format('d.m.Y H:i') }}</div>
+                            </div>
+                        @elseif($opsKalanSn <= 0)
                             <div class="alert alert-danger text-center fw-bold py-2 mb-0">
                                 <i class="fas fa-ban me-1"></i>OPSİYON SÜRESİ DOLDU
                                 <div class="small fw-normal">{{ $opsDt->format('d.m.Y H:i') }}</div>
@@ -653,10 +669,10 @@
                         @else
                             <strong>İşleminiz başlatıldı.</strong>
                         @endif
-                        @if($kabulEdilenTeklif->option_date)
+                        @if($kabulEdilenTeklif->option_date && !$opsiyonKullanildi && $opsiyonKalan > 0)
                             Opsiyon bitiş tarihi: <strong>{{ \Carbon\Carbon::parse($kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59'))->format('d.m.Y H:i') }}</strong>.
                         @endif
-                        @if($kabulEdilenTeklif->deposit_amount)
+                        @if($kabulEdilenTeklif->deposit_amount && $talep->status !== 'depozitoda')
                             Lütfen <strong>{{ number_format($kabulEdilenTeklif->deposit_amount, 0) }} {{ $kabulEdilenTeklif->currency }}</strong> depozito ödemesini opsiyon tarihinden önce yapınız.
                         @endif
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
