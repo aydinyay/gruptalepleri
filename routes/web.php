@@ -126,8 +126,11 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/show-last-error', function () {
         $log = storage_path('logs/laravel.log');
         if (!file_exists($log)) return response('Log yok');
-        $lines = array_slice(file($log), -60);
-        return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lines)) . '</pre>');
+        $content = file_get_contents($log);
+        // Son [datetime] bloğunu bul
+        preg_match_all('/\[\d{4}-\d{2}-\d{2}[^\]]+\] \S+\.\S+: .+/m', $content, $m);
+        $lastLines = array_slice(file($log), -120);
+        return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
     });
 
 
