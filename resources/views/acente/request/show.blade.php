@@ -85,7 +85,16 @@
     $opsiyonEtiketi    = 'Opsiyon';
     $opsiyonKaynakDate = null;
 
-    if ($kabulEdilenTeklif?->option_date) {
+    // İlk bekleniyor ödemenin due_date'i → opsiyon kaynağı
+    $ilkBekleniyor = $talep->payments
+        ->where('status', 'bekleniyor')
+        ->sortBy('sequence')
+        ->first();
+
+    if ($ilkBekleniyor?->due_date) {
+        $opsiyonKaynakDate = $ilkBekleniyor->due_date->format('Y-m-d') . ' 23:59';
+        $opsiyonEtiketi    = 'Ödeme Son Tarihi';
+    } elseif ($kabulEdilenTeklif?->option_date) {
         $opsiyonKaynakDate = $kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59');
         $opsiyonEtiketi    = 'Seçilen opsiyon';
     } else {
@@ -669,10 +678,12 @@
                         @else
                             <strong>İşleminiz başlatıldı.</strong>
                         @endif
-                        @if($kabulEdilenTeklif->option_date && !$opsiyonKullanildi && $opsiyonKalan > 0)
+                        @if($ilkBekleniyor?->due_date && $opsiyonKalan > 0)
+                            <strong>{{ number_format($ilkBekleniyor->amount, 0) }} {{ $ilkBekleniyor->currency }}</strong>
+                            depozitonun son ödeme tarihi: <strong>{{ $ilkBekleniyor->due_date->format('d.m.Y') }}</strong>.
+                        @elseif($kabulEdilenTeklif->option_date && !$opsiyonKullanildi && $opsiyonKalan > 0)
                             Opsiyon bitiş tarihi: <strong>{{ \Carbon\Carbon::parse($kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59'))->format('d.m.Y H:i') }}</strong>.
-                        @endif
-                        @if($kabulEdilenTeklif->deposit_amount && $talep->status !== 'depozitoda')
+                        @elseif($kabulEdilenTeklif->deposit_amount && $talep->status !== 'depozitoda')
                             Lütfen <strong>{{ number_format($kabulEdilenTeklif->deposit_amount, 0) }} {{ $kabulEdilenTeklif->currency }}</strong> depozito ödemesini opsiyon tarihinden önce yapınız.
                         @endif
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -724,27 +735,32 @@
                     @if($talep->payments->count() > 0)
                     <hr class="my-2">
                     <div class="small fw-semibold mb-1 text-muted">Ödeme Planı</div>
-                    @foreach($talep->payments as $odeme)
+                    @foreach($talep->payments->sortBy('sequence') as $odeme)
                     @php
+                        $odemeLabel = $odeme->sequence == 1 ? '1. Depozito' : $odeme->sequence . '. Depozito (Bakiye Tamamlama)';
+                        $buOdemeBekliyor = $ilkBekleniyor && $odeme->id === $ilkBekleniyor->id;
                         $gosterecedekTarih = null;
                         $tarihEtiket = '';
                         if ($odeme->status === 'alindi' && $odeme->payment_date) {
-                            $gosterecedekTarih = \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y');
+                            $gosterecedekTarih = $odeme->payment_date->format('d.m.Y');
                             $tarihEtiket = 'Ödendi';
                         } elseif ($odeme->due_date) {
-                            $gosterecedekTarih = \Carbon\Carbon::parse($odeme->due_date)->format('d.m.Y');
+                            $gosterecedekTarih = $odeme->due_date->format('d.m.Y');
                             $tarihEtiket = 'Son tarih';
                         }
                     @endphp
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom small
-                        {{ $odeme->status==='alindi' ? 'bg-success bg-opacity-10' : ($odeme->status==='iade' ? 'bg-danger bg-opacity-10' : '') }}"
-                        style="border-radius:4px;padding:4px 6px;">
+                        {{ $odeme->status==='alindi' ? 'bg-success bg-opacity-10' : ($odeme->status==='iade' ? 'bg-danger bg-opacity-10' : ($buOdemeBekliyor ? 'bg-warning bg-opacity-10 border-warning' : '')) }}"
+                        style="border-radius:4px;padding:4px 6px;{{ $buOdemeBekliyor ? 'border-left:3px solid #ffc107;' : '' }}">
                         <div>
-                            <span class="fw-bold">{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</span>
+                            <span class="fw-bold">{{ $odemeLabel }}</span>
+                            @if($buOdemeBekliyor)
+                                <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">← Bu ödeme sizi bekliyor</span>
+                            @endif
                             @if($gosterecedekTarih)
                             <div class="text-muted" style="font-size:0.72rem;">
                                 {{ $tarihEtiket }}: {{ $gosterecedekTarih }}
-                                @if($odeme->status === 'bekleniyor' && $odeme->due_date && \Carbon\Carbon::parse($odeme->due_date)->isPast())
+                                @if($odeme->status === 'bekleniyor' && $odeme->due_date && $odeme->due_date->isPast())
                                     <span class="text-danger fw-bold ms-1">⚠ Geçti!</span>
                                 @endif
                             </div>

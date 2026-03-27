@@ -38,7 +38,11 @@
     $toplamOdenen   = $talep->payments->where('status', 'alindi')->sum('amount');
     $kalanTutar     = max(0, $toplamTutar - $toplamOdenen);
     $yuzde          = $toplamTutar > 0 ? min(100, round(($toplamOdenen / $toplamTutar) * 100)) : 0;
-    $odenenCurrency = $ilkTeklif?->currency ?? 'TRY';
+    $odenenCurrency   = $ilkTeklif?->currency ?? 'TRY';
+    $toplamBekleniyor = $talep->payments->where('status', 'bekleniyor')->sum('amount');
+    $planlanmamisKalan = max(0, $toplamTutar - $toplamOdenen - $toplamBekleniyor);
+    $hicBekleniyor    = $talep->payments->where('status', 'bekleniyor')->count() === 0;
+    $maxSequence      = $talep->payments->max('sequence') ?? 0;
 @endphp
 
 <div class="container-fluid px-3 px-md-4 py-3">
@@ -578,6 +582,12 @@
                     <span class="fw-semibold">💳 Muhasebe & Ödemeler</span>
                     <div class="d-flex gap-2 align-items-center">
                         <span class="badge bg-secondary">{{ $talep->payments->count() }} kayıt</span>
+                        @if($hicBekleniyor && $kabulEdilenTeklif)
+                        <button class="btn btn-success btn-sm py-0 px-2" type="button"
+                            onclick="odemePlanlaAc()">
+                            <i class="fas fa-calendar-plus me-1"></i>Ödeme Planla
+                        </button>
+                        @endif
                         <button class="btn btn-primary btn-sm py-0 px-2" type="button"
                             data-bs-toggle="collapse" data-bs-target="#odemeEklePanel">
                             <i class="fas fa-plus me-1"></i>Ödeme Ekle
@@ -600,10 +610,41 @@
                         <div class="progress-bar {{ $yuzde >= 100 ? 'bg-success' : ($yuzde >= 50 ? 'bg-primary' : 'bg-warning') }}" style="width:{{ $yuzde }}%"></div>
                     </div>
                     <div class="row g-1 mb-2 text-center small">
-                        <div class="col-4"><div class="bg-light rounded p-1"><div class="text-muted" style="font-size:.68rem;">Toplam</div><div class="fw-bold">{{ number_format($toplamTutar,0) }}</div></div></div>
+                        <div class="col-4"><div class="bg-light rounded p-1"><div class="text-muted" style="font-size:.68rem;">Toplam Teklif</div><div class="fw-bold">{{ number_format($toplamTutar,0) }}</div></div></div>
                         <div class="col-4"><div class="bg-success bg-opacity-10 rounded p-1"><div class="text-muted" style="font-size:.68rem;">Ödenen</div><div class="fw-bold text-success">{{ number_format($toplamOdenen,0) }}</div></div></div>
                         <div class="col-4"><div class="bg-danger bg-opacity-10 rounded p-1"><div class="text-muted" style="font-size:.68rem;">Kalan</div><div class="fw-bold text-danger">{{ number_format($kalanTutar,0) }}</div></div></div>
                     </div>
+                    @if($toplamBekleniyor > 0 || $planlanmamisKalan > 0)
+                    <div class="row g-1 mb-2 text-center small">
+                        @if($toplamBekleniyor > 0)
+                        <div class="{{ $planlanmamisKalan > 0 ? 'col-6' : 'col-12' }}">
+                            <div class="bg-warning bg-opacity-10 rounded p-1">
+                                <div class="text-muted" style="font-size:.68rem;">Planlanan (bekleniyor)</div>
+                                <div class="fw-bold text-warning">{{ number_format($toplamBekleniyor,0) }} {{ $odenenCurrency }}</div>
+                            </div>
+                        </div>
+                        @endif
+                        @if($planlanmamisKalan > 0)
+                        <div class="{{ $toplamBekleniyor > 0 ? 'col-6' : 'col-12' }}">
+                            <div class="bg-danger bg-opacity-10 rounded p-1">
+                                <div class="text-muted" style="font-size:.68rem;">Planlanmamış Kalan ⚠</div>
+                                <div class="fw-bold text-danger">{{ number_format($planlanmamisKalan,0) }} {{ $odenenCurrency }}</div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+                    @if($kalanTutar <= 0 && $toplamTutar > 0 && $talep->status === 'depozitoda')
+                    <div class="text-center mb-2">
+                        <form method="POST" action="{{ route('admin.requests.status', $talep->gtpnr) }}" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="status" value="biletlendi">
+                            <button type="submit" class="btn btn-success btn-sm fw-bold px-3">
+                                <i class="fas fa-ticket-alt me-1"></i>Biletlemeye Geç
+                            </button>
+                        </form>
+                    </div>
+                    @endif
                 </div>
                 @endif
 
@@ -681,31 +722,51 @@
 
                 {{-- Ödeme Listesi --}}
                 <div class="card-body {{ $talep->payments->count() === 0 ? 'py-3 text-center text-muted small' : 'py-2' }}">
-                    @forelse($talep->payments as $odeme)
-                    <div class="border rounded p-2 mb-2 small {{ $odeme->status === 'iade' ? 'border-danger' : '' }}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ $odeme->sequence }}.
-                                    @if($odeme->offer_id && $odeme->offer)
-                                        {{ $odeme->offer->airline ?? ucfirst($odeme->payment_type) }} Depozitosu
-                                    @else
-                                        {{ ucfirst($odeme->payment_type) }}
+                    @forelse($talep->payments->sortBy('sequence') as $odeme)
+                    @php $odemeLabel = $odeme->sequence == 1 ? '1. Depozito' : $odeme->sequence . '. Depozito (Bakiye Tamamlama)'; @endphp
+                    <div class="border rounded p-2 mb-2 small
+                        {{ $odeme->status === 'iade' ? 'border-danger' : '' }}
+                        {{ $odeme->status === 'bekleniyor' ? 'border-warning' : '' }}
+                        {{ $odeme->status === 'alindi' ? 'border-success border-opacity-50' : '' }}">
+                        <div class="d-flex justify-content-between align-items-start gap-1">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
+                                    <strong>{{ $odemeLabel }}</strong>
+                                    @if($odeme->status === 'alindi')
+                                        <span class="badge bg-success" style="font-size:.68rem;">✓ Alındı</span>
+                                    @elseif($odeme->status === 'bekleniyor')
+                                        <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekleniyor</span>
+                                        @if($odeme->due_date)
+                                            <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}</span>
+                                        @endif
+                                    @elseif($odeme->status === 'iade')
+                                        <span class="badge bg-danger" style="font-size:.68rem;">İade</span>
                                     @endif
-                                </strong>
-                                @if($odeme->offer_id && $odeme->offer)
-                                <div class="text-muted" style="font-size:.72rem;">
-                                    {{ $odeme->offer->airline ?? '—' }}
-                                    · {{ $odeme->offer->pax_confirmed ?? $talep->pax_total }} PAX
-                                    · Toplam: {{ number_format($odeme->offer->total_price, 0) }} {{ $odeme->offer->currency }}
+                                    <span class="ms-auto fw-bold">{{ number_format($odeme->amount,0) }} {{ $odeme->currency }}</span>
                                 </div>
-                                @endif
-                                @if($odeme->status === 'bekleniyor')<span class="badge bg-warning text-dark ms-1" style="font-size:.68rem;">Bekleniyor</span>@endif
-                                @if($odeme->status === 'iade')<span class="badge bg-danger ms-1" style="font-size:.68rem;">İade</span>@endif
+                                <div class="text-muted" style="font-size:.72rem;">
+                                    @if($odeme->payment_method){{ $odeme->payment_method }}@endif
+                                    @if($odeme->bank_name) · {{ $odeme->bank_name }}@endif
+                                    @if($odeme->payment_date) · {{ $odeme->payment_date->format('d.m.Y') }}@endif
+                                    @if($odeme->sender_masked) · {{ $odeme->sender_masked }}@if($odeme->account_masked) / {{ $odeme->account_masked }}@endif@endif
+                                </div>
+                                @if($odeme->created_by)<div class="text-muted" style="font-size:.68rem;">Kaydeden: {{ $odeme->created_by }}</div>@endif
                             </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="badge {{ $odeme->status === 'alindi' ? 'bg-success' : ($odeme->status === 'iade' ? 'bg-danger' : 'bg-warning text-dark') }}">
-                                    {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
-                                </span>
+                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                @if($odeme->status === 'bekleniyor')
+                                <button type="button" class="btn btn-success btn-sm py-0 px-1" style="font-size:.7rem;" title="Ödendi İşaretle"
+                                    onclick="odemePaidAc(
+                                        {{ $odeme->id }},
+                                        '{{ route('admin.requests.payment.update', [$talep->gtpnr, $odeme->id]) }}',
+                                        {{ $odeme->sequence }},
+                                        {{ $odeme->amount }},
+                                        '{{ $odeme->currency }}',
+                                        '{{ $odeme->due_date?->format('Y-m-d') }}',
+                                        '{{ $odeme->payment_type }}'
+                                    )">
+                                    <i class="fas fa-check me-1"></i>Ödendi
+                                </button>
+                                @endif
                                 <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size:.7rem;" title="Düzenle"
                                     onclick="odemeDuzenle(
                                         {{ $odeme->id }},
@@ -714,7 +775,8 @@
                                         '{{ $odeme->payment_method }}', {{ json_encode($odeme->bank_name) }},
                                         {{ json_encode($odeme->sender_masked) }}, {{ json_encode($odeme->account_masked) }},
                                         {{ $odeme->amount }}, '{{ $odeme->currency }}',
-                                        '{{ $odeme->payment_date?->format('Y-m-d') }}', '{{ $odeme->status }}'
+                                        '{{ $odeme->payment_date?->format('Y-m-d') }}', '{{ $odeme->status }}',
+                                        '{{ $odeme->due_date?->format('Y-m-d') }}'
                                     )">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -724,22 +786,13 @@
                                         onclick="silOnayGoster(
                                             this.closest('form'),
                                             'Ödeme silinecek',
-                                            '<strong>{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</strong> · {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}{{ $odeme->payment_date ? " · ".\Carbon\Carbon::parse($odeme->payment_date)->format("d.m.Y") : "" }}'
+                                            '<strong>{{ addslashes($odemeLabel) }}</strong> · {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}{{ $odeme->payment_date ? " · ".$odeme->payment_date->format("d.m.Y") : "" }}'
                                         )">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
                             </div>
                         </div>
-                        <div class="text-muted mt-1">
-                            @if($odeme->payment_method){{ $odeme->payment_method }}@endif
-                            @if($odeme->bank_name) · {{ $odeme->bank_name }}@endif
-                            @if($odeme->payment_date) · {{ \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y') }}@endif
-                        </div>
-                        @if($odeme->sender_masked)
-                        <div class="text-muted">{{ $odeme->sender_masked }}@if($odeme->account_masked) · {{ $odeme->account_masked }}@endif</div>
-                        @endif
-                        @if($odeme->created_by)<div class="text-muted" style="font-size:.7rem;">Kaydeden: {{ $odeme->created_by }}</div>@endif
                     </div>
                     @empty
                     Henüz ödeme kaydı yok.
@@ -831,12 +884,126 @@
                                 <option value="TRY">TRY</option><option value="USD">USD</option><option value="EUR">EUR</option>
                             </select>
                         </div>
-                        <div class="col-3"><label class="form-label small fw-bold">Tarih</label><input type="date" name="payment_date" id="od_date" class="form-control form-control-sm"></div>
+                        <div class="col-3"><label class="form-label small fw-bold">Ödeme Tarihi</label><input type="date" name="payment_date" id="od_date" class="form-control form-control-sm"></div>
+                        <div class="col-6"><label class="form-label small fw-bold">Son Ödeme Tarihi (due_date)</label><input type="date" name="due_date" id="od_due_date" class="form-control form-control-sm"><div class="form-text" style="font-size:.65rem;">Bekleniyor ise son tarih</div></div>
                     </div>
                 </div>
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
                     <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="fas fa-save me-1"></i>Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ═══ ÖDEME PLANLA MODALİ ═══ --}}
+<div class="modal fade" id="odemePlanlaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.requests.payment', $talep->gtpnr) }}" id="odemePlanlaForm">
+                @csrf
+                <input type="hidden" name="status" value="bekleniyor">
+                <div class="modal-header py-2 bg-success text-white">
+                    <h6 class="modal-title fw-bold mb-0"><i class="fas fa-calendar-plus me-2"></i>Ödeme Planla</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Sıra</label>
+                            <input type="number" name="sequence" id="pl_sequence" class="form-control form-control-sm" readonly>
+                        </div>
+                        <div class="col-8">
+                            <label class="form-label small fw-bold">Tip</label>
+                            <select name="payment_type" id="pl_type" class="form-select form-select-sm">
+                                <option value="depozito">Depozito</option>
+                                <option value="bakiye">Bakiye</option>
+                                <option value="full">Full</option>
+                                <option value="diger">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Tutar</label>
+                            <input type="number" name="amount" id="pl_amount" class="form-control form-control-sm" step="0.01" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Para Birimi</label>
+                            <select name="currency" id="pl_currency" class="form-select form-select-sm">
+                                <option value="TRY">TRY</option><option value="USD">USD</option><option value="EUR">EUR</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Son Ödeme Tarihi</label>
+                            <input type="date" name="due_date" id="pl_due_date" class="form-control form-control-sm" required>
+                            <div class="form-text" style="font-size:.68rem;">Acente görünümünde opsiyon tarihi olarak gösterilir.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold"><i class="fas fa-calendar-check me-1"></i>Planla (Bekleniyor)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ═══ ÖDENDİ İŞARETLE MODALİ ═══ --}}
+<div class="modal fade" id="odemePaidModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="odemePaidForm">
+                @csrf @method('PATCH')
+                <input type="hidden" name="status" value="alindi">
+                <div class="modal-header py-2 bg-success text-white">
+                    <h6 class="modal-title fw-bold mb-0"><i class="fas fa-check-circle me-2"></i>Ödendi İşaretle</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success py-2 small mb-3" id="paid_ozet"></div>
+                    <div class="row g-2">
+                        <input type="hidden" name="sequence" id="paid_sequence">
+                        <input type="hidden" name="payment_type" id="paid_type" value="depozito">
+                        <input type="hidden" name="amount" id="paid_amount_hidden">
+                        <input type="hidden" name="currency" id="paid_currency_hidden">
+                        <input type="hidden" name="due_date" id="paid_due_date_hidden">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Gerçek Ödeme Tarihi</label>
+                            <input type="date" name="payment_date" id="paid_date" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Gerçek Tutar (farklıysa)</label>
+                            <input type="number" name="amount_override" id="paid_amount_override" class="form-control form-control-sm" step="0.01" placeholder="Boş = aynı">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Ödeme Yöntemi</label>
+                            <select name="payment_method" id="paid_method" class="form-select form-select-sm">
+                                <option value="">Seç</option>
+                                <option value="FAST">FAST</option>
+                                <option value="EFT">EFT</option>
+                                <option value="havale">Havale</option>
+                                <option value="kart">Kart</option>
+                                <option value="nakit">Nakit</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Banka</label>
+                            <input type="text" name="bank_name" id="paid_bank" class="form-control form-control-sm" placeholder="Garanti BBVA">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Gönderen (maskeli)</label>
+                            <input type="text" name="sender_masked" id="paid_sender" class="form-control form-control-sm" placeholder="EC* TU**">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Hesap (maskeli)</label>
+                            <input type="text" name="account_masked" id="paid_account" class="form-control form-control-sm" placeholder="234-*348">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold"><i class="fas fa-check me-1"></i>Ödendi Olarak Kaydet</button>
                 </div>
             </form>
         </div>
@@ -1002,20 +1169,64 @@ function teklifDuzenle(id, data) {
 const odemeDuzenleModal = new bootstrap.Modal(document.getElementById('odemeDuzenleModal'));
 const odemeDuzenleForm  = document.getElementById('odemeDuzenleForm');
 
-function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, amount, currency, date, status) {
+function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, amount, currency, date, status, dueDate) {
     odemeDuzenleForm.action = url;
-    document.getElementById('od_sequence').value = sequence || 1;
-    document.getElementById('od_type').value     = type     || 'depozito';
-    document.getElementById('od_method').value   = method   || '';
-    document.getElementById('od_bank').value     = bank     || '';
-    document.getElementById('od_sender').value   = sender   || '';
-    document.getElementById('od_account').value  = account  || '';
-    document.getElementById('od_amount').value   = amount   || '';
-    document.getElementById('od_currency').value = currency || 'TRY';
-    document.getElementById('od_date').value     = date     || '';
-    document.getElementById('od_status').value   = status   || 'alindi';
+    document.getElementById('od_sequence').value  = sequence || 1;
+    document.getElementById('od_type').value      = type     || 'depozito';
+    document.getElementById('od_method').value    = method   || '';
+    document.getElementById('od_bank').value      = bank     || '';
+    document.getElementById('od_sender').value    = sender   || '';
+    document.getElementById('od_account').value   = account  || '';
+    document.getElementById('od_amount').value    = amount   || '';
+    document.getElementById('od_currency').value  = currency || 'TRY';
+    document.getElementById('od_date').value      = date     || '';
+    document.getElementById('od_status').value    = status   || 'alindi';
+    document.getElementById('od_due_date').value  = dueDate  || '';
     odemeDuzenleModal.show();
 }
+
+const odemePlanlaModal = new bootstrap.Modal(document.getElementById('odemePlanlaModal'));
+
+function odemePlanlaAc() {
+    const nextSeq = {{ $maxSequence + 1 }};
+    document.getElementById('pl_sequence').value  = nextSeq;
+    document.getElementById('pl_type').value      = nextSeq === 1 ? 'depozito' : 'bakiye';
+    document.getElementById('pl_amount').value    = '';
+    document.getElementById('pl_currency').value  = '{{ $odenenCurrency }}';
+    document.getElementById('pl_due_date').value  = '';
+    odemePlanlaModal.show();
+}
+
+const odemePaidModal = new bootstrap.Modal(document.getElementById('odemePaidModal'));
+
+function odemePaidAc(id, url, sequence, amount, currency, dueDate, paymentType) {
+    document.getElementById('odemePaidForm').action = url;
+    document.getElementById('paid_sequence').value        = sequence;
+    document.getElementById('paid_type').value            = paymentType || 'depozito';
+    document.getElementById('paid_amount_hidden').value   = amount;
+    document.getElementById('paid_currency_hidden').value = currency;
+    document.getElementById('paid_due_date_hidden').value = dueDate || '';
+    document.getElementById('paid_date').value            = '';
+    document.getElementById('paid_amount_override').value = '';
+    document.getElementById('paid_method').value          = '';
+    document.getElementById('paid_bank').value            = '';
+    document.getElementById('paid_sender').value          = '';
+    document.getElementById('paid_account').value         = '';
+    const label = sequence === 1 ? '1. Depozito' : sequence + '. Depozito (Bakiye Tamamlama)';
+    document.getElementById('paid_ozet').innerHTML =
+        '<strong>' + label + '</strong> · ' +
+        parseFloat(amount).toLocaleString('tr-TR') + ' ' + currency +
+        (dueDate ? ' · Son: ' + dueDate.split('-').reverse().join('.') : '');
+    odemePaidModal.show();
+}
+
+// Handle amount_override: if set, override hidden amount before submit
+document.getElementById('odemePaidForm').addEventListener('submit', function() {
+    const override = document.getElementById('paid_amount_override').value;
+    if (override && parseFloat(override) > 0) {
+        document.getElementById('paid_amount_hidden').value = override;
+    }
+});
 
 let silFormPending = null;
 const silModal = new bootstrap.Modal(document.getElementById('silOnayModal'));

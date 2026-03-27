@@ -542,10 +542,16 @@ Ham veri:
 
         app(FinanceSyncService::class)->syncRequestPayment($yeniOdeme, auth()->id());
 
+        $seq = $request->sequence ?? 1;
+        $odemeLabel = $seq == 1 ? '1. Depozito' : $seq . '. Depozito (Bakiye Tamamlama)';
+        $logDesc = $odemeStatus === 'bekleniyor'
+            ? $odemeLabel . ' planlandı (bekleniyor): ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY') . ($request->due_date ? ' — son tarih: ' . $request->due_date : '')
+            : $odemeLabel . ' kaydedildi: ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY');
+
         RequestLog::create([
             'request_id'  => $talep->id,
             'action'      => 'odeme_eklendi',
-            'description' => ($request->sequence ?? 1) . '. ödeme kaydedildi: ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY'),
+            'description' => $logDesc,
             'user_id'     => auth()->id(),
         ]);
 
@@ -663,6 +669,7 @@ Ham veri:
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $odeme = RequestPayment::where('request_id', $talep->id)->findOrFail($payment);
 
+        $eskiStatus = $odeme->status;
         $yeniStatus = $request->status ?? $odeme->status;
 
         $odeme->update([
@@ -694,10 +701,17 @@ Ham veri:
             ]);
         }
 
+        $odemeSeq = $odeme->sequence;
+        $updateLabel = $odemeSeq == 1 ? '1. Depozito' : $odemeSeq . '. Depozito (Bakiye Tamamlama)';
+        $freshAmount = $odeme->fresh()->amount;
+        $updateDesc = ($eskiStatus === 'bekleniyor' && $yeniStatus === 'alindi')
+            ? $updateLabel . ' ödendi: ' . number_format($freshAmount, 0) . ' ' . $odeme->currency
+            : $updateLabel . ' güncellendi: ' . number_format($freshAmount, 0) . ' ' . $odeme->currency;
+
         RequestLog::create([
             'request_id'  => $talep->id,
             'action'      => 'odeme_guncellendi',
-            'description' => $odeme->sequence . '. ödeme güncellendi: ' . number_format($odeme->amount, 0) . ' ' . $odeme->currency,
+            'description' => $updateDesc,
             'user_id'     => auth()->id(),
         ]);
 
