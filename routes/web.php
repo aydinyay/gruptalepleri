@@ -124,30 +124,6 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     })->name('dashboard');
 
 
-    // ── GEÇİCİ: Son hata logu ──
-    Route::get('/show-last-error', function () {
-        $log = storage_path('logs/laravel.log');
-        if (!file_exists($log)) return response('Log yok');
-        $lines = array_slice(file($log), -80);
-        return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lines)) . '</pre>');
-    });
-
-    // ── GEÇİCİ: Compiled view satırı ──
-    Route::get('/show-compiled-line', function () {
-        $dir = storage_path('framework/views');
-        $files = glob($dir . '/*.php');
-        usort($files, fn($a,$b) => filemtime($b) - filemtime($a));
-        $out = '';
-        foreach (array_slice($files, 0, 5) as $f) {
-            $lines = file($f);
-            $start = max(0, 488); $end = min(count($lines), 500);
-            $slice = array_slice($lines, $start, $end - $start, true);
-            $out .= '<hr><b>' . basename($f) . ' (lines 489-500)</b><pre>';
-            foreach ($slice as $n => $l) $out .= ($n+1) . ': ' . htmlspecialchars($l);
-            $out .= '</pre>';
-        }
-        return response($out);
-    });
 
     Route::get('/yonetim/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
         ->defaults('group', 'yonetim')

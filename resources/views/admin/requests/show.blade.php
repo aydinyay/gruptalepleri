@@ -442,7 +442,7 @@
                 <div class="card-body py-3">
                     @php $digerTeklifSayisi = $kabulEdilenTeklif ? $talep->offers->where('id', '!=', $kabulEdilenTeklif->id)->count() : 0; @endphp
                     @foreach($talep->offers->sortByDesc('is_accepted') as $teklif)
-                    @php($offerLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline))
+                    @php $offerLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline); @endphp
                     @if($kabulEdilenTeklif && !$teklif->is_accepted && $loop->index === 1 && $digerTeklifSayisi > 0)
                     <details class="mt-1 mb-1">
                         <summary class="py-1" style="cursor:pointer;user-select:none;list-style:none;">
