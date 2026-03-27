@@ -237,7 +237,7 @@ function airportWidget(name, placeholder, iataVal, displayVal, required) {
     </div>`;
 }
 
-function segmentHtmlOlustur(index, fromVal = '', toVal = '', fromDisplay = '', toDisplay = '', dateVal = '', timeVal = '', label = '', silinebilir = false) {
+function segmentHtmlOlustur(index, fromVal = '', toVal = '', fromDisplay = '', toDisplay = '', dateVal = '', slotVal = '', label = '', silinebilir = false) {
     return `
     <div class="segment-card p-3 mb-3" id="seg-${index}">
         ${label ? `<div class="small text-white-50 mb-2 fw-bold">${label}</div>` : ''}
@@ -253,15 +253,20 @@ function segmentHtmlOlustur(index, fromVal = '', toVal = '', fromDisplay = '', t
                 <label class="form-label small text-white-50">Varış</label>
                 ${airportWidget('segments['+index+'][to_iata]', 'CDG, Paris...', toVal, toDisplay, true)}
             </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label small text-white-50">Tarih</label>
+            <div class="col-6 col-md-3">
+                <label class="form-label small text-white-50">Tarih <span style="color:#e94560;">*</span></label>
                 <input type="date" name="segments[${index}][departure_date]" class="form-control form-control-sm bg-dark text-white border-secondary"
                        value="${dateVal}" required>
             </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label small text-white-50">Saat</label>
-                <input type="time" name="segments[${index}][departure_time]" class="form-control form-control-sm bg-dark text-white border-secondary"
-                       value="${timeVal}">
+            <div class="col-6 col-md-3">
+                <label class="form-label small text-white-50">Kalkış Zamanı <span style="color:#e94560;">*</span></label>
+                <select name="segments[${index}][departure_time_slot]" class="form-select form-select-sm bg-dark text-white border-secondary" required>
+                    <option value="" ${!slotVal ? 'selected' : ''}>Seçin...</option>
+                    <option value="sabah" ${slotVal==='sabah' ? 'selected' : ''}>🌅 Sabah (06:00–12:00)</option>
+                    <option value="ogle" ${slotVal==='ogle' ? 'selected' : ''}>☀️ Öğle (12:00–17:00)</option>
+                    <option value="aksam" ${slotVal==='aksam' ? 'selected' : ''}>🌆 Akşam / Gece (17:00–06:00)</option>
+                    <option value="esnek" ${slotVal==='esnek' ? 'selected' : ''}>🔄 Esnek / Fark etmez</option>
+                </select>
             </div>
             ${silinebilir ? `<div class="col-12 col-md-2 text-end"><button type="button" class="btn btn-outline-danger btn-sm mt-1" onclick="segmentSil(${index})"><i class="fas fa-times"></i></button></div>` : ''}
         </div>
@@ -286,6 +291,7 @@ function segmentleriYenile(tip) {
         container.innerHTML += segmentHtmlOlustur(segmentCount++, '', '', '', '', '', '', '2. Uçuş', true);
         addBtn.style.display = 'inline-block';
     }
+
 }
 
 function segmentEkle() {
@@ -295,6 +301,7 @@ function segmentEkle() {
     container.appendChild(div.firstElementChild);
     segmentCount++;
 }
+
 
 function segmentSil(index) {
     const el = document.getElementById('seg-' + index);

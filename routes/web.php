@@ -375,6 +375,8 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin')->name('adm
     Route::post('/leisure/bookings/{booking}/payments/gateway-start', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'startLeisure'])->name('leisure.payments.gateway-start');
 
     Route::get('/talepler', [\App\Http\Controllers\Admin\RequestController::class, 'index'])->name('requests.index');
+    Route::get('/talepler/olustur', [\App\Http\Controllers\Admin\RequestController::class, 'create'])->name('requests.create');
+    Route::post('/talepler/olustur', [\App\Http\Controllers\Admin\RequestController::class, 'storeOnBehalf'])->name('requests.store-on-behalf');
     Route::get('/talepler/{gtpnr}', [\App\Http\Controllers\Admin\RequestController::class, 'show'])->name('requests.show');
     Route::post('/talepler/{gtpnr}/durum', [\App\Http\Controllers\Admin\RequestController::class, 'updateStatus'])->name('requests.status');
     Route::post('/talepler/{gtpnr}/teklif', [\App\Http\Controllers\Admin\RequestController::class, 'storeOffer'])->name('requests.offer');

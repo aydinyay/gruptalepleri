@@ -22,8 +22,8 @@
 <x-navbar-admin active="talepler" />
 
 @php
-    $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
-    $durumRenkleri   = ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirildi'=>'#ffc107','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'];
+    $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','onaylandi'=>'Onaylandı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
+    $durumRenkleri   = ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirildi'=>'#ffc107','onaylandi'=>'#0d6efd','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'];
     $durumTextRenk   = ['fiyatlandirildi'=>'#000'];
 
     $yoneticiMesajlari = $talep->offers->pluck('offer_text')->filter(fn($m) => filled(trim((string)$m)));
@@ -150,7 +150,12 @@
                         <span class="fw-bold fs-5">{{ $s->to_iata }}</span>
                         <div class="ms-auto text-end small text-muted">
                             <div>{{ \Carbon\Carbon::parse($s->departure_date)->format('d M Y') }}</div>
-                            @if($s->departure_time)<div>{{ $s->departure_time }}</div>@endif
+                            @if($s->departure_time_slot)
+                            @php $slotLabel = ['sabah'=>'🌅 Sabah','ogle'=>'☀️ Öğle','aksam'=>'🌆 Akşam','esnek'=>'🔄 Esnek'][$s->departure_time_slot] ?? $s->departure_time_slot; @endphp
+                            <span class="badge bg-info text-dark" style="font-size:.65rem;">{{ $slotLabel }}</span>
+                            @elseif($s->departure_time)
+                            <div>{{ $s->departure_time }}</div>
+                            @endif
                         </div>
                     </div>
                     @endforeach
@@ -168,7 +173,7 @@
                         @csrf
                         <div class="input-group input-group-sm">
                             <select name="status" class="form-select">
-                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
+                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','onaylandi'=>'Onaylandı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
                                 <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
@@ -331,8 +336,16 @@
                                     <input type="number" name="price_per_pax" id="f-price-pax" class="form-control form-control-sm" step="0.01">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small">Maliyet</label>
+                                    <label class="form-label small text-muted">Maliyet <span class="fw-normal">(acenteye gizli)</span></label>
                                     <input type="number" name="cost_price" id="f-cost" class="form-control form-control-sm" step="0.01">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small text-muted">Kar (tutar) <span class="fw-normal">(gizli)</span></label>
+                                    <input type="number" name="profit_amount" id="f-profit-amt" class="form-control form-control-sm" step="0.01">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small text-muted">Kar (%) <span class="fw-normal">(gizli)</span></label>
+                                    <input type="number" name="profit_percent" id="f-profit-pct" class="form-control form-control-sm" step="0.01">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small">Dep. %</label>
@@ -357,6 +370,14 @@
                                 <div class="col-12">
                                     <label class="form-label small text-muted">Tedarikçi / İç Referans <span class="fw-normal">(acenteye gizli)</span></label>
                                     <input type="text" name="supplier_reference" id="f-supplier-ref" class="form-control form-control-sm" placeholder="KUNEYILD2633080">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" name="kk_enabled" value="1" id="f-kk-enabled" class="form-check-input">
+                                        <label class="form-check-label small" for="f-kk-enabled">
+                                            💳 KK ile ödemeye izin ver <span class="text-muted fw-normal">(default: kapalı — acenta görmez)</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 <input type="hidden" name="admin_raw_note" id="f-raw-note">
                                 <input type="hidden" name="ai_raw_output" id="f-ai-raw-output">
@@ -634,8 +655,13 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small">Tarih</label>
+                                    <label class="form-label small">Ödeme Tarihi</label>
                                     <input type="date" name="payment_date" id="p-date" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small">Son Ödeme Tarihi</label>
+                                    <input type="date" name="due_date" id="p-due-date" class="form-control form-control-sm">
+                                    <div class="form-text" style="font-size:.65rem;">Bekleniyor ise son tarih</div>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small">Durum</label>

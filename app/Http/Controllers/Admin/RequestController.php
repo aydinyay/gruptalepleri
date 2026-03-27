@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Airport;
 use App\Models\Request as TalepModel;
 use App\Models\Offer;
 use App\Models\Request as RequestModel;
 use App\Models\RequestLog;
 use App\Models\RequestPayment;
+use App\Models\User;
 use App\Services\EmailService;
 use App\Services\Finance\FinanceSyncService;
+use App\Services\GtpnrService;
 use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\Auth;
@@ -89,6 +92,99 @@ class RequestController extends Controller
         return view('admin.requests.index', compact('talepler', 'durumSayilari', 'aktifSayisi'));
     }
 
+    public function create()
+    {
+        $acenteler = User::whereIn('role', ['acente', 'admin', 'superadmin'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+        return view('admin.requests.create', compact('acenteler'));
+    }
+
+    public function storeOnBehalf(Request $request)
+    {
+        $validated = $request->validate([
+            'acente_user_id'           => 'required|exists:users,id',
+            'agency_name'              => 'required|string',
+            'phone'                    => 'required|string',
+            'email'                    => 'required|email',
+            'group_company_name'       => 'nullable|string',
+            'flight_purpose'           => 'nullable|string',
+            'trip_type'                => 'required|string|in:one_way,round_trip,multi',
+            'pax_total'                => 'required|integer|min:1',
+            'pax_adult'                => 'nullable|integer',
+            'pax_child'                => 'nullable|integer',
+            'pax_infant'               => 'nullable|integer',
+            'preferred_airline'        => 'nullable|string',
+            'notes'                    => 'nullable|string',
+            'segments'                 => 'required|array|min:1',
+            'segments.*.from_iata'     => 'required|string',
+            'segments.*.to_iata'       => 'required|string',
+            'segments.*.departure_date'=> 'required|date',
+            'segments.*.departure_time_slot' => 'required|in:sabah,ogle,aksam,esnek',
+        ]);
+
+        $gtpnr = (new GtpnrService())->generate('group_flight');
+        $acenteUser = User::findOrFail($validated['acente_user_id']);
+
+        $talep = TalepModel::create([
+            'gtpnr'              => $gtpnr,
+            'user_id'            => $acenteUser->id,
+            'type'               => 'group_flight',
+            'status'             => 'beklemede',
+            'agency_name'        => mb_strtoupper($validated['agency_name'], 'UTF-8'),
+            'phone'              => $validated['phone'],
+            'email'              => $validated['email'],
+            'group_company_name' => $validated['group_company_name'] ?? null,
+            'flight_purpose'     => $validated['flight_purpose'] ?? null,
+            'trip_type'          => $validated['trip_type'],
+            'pax_total'          => $validated['pax_total'],
+            'pax_adult'          => $validated['pax_adult'] ?? 0,
+            'pax_child'          => $validated['pax_child'] ?? 0,
+            'pax_infant'         => $validated['pax_infant'] ?? 0,
+            'preferred_airline'  => $validated['preferred_airline'] ?? null,
+            'hotel_needed'       => $request->boolean('hotel_needed'),
+            'visa_needed'        => $request->boolean('visa_needed'),
+            'notes'              => $validated['notes'] ?? null,
+        ]);
+
+        $iataCodes = collect($validated['segments'])->flatMap(fn($s) => [
+            strtoupper($s['from_iata']),
+            strtoupper($s['to_iata']),
+        ])->unique()->values();
+
+        $airportMap = Airport::whereIn('iata', $iataCodes)
+            ->get(['iata', 'city', 'name'])
+            ->keyBy('iata');
+
+        foreach ($validated['segments'] as $index => $segment) {
+            $fromIata = strtoupper($segment['from_iata']);
+            $toIata   = strtoupper($segment['to_iata']);
+            $fromAp   = $airportMap[$fromIata] ?? null;
+            $toAp     = $airportMap[$toIata]   ?? null;
+
+            $talep->segments()->create([
+                'order'                => $index,
+                'from_iata'            => $fromIata,
+                'from_city'            => $fromAp ? ($fromAp->city ?: $fromAp->name) : null,
+                'to_iata'              => $toIata,
+                'to_city'              => $toAp ? ($toAp->city ?: $toAp->name) : null,
+                'departure_date'       => $segment['departure_date'],
+                'departure_time'       => $segment['departure_time'] ?? null,
+                'departure_time_slot'  => $segment['departure_time_slot'],
+            ]);
+        }
+
+        RequestLog::create([
+            'request_id'  => $talep->id,
+            'action'      => 'talep_olusturuldu',
+            'description' => 'Talep admin tarafından oluşturuldu: ' . auth()->user()->name . ' → Acenta: ' . $acenteUser->name,
+            'user_id'     => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.requests.show', $talep->gtpnr)
+            ->with('success', 'Talep oluşturuldu: ' . $gtpnr);
+    }
+
     public function show($gtpnr)
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)
@@ -110,6 +206,7 @@ class RequestController extends Controller
             RequestModel::STATUS_BEKLEMEDE,
             RequestModel::STATUS_ISLEMDE,
             RequestModel::STATUS_FIYATLANDIRILDI,
+            RequestModel::STATUS_ONAYLANDI,
             RequestModel::STATUS_DEPOZITODA,
             RequestModel::STATUS_BILETLENDI,
             RequestModel::STATUS_IADE,
@@ -167,8 +264,11 @@ class RequestController extends Controller
             'price_per_pax'         => $request->price_per_pax,
             'total_price'           => $request->price_per_pax * $paxCount,
             'cost_price'            => $request->cost_price ?: null,
+            'profit_amount'         => $request->profit_amount ?: null,
+            'profit_percent'        => $request->profit_percent ?: null,
             'deposit_rate'          => $request->deposit_rate ?: null,
             'deposit_amount'        => $request->deposit_amount ?: null,
+            'kk_enabled'            => $request->boolean('kk_enabled'),
             'option_date'           => $request->option_date ?: null,
             'option_time'           => $request->option_time ?: null,
             'offer_text'            => $request->offer_text,
@@ -423,7 +523,9 @@ Ham veri:
             return back()->with('error', 'Bu tutar, tarih ve yöntemde ödeme zaten kayıtlı. Mükerrer kayıt engellendi.');
         }
 
-        $talep->payments()->create([
+        $odemeStatus = $request->status ?? 'alindi';
+
+        $yeniOdeme = $talep->payments()->create([
             'sequence'       => $request->sequence ?? 1,
             'payment_type'   => $request->payment_type,
             'payment_method' => $request->payment_method,
@@ -433,14 +535,12 @@ Ham veri:
             'amount'         => $request->amount,
             'currency'       => $request->currency ?? 'TRY',
             'payment_date'   => $request->payment_date,
-            'status'         => $request->status ?? 'alindi',
+            'due_date'       => $request->due_date ?: null,
+            'status'         => $odemeStatus,
             'created_by'     => auth()->user()->name,
         ]);
 
-        $yeniOdeme = $talep->payments()->latest('id')->first();
-        if ($yeniOdeme) {
-            app(FinanceSyncService::class)->syncRequestPayment($yeniOdeme, auth()->id());
-        }
+        app(FinanceSyncService::class)->syncRequestPayment($yeniOdeme, auth()->id());
 
         RequestLog::create([
             'request_id'  => $talep->id,
@@ -448,6 +548,19 @@ Ham veri:
             'description' => ($request->sequence ?? 1) . '. ödeme kaydedildi: ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY'),
             'user_id'     => auth()->id(),
         ]);
+
+        // Depozito alındıysa ve talep onaylandıysa → otomatik 'depozitoda'
+        if ($odemeStatus === 'alindi'
+            && $request->payment_type === 'depozito'
+            && $talep->status === RequestModel::STATUS_ONAYLANDI) {
+            $talep->update(['status' => RequestModel::STATUS_DEPOZITODA]);
+            RequestLog::create([
+                'request_id'  => $talep->id,
+                'action'      => 'depozito_alindi',
+                'description' => 'Depozito alındı, talep depozitoda statüsüne geçti.',
+                'user_id'     => auth()->id(),
+            ]);
+        }
 
         return back()->with('success', 'Ödeme kaydedildi.');
     }
@@ -473,8 +586,11 @@ Ham veri:
             'price_per_pax'         => $request->price_per_pax,
             'total_price'           => $request->price_per_pax * $paxCount,
             'cost_price'            => $request->cost_price ?: null,
+            'profit_amount'         => $request->profit_amount ?: null,
+            'profit_percent'        => $request->profit_percent ?: null,
             'deposit_rate'          => $request->deposit_rate ?: null,
             'deposit_amount'        => $request->deposit_amount ?: null,
+            'kk_enabled'            => $request->boolean('kk_enabled'),
             'option_date'           => $request->option_date ?: null,
             'option_time'           => $request->option_time ?: null,
             'offer_text'            => $request->offer_text,
@@ -547,6 +663,8 @@ Ham veri:
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $odeme = RequestPayment::where('request_id', $talep->id)->findOrFail($payment);
 
+        $yeniStatus = $request->status ?? $odeme->status;
+
         $odeme->update([
             'sequence'       => $request->sequence ?? $odeme->sequence,
             'payment_type'   => $request->payment_type,
@@ -557,10 +675,24 @@ Ham veri:
             'amount'         => $request->amount,
             'currency'       => $request->currency ?? 'TRY',
             'payment_date'   => $request->payment_date,
-            'status'         => $request->status ?? $odeme->status,
+            'due_date'       => $request->due_date ?: null,
+            'status'         => $yeniStatus,
         ]);
 
         app(FinanceSyncService::class)->syncRequestPayment($odeme->fresh(), auth()->id());
+
+        // Depozito alındıysa ve talep onaylandıysa → otomatik 'depozitoda'
+        if ($yeniStatus === 'alindi'
+            && $odeme->payment_type === 'depozito'
+            && $talep->status === RequestModel::STATUS_ONAYLANDI) {
+            $talep->update(['status' => RequestModel::STATUS_DEPOZITODA]);
+            RequestLog::create([
+                'request_id'  => $talep->id,
+                'action'      => 'depozito_alindi',
+                'description' => 'Depozito alındı, talep depozitoda statüsüne geçti.',
+                'user_id'     => auth()->id(),
+            ]);
+        }
 
         RequestLog::create([
             'request_id'  => $talep->id,

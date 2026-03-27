@@ -47,6 +47,7 @@ class RequestController extends Controller
             'segments.*.from_iata' => 'required|string',
             'segments.*.to_iata' => 'required|string',
             'segments.*.departure_date' => 'required|date',
+            'segments.*.departure_time_slot' => 'required|in:sabah,ogle,aksam,esnek',
         ]);
 
         $gtpnr = (new GtpnrService())->generate('group_flight');
@@ -94,8 +95,9 @@ class RequestController extends Controller
                 'from_city'      => $fromAp ? ($fromAp->city ?: $fromAp->name) : null,
                 'to_iata'        => $toIata,
                 'to_city'        => $toAp ? ($toAp->city ?: $toAp->name) : null,
-                'departure_date' => $segment['departure_date'],
-                'departure_time' => $segment['departure_time'] ?? null,
+                'departure_date'      => $segment['departure_date'],
+                'departure_time'      => $segment['departure_time'] ?? null,
+                'departure_time_slot' => $segment['departure_time_slot'],
             ]);
         }
 
@@ -201,8 +203,8 @@ class RequestController extends Controller
         // Bu teklifi kabul et
         $teklif->update(['is_accepted' => true, 'accepted_at' => now()]);
 
-        // Talep durumunu güncelle
-        $talep->update(['status' => 'depozitoda']);
+        // Talep durumunu güncelle — depozito alınana kadar 'onaylandi' kalır
+        $talep->update(['status' => 'onaylandi']);
 
         RequestLog::create([
             'request_id'  => $talep->id,

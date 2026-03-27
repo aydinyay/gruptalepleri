@@ -10,6 +10,7 @@ class Request extends Model
     public const STATUS_BEKLEMEDE = 'beklemede';
     public const STATUS_ISLEMDE = 'islemde';
     public const STATUS_FIYATLANDIRILDI = 'fiyatlandirildi';
+    public const STATUS_ONAYLANDI = 'onaylandi';
     public const STATUS_DEPOZITODA = 'depozitoda';
     public const STATUS_BILETLENDI = 'biletlendi';
     public const STATUS_IADE = 'iade';
@@ -30,6 +31,7 @@ class Request extends Model
         self::STATUS_BEKLEMEDE => ['label' => 'Beklemede', 'bg' => '#6c757d', 'text' => '#ffffff'],
         self::STATUS_ISLEMDE => ['label' => 'İşlemde', 'bg' => '#0d6efd', 'text' => '#ffffff'],
         self::STATUS_FIYATLANDIRILDI => ['label' => 'Fiyatlandırıldı', 'bg' => '#ffc107', 'text' => '#000000'],
+        self::STATUS_ONAYLANDI => ['label' => 'Onaylandı', 'bg' => '#0d6efd', 'text' => '#ffffff'],
         self::STATUS_DEPOZITODA => ['label' => 'Depozitoda', 'bg' => '#6f42c1', 'text' => '#ffffff'],
         self::STATUS_BILETLENDI => ['label' => 'Biletlendi', 'bg' => '#198754', 'text' => '#ffffff'],
         self::STATUS_IADE => ['label' => 'İade', 'bg' => '#dc3545', 'text' => '#ffffff'],

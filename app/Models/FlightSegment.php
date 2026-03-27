@@ -15,6 +15,7 @@ class FlightSegment extends Model
         'to_city',
         'departure_date',
         'departure_time',
+        'departure_time_slot',
     ];
 
     public function request()

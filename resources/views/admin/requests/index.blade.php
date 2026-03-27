@@ -39,6 +39,9 @@
     <div class="d-flex align-items-center gap-2 mb-3">
         <h5 class="mb-0 fw-bold" style="color:#0d6efd;">📋 Grup Talepleri</h5>
         <span class="text-muted small ms-1">{{ $talepler->total() }} sonuç</span>
+        <a href="{{ route('admin.requests.create') }}" class="btn btn-success btn-sm ms-2">
+            <i class="fas fa-plus me-1"></i>Yeni Talep
+        </a>
         <div class="ms-auto d-flex gap-2 align-items-center">
             {{-- Arama --}}
             <form method="GET" action="{{ route('admin.requests.index') }}" class="d-flex gap-1" id="searchForm">

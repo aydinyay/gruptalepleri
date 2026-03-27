@@ -373,7 +373,10 @@
                                     <span style="font-size:0.88rem;">
                                         {{ $seg->departure_date ? \Carbon\Carbon::parse($seg->departure_date)->format('d.m.Y (D)') : '—' }}
                                     </span>
-                                    @if($seg->departure_time)
+                                    @if($seg->departure_time_slot)
+                                        @php $slotLbl = ['sabah'=>'🌅 Sabah','ogle'=>'☀️ Öğle','aksam'=>'🌆 Akşam','esnek'=>'🔄 Esnek'][$seg->departure_time_slot] ?? $seg->departure_time_slot; @endphp
+                                        <span class="badge bg-info text-dark ms-2" style="font-size:0.72rem;">{{ $slotLbl }}</span>
+                                    @elseif($seg->departure_time)
                                         <span class="text-muted ms-2" style="font-size:0.82rem;">
                                             <i class="fas fa-clock me-1"></i>{{ substr($seg->departure_time, 0, 5) }}
                                         </span>
@@ -642,10 +645,14 @@
                     <i class="fas fa-wallet me-2 text-success"></i>Ödeme Durumu
                 </div>
                 <div class="card-body">
-                    @if($kabulEdilenTeklif && $talep->status === 'depozitoda')
+                    @if($kabulEdilenTeklif && in_array($talep->status, ['onaylandi','depozitoda']))
                     <div class="alert alert-info alert-dismissible fade show py-2 small mb-3" role="alert">
                         <i class="fas fa-info-circle me-1"></i>
-                        <strong>İşleminiz başlatıldı.</strong>
+                        @if($talep->status === 'onaylandi')
+                            <strong>Teklifiniz onaylandı, ödeme bekleniyor.</strong>
+                        @else
+                            <strong>İşleminiz başlatıldı.</strong>
+                        @endif
                         @if($kabulEdilenTeklif->option_date)
                             Opsiyon bitiş tarihi: <strong>{{ \Carbon\Carbon::parse($kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59'))->format('d.m.Y H:i') }}</strong>.
                         @endif
@@ -655,7 +662,9 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                     @endif
+
                     @if($kabulEdilenTeklif)
+                    {{-- Özet satırları --}}
                     <div class="d-flex justify-content-between flex-wrap gap-1 small mb-1">
                         <span class="text-muted">Tahsilat</span>
                         <span class="fw-bold">%{{ $yuzde }}</span>
@@ -676,39 +685,71 @@
                         <span class="small">Kalan</span>
                         <strong>{{ number_format($kalanTutar,0) }} {{ $muhCurrency }}</strong>
                     </div>
-                    @if($kalanTutar > 0)
+
+                    {{-- KK ile ödeme — sadece admin açtıysa görünür --}}
+                    @if($kalanTutar > 0 && $kabulEdilenTeklif->kk_enabled)
                         <form method="POST" action="{{ route('acente.requests.gateway-payment.start', $talep->gtpnr) }}" class="mt-2">
                             @csrf
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-credit-card me-1"></i>Odemeye Gec
+                                <i class="fas fa-credit-card me-1"></i>Kredi Kartı ile Öde
                             </button>
-                            <div class="small text-muted mt-1">
-                                Sadece tam odeme alinir. Tutar: {{ number_format($kalanTutar, 2, ',', '.') }} {{ $muhCurrency }}
+                            <div class="small text-muted mt-1 text-center">
+                                Tutar: {{ number_format($kalanTutar, 2, ',', '.') }} {{ $muhCurrency }}
                             </div>
                         </form>
+                    @elseif($kalanTutar > 0)
+                        <div class="alert alert-light border mt-2 py-2 small">
+                            <i class="fas fa-university me-1 text-primary"></i>
+                            Ödemenizi <strong>EFT / Havale</strong> ile yapabilirsiniz. Operasyon ekibimiz ödemenizi aldığında sisteme işleyecektir.
+                        </div>
                     @endif
-                    @endif
-                    @if($kabulEdilenTeklif)
-                        @if($talep->payments->count() > 0)
-                        <hr class="my-2">
-                        @foreach($talep->payments as $odeme)
-                        <div class="d-flex justify-content-between flex-wrap align-items-center gap-1 py-1 small">
-                            <div>
-                                <span class="fw-bold">{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</span>
-                                @if($odeme->payment_date)
-                                <span class="text-muted ms-1">· {{ \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y') }}</span>
+
+                    {{-- Ödeme planı tablosu --}}
+                    @if($talep->payments->count() > 0)
+                    <hr class="my-2">
+                    <div class="small fw-semibold mb-1 text-muted">Ödeme Planı</div>
+                    @foreach($talep->payments as $odeme)
+                    @php
+                        $gosterecedekTarih = null;
+                        $tarihEtiket = '';
+                        if ($odeme->status === 'alindi' && $odeme->payment_date) {
+                            $gosterecedekTarih = \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y');
+                            $tarihEtiket = 'Ödendi';
+                        } elseif ($odeme->due_date) {
+                            $gosterecedekTarih = \Carbon\Carbon::parse($odeme->due_date)->format('d.m.Y');
+                            $tarihEtiket = 'Son tarih';
+                        }
+                    @endphp
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom small
+                        {{ $odeme->status==='alindi' ? 'bg-success bg-opacity-10' : ($odeme->status==='iade' ? 'bg-danger bg-opacity-10' : '') }}"
+                        style="border-radius:4px;padding:4px 6px;">
+                        <div>
+                            <span class="fw-bold">{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</span>
+                            @if($gosterecedekTarih)
+                            <div class="text-muted" style="font-size:0.72rem;">
+                                {{ $tarihEtiket }}: {{ $gosterecedekTarih }}
+                                @if($odeme->status === 'bekleniyor' && $odeme->due_date && \Carbon\Carbon::parse($odeme->due_date)->isPast())
+                                    <span class="text-danger fw-bold ms-1">⚠ Geçti!</span>
                                 @endif
                             </div>
-                            <span class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger' : 'text-warning fw-bold') }}">
-                                {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
-                                @if($odeme->status==='bekleniyor') <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">Bekleniyor</span>
-                                @elseif($odeme->status==='iade') <span class="badge bg-danger ms-1" style="font-size:0.6rem;">İade</span>
-                                @else <span class="badge bg-success ms-1" style="font-size:0.6rem;">✓</span>
-                                @endif
-                            </span>
+                            @endif
                         </div>
-                        @endforeach
-                        @endif
+                        <div class="text-end">
+                            <div class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger fw-bold' : 'text-warning fw-bold') }}">
+                                {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
+                            </div>
+                            @if($odeme->status==='bekleniyor')
+                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;">Bekliyor</span>
+                            @elseif($odeme->status==='iade')
+                                <span class="badge bg-danger" style="font-size:0.6rem;">İade</span>
+                            @else
+                                <span class="badge bg-success" style="font-size:0.6rem;">✓ Alındı</span>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                    @endif
+
                     @else
                     <hr class="my-2">
                     <div class="text-center text-muted small py-2">

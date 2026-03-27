@@ -24,6 +24,7 @@ class Offer extends Model
         'profit_percent',
         'deposit_rate',
         'deposit_amount',
+        'kk_enabled',
         'option_date',
         'option_time',
         'offer_text',
