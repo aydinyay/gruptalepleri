@@ -19,5 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // 419 Page Expired: logout butonuna tıklanınca session süresi dolmuşsa
+        // 419 göstermek yerine sessizce login sayfasına yönlendir.
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('logout') || str_ends_with($request->path(), '/logout')) {
+                return redirect()->route('login')->with('status', 'Oturumunuz sona erdi. Lütfen tekrar giriş yapın.');
+            }
+        });
     })->create();
