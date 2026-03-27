@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrupTalepleri.com — Seyahat Acenteleri İçin Platform Tanıtımı</title>
+<style>
+  :root {
+    --primary: #1a3c6e;
+    --accent: #e8a020;
+    --green: #198754;
+    --purple: #6f42c1;
+    --gray: #6c757d;
+    --light: #f8f9fa;
+    --border: #dee2e6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #212529;
+    background: #fff;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  /* COVER */
+  .cover {
+    text-align: center;
+    padding: 48px 0 36px;
+    border-bottom: 3px solid var(--primary);
+    margin-bottom: 40px;
+  }
+  .cover .logo-text {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+  }
+  .cover .logo-text span { color: var(--accent); }
+  .cover .tagline {
+    font-size: 15px;
+    color: var(--gray);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .cover .subtitle {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .cover .date { color: var(--gray); font-size: 12px; margin-top: 6px; }
+
+  /* SECTION */
+  h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--primary);
+    border-left: 4px solid var(--accent);
+    padding-left: 12px;
+    margin: 36px 0 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 20px 0 8px;
+  }
+  h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #343a40;
+    margin: 14px 0 6px;
+  }
+
+  p { margin-bottom: 10px; }
+
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 12px;
+  }
+  li { margin-bottom: 5px; }
+
+  /* HIGHLIGHT BOX */
+  .box {
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+  .box-primary {
+    background: #eaf0fb;
+    border-color: #b6cdf0;
+  }
+  .box-green {
+    background: #d1e7dd;
+    border-color: #a3cfbb;
+  }
+  .box-accent {
+    background: #fff3cd;
+    border-color: #ffe08a;
+  }
+
+  /* BADGE */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .badge-blue   { background: #cfe2ff; color: #084298; }
+  .badge-green  { background: #d1e7dd; color: #0a3622; }
+  .badge-yellow { background: #fff3cd; color: #664d03; }
+  .badge-purple { background: #e8d5fb; color: #3b1677; }
+  .badge-gray   { background: #e2e3e5; color: #41464b; }
+  .badge-red    { background: #f8d7da; color: #58151c; }
+
+  /* TIMELINE */
+  .timeline { margin: 20px 0; }
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 0;
+    position: relative;
+  }
+  .tl-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 42px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-num {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  .tl-content {
+    flex: 1;
+    padding-bottom: 22px;
+  }
+  .tl-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .tl-status {
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* NOTIF TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th {
+    background: var(--primary);
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--light); }
+
+  /* SERVICE CARD */
+  .service-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .service-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .service-card .sc-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .service-card .sc-title {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .service-card ul { font-size: 12.5px; }
+
+  /* WHY LIST */
+  .why-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .why-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .why-text strong { display: block; font-size: 13px; color: var(--primary); margin-bottom: 2px; }
+  .why-text span { font-size: 12.5px; color: #495057; }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border);
+    text-align: center;
+    color: var(--gray);
+    font-size: 12px;
+  }
+
+  /* PRINT */
+  @media print {
+    body { padding: 24px 28px; font-size: 13px; }
+    h2 { page-break-before: auto; }
+    .tl-item, .service-card, .why-item { page-break-inside: avoid; }
+    .service-grid { grid-template-columns: 1fr 1fr; }
+    .no-print { display: none; }
+    a { color: inherit; text-decoration: none; }
+  }
+
+  @media (max-width: 600px) {
+    .service-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="logo-text">Grup<span>Talepleri</span>.com</div>
+  <div class="tagline">Grup Uçuş · Air Charter · Deniz Turu · Yat Kiralama</div>
+  <div class="subtitle">Seyahat Acenteleri İçin Platform Tanıtımı</div>
+  <div class="date">Mart 2026</div>
+</div>
+
+<!-- INTRO -->
+<div class="box box-primary">
+  <strong>Merhaba,</strong><br>
+  GrupTalepleri.com; seyahat acentelerinin grup uçuş, özel uçak/helikopter kiralama, deniz turu ve yat kiralama taleplerini tek bir çatı altında dijital olarak yönetebildiği bir B2B platformdur. Aşağıda platformun sunduğu tüm özellikler, işleyiş adımları ve size sağlayacağı faydalar eksiksiz olarak anlatılmaktadır.
+</div>
+
+<!-- HIZMETLER -->
+<h2>1. Sunulan Hizmet Kategorileri</h2>
+
+<div class="service-grid">
+
+  <div class="service-card">
+    <div class="sc-icon">✈️</div>
+    <div class="sc-title">Grup Uçuş Talepleri</div>
+    <ul>
+      <li>Güzergah (IATA kodu ile + otomatik tamamlama)</li>
+      <li>Gidiş tarihi ve <strong>kalkış zaman aralığı</strong> (Sabah / Öğle / Akşam / Esnek)</li>
+      <li>Tek yön, gidiş-dönüş, çok bacaklı, çok şehirli seçenekler</li>
+      <li>Yolcu sayısı — yetişkin / çocuk / bebek ayrımı</li>
+      <li>Tercih edilen havayolu (opsiyonel)</li>
+      <li>Otel ihtiyacı ve vize ihtiyacı işaretleme</li>
+      <li>Özel not alanı</li>
+    </ul>
+  </div>
+
+  <div class="service-card">
+    <div class="sc-icon">🛩️</div>
+    <div class="sc-title">Air Charter — Özel Uçak / Helikopter / Uçak</div>
+    <ul>
+      <li><strong>Jet:</strong> Tek/çift yön, çok bacaklı, kabin tercihi, WiFi, VIP ikram, evcil hayvan, özel bagaj</li>
+      <li><strong>Helikopter:</strong> Alış/bırakış noktası, iniş detayı</li>
+      <li><strong>Airbus/Uçak:</strong> Grup tipi, tarih esnekliği</li>
+      <li>Hazır paket seçeneği (güzergah + fiyat sayfada gösterilir)</li>
+      <li>AI destekli ön fiyat tahmini (anlık)</li>
+    </ul>
+  </div>
+
+  <div class="service-card">
+    <div class="sc-icon">🚢</div>
+    <div class="sc-title">Dinner Cruise — Deniz Turu</div>
+    <ul>
+      <li>Tarih, oturum saati, iskele seçimi</li>
+      <li>Yetişkin / çocuk / bebek ayrımı</li>
+      <li>Transfer ihtiyacı (otel adı, bölge, misafir bilgisi)</li>
+      <li>Menü, alkol ve dil tercihi</li>
+      <li>Kutlama türü ve paylaşımlı gemi seçeneği</li>
+      <li>Özel teklif + Türkçe / İngilizce PDF çıktısı</li>
+    </ul>
+  </div>
+
+  <div class="service-card">
+    <div class="sc-icon">⛵</div>
+    <div class="sc-title">Yacht Charter — Yat Kiralama</div>
+    <ul>
+      <li>Tarih, başlangıç saati, kiralama süresi (1–24 saat)</li>
+      <li>Marina seçimi ve rota planı</li>
+      <li>Etkinlik tipi ve tekne tarzı tercihi</li>
+      <li>Transfer ihtiyacı</li>
+      <li>Ekstra hizmet talepleri</li>
+      <li>Özel teklif + Türkçe / İngilizce PDF çıktısı</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- TIMELINE -->
+<h2>2. Adım Adım İşleyiş — Talep Sürecinin Tamamı</h2>
+<p>Bir talebin oluşturulmasından tamamlanmasına kadar geçen her aşamayı ve bu aşamalarda size ulaşan bildirim ve aksiyonları aşağıda görebilirsiniz.</p>
+
+<div class="timeline">
+
+  <div class="tl-item">
+    <div class="tl-num">1</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        Talep Oluşturma
+        <span class="tl-status badge-gray badge">Beklemede</span>
+      </div>
+      <p>Siz formu doldurup gönderirsiniz. Sistem otomatik olarak benzersiz bir <strong>GTPNR kodu</strong> üretir (örn. <em>GTP-2026-00142</em>). Bu kod talebinizin kimliğidir; tüm yazışmalarda ve takiplerde kullanılır.</p>
+      <ul>
+        <li>Talep anında admin/süperadmin'e sistem bildirimi iletilir.</li>
+        <li>Siz de talebinizin alındığına dair log kaydını anında görürsünüz.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tl-item">
+    <div class="tl-num">2</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        İnceleme &amp; Fiyatlandırma
+        <span class="tl-status badge-blue badge">İşlemde</span>
+      </div>
+      <p>Operasyon ekibimiz talebi inceler, tedarikçilerle görüşür ve size uygun teklifi hazırlar. Bu süreçte durum "İşlemde" olarak güncellenir.</p>
+    </div>
+  </div>
+
+  <div class="tl-item">
+    <div class="tl-num">3</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        Teklif Hazır — Çok Kanallı Bildirim
+        <span class="tl-status badge-yellow badge">Fiyatlandırıldı</span>
+      </div>
+      <p>Teklif sisteme girildiği anda size <strong>e-posta</strong>, <strong>SMS</strong> ve <strong>platform içi bildirim</strong> gönderilir. Üç kanalı aynı anda kullanıyoruz — bildirim kaçmaz.</p>
+      <p>Teklifte şunları görürsünüz:</p>
+      <ul>
+        <li>Havayolu adı ve PNR numarası</li>
+        <li>Uçuş numarası, kalkış ve varış saatleri</li>
+        <li>Bagaj hakkı (kg)</li>
+        <li>Kişi başı fiyat ve toplam fiyat (para birimi belirtilerek)</li>
+        <li>Depozito oranı ve depozito tutarı</li>
+        <li>Opsiyon tarihi (rezervasyonun ne zamana kadar tutulduğu)</li>
+        <li>Teklif notu ve ek açıklamalar</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tl-item">
+    <div class="tl-num">4</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        Teklif Kabulü
+        <span class="tl-status badge-blue badge">Onaylandı</span>
+      </div>
+      <p>Teklifi beğendiyseniz "Kabul Et" düğmesine basarsınız. Sistem:</p>
+      <ul>
+        <li>Talebin durumunu <strong>"Onaylandı"</strong> olarak günceller.</li>
+        <li>Admin ekibine <strong>e-posta + SMS</strong> ile anında haber verir.</li>
+        <li>Aksiyonu log'a zaman damgasıyla kaydeder.</li>
+      </ul>
+      <div class="box box-accent" style="margin-top:10px;">
+        <strong>Önemli:</strong> Teklif kabulü ödeme anlamına gelmez. Onay vermeniz, operasyonun başlatılmasına izin vermenizi ifade eder. Ödeme adımı ayrıdır.
+      </div>
+    </div>
+  </div>
+
+  <div class="tl-item">
+    <div class="tl-num">5</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        Ödeme
+        <span class="tl-status badge-purple badge">Depozitoda</span>
+      </div>
+      <p>İki ödeme yolu desteklenmektedir:</p>
+      <ul>
+        <li><strong>Kredi Kartı ile Online Ödeme:</strong> Operasyon ekibi bu seçeneği etkinleştirirse "Ödemeye Geç" butonu belirir ve anlık ödeme yapabilirsiniz.</li>
+        <li><strong>Havale / EFT:</strong> Hesap bilgilerini alır, ödemeyi yaparsınız. Dekontunuzu sisteme yükleyebilirsiniz; admin onayladıktan sonra ödeme işleme alınır.</li>
+      </ul>
+      <p>Depozito alındığında sistem durumu otomatik olarak <strong>"Depozitoda"</strong> olarak günceller — siz takip edebilirsiniz.</p>
+    </div>
+  </div>
+
+  <div class="tl-item">
+    <div class="tl-num">6</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        Taksit Planı Takibi
+      </div>
+      <p>Birden fazla ödeme taksiti varsa tüm taksitler size bir tabloda gösterilir:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ödeme Türü</th>
+            <th>Tutar</th>
+            <th>Son Tarih / Ödeme Tarihi</th>
+            <th>Durum</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Depozito</td>
+            <td>1.735 EUR</td>
+            <td>07.04.2026</td>
+            <td><span class="badge badge-green">Ödendi</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Bakiye</td>
+            <td>5.430 EUR</td>
+            <td>15.05.2026</td>
+            <td><span class="badge badge-yellow">Bekliyor</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Her taksit için son ödeme tarihi görünür. Tarihi geçmiş ödemeler ayrıca vurgulanır.</p>
+    </div>
+  </div>
+
+  <div class="tl-item">
+    <div class="tl-num">7</div>
+    <div class="tl-content">
+      <div class="tl-title">
+        Biletlendi / Operasyon Tamamlandı
+        <span class="tl-status badge-green badge">Biletlendi</span>
+      </div>
+      <p>Tüm ödemeler tamamlandıktan ve biletler kesilince durum <strong>"Biletlendi"</strong> olarak güncellenir. Tüm geçmiş — başlangıçtan tamamlanmaya kadar — log'da eksiksiz saklanır.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- BİLDİRİM SİSTEMİ -->
+<h2>3. Bildirim Sistemi — Hiçbir Şeyi Kaçırmayın</h2>
+<p>Talebinizle ilgili önemli her gelişmede size otomatik bildirim gönderilir. Aşağıda hangi olay için hangi kanaldan bildirim aldığınızı görebilirsiniz:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Olay</th>
+      <th>E-posta</th>
+      <th>SMS</th>
+      <th>Panel Bildirimi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Yeni teklif hazırlandı</td>
+      <td>✅</td>
+      <td>—</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>Talep durumu değişti</td>
+      <td>✅</td>
+      <td>—</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>Teklif kabul edildi (onayınız)</td>
+      <td>✅ (admin'e)</td>
+      <td>✅ (admin'e)</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <strong>SMS Gönderim Saatleri:</strong> SMS bildirimleri 08:00–21:00 arasında iletilir. Bu saat dışında gerçekleşen olaylar bir sonraki pencerede gönderilir; hiçbir bildirim kaybolmaz.
+</div>
+
+<p>Tüm gönderilen bildirimler sistemde kayıt altına alınır: kanal, alıcı, içerik, gönderim durumu ve tarih/saat bilgisiyle birlikte saklanır.</p>
+
+<!-- CANLI TAKİP -->
+<h2>4. Canlı Takip — Dashboard &amp; Talep Detayı</h2>
+
+<h3>Dashboard (Ana Sayfa)</h3>
+<p>Sisteme giriş yaptığınızda tek sayfada şunları görürsünüz:</p>
+<ul>
+  <li>Toplam, beklemede, işlemde, fiyatlandırıldı, onaylandı, depozitoda, biletlendi, iptal durumlarındaki talep sayıları</li>
+  <li>Tüm taleplerinizin güzergahlarını gösteren <strong>interaktif harita</strong></li>
+  <li>Statüye göre filtreli talep listesi — bir badge'e tıklayarak sadece o durumdakileri görürsünüz</li>
+  <li>Her satıra tıklayarak talep detayına geçiş</li>
+</ul>
+
+<h3>Talep Detayı</h3>
+<p>Her talebin içinde eksiksiz bilgi mevcuttur:</p>
+
+<table>
+  <thead>
+    <tr><th>Bölüm</th><th>İçerik</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Talep Bilgileri</strong></td>
+      <td>GTPNR, oluşturma tarihi, grup/şirket adı, seyahat amacı, yolcu sayısı, tercih edilen havayolu, otel/vize ihtiyacı</td>
+    </tr>
+    <tr>
+      <td><strong>Uçuş Segmentleri</strong></td>
+      <td>Her bacak için: nereden–nereye (şehir adı + IATA), tarih, kalkış zaman aralığı (Sabah/Öğle/Akşam/Esnek)</td>
+    </tr>
+    <tr>
+      <td><strong>Teklif(ler)</strong></td>
+      <td>Havayolu, PNR, uçuş no, kalkış/varış saati, bagaj, fiyat/kişi, toplam, depozito, opsiyon tarihi, ek notlar</td>
+    </tr>
+    <tr>
+      <td><strong>Ödeme Planı</strong></td>
+      <td>Her taksit: tür, tutar, son tarih veya ödeme tarihi, durum (ödendi/bekliyor)</td>
+    </tr>
+    <tr>
+      <td><strong>İşlem Geçmişi (Log)</strong></td>
+      <td>Kim ne yaptı, hangi tarih ve saatte — kronolojik sırayla tüm aksiyonlar</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- FİNANS -->
+<h2>5. Finans &amp; Ödeme Takibi</h2>
+<p>Platform içinde ayrı bir finans paneli bulunmaktadır. Buradan:</p>
+
+<ul>
+  <li><strong>Tüm ödeme kayıtlarınızı</strong> görebilirsiniz: açık, kısmi ödendi, tamamlandı</li>
+  <li><strong>Taksit planlarını</strong> görürsünüz: planlanan tutar, ödenen tutar, kalan, vade tarihi</li>
+  <li><strong>Gelecek 7 gün içinde vadesi gelen</strong> ödemeler öne çıkarılır</li>
+  <li><strong>Gecikmiş taksitler</strong> ayrıca listelenir</li>
+  <li><strong>Son 10 dekont bildiriminizi</strong> takip edebilirsiniz</li>
+</ul>
+
+<h3>Dekont / Havale Kanıtı Yükleme</h3>
+<p>Havale veya EFT yaptıysanız, dekontunuzu doğrudan sisteme yükleyebilirsiniz:</p>
+<ul>
+  <li>Kabul edilen formatlar: <strong>PDF, JPG, JPEG, PNG, WebP</strong></li>
+  <li>Maksimum dosya boyutu: <strong>8 MB</strong></li>
+  <li>Banka adı, gönderen adı, referans numarası ve ödeme tarihi bilgilerini girebilirsiniz</li>
+  <li>Yükleme anında bir işlem kaydı oluşur ("doğrulama bekliyor" statüsünde)</li>
+  <li>Admin onayladıktan sonra ödeme sisteme işlenir</li>
+</ul>
+
+<!-- PROFİL -->
+<h2>6. Profil &amp; Acenta Bilgileri</h2>
+<p>Hesabınızda şu bilgileri saklayabilir ve güncelleyebilirsiniz:</p>
+
+<div class="box">
+  <strong>Kullanıcı Bilgileri:</strong> Ad-soyad, e-posta, telefon, şifre<br><br>
+  <strong>Acenta Kurumsal Bilgileri:</strong> Turizm unvanı, şirket ünvanı, vergi numarası, vergi dairesi, adres, yetkili kişi adı, <strong>TURSAB numarası</strong>
+</div>
+
+<p>Bu bilgiler bir kez girilir; her yeni taleple tekrar yazmanıza gerek kalmaz. Tekliflerde ve yazışmalarda kurumsal bilgileriniz hazır olarak kullanılır.</p>
+
+<!-- CHARTER PAKETLER -->
+<h2>7. Hazır Charter Paketleri</h2>
+<p>Air Charter sayfasında, sık talep edilen güzergahlar için önceden hazırlanmış paketler gösterilmektedir. Her paketin yanında:</p>
+<ul>
+  <li>Paket adı ve özet açıklama</li>
+  <li>Uçuş güzergahı (nereden–nereye)</li>
+  <li>Tavsiye edilen yolcu sayısı</li>
+  <li>Başlangıç fiyatı ve para birimi</li>
+  <li>Öne çıkan özellikler listesi</li>
+</ul>
+<p>Bir pakete tıklayarak ilgili alanlar otomatik dolar; sadece tarihinizi ve tercihlerinizi ekleyip gönderin.</p>
+
+<!-- AI -->
+<h2>8. AI Destekli Özellikler</h2>
+
+<h3>Charter — Anlık Ön Fiyat Tahmini</h3>
+<p>Charter talep formunda araç tipi, güzergah ve yolcu sayısını girdiğinizde sistem otomatik olarak yapay zeka destekli bir ön fiyat aralığı hesaplar. Bu tahmin talep göndermeden önce bütçe planlaması yapmanıza yardımcı olur.</p>
+
+<h3>Grup Uçuş — Talep Analizi</h3>
+<p>Admin ekibimiz talebinizi yapay zeka ile analiz edebilir ve notları talep kaydına ekleyebilir. Bu sayede daha hızlı ve isabetli teklif hazırlanır.</p>
+
+<!-- NEDEN BİZ -->
+<h2>9. Neden GrupTalepleri.com?</h2>
+
+<div class="why-item">
+  <div class="why-num">1</div>
+  <div class="why-text">
+    <strong>4 Hizmet — Tek Platform</strong>
+    <span>Grup uçuş, jet/helikopter/uçak kiralama, deniz turu ve yat kiralama taleplerinizi ayrı ayrı iletişimle değil, tek bir sistemden yönetiyorsunuz.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">2</div>
+  <div class="why-text">
+    <strong>Gerçek Zamanlı Durum Takibi</strong>
+    <span>"Teklif hazır mı?" diye telefon veya e-posta göndermenize gerek yok. Talebin hangi aşamada olduğunu, kaç teklif hazırlandığını, opsiyon tarihini anlık olarak görürsünüz.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">3</div>
+  <div class="why-text">
+    <strong>Üç Kanallı Bildirim — Hiçbir Şeyi Kaçırmayın</strong>
+    <span>Teklif hazırlandığında e-posta, SMS ve panel bildirimi aynı anda gönderilir. Tüm bildirimler sistem tarafından kayıt altına alınır.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">4</div>
+  <div class="why-text">
+    <strong>Tam Şeffaflık — Her Aksiyon Log'da</strong>
+    <span>Kim ne yaptı, ne zaman? Talebin oluşturulmasından tamamlanmasına kadar tüm işlem adımları zaman damgasıyla saklanır. Her zaman geçmişe bakabilirsiniz.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">5</div>
+  <div class="why-text">
+    <strong>Taksit Planını Önceden Bilin</strong>
+    <span>Hangi tarihte ne kadar ödeyeceğinizi teklif aşamasında görürsünüz. Vade tarihleri geçen ödemeler ayrıca vurgulanır, sürpriz olmaz.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">6</div>
+  <div class="why-text">
+    <strong>Hazır Charter Paketleri</strong>
+    <span>Sık tercih edilen güzergahlar için hazır paketler sayfada fiyat ve özelliklerle sunulur. Birkaç tıklamayla talep oluşturabilirsiniz.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">7</div>
+  <div class="why-text">
+    <strong>AI Destekli Fiyat Tahmini</strong>
+    <span>Charter taleplerinde, form doldurmadan önce yapay zeka anlık ön fiyat aralığı hesaplar. Bütçenizi planlayın, sonra onaylayın.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">8</div>
+  <div class="why-text">
+    <strong>Profesyonel PDF Teklif Çıktısı</strong>
+    <span>Dinner Cruise ve Yacht Charter tekliflerini Türkçe veya İngilizce olarak profesyonel PDF formatında indirebilirsiniz. Müşterilerinize anında iletebilirsiniz.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">9</div>
+  <div class="why-text">
+    <strong>Dijital Dekont Yükleme</strong>
+    <span>Havale yaptıktan sonra dekontu sisteme yükleyin. Admin onaylayana kadar süreci takip edin. Faks veya e-posta gerektirmez.</span>
+  </div>
+</div>
+
+<div class="why-item">
+  <div class="why-num">10</div>
+  <div class="why-text">
+    <strong>Kurumsal Bilgileriniz Bir Kez Girilir</strong>
+    <span>Vergi numaranız, TURSAB numaranız, adresiniz ve yetkili kişi bilgileriniz profilinizde saklıdır. Her taleple tekrar yazmak zorunda kalmazsınız.</span>
+  </div>
+</div>
+
+<!-- DURUM TABLOSU -->
+<h2>10. Talep Durum Akışı — Genel Bakış</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Durum</th>
+      <th>Anlamı</th>
+      <th>Siz Ne Yapabilirsiniz?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge badge-gray">Beklemede</span></td>
+      <td>Talep alındı, atama bekleniyor</td>
+      <td>Takip edebilirsiniz</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">İşlemde</span></td>
+      <td>Operasyon ekibi çalışıyor</td>
+      <td>Takip edebilirsiniz</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">Fiyatlandırıldı</span></td>
+      <td>Teklif hazır, sizin incelemenizi bekliyor</td>
+      <td>Teklifi görüntüleyin, kabul edin</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">Onaylandı</span></td>
+      <td>Teklifi kabul ettiniz</td>
+      <td>Ödeme adımını bekleyin</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-purple">Depozitoda</span></td>
+      <td>Depozito alındı, operasyon başladı</td>
+      <td>Kalan taksitleri takip edin</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-green">Biletlendi</span></td>
+      <td>Biletler kesildi, tamamlandı</td>
+      <td>Geçmişi görüntüleyin</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-red">İptal</span></td>
+      <td>Talep iptal edildi</td>
+      <td>Yeni talep oluşturabilirsiniz</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ÖZET -->
+<div class="box box-green" style="margin-top: 32px;">
+  <strong>Kısaca:</strong> GrupTalepleri.com ile taleplerinizi dijital olarak oluşturur, teklifleri online takip eder, ödeme planınızı önceden görür, dekontu sisteme yükler ve tüm süreci uçtan uca kayıt altında tutarsınız. Telefon ve e-posta trafiğini minimuma indirerek daha hızlı ve daha şeffaf çalışırsınız.
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p><strong>GrupTalepleri.com</strong></p>
+  <p>Bu doküman platformun mevcut özellikleri esas alınarak hazırlanmıştır — Mart 2026</p>
+  <p class="no-print" style="margin-top:12px; color: #aaa; font-size:11px;">
+    Bu sayfayı PDF olarak kaydetmek için: Tarayıcı menüsü → Yazdır → Hedef: PDF olarak kaydet → Kaydet
+  </p>
+</div>
+
+</body>
+</html>
