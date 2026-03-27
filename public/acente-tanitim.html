@@ -442,9 +442,14 @@
     <div class="tl-num">6</div>
     <div class="tl-content">
       <div class="tl-title">
-        Taksit Planı Takibi
+        Ödeme Planı Takibi
       </div>
-      <p>Birden fazla ödeme taksiti varsa tüm taksitler size bir tabloda gösterilir:</p>
+      <p>Grup uçuş ödemeleri <strong>seyahat tarihine olan mesafeye göre</strong> iki şekilde ilerler:</p>
+      <ul style="margin-bottom:12px;">
+        <li><strong>Yakın tarihli seyahatler:</strong> Ödemenin tamamı tek seferde alınır.</li>
+        <li><strong>İleri tarihli seyahatler:</strong> Önce <strong>depozito</strong>, uçuşa yakın tarihte ise <strong>bakiye tamamlama</strong> ödemesi yapılır.</li>
+      </ul>
+      <p>Her ödeme adımı sisteme girilir ve aşağıdaki gibi size gösterilir:</p>
       <table>
         <thead>
           <tr>
@@ -465,14 +470,14 @@
           </tr>
           <tr>
             <td>2</td>
-            <td>Bakiye</td>
+            <td>Bakiye Tamamlama</td>
             <td>5.430 EUR</td>
             <td>15.05.2026</td>
             <td><span class="badge badge-yellow">Bekliyor</span></td>
           </tr>
         </tbody>
       </table>
-      <p>Her taksit için son ödeme tarihi görünür. Tarihi geçmiş ödemeler ayrıca vurgulanır.</p>
+      <p>Her ödeme adımı için son tarih görünür. Tarihi geçmiş ödemeler ayrıca vurgulanır.</p>
     </div>
   </div>
 
@@ -564,7 +569,7 @@
     </tr>
     <tr>
       <td><strong>Ödeme Planı</strong></td>
-      <td>Her taksit: tür, tutar, son tarih veya ödeme tarihi, durum (ödendi/bekliyor)</td>
+      <td>Depozito ve bakiye tamamlama ödemeleri: tür, tutar, son tarih veya ödeme tarihi, durum (ödendi/bekliyor)</td>
     </tr>
     <tr>
       <td><strong>İşlem Geçmişi (Log)</strong></td>
@@ -579,9 +584,9 @@
 
 <ul>
   <li><strong>Tüm ödeme kayıtlarınızı</strong> görebilirsiniz: açık, kısmi ödendi, tamamlandı</li>
-  <li><strong>Taksit planlarını</strong> görürsünüz: planlanan tutar, ödenen tutar, kalan, vade tarihi</li>
+  <li><strong>Ödeme planını</strong> görürsünüz: depozito ve bakiye tamamlama ödemeleri, planlanan tutar, ödenen tutar, kalan, vade tarihi</li>
   <li><strong>Gelecek 7 gün içinde vadesi gelen</strong> ödemeler öne çıkarılır</li>
-  <li><strong>Gecikmiş taksitler</strong> ayrıca listelenir</li>
+  <li><strong>Vadesi geçmiş ödemeler</strong> ayrıca listelenir</li>
   <li><strong>Son 10 dekont bildiriminizi</strong> takip edebilirsiniz</li>
 </ul>
 
@@ -665,8 +670,8 @@
 <div class="why-item">
   <div class="why-num">5</div>
   <div class="why-text">
-    <strong>Taksit Planını Önceden Bilin</strong>
-    <span>Hangi tarihte ne kadar ödeyeceğinizi teklif aşamasında görürsünüz. Vade tarihleri geçen ödemeler ayrıca vurgulanır, sürpriz olmaz.</span>
+    <strong>Ödeme Planını Önceden Bilin</strong>
+    <span>Yakın tarihli seyahatlerde tam ödeme, ileri tarihli seyahatlerde depozito + bakiye tamamlama şeklinde ilerler. Hangi tarihte ne kadar ödeyeceğinizi teklif aşamasında görürsünüz. Vadesi geçen ödemeler ayrıca vurgulanır, sürpriz olmaz.</span>
   </div>
 </div>
 
@@ -745,7 +750,7 @@
     <tr>
       <td><span class="badge badge-purple">Depozitoda</span></td>
       <td>Depozito alındı, operasyon başladı</td>
-      <td>Kalan taksitleri takip edin</td>
+      <td>Bakiye tamamlama ödemesini takip edin</td>
     </tr>
     <tr>
       <td><span class="badge badge-green">Biletlendi</span></td>
