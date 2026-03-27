@@ -124,6 +124,14 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     })->name('dashboard');
 
 
+    // ── GEÇİCİ: Son hata logu ──
+    Route::get('/show-last-error', function () {
+        $log = storage_path('logs/laravel.log');
+        if (!file_exists($log)) return response('Log yok');
+        $lines = array_slice(file($log), -80);
+        return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lines)) . '</pre>');
+    });
+
     Route::get('/yonetim/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
         ->defaults('group', 'yonetim')
         ->name('yonetim.hub');
