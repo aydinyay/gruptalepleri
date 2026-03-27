@@ -717,4 +717,66 @@ Ham veri:
 
         return back()->with('success', 'Ödeme güncellendi.');
     }
+
+    public function updateRequest(Request $request, $gtpnr)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+
+        $request->validate([
+            'phone'               => 'nullable|string|max:30',
+            'email'               => 'nullable|email|max:100',
+            'pax_adult'           => 'nullable|integer|min:0',
+            'pax_child'           => 'nullable|integer|min:0',
+            'pax_infant'          => 'nullable|integer|min:0',
+            'pax_total'           => 'nullable|integer|min:1',
+            'group_company_name'  => 'nullable|string|max:200',
+            'flight_purpose'      => 'nullable|string|max:200',
+            'preferred_airline'   => 'nullable|string|max:100',
+            'notes'               => 'nullable|string|max:2000',
+        ]);
+
+        $adult  = (int) ($request->pax_adult  ?? $talep->pax_adult);
+        $child  = (int) ($request->pax_child  ?? $talep->pax_child);
+        $infant = (int) ($request->pax_infant ?? $talep->pax_infant);
+        $total  = $request->filled('pax_total') ? (int) $request->pax_total : ($adult + $child + $infant ?: $talep->pax_total);
+
+        $talep->update([
+            'phone'              => $request->phone,
+            'email'              => $request->email,
+            'pax_adult'          => $adult,
+            'pax_child'          => $child,
+            'pax_infant'         => $infant,
+            'pax_total'          => $total,
+            'group_company_name' => $request->group_company_name,
+            'flight_purpose'     => $request->flight_purpose,
+            'preferred_airline'  => $request->preferred_airline,
+            'notes'              => $request->notes,
+        ]);
+
+        RequestLog::create([
+            'request_id'  => $talep->id,
+            'action'      => 'talep_duzenlendi',
+            'description' => 'Talep bilgileri güncellendi (superadmin).',
+            'user_id'     => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Talep bilgileri güncellendi.');
+    }
+
+    public function destroy($gtpnr)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+
+        // Cascade: ilişkili kayıtları temizle
+        $talep->notifications()->delete();
+        $talep->logs()->delete();
+        $talep->payments()->delete();
+        $talep->offers()->delete();
+        $talep->segments()->delete();
+        $talep->delete();
+
+        return redirect()
+            ->route('admin.requests.index')
+            ->with('success', $gtpnr . ' numaralı talep silindi.');
+    }
 }

@@ -93,9 +93,21 @@
                 · {{ $talep->created_at->format('d.m.Y') }}
             </div>
         </div>
-        <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-            Acente Görünümü →
-        </a>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <a href="{{ route('acente.preview.request', $talep->gtpnr) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                Acente Görünümü →
+            </a>
+            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#talepDuzenleModal">
+                <i class="fas fa-edit me-1"></i>Talebi Düzenle
+            </button>
+            <form method="POST" action="{{ route('admin.requests.destroy', $talep->gtpnr) }}" id="talep-sil-form">
+                @csrf @method('DELETE')
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                    onclick="silOnayGoster(document.getElementById('talep-sil-form'), 'Talep silinecek', '<strong>{{ $talep->gtpnr }}</strong> — {{ $talep->agency_name }} · {{ $talep->pax_total }} PAX<br><span class=\'text-danger small\'>Tüm teklifler, ödemeler ve segmentler de silinir.</span>')">
+                    <i class="fas fa-trash me-1"></i>Talebi Sil
+                </button>
+            </form>
+        </div>
     </div>
 
     <div class="row g-3">
@@ -1004,6 +1016,69 @@
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
                     <button type="submit" class="btn btn-success btn-sm fw-bold"><i class="fas fa-check me-1"></i>Ödendi Olarak Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ═══ TALEP DÜZENLEME MODALİ ═══ --}}
+<div class="modal fade" id="talepDuzenleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.requests.update', $talep->gtpnr) }}">
+                @csrf @method('PATCH')
+                <div class="modal-header py-2 bg-warning text-dark">
+                    <h6 class="modal-title fw-bold mb-0"><i class="fas fa-edit me-2"></i>Talebi Düzenle — {{ $talep->gtpnr }}</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Telefon</label>
+                            <input type="text" name="phone" class="form-control form-control-sm" value="{{ $talep->phone }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">E-posta</label>
+                            <input type="email" name="email" class="form-control form-control-sm" value="{{ $talep->email }}">
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label fw-bold">PAX Toplam</label>
+                            <input type="number" name="pax_total" class="form-control form-control-sm" value="{{ $talep->pax_total }}" min="1">
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label fw-bold">Yetişkin</label>
+                            <input type="number" name="pax_adult" class="form-control form-control-sm" value="{{ $talep->pax_adult }}" min="0">
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label fw-bold">Çocuk</label>
+                            <input type="number" name="pax_child" class="form-control form-control-sm" value="{{ $talep->pax_child }}" min="0">
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label fw-bold">Bebek</label>
+                            <input type="number" name="pax_infant" class="form-control form-control-sm" value="{{ $talep->pax_infant }}" min="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Grup Firma Adı</label>
+                            <input type="text" name="group_company_name" class="form-control form-control-sm" value="{{ $talep->group_company_name }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Uçuş Amacı</label>
+                            <input type="text" name="flight_purpose" class="form-control form-control-sm" value="{{ $talep->flight_purpose }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Tercih Edilen Havayolu</label>
+                            <input type="text" name="preferred_airline" class="form-control form-control-sm" value="{{ $talep->preferred_airline }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Notlar</label>
+                            <textarea name="notes" class="form-control form-control-sm" rows="3">{{ $talep->notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-save me-1"></i>Güncelle</button>
                 </div>
             </form>
         </div>
