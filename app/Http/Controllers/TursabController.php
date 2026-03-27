@@ -143,7 +143,7 @@ class TursabController extends Controller
         }
 
         $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta')
-                           ->orderBy('il')->orderBy('acente_unvani')
+                           ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')
                            ->paginate(100)->withQueryString();
 
         // Davet geçmişi (son 200)
