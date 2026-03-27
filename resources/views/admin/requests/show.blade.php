@@ -32,7 +32,8 @@
         $acenteNotu = null;
     }
 
-    $ilkTeklif      = $talep->offers->first();
+    $kabulEdilenTeklif = $talep->offers->firstWhere('is_accepted', true);
+    $ilkTeklif      = $kabulEdilenTeklif ?? $talep->offers->first();
     $toplamTutar    = $ilkTeklif?->total_price ?? 0;
     $toplamOdenen   = $talep->payments->where('status', 'alindi')->sum('amount');
     $kalanTutar     = max(0, $toplamTutar - $toplamOdenen);
@@ -47,6 +48,20 @@
     @endif
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show py-2 mb-3">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    @endif
+
+    @if($kabulEdilenTeklif && $kabulEdilenTeklif->accepted_at)
+    <div class="alert alert-success py-2 px-3 mb-3 d-flex align-items-center gap-2">
+        <i class="fas fa-check-circle fs-5"></i>
+        <div>
+            <strong>Acenta teklifi kabul etti:</strong>
+            {{ $kabulEdilenTeklif->airline ?? '—' }} —
+            {{ number_format($kabulEdilenTeklif->price_per_pax, 0) }} {{ $kabulEdilenTeklif->currency }}/kişi
+            <span class="text-muted ms-2 small">
+                {{ \Carbon\Carbon::parse($kabulEdilenTeklif->accepted_at)->format('d.m.Y H:i') }}
+            </span>
+        </div>
+    </div>
     @endif
 
     {{-- ── BAŞLIK ── --}}
@@ -158,6 +173,15 @@
                                 @endforeach
                             </select>
                             <button type="submit" class="btn btn-primary">Güncelle</button>
+                        </div>
+                        <div class="mt-2 pt-2 border-top">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="notify_email_acente" value="1" id="status-notif-email">
+                                <label class="form-check-label small" for="status-notif-email">E-posta gönder — Acente</label>
+                            </div>
+                            <div class="text-muted small mt-1" id="status-notif-info">
+                                <i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek
+                            </div>
                         </div>
                     </form>
                     @endif
@@ -345,6 +369,35 @@
                                 <input type="hidden" name="p_account" id="f-p-account">
                                 <input type="hidden" name="p_sequence" id="f-p-sequence">
                                 <input type="hidden" name="p_type" id="f-p-type">
+                                <div class="col-12">
+                                    <div class="border rounded p-2 bg-light">
+                                        <div class="small fw-semibold mb-2">
+                                            <i class="fas fa-bell me-1"></i>Bildirimler
+                                            <span class="text-muted fw-normal">(varsayılan: hiçbiri)</span>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input notif-check" type="checkbox" name="notify_push_acente" value="1" id="notif-push">
+                                                <label class="form-check-label small" for="notif-push">Push — Acente</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input notif-check" type="checkbox" name="notify_sms_acente" value="1" id="notif-sms-acente">
+                                                <label class="form-check-label small" for="notif-sms-acente">SMS — Acente</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input notif-check" type="checkbox" name="notify_email_acente" value="1" id="notif-email">
+                                                <label class="form-check-label small" for="notif-email">E-posta — Acente</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input notif-check" type="checkbox" name="notify_sms_admin" value="1" id="notif-sms-admin">
+                                                <label class="form-check-label small" for="notif-sms-admin">SMS — Operasyon</label>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 small text-muted" id="notif-ozet">
+                                            <i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="col-12 d-flex gap-2 align-items-center">
                                     <button type="submit" class="btn btn-success btn-sm">
                                         <i class="fas fa-save me-1"></i>Teklifi Kaydet
@@ -362,9 +415,19 @@
                 {{-- MEVCUT TEKLİFLER --}}
                 @if($talep->offers->count() > 0)
                 <div class="card-body py-3">
-                    @foreach($talep->offers as $teklif)
+                    @php $digerTeklifSayisi = $kabulEdilenTeklif ? $talep->offers->where('id', '!=', $kabulEdilenTeklif->id)->count() : 0; @endphp
+                    @foreach($talep->offers->sortByDesc('is_accepted') as $teklif)
                     @php($offerLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline))
-                    <div class="offer-card p-3 mb-3 {{ !$teklif->is_visible ? 'offer-hidden' : '' }} {{ $teklif->is_accepted ? 'offer-accepted' : '' }}"
+                    @if($kabulEdilenTeklif && !$teklif->is_accepted && $loop->index === 1 && $digerTeklifSayisi > 0)
+                    <details class="mt-1 mb-1">
+                        <summary class="py-1" style="cursor:pointer;user-select:none;list-style:none;">
+                            <span class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.75rem;">
+                                🗂 Diğer teklifler ({{ $digerTeklifSayisi }}) — görüntülemek için tıkla
+                            </span>
+                        </summary>
+                        <div class="mt-2" style="opacity:.82;">
+                    @endif
+                    <div class="offer-card p-3 mb-3 {{ !$teklif->is_visible ? 'offer-hidden' : '' }} {{ $teklif->is_accepted ? 'offer-accepted border-start border-success border-3' : '' }}"
                          style="background:rgba(0,0,0,.02);">
 
                         {{-- Başlık --}}
@@ -478,6 +541,10 @@
 
                     </div>
                     @endforeach
+                    @if($kabulEdilenTeklif && $digerTeklifSayisi > 0)
+                        </div>
+                    </details>
+                    @endif
                 </div>
                 @else
                 <div class="card-body text-center text-muted small py-3">Henüz teklif eklenmemiş.</div>
@@ -498,7 +565,11 @@
                 </div>
 
                 {{-- Muhasebe Özeti --}}
-                @if($toplamTutar > 0)
+                @if(!$kabulEdilenTeklif)
+                <div class="card-body py-2 text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>Acenta teklif seçtiğinde ödeme planı ve toplam tutar burada görünecek.
+                </div>
+                @elseif($toplamTutar > 0)
                 <div class="card-body pb-0 pt-2">
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Tahsilat</span>
@@ -512,19 +583,6 @@
                         <div class="col-4"><div class="bg-success bg-opacity-10 rounded p-1"><div class="text-muted" style="font-size:.68rem;">Ödenen</div><div class="fw-bold text-success">{{ number_format($toplamOdenen,0) }}</div></div></div>
                         <div class="col-4"><div class="bg-danger bg-opacity-10 rounded p-1"><div class="text-muted" style="font-size:.68rem;">Kalan</div><div class="fw-bold text-danger">{{ number_format($kalanTutar,0) }}</div></div></div>
                     </div>
-                </div>
-                @endif
-
-                {{-- Ödeme Ekle Paneli --}}
-                @if($toplamTutar > 0 && $kalanTutar > 0)
-                <div class="card-body pt-0">
-                    <form method="POST" action="{{ auth()->user()->role === 'superadmin' ? route('superadmin.requests.gateway-payment.start', $talep->gtpnr) : route('admin.requests.gateway-payment.start', $talep->gtpnr) }}" class="pb-2">
-                        @csrf
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-credit-card me-1"></i>Odemeye Gec (Paynkolay)
-                        </button>
-                        <div class="small text-muted mt-1">Sadece tam odeme: {{ number_format($kalanTutar, 2, ',', '.') }} {{ $odenenCurrency }}</div>
-                    </form>
                 </div>
                 @endif
 
@@ -601,7 +659,20 @@
                     <div class="border rounded p-2 mb-2 small {{ $odeme->status === 'iade' ? 'border-danger' : '' }}">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</strong>
+                                <strong>{{ $odeme->sequence }}.
+                                    @if($odeme->offer_id && $odeme->offer)
+                                        {{ $odeme->offer->airline ?? ucfirst($odeme->payment_type) }} Depozitosu
+                                    @else
+                                        {{ ucfirst($odeme->payment_type) }}
+                                    @endif
+                                </strong>
+                                @if($odeme->offer_id && $odeme->offer)
+                                <div class="text-muted" style="font-size:.72rem;">
+                                    {{ $odeme->offer->airline ?? '—' }}
+                                    · {{ $odeme->offer->pax_confirmed ?? $talep->pax_total }} PAX
+                                    · Toplam: {{ number_format($odeme->offer->total_price, 0) }} {{ $odeme->offer->currency }}
+                                </div>
+                                @endif
                                 @if($odeme->status === 'bekleniyor')<span class="badge bg-warning text-dark ms-1" style="font-size:.68rem;">Bekleniyor</span>@endif
                                 @if($odeme->status === 'iade')<span class="badge bg-danger ms-1" style="font-size:.68rem;">İade</span>@endif
                             </div>
@@ -933,6 +1004,33 @@ function silOnayGoster(form, baslik, detay) {
 document.getElementById('sil-onayla-btn').addEventListener('click', function () {
     if (silFormPending) { silModal.hide(); silFormPending.submit(); silFormPending = null; }
 });
+
+// ── Bildirim checkbox özeti (teklif formu) ──
+document.querySelectorAll('.notif-check').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        var secililer = Array.from(document.querySelectorAll('.notif-check:checked'))
+            .map(function(c) { return c.nextElementSibling.textContent.trim(); });
+        var ozet = document.getElementById('notif-ozet');
+        if (!ozet) return;
+        if (secililer.length === 0) {
+            ozet.innerHTML = '<i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek';
+        } else {
+            ozet.innerHTML = '<i class="fas fa-bell me-1 text-primary"></i>Gönderilecek: <strong>' + secililer.join(', ') + '</strong>';
+        }
+    });
+});
+
+// ── Bildirim checkbox özeti (durum formu) ──
+var statusNotifEmail = document.getElementById('status-notif-email');
+if (statusNotifEmail) {
+    statusNotifEmail.addEventListener('change', function() {
+        var info = document.getElementById('status-notif-info');
+        if (!info) return;
+        info.innerHTML = this.checked
+            ? '<i class="fas fa-envelope me-1 text-primary"></i>E-posta gönderilecek'
+            : '<i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek';
+    });
+}
 </script>
 </body>
 </html>

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class RequestPayment extends Model
 {
     protected $fillable = [
-        'request_id', 'sequence', 'payment_type', 'payment_method',
+        'request_id', 'offer_id', 'sequence', 'payment_type', 'payment_method',
         'bank_name', 'sender_masked', 'account_masked',
         'amount', 'currency', 'payment_date', 'status', 'created_by',
         'gateway_provider', 'gateway_internal_reference', 'gateway_provider_reference', 'gateway_status',
@@ -32,5 +32,10 @@ class RequestPayment extends Model
     public function request()
     {
         return $this->belongsTo(Request::class);
+    }
+
+    public function offer()
+    {
+        return $this->belongsTo(Offer::class);
     }
 }

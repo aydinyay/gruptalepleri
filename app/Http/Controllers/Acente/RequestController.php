@@ -223,9 +223,19 @@ class RequestController extends Controller
         // Email
         (new EmailService())->teklifKabul($talep->id, $talep->gtpnr, $talep->agency_name, $teklif->airline ?? '—', $url);
 
-        // WhatsApp'a yönlendir
-        $mesaj = $talep->gtpnr . ' numaralı talebim için ' . ($teklif->airline ?? '') . ' teklifini kabul ediyorum. Depozito ödemesi için bilgi alabilir miyim?';
-        return redirect()->away('https://wa.me/905324262630?text=' . urlencode($mesaj));
+        // Reddedilen tekliflerin depozito kayıtlarını finans sistemiyle birlikte sil
+        $reddedilenOdemeler = $talep->payments()
+            ->whereNotNull('offer_id')
+            ->where('offer_id', '!=', $teklif->id)
+            ->get();
+
+        foreach ($reddedilenOdemeler as $odeme) {
+            app(\App\Services\Finance\FinanceSyncService::class)
+                ->deleteBySource('request_payment', (int) $odeme->id);
+            $odeme->delete();
+        }
+
+        return back()->with('success', 'Teklif kabul edildi. Ödeme planınız aşağıda görüntülenmektedir.');
     }
 
     public function show($gtpnr)

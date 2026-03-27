@@ -92,7 +92,7 @@ class RequestController extends Controller
     public function show($gtpnr)
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)
-            ->with(['user', 'segments', 'offers', 'logs.user', 'payments', 'notifications'])
+            ->with(['user', 'segments', 'offers', 'logs.user', 'payments.offer', 'notifications'])
             ->firstOrFail();
 
         return view('admin.requests.show', compact('talep'));
@@ -131,7 +131,7 @@ class RequestController extends Controller
             'user_id'     => auth()->id(),
         ]);
 
-        if ($talep->user_id) {
+        if ($request->boolean('notify_email_acente') && $talep->user_id) {
             $acenteUrl = route('acente.requests.show', $talep->gtpnr);
             (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
         }
@@ -154,7 +154,7 @@ class RequestController extends Controller
         $currency = $request->currency ?: 'TRY';
         $paxCount = $request->pax_confirmed ?: $talep->pax_total;
 
-        $talep->offers()->create([
+        $yeniTeklif = $talep->offers()->create([
             'airline'               => $request->airline,
             'airline_pnr'           => $request->airline_pnr,
             'flight_number'         => $request->flight_number,
@@ -188,20 +188,21 @@ class RequestController extends Controller
 
         $acenteUrl = route('acente.requests.show', $talep->gtpnr);
 
-        // Acenteye push bildirimi
-        if ($talep->user_id) {
+        // Bildirimler — sadece admin tarafından seçilenler gönderilir
+        if ($request->boolean('notify_push_acente') && $talep->user_id) {
             (new NotificationService())->teklifEklendi($talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
         }
 
-        // Acenteye SMS
-        $smsMsg = $talep->gtpnr . ' numaralı talebiniz için yeni bir fiyat teklifi hazırlandı. Teklifinizi görüntülemek için sisteme giriş yapınız.';
-        (new SmsService())->send($talep->id, 'acente', $talep->agency_name, $talep->phone, $smsMsg);
+        if ($request->boolean('notify_sms_acente')) {
+            $smsMsg = $talep->gtpnr . ' numaralı talebiniz için yeni bir fiyat teklifi hazırlandı. Teklifinizi görüntülemek için sisteme giriş yapınız.';
+            (new SmsService())->send($talep->id, 'acente', $talep->agency_name, $talep->phone, $smsMsg);
+        }
 
-        // Admin/superadmin'e de offer_added event bildirimi (SMS ayarlarında kurallıysa)
-        (new SmsService())->sendByEvent('offer_added', $talep->id, $talep->gtpnr . ' teklif eklendi: ' . $request->airline . ' — ' . $request->price_per_pax . ' ' . $currency . '/kişi');
+        if ($request->boolean('notify_sms_admin')) {
+            (new SmsService())->sendByEvent('offer_added', $talep->id, $talep->gtpnr . ' teklif eklendi: ' . $request->airline . ' — ' . $request->price_per_pax . ' ' . $currency . '/kişi');
+        }
 
-        // Acenteye email
-        if ($talep->user_id) {
+        if ($request->boolean('notify_email_acente') && $talep->user_id) {
             (new EmailService())->teklifEklendi($talep->id, $talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
         }
 
@@ -218,6 +219,7 @@ class RequestController extends Controller
 
             if (!$odemeVar) {
                 $talep->payments()->create([
+                    'offer_id'       => $yeniTeklif->id,
                     'sequence'       => $request->p_sequence ?? 1,
                     'payment_type'   => $request->p_type ?? 'depozito',
                     'payment_method' => $request->p_method,
@@ -227,7 +229,7 @@ class RequestController extends Controller
                     'amount'         => $pAmount,
                     'currency'       => $request->p_currency ?? 'TRY',
                     'payment_date'   => $request->p_date ?: null,
-                    'status'         => 'alindi',
+                    'status'         => 'bekleniyor',
                     'created_by'     => auth()->user()->name,
                 ]);
 

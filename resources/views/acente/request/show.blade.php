@@ -63,10 +63,12 @@
     $statusEtiket = $statusMeta['label'];
     $statusStyle = 'background:' . $statusMeta['bg'] . ';color:' . $statusMeta['text'] . ';';
 
-    // İlk görünür ve fiyatlı teklif
-    $gosterilecekTeklifler = $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
-    $ilkTeklif = $gosterilecekTeklifler->firstWhere('is_accepted', true)
-              ?? $gosterilecekTeklifler->first();
+    // Kabul edilen teklif varsa sadece onu göster, yoksa tüm görünür ve fiyatlı teklifleri göster
+    $kabulEdilenTeklif = $talep->offers->firstWhere('is_accepted', true);
+    $gosterilecekTeklifler = $kabulEdilenTeklif
+        ? $talep->offers->where('id', $kabulEdilenTeklif->id)
+        : $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
+    $ilkTeklif = $kabulEdilenTeklif ?? $gosterilecekTeklifler->first();
 
     // Acentenin ilk talep notu (admin teklif metniyle aynıysa tekrar göstermeyelim)
     $yoneticiMesajlari = $talep->offers->pluck('offer_text')->filter(fn ($mesaj) => filled(trim((string) $mesaj)));
@@ -76,17 +78,57 @@
     }
 
     // Opsiyon geri sayım (header için)
-    $opsiyonKalan = null;
-    $opsiyonRenk  = 'secondary';
-    $opsiyonTs    = null;
-    if ($ilkTeklif?->option_date) {
-        $opsiyonTs    = \Carbon\Carbon::parse($ilkTeklif->option_date . ' ' . ($ilkTeklif->option_time ?? '23:59'));
+    // Kabul edilen teklif varsa onun opsiyonunu, yoksa tüm teklifler içinde en yakın opsiyonu göster
+    $opsiyonKalan      = null;
+    $opsiyonRenk       = 'secondary';
+    $opsiyonTs         = null;
+    $opsiyonEtiketi    = 'Opsiyon';
+    $opsiyonKaynakDate = null;
+
+    if ($kabulEdilenTeklif?->option_date) {
+        $opsiyonKaynakDate = $kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59');
+        $opsiyonEtiketi    = 'Seçilen opsiyon';
+    } else {
+        // Tüm görünür fiyatlı teklifler içinde en erken option_date'i bul
+        $enErkenTeklif = $talep->offers
+            ->where('is_visible', true)
+            ->where('price_per_pax', '>', 0)
+            ->filter(fn($o) => !empty($o->option_date))
+            ->sortBy(fn($o) => $o->option_date . ' ' . ($o->option_time ?? '23:59'))
+            ->first();
+        if ($enErkenTeklif) {
+            $opsiyonKaynakDate = $enErkenTeklif->option_date . ' ' . ($enErkenTeklif->option_time ?? '23:59');
+            $opsiyonEtiketi    = 'En erken opsiyon';
+        }
+    }
+
+    if ($opsiyonKaynakDate) {
+        $opsiyonTs    = \Carbon\Carbon::parse($opsiyonKaynakDate);
         $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
         $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
     } elseif (!empty($eskiOpsiyon)) {
         $opsiyonTs    = $eskiOpsiyon;
         $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
         $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
+    }
+
+    // Header fiyat hesaplamaları
+    if ($kabulEdilenTeklif) {
+        $headerKisiEtiketi  = 'Kişi Başı';
+        $headerKisiFiyat    = $kabulEdilenTeklif->price_per_pax > 0 ? $kabulEdilenTeklif->price_per_pax : null;
+        $headerKisiCurrency = $kabulEdilenTeklif->currency;
+        $headerToplamEtiket = 'Toplam';
+        $headerToplam       = $kabulEdilenTeklif->total_price;
+        $headerToplamCur    = $kabulEdilenTeklif->currency;
+    } else {
+        $fiyatliTeklifler   = $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
+        $minFiyatTeklif     = $fiyatliTeklifler->sortBy('price_per_pax')->first();
+        $headerKisiEtiketi  = 'En düşük fiyat';
+        $headerKisiFiyat    = $minFiyatTeklif?->price_per_pax;
+        $headerKisiCurrency = $minFiyatTeklif?->currency;
+        $headerToplamEtiket = 'Toplam (min)';
+        $headerToplam       = $minFiyatTeklif?->total_price;
+        $headerToplamCur    = $minFiyatTeklif?->currency;
     }
 
     // AI
@@ -198,17 +240,27 @@
                 </div>
                 <div class="col-6 col-md">
                     <div class="ozet-kutu">
-                        <div class="etiket">Kişi Başı</div>
+                        <div class="etiket">{{ $headerKisiEtiketi }}</div>
                         <div class="deger text-success">
-                            @if($ilkTeklif?->price_per_pax > 0)
-                                {{ number_format($ilkTeklif->price_per_pax, 0) }} {{ $ilkTeklif->currency }}
+                            @if($headerKisiFiyat > 0)
+                                {{ number_format($headerKisiFiyat, 0) }} {{ $headerKisiCurrency }}
+                            @else <span class="text-muted">—</span> @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="ozet-kutu">
+                        <div class="etiket">{{ $headerToplamEtiket }}</div>
+                        <div class="deger text-primary">
+                            @if($headerToplam > 0)
+                                {{ number_format($headerToplam, 0) }} {{ $headerToplamCur }}
                             @else <span class="text-muted">—</span> @endif
                         </div>
                     </div>
                 </div>
                 <div class="col-12 col-md">
                     <div class="ozet-kutu bg-{{ $opsiyonRenk }} bg-opacity-10" style="border:1px solid;">
-                        <div class="etiket">Opsiyon</div>
+                        <div class="etiket">{{ $opsiyonEtiketi }}</div>
                         <div class="deger text-{{ $opsiyonRenk }}">
                             @if($opsiyonKalan === null)
                                 <span class="text-muted">—</span>
@@ -537,10 +589,9 @@
                                 <i class="fas fa-check me-1"></i>Kabul Et
                             </button>
                             @else
-                            <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - depozito ödemesi hakkında bilgi almak istiyorum') }}"
-                               target="_blank" class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill">
-                                <i class="fab fa-whatsapp me-1"></i>Depozito Bilgisi Al
-                            </a>
+                            <span class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill disabled">
+                                <i class="fas fa-check-circle me-1"></i>Kabul Edildi
+                            </span>
                             @endif
                             <a href="https://wa.me/905324262630?text={{ urlencode($talep->gtpnr . ' - ' . ($teklif->airline ?? '') . ' teklifi hakkında sorum var') }}"
                                target="_blank" class="btn btn-outline-secondary btn-sm w-100 w-md-auto flex-md-fill">
@@ -579,7 +630,7 @@
             {{-- ── MUHASEBE ── --}}
             @if($talep->offers->count() > 0)
             @php
-                $muhTeklif = $talep->offers->first(fn($o) => ($o->price_per_pax ?? 0) > 0) ?? $talep->offers->first();
+                $muhTeklif = $ilkTeklif;
                 $toplamTutar  = $muhTeklif->total_price ?? 0;
                 $muhCurrency  = $muhTeklif->currency ?? '';
                 $toplamOdenen = $talep->payments->where('status','alindi')->sum('amount');
@@ -591,6 +642,20 @@
                     <i class="fas fa-wallet me-2 text-success"></i>Ödeme Durumu
                 </div>
                 <div class="card-body">
+                    @if($kabulEdilenTeklif && $talep->status === 'depozitoda')
+                    <div class="alert alert-info alert-dismissible fade show py-2 small mb-3" role="alert">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>İşleminiz başlatıldı.</strong>
+                        @if($kabulEdilenTeklif->option_date)
+                            Opsiyon bitiş tarihi: <strong>{{ \Carbon\Carbon::parse($kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59'))->format('d.m.Y H:i') }}</strong>.
+                        @endif
+                        @if($kabulEdilenTeklif->deposit_amount)
+                            Lütfen <strong>{{ number_format($kabulEdilenTeklif->deposit_amount, 0) }} {{ $kabulEdilenTeklif->currency }}</strong> depozito ödemesini opsiyon tarihinden önce yapınız.
+                        @endif
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    @endif
+                    @if($kabulEdilenTeklif)
                     <div class="d-flex justify-content-between flex-wrap gap-1 small mb-1">
                         <span class="text-muted">Tahsilat</span>
                         <span class="fw-bold">%{{ $yuzde }}</span>
@@ -622,25 +687,34 @@
                             </div>
                         </form>
                     @endif
-                    @if($talep->payments->count() > 0)
-                    <hr class="my-2">
-                    @foreach($talep->payments as $odeme)
-                    <div class="d-flex justify-content-between flex-wrap align-items-center gap-1 py-1 small">
-                        <div>
-                            <span class="fw-bold">{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</span>
-                            @if($odeme->payment_date)
-                            <span class="text-muted ms-1">· {{ \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y') }}</span>
-                            @endif
+                    @endif
+                    @if($kabulEdilenTeklif)
+                        @if($talep->payments->count() > 0)
+                        <hr class="my-2">
+                        @foreach($talep->payments as $odeme)
+                        <div class="d-flex justify-content-between flex-wrap align-items-center gap-1 py-1 small">
+                            <div>
+                                <span class="fw-bold">{{ $odeme->sequence }}. {{ ucfirst($odeme->payment_type) }}</span>
+                                @if($odeme->payment_date)
+                                <span class="text-muted ms-1">· {{ \Carbon\Carbon::parse($odeme->payment_date)->format('d.m.Y') }}</span>
+                                @endif
+                            </div>
+                            <span class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger' : 'text-warning fw-bold') }}">
+                                {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
+                                @if($odeme->status==='bekleniyor') <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">Bekleniyor</span>
+                                @elseif($odeme->status==='iade') <span class="badge bg-danger ms-1" style="font-size:0.6rem;">İade</span>
+                                @else <span class="badge bg-success ms-1" style="font-size:0.6rem;">✓</span>
+                                @endif
+                            </span>
                         </div>
-                        <span class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger' : 'text-warning fw-bold') }}">
-                            {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
-                            @if($odeme->status==='bekleniyor') <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">Bekleniyor</span>
-                            @elseif($odeme->status==='iade') <span class="badge bg-danger ms-1" style="font-size:0.6rem;">İade</span>
-                            @else <span class="badge bg-success ms-1" style="font-size:0.6rem;">✓</span>
-                            @endif
-                        </span>
+                        @endforeach
+                        @endif
+                    @else
+                    <hr class="my-2">
+                    <div class="text-center text-muted small py-2">
+                        <i class="fas fa-lock me-1"></i>
+                        Teklif kabul ettiğinizde ödeme planı aktif olacak.
                     </div>
-                    @endforeach
                     @endif
                 </div>
             </div>
@@ -777,7 +851,7 @@
                 </div>
                 <div class="alert alert-warning py-2 small mb-0">
                     <i class="fas fa-info-circle me-1"></i>
-                    Kabul ettikten sonra operasyon ekibimiz depozito bilgilerini WhatsApp üzerinden iletecektir.
+                    Teklif kabul edildikten sonra bu sayfadan ödeme yapabilirsiniz.
                 </div>
             </div>
             <div class="modal-footer py-2">
