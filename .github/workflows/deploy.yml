@@ -40,3 +40,10 @@ jobs:
             "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create")
           echo "$RESPONSE" | python3 -m json.tool || echo "$RESPONSE"
           echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('status',0)==1 else 1)"
+
+      - name: Wait for deployment to finish
+        run: sleep 15
+
+      - name: Clear opcache and route cache via web hook
+        run: |
+          curl -sk "https://gruptalepleri.com/dp-hook.php?t=grt2026dp" && echo "OK" || echo "hook failed (non-critical)"
