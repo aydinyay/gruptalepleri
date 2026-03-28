@@ -7,3 +7,4 @@ deployment:
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
+    - php -r "if(function_exists('opcache_reset')){opcache_reset();}" 2>/dev/null || true
