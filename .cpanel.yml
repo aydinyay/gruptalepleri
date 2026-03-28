@@ -3,6 +3,7 @@ deployment:
   tasks:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
     - /bin/mkdir -p "$APPPATH"
+    - git read-tree HEAD
     - git checkout-index -a -f --prefix="$APPPATH/"
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
