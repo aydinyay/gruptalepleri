@@ -374,6 +374,14 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/bakanlik-scrape-start',  [\App\Http\Controllers\TursabController::class, 'bakanlikScrapeStart'])->name('bakanlik.scrape.start');
     Route::get( '/bakanlik-scrape-status', [\App\Http\Controllers\TursabController::class, 'bakanlikScrapeStatus'])->name('bakanlik.scrape.status');
     Route::get('/acenteler-istatistik', [\App\Http\Controllers\AcenetelIstatistikController::class, 'index'])->name('acenteler.istatistik');
+    Route::get('/normalize-kaynak/{mode}', function ($mode) {
+        abort_unless(in_array($mode, ['dry-run', 'run']), 404);
+        $dryRun = $mode === 'dry-run';
+        ob_start();
+        \Illuminate\Support\Facades\Artisan::call('acenteler:normalize-kaynak', $dryRun ? ['--dry-run' => true] : []);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response('<pre style="font-family:monospace;padding:20px;background:#1a1a2e;color:#0f0;font-size:14px;">' . htmlspecialchars($output) . '</pre>');
+    })->name('normalize.kaynak');
     Route::get('/acente-ai', [\App\Http\Controllers\AceneAIController::class, 'index'])->name('acente.ai');
     Route::post('/acente-ai/ask', [\App\Http\Controllers\AceneAIController::class, 'ask'])->name('acente.ai.ask');
 
