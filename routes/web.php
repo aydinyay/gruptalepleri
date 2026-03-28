@@ -130,6 +130,11 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
     });
 
+    Route::get('/run-migrate-once', function () {
+        \Artisan::call('migrate', ['--force' => true]);
+        return response('<pre>' . \Artisan::output() . '</pre>');
+    });
+
     Route::get('/clear-view-cache', function () {
         $dir = storage_path('framework/views');
         $files = glob($dir . '/*.php');
