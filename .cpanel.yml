@@ -4,7 +4,7 @@ deployment:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
     - /bin/mkdir -p "$APPPATH"
     - git fetch origin
-    - git --work-tree="$APPPATH" checkout -f origin/work -- .
+    - git archive origin/work | /bin/tar -x -C "$APPPATH"
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
