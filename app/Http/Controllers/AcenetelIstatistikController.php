@@ -69,9 +69,37 @@ class AcenetelIstatistikController extends Controller
         return response('<pre style="background:#1a1a2e;color:#0f0;padding:20px;font-size:14px;margin:0;">' . htmlspecialchars(implode("\n", $log)) . '</pre>' . $btn);
     }
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
+
+        // ── GEÇİCİ: Normalizasyon (?normalize=dry veya ?normalize=run) ───────
+        if ($request->has('normalize')) {
+            $dryRun = $request->query('normalize') !== 'run';
+            $log = [$dryRun ? '🔍 DRY-RUN' : '✅ UYGULANIYOR', ''];
+            $log[] = '─── Mevcut dağılım ───';
+            foreach (DB::table('acenteler')->selectRaw("COALESCE(kaynak,'NULL') as k, COUNT(*) as t")->groupBy('k')->orderByDesc('t')->get() as $r) {
+                $log[] = "  {$r->k}: {$r->t}";
+            }
+            $log[] = '';
+            $rules = ['tursab' => "LOWER(CONVERT(kaynak USING utf8mb4)) LIKE '%tursab%'", 'bakanlik' => "LOWER(CONVERT(kaynak USING utf8mb4)) LIKE '%bakanl%'", 'manuel' => "LOWER(CONVERT(kaynak USING utf8mb4)) LIKE '%manuel%'"];
+            foreach ($rules as $val => $cond) {
+                $n = DB::table('acenteler')->whereRaw($cond)->where('kaynak', '!=', $val)->count();
+                $log[] = "  '{$val}' → {$n} kayıt";
+                if (!$dryRun && $n > 0) DB::table('acenteler')->whereRaw($cond)->where('kaynak', '!=', $val)->update(['kaynak' => $val]);
+            }
+            $log[] = '';
+            $n = DB::table('acenteler')->where('is_sube', 0)->where(fn($q) => $q->whereRaw("UPPER(acente_unvani) LIKE '%ŞUBE%'")->orWhereRaw("UPPER(acente_unvani) LIKE '%SUBE%'"))->count();
+            $log[] = "  is_sube=0 ama ŞUBE geçen: {$n}";
+            if (!$dryRun && $n > 0) DB::table('acenteler')->where('is_sube', 0)->where(fn($q) => $q->whereRaw("UPPER(acente_unvani) LIKE '%ŞUBE%'")->orWhereRaw("UPPER(acente_unvani) LIKE '%SUBE%'"))->update(['is_sube' => 1]);
+            if (!$dryRun) {
+                $log[] = ''; $log[] = '─── Sonuç ───';
+                foreach (DB::table('acenteler')->selectRaw("COALESCE(kaynak,'NULL') as k, COUNT(*) as t")->groupBy('k')->orderByDesc('t')->get() as $r) { $log[] = "  {$r->k}: {$r->t}"; }
+                $log[] = '  is_sube=1: ' . DB::table('acenteler')->where('is_sube', 1)->count();
+            }
+            $btn = $dryRun ? '<br><br><a href="?normalize=run" style="background:#e94560;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-size:16px;">▶ UYGULA</a>' : '';
+            return response('<pre style="background:#1a1a2e;color:#0f0;padding:24px;font-size:14px;margin:0;min-height:100vh;">' . htmlspecialchars(implode("\n", $log)) . '</pre>' . $btn);
+        }
 
         // ── GENEL BAKIŞ ──────────────────────────────────────────────────────
         $toplam      = DB::table('acenteler')->count();
