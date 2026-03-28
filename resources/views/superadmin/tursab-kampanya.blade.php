@@ -384,7 +384,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     </div>
                     <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
                         <span class="small">Durum: <strong id="bkStatus">—</strong></span>
-                        <span class="small">Taranan il: <strong id="bkIlIdx">—</strong> / <strong id="bkEndNo">—</strong></span>
+                        <span class="small">Belge No: <strong id="bkCurrentNo">—</strong> / <strong id="bkEndNo">—</strong></span>
                         <span class="small">Toplam bulunan: <strong id="bkFound">—</strong></span>
                         <span class="small text-muted" id="bkAt"></span>
                     </div>
@@ -400,8 +400,8 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-md-3">
-                            <label class="form-label small mb-1">Batch (il/istek)</label>
-                            <input type="number" id="bkBatch" class="form-control form-control-sm" value="5" min="1" max="20">
+                            <label class="form-label small mb-1">Batch (No/istek)</label>
+                            <input type="number" id="bkBatch" class="form-control form-control-sm" value="20" min="1" max="100">
                         </div>
                         <div class="col-md-9 d-flex align-items-end gap-2 flex-wrap">
                             <button class="btn btn-sm btn-success" id="bkStartBtn" onclick="bkBaslat()">
@@ -411,10 +411,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                 <i class="fas fa-stop me-1"></i>Durdur
                             </button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="bkSifirla()">
-                                <i class="fas fa-redo me-1"></i>İl İndexini Sıfırla
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning" onclick="bkIllerSifirla()">
-                                <i class="fas fa-list me-1"></i>İl Listesini Yenile
+                                <i class="fas fa-redo me-1"></i>Sıfırla
                             </button>
                         </div>
                     </div>
@@ -680,15 +677,15 @@ function bkGoster(d) {
     const statusMap = { running:'Çalışıyor', idle:'Hazır', paused:'Duraklatıldı', error:'Hata' };
     document.getElementById('bkStatus').textContent    = statusMap[d.status] || d.status;
     document.getElementById('bkStatus').className      = d.status === 'running' ? 'text-success' : (d.status === 'error' ? 'text-danger' : 'text-secondary');
-    document.getElementById('bkIlIdx').textContent     = d.il_idx  || '0';
-    document.getElementById('bkEndNo').textContent     = d.end_no  || '—';
-    document.getElementById('bkFound').textContent     = d.found   || '0';
-    document.getElementById('bkDbTotal').textContent   = d.db_total || '—';
+    document.getElementById('bkCurrentNo').textContent = d.current_no || '1';
+    document.getElementById('bkEndNo').textContent     = d.end_no    || '—';
+    document.getElementById('bkFound').textContent     = d.found     || '0';
+    document.getElementById('bkDbTotal').textContent   = d.db_total  || '—';
     document.getElementById('bkAt').textContent        = d.at ? 'Son çalışma: ' + d.at : '';
     const pct = d.percent || 0;
     document.getElementById('bkProgressBar').style.width = pct + '%';
     document.getElementById('bkPercent').textContent   = pct + '%';
-    document.getElementById('bkProgressLabel').textContent = (d.il_idx || 0) + ' / ' + (d.end_no || '?') + ' il tarandı';
+    document.getElementById('bkProgressLabel').textContent = (d.current_no || 1) + ' / ' + (d.end_no || '?') + ' belge no tarandı';
 }
 
 function bkLog(msg, cls) {
@@ -709,7 +706,7 @@ async function bkBaslat() {
 
     const batchVal = document.getElementById('bkBatch').value;
     document.getElementById('bkLog').innerHTML = '';
-    bkLog('Tarama başlatıldı… (her istek ' + batchVal + ' il işler)');
+    bkLog('Tarama başlatıldı… (her istek ' + batchVal + ' belge no işler)');
 
     while (!bkStopFlag) {
         try {
@@ -720,7 +717,7 @@ async function bkBaslat() {
             if (!res.ok) { bkLog('HTTP hatası: ' + res.status, 'text-danger'); break; }
             const d = await res.json();
             bkGoster(d);
-            bkLog('Batch bitti — İl: ' + d.il_idx + '/' + d.end_no + ' | Bulunan: ' + d.found + ' | DB: ' + d.db_total);
+            bkLog('Batch bitti — No: ' + d.current_no + '/' + d.end_no + ' | Bulunan: ' + d.found + ' | DB: ' + d.db_total);
 
             if (d.done || d.status === 'idle') {
                 bkLog('Tarama tamamlandı.', 'text-success fw-bold');
@@ -746,19 +743,11 @@ function bkDur() {
 }
 
 function bkSifirla() {
-    if (!confirm('İl tarama indeksi sıfırlansın mı? (Veri silinmez, baştan tarar)')) return;
+    if (!confirm('Tarama sıfırlansın mı? (Veri silinmez, 1. belge nodan baştan tarar)')) return;
     fetch(BK_SCRAPE_URL, {
         method: 'POST',
         body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', batch: '1' })
-    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('İndeks sıfırlandı.', 'text-warning'); });
-}
-
-function bkIllerSifirla() {
-    if (!confirm('İl listesi yeniden çekilsin mi?')) return;
-    fetch(BK_SCRAPE_URL, {
-        method: 'POST',
-        body: new URLSearchParams({ _token: CSRF_TOKEN, iller_reset: '1', batch: '1' })
-    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('İl listesi yenilendi.', 'text-info'); });
+    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('Sıfırlandı.', 'text-warning'); });
 }
 </script>
 </body>

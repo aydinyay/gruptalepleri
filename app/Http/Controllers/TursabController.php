@@ -270,13 +270,11 @@ class TursabController extends Controller
     {
         $this->assertSuperadmin();
 
-        $batch      = max(1, (int) ($request->input('batch', 5)));
-        $reset      = $request->boolean('reset');
-        $illerReset = $request->boolean('iller_reset');
+        $batch = max(1, (int) ($request->input('batch', 20)));
+        $reset = $request->boolean('reset');
 
         $args = ['--batch' => (string) $batch];
-        if ($reset)      $args['--reset']       = true;
-        if ($illerReset) $args['--iller-reset']  = true;
+        if ($reset) $args['--reset'] = true;
 
         \Artisan::call('bakanlik:scrape', $args);
 
@@ -290,24 +288,24 @@ class TursabController extends Controller
     {
         $this->assertSuperadmin();
 
-        $ilIdx  = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_il_idx', '0');
-        $found  = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_found',  '0');
-        $status = (string) \App\Models\SistemAyar::get('bakanlik_scrape_status', 'idle');
-        $at     = (string) \App\Models\SistemAyar::get('bakanlik_scrape_at',     '');
-        $endNo  = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_end',    '0');
+        $currentNo = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_current_no', '1');
+        $found     = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_found',      '0');
+        $status    = (string) \App\Models\SistemAyar::get('bakanlik_scrape_status',     'idle');
+        $at        = (string) \App\Models\SistemAyar::get('bakanlik_scrape_at',         '');
+        $endNo     = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_end',        '18804');
 
-        $total  = \App\Models\Acenteler::where('kaynak', 'bakanlik')->count();
-        $done   = ($endNo > 0 && $ilIdx >= $endNo);
+        $total = \App\Models\Acenteler::where('kaynak', 'bakanlik')->count();
+        $done  = ($currentNo > $endNo);
 
         return response()->json([
-            'status'   => $status,
-            'il_idx'   => $ilIdx,
-            'end_no'   => $endNo,
-            'found'    => $found,
-            'db_total' => $total,
-            'at'       => $at,
-            'done'     => $done,
-            'percent'  => $endNo > 0 ? round($ilIdx / $endNo * 100, 1) : 0,
+            'status'     => $status,
+            'current_no' => $currentNo,
+            'end_no'     => $endNo,
+            'found'      => $found,
+            'db_total'   => $total,
+            'at'         => $at,
+            'done'       => $done,
+            'percent'    => $endNo > 0 ? round(($currentNo - 1) / $endNo * 100, 1) : 0,
         ]);
     }
 
