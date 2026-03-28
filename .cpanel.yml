@@ -9,6 +9,4 @@ deployment:
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
-    - cd "$APPPATH" && composer dump-autoload --optimize --no-interaction 2>/dev/null || true
-    - cd "$APPPATH" && php artisan route:cache 2>/dev/null || true
-    - php -r "if(function_exists('opcache_reset')){opcache_reset();}" 2>/dev/null || true
+    - curl -sk "https://gruptalepleri.com/dp-hook.php?t=grt2026dp" || true
