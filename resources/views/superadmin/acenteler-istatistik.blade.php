@@ -30,24 +30,19 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 .badge-kaynak-tursab   { background:#0d6efd22; color:#0d6efd; border-radius:6px; padding:2px 8px; font-size:.74rem; }
 .badge-kaynak-bakanlik { background:#19875422; color:#198754; border-radius:6px; padding:2px 8px; font-size:.74rem; }
 .badge-kaynak-manuel   { background:#6f42c122; color:#6f42c1; border-radius:6px; padding:2px 8px; font-size:.74rem; }
+.page-header { background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%); color:#fff; padding:16px 32px 14px; }
+.page-header h1 { font-size:1.3rem; font-weight:700; margin:0; }
+.page-header p  { margin:3px 0 0; color:rgba(255,255,255,.6); font-size:.82rem; }
 </style>
 </head>
 <body>
 
+<x-navbar-superadmin active="acenteler-istatistik" />
+
 <div class="page-header">
-    <div class="container-fluid px-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div>
-                <h1><i class="fas fa-chart-bar me-2" style="color:#e94560;"></i>Acente İstatistikleri</h1>
-                <p>Türkiye seyahat acentesi veritabanı — {{ number_format($toplam) }} kayıt</p>
-            </div>
-            <a href="{{ route('superadmin.acente.ai') }}" class="btn btn-sm btn-outline-light me-1">
-                <i class="fas fa-robot me-1"></i>AI Analiz
-            </a>
-            <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">
-                <i class="fas fa-arrow-left me-1"></i>Kampanya Sayfası
-            </a>
-        </div>
+    <div class="container-fluid px-2">
+        <h1><i class="fas fa-chart-bar me-2" style="color:#e94560;"></i>Acente İstatistikleri</h1>
+        <p>Türkiye seyahat acentesi veritabanı — {{ number_format($toplam) }} kayıt</p>
     </div>
 </div>
 

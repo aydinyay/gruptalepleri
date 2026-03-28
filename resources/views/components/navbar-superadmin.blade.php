@@ -37,6 +37,12 @@
                     'icon' => 'fas fa-robot',
                     'keys' => ['acente-ai'],
                 ],
+                [
+                    'label' => 'Acente İstatistikleri',
+                    'href' => route('superadmin.acenteler.istatistik'),
+                    'icon' => 'fas fa-chart-bar',
+                    'keys' => ['acenteler-istatistik'],
+                ],
             ],
         ],
         [
