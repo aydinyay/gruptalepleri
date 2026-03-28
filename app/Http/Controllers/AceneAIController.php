@@ -140,6 +140,12 @@ VEYA eylem gerekiyorsa:
   }
 }
 
+YANIT TONU KURALLARI:
+- Sohbet sorusu veya selamlama gelirse (saat kaç, nasılsın, ne yapıyorsun, merhaba vb.) → eylem:null, yanit'te samimi ve kısa cevap ver.
+- Veri sorgusu gelirse → kısa, net, veri odaklı cevap.
+- Güncel zamanı bilerek cevap ver (verilen zaman bilgisini kullan).
+- Her zaman Türkçe yaz.
+
 EYLEM KURALLARI:
 - Sadece bilgi sorusu → eylem: null
 - Email/SMS göndermek isteniyor → uygun tip
@@ -368,13 +374,24 @@ FORMAT;
         ]);
     }
 
+    // ── Anlık zaman bloğu ───────────────────────────────────────────────────
+    private function zamanBolumu(): string
+    {
+        $now = now()->locale('tr')->setTimezone('Europe/Istanbul');
+        return "━━━ GÜNCEL ZAMAN ━━━\n"
+            . "Tarih     : " . $now->format('d.m.Y') . " " . $now->translatedFormat('l') . "\n"
+            . "Saat      : " . $now->format('H:i') . " (Türkiye saati)\n"
+            . "Ay        : " . $now->translatedFormat('F Y') . "\n\n";
+    }
+
     // ── SQL üret (Gemini — 1. çağrı) ───────────────────────────────────────
     private function generateSql(string $soru, array $gecmis, string $apiKey, string $model): string
     {
         $gecmisBolum = $this->buildGecmisBolum($gecmis, 4, 200);
 
         $prompt = self::SCHEMA
-            . "\n" . $gecmisBolum
+            . "\n" . $this->zamanBolumu()
+            . $gecmisBolum
             . "\nKULLANICI SORUSU: {$soru}\n\n"
             . "Yukarıdaki soruyu yanıtlayacak MySQL SELECT sorgusunu yaz.\n"
             . "SADECE SQL döndür. Açıklama ve markdown backtick kullanma.";
@@ -418,6 +435,7 @@ FORMAT;
         $gecmisBolum = $this->buildGecmisBolum($gecmis, 4, 300);
 
         $prompt = self::SCHEMA . "\n"
+            . $this->zamanBolumu()
             . self::EYLEM_FORMAT . "\n\n"
             . $gecmisBolum
             . "SORU: {$soru}\n\n"
