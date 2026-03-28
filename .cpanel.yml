@@ -3,9 +3,7 @@ deployment:
   tasks:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
     - /bin/mkdir -p "$APPPATH"
-    - git log -1 --format="%H %ai" refs/heads/work > "$APPPATH/deploy-info.txt" 2>&1 || git log -1 --format="%H %ai" HEAD > "$APPPATH/deploy-info.txt" 2>&1
-    - git archive refs/heads/work | tar -x -C "$APPPATH" 2>/dev/null || git archive HEAD | tar -x -C "$APPPATH"
+    - git archive HEAD | tar -x -C "$APPPATH"
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
-    - php -r "if(function_exists('opcache_reset')){opcache_reset();}" 2>/dev/null || true

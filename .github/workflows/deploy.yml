@@ -16,10 +16,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push main to work branch (cPanel tracking)
-        run: |
-          git push https://aydinyay:${{ secrets.GITHUB_TOKEN }}@github.com/aydinyay/gruptalepleri.git main:work
-
       - name: Pull latest code to cPanel
         run: |
           RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 --retry 3 --retry-delay 5 \
@@ -28,8 +24,8 @@ jobs:
           echo "$RESPONSE" | python3 -m json.tool || echo "$RESPONSE"
           echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('status',0)==1 else 1)"
 
-      - name: Wait for cPanel to finish fetching
-        run: sleep 15
+      - name: Wait for fetch to complete
+        run: sleep 10
 
       - name: Deploy HEAD to web root
         run: |
