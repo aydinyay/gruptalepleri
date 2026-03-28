@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -26,6 +27,16 @@ class AcenetelIstatistikController extends Controller
         'Antalya','Muğla','İstanbul','İzmir','Nevşehir','Trabzon',
         'Bursa','Ankara','Mersin','Adana','Edirne','Samsun',
     ];
+
+    public function normalizeKaynak(string $mode)
+    {
+        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
+        abort_unless(in_array($mode, ['dry-run', 'run']), 404);
+        $dryRun = $mode === 'dry-run';
+        Artisan::call('acenteler:normalize-kaynak', $dryRun ? ['--dry-run' => true] : []);
+        $output = Artisan::output();
+        return response('<pre style="font-family:monospace;padding:20px;background:#1a1a2e;color:#0f0;font-size:14px;">' . htmlspecialchars($output) . '</pre>');
+    }
 
     public function normalize(\Illuminate\Http\Request $request)
     {
