@@ -427,23 +427,118 @@ body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
                 <div class="row g-3 mt-2">
                     <div class="col-md-4">
                         <div class="insight-box" style="border-color:#198754;">
-                            <strong>23 yılda %384.54 büyüme</strong> — 2000'de 4.077 olan acente sayısı 2023'te 15.678'e ulaştı.
-                            Yıllık ortalama artış ~500 acente / %7.
+                            <strong>23 yılda %284 büyüme</strong> — 2000'de 4.077 olan acente sayısı 2023'te 15.678'e ulaştı
+                            (2023/2000 oranı: %384,54). Yıllık ortalama ~490 acente artış.
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="insight-box" style="border-color:#ffc107;">
-                            <strong>Covid etkisi yok:</strong> 2020-2021 yıllarında bile büyüme devam etti.
-                            2021→2022 arası yavaşlama (12.269→12.649 = +380) dikkat çekici.
+                            <strong>Rekor yıl 2022:</strong> Tek yılda +1.856 acente (12.649→14.505).
+                            Pandemi sonrası toparlanma ve turizm patlamasının yansıması.
+                            Kaynak: TÜRSAB + turizmgazetesi.com (19 Şubat 2024)
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="insight-box" style="border-color:#e94560;">
-                            <strong>2022→2023 sıçraması:</strong> +1.856 acente (+14.7%) — son 23 yılın en yüksek tek yıllık artışı.
-                            Turizm sektöründeki ivmelenmeyi yansıtıyor.
+                            <strong>Avrupa'nın tersi:</strong> Aynı dönemde 26 Avrupa ülkesinde toplam acente sayısı
+                            107.208'den 78.743'e düştü (−30.465). Türkiye ise 4.825'ten 12.649'a çıktı (+7.824).
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ── 8b. AVRUPA KARŞILAŞTIRMASI ──────────────────────────────────────── --}}
+<div class="row g-3 mb-4">
+    <div class="col-md-7">
+        <div class="section-card h-100">
+            <div class="card-header-custom"><i class="fas fa-globe-europe me-2" style="color:#0d6efd;"></i>Türkiye vs Avrupa — Acente Sayısı (2005→2021)</div>
+            <div class="card-body-custom">
+                <div class="chart-wrap" style="height:420px;">
+                    <canvas id="chartAvrupa"></canvas>
+                </div>
+                <div class="insight-box mt-3" style="border-color:#198754;">
+                    <strong>Türkiye tek büyüyen ülke:</strong> 26 Avrupa ülkesinde toplam acente sayısı
+                    107.208'den 78.743'e geriledi (−%26). Türkiye bu tabloda tek pozitif değişim gösteren ülke:
+                    4.825 → 12.649 (+%162). Kaynak: ECTAA / turizmgazetesi.com, 2024
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="section-card h-100">
+            <div class="card-header-custom"><i class="fas fa-table me-2" style="color:#0d6efd;"></i>Ülke Karşılaştırma Tablosu</div>
+            <div class="card-body-custom p-0" style="max-height:520px;overflow-y:auto;">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Ülke</th>
+                            <th class="text-end">2005</th>
+                            <th class="text-end">2021</th>
+                            <th class="text-end">Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                        $avrupaVerisi = [
+                            ['İtalya',      13981, 11124],
+                            ['İspanya',     13757,  8373],
+                            ['Almanya',     10181,  8829],
+                            ['Fransa',       8840,  5020],
+                            ['İngiltere',    9212,  7819],
+                            ['Polonya',      7451,  5373],
+                            ['Hollanda',     6482,  2579],
+                            ['Çek Cum.',     5728,  6515],
+                            ['Portekiz',     4116,  2210],
+                            ['Yunanistan',   3783,  3277],
+                            ['İsveç',        3212,  2798],
+                            ['Romanya',      3114,  1990],
+                            ['Macaristan',   2523,  1813],
+                            ['Finlandiya',   2321,  1040],
+                            ['Avusturya',    2263,  1515],
+                            ['Belçika',      1820,  1553],
+                            ['Bulgaristan',  1685,  1367],
+                            ['Slovakya',     1357,   426],
+                            ['İrlanda',      1180,   346],
+                            ['Litvanya',     1032,   635],
+                            ['Slovenya',      917,   404],
+                            ['Letonya',       715,   358],
+                            ['Danimarka',     571,   633],
+                            ['K.Kıbrıs',      443,   508],
+                            ['Estonya',       439,   310],
+                            ['Lüksemburg',     85,    99],
+                            ['🇹🇷 TÜRKİYE',  4825, 12649],
+                        ];
+                        usort($avrupaVerisi, fn($a,$b) => ($b[2]-$b[1]) <=> ($a[2]-$a[1]));
+                        @endphp
+                        @foreach($avrupaVerisi as $row)
+                        @php
+                            $degisim = $row[2] - $row[1];
+                            $pct = $row[1] > 0 ? round($degisim / $row[1] * 100, 1) : 0;
+                            $isTurkiye = str_contains($row[0], 'TÜRKİYE');
+                        @endphp
+                        <tr @if($isTurkiye) style="background:#19875415;font-weight:700;" @endif>
+                            <td>{{ $row[0] }}</td>
+                            <td class="text-end">{{ number_format($row[1]) }}</td>
+                            <td class="text-end">{{ number_format($row[2]) }}</td>
+                            <td class="text-end">
+                                <span style="color:{{ $degisim >= 0 ? '#198754' : '#dc3545' }};">
+                                    {{ $degisim >= 0 ? '+' : '' }}{{ number_format($degisim) }}
+                                    <small>({{ $pct >= 0 ? '+' : '' }}{{ $pct }}%)</small>
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                        <tr class="table-dark fw-bold">
+                            <td>26 Ülke Toplam</td>
+                            <td class="text-end">107.208</td>
+                            <td class="text-end">78.743</td>
+                            <td class="text-end text-danger">−28.465</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -671,8 +766,10 @@ new Chart(document.getElementById('chartRadar'), {
 });
 
 // ── Tarihi Büyüme Line ───────────────────────────────────────────────────────
+// Kaynak: TÜRSAB resmi verisi (turizmgazetesi.com, 19 Şubat 2024 doğrulaması)
+// 2021=12649 makale ile doğrulandı; 2022=14505 (rekor +1856); 2023=15678 (TÜRSAB)
 const tarihiYillar = [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023];
-const tarihiSayilar = [4077,4209,4344,4515,4643,4825,5050,5268,5519,5787,6107,6452,6959,7377,7987,8717,9316,9795,10305,10305,11410,12269,12649,15678];
+const tarihiSayilar = [4077,4209,4344,4515,4643,4825,5050,5268,5519,5787,6107,6452,6959,7377,7987,8717,9316,9795,10305,11410,12269,12649,14505,15678];
 new Chart(document.getElementById('chartTarihiBuyume'), {
     type: 'line',
     data: {
@@ -697,6 +794,32 @@ new Chart(document.getElementById('chartTarihiBuyume'), {
         },
         scales: {
             x: { grid: { color: '#f0f2f5' } },
+            y: { grid: { color: '#f0f2f5' }, ticks: { callback: v => v.toLocaleString('tr') } }
+        }
+    }
+});
+
+// ── Avrupa Karşılaştırma Grouped Bar ─────────────────────────────────────────
+const avrupaUlkeler = ['İtalya','İspanya','Almanya','İngiltere','Fransa','Polonya','Hollanda','Çek Cum.','Yunanistan','Portekiz','🇹🇷 Türkiye'];
+const avrupa2005    = [13981,13757,10181,9212,8840,7451,6482,5728,3783,4116,4825];
+const avrupa2021    = [11124,8373,8829,7819,5020,5373,2579,6515,3277,2210,12649];
+new Chart(document.getElementById('chartAvrupa'), {
+    type: 'bar',
+    data: {
+        labels: avrupaUlkeler,
+        datasets: [
+            { label: '2005', data: avrupa2005, backgroundColor: '#0d6efd55', borderColor: '#0d6efd', borderWidth: 1 },
+            { label: '2021', data: avrupa2021, backgroundColor: avrupa2021.map((v,i) => v > avrupa2005[i] ? '#19875499' : '#e9456055'), borderColor: avrupa2021.map((v,i) => v > avrupa2005[i] ? '#198754' : '#e94560'), borderWidth: 1 },
+        ]
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('tr') } }
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
             y: { grid: { color: '#f0f2f5' }, ticks: { callback: v => v.toLocaleString('tr') } }
         }
     }
