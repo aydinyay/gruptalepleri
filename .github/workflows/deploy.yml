@@ -19,6 +19,14 @@ jobs:
       - name: Create deployment archive
         run: git archive --format=zip HEAD -o /tmp/deploy.zip
 
+      - name: Delete old deploy.zip
+        run: |
+          curl -s -k \
+            -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
+            -X POST \
+            -d "files[0][file]=/home/gruprez1/deploy.zip" \
+            "https://${{ secrets.CPANEL_HOST }}:2083/execute/Fileman/unlink" || true
+
       - name: Upload archive to cPanel home dir
         run: |
           RESPONSE=$(curl -s -k \
