@@ -41,6 +41,9 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <h1><i class="fas fa-chart-bar me-2" style="color:#e94560;"></i>Acente İstatistikleri</h1>
                 <p>Türkiye seyahat acentesi veritabanı — {{ number_format($toplam) }} kayıt</p>
             </div>
+            <a href="{{ route('superadmin.acente.ai') }}" class="btn btn-sm btn-outline-light me-1">
+                <i class="fas fa-robot me-1"></i>AI Analiz
+            </a>
             <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">
                 <i class="fas fa-arrow-left me-1"></i>Kampanya Sayfası
             </a>
