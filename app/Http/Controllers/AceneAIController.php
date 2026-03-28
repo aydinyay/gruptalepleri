@@ -36,6 +36,13 @@ KULLANICI REFERANSI KURALLARI:
 - SMS için içerik belirtilmemişse uygun kurumsal bir metin öner, ama sorma
 - Genel kural: veritabanında olan bilgiyi asla kullanıcıdan isteme
 
+━━━ PLATFORM BİLGİLERİ (ASLA YANLIŞ YAZMA) ━━━
+- Platform adı : GrupTalepleri.com
+- Web adresi   : www.gruptalepleri.com  ← T-A-L-E-P (talep, ctalep değil!)
+- Kısa URL     : gruptalepleri.com
+- YANLIŞ örnekler (kullanma): grupcalepleri.com, grupltalepleri.com, grubtalepleri.com
+- SMS/email içeriğinde platform adını yazarken mutlaka "gruptalepleri.com" kullan
+
 ━━━ VERİTABANI TABLOLARI ━━━
 
 ━━━ 1. acenteler (~36.000 kayıt) ━━━

@@ -55,7 +55,10 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-dire
 .action-card-body .target-item{padding:4px 8px;background:#f8f9fa;border-radius:5px;margin-bottom:3px;font-size:.78rem}
 .sms-editor{width:100%;border:1px solid #dee2e6;border-radius:7px;padding:8px 10px;font-size:.82rem;resize:vertical;min-height:80px;margin:8px 0;font-family:inherit}
 .sms-editor:focus{outline:none;border-color:#198754;box-shadow:0 0 0 3px #19875415}
-.char-count{font-size:.7rem;color:#6c757d;text-align:right;margin-top:-6px}
+.char-count{font-size:.75rem;font-weight:600;text-align:right;margin-top:3px;padding:3px 6px;border-radius:4px;background:#f8f9fa}
+.char-count.ok{color:#198754;background:#d1e7dd}
+.char-count.warn{color:#856404;background:#fff3cd}
+.char-count.over{color:#842029;background:#f8d7da}
 .action-buttons{display:flex;gap:8px;margin-top:10px}
 .btn-onayla{background:#0d6efd;color:#fff;border:none;border-radius:7px;padding:7px 18px;font-size:.82rem;cursor:pointer;transition:background .15s}
 .btn-onayla:hover{background:#0b5ed7}
@@ -303,8 +306,8 @@ function buildEylemCard(eylem) {
                 ${uyari}
                 <div class="target-list">${hedefListesi}${hedefSayisi > 5 ? `<div class="target-item text-muted">...ve ${hedefSayisi - 5} daha</div>` : ''}</div>
                 <div class="mt-2" style="font-size:.76rem;color:#6c757d">SMS İçeriği (düzenleyebilirsiniz):</div>
-                <textarea class="sms-editor" id="smsIcerik" oninput="charSay(this)">${escapeHtml(icerik)}</textarea>
-                <div class="char-count" id="charCount">${charCount}/160 karakter${charCount > 160 ? ' — <span style="color:red">çok uzun!</span>' : ''}</div>
+                <textarea class="sms-editor" id="smsIcerik" oninput="charSay(this)">${icerik.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+                <div class="char-count ${charCount > 160 ? 'over' : charCount > 130 ? 'warn' : 'ok'}" id="charCount">${charCount} / 160 karakter${charCount > 160 ? ' — çok uzun!' : ''}</div>
                 <div class="mt-1 text-muted" style="font-size:.76rem"><i class="fas fa-info-circle me-1"></i>Zamanlama (opsiyonel): ${zamanlamaInput}</div>
             </div>
             <div class="action-buttons">
@@ -318,9 +321,11 @@ function buildEylemCard(eylem) {
 }
 
 function charSay(el) {
-    const n = el.value.length;
-    const cc = document.getElementById('charCount');
-    if (cc) cc.innerHTML = `${n}/160 karakter${n > 160 ? ' — <span style="color:red">çok uzun!</span>' : ''}`;
+    const n   = el.value.length;
+    const cc  = document.getElementById('charCount');
+    if (!cc) return;
+    cc.className = 'char-count ' + (n > 160 ? 'over' : n > 130 ? 'warn' : 'ok');
+    cc.textContent = `${n} / 160 karakter${n > 160 ? ' — çok uzun!' : n > 130 ? ' — uzuyor' : ''}`;
 }
 
 // ── Seçim yapıldığında ──────────────────────────────────────────────────────
