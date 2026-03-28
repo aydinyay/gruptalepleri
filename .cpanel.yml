@@ -5,3 +5,5 @@ deployment:
     - /bin/mkdir -p "$APPPATH"
     - git checkout-index -a -f --prefix="$APPPATH/"
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
+    - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
+    - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
