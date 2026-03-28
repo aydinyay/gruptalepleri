@@ -9,14 +9,10 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column}
+html{height:100%}
+body{min-height:100%;margin:0;background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column}
 
-.page-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#fff;padding:14px 24px;flex-shrink:0}
-.page-header h1{font-size:1.25rem;font-weight:700;margin:0}
-.page-header p{margin:2px 0 0;color:rgba(255,255,255,.5);font-size:.78rem}
-
-.main-layout{flex:1;display:flex;overflow:hidden}
+.main-layout{flex:1;display:flex;overflow:hidden;min-height:0}
 
 /* Sidebar */
 .sidebar{width:260px;flex-shrink:0;background:#fff;border-right:1px solid #e9ecef;overflow-y:auto;padding:14px 10px}
@@ -105,45 +101,16 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-dire
 </head>
 <body>
 
-<div class="page-header">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div>
-            <h1><i class="fas fa-robot me-2" style="color:#0d6efd"></i>AI Acente Asistanı</h1>
-            <p>TURAi · Veritabanını sorgula · Email & SMS gönder · {{ now()->format('d.m.Y') }}</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('superadmin.acenteler.istatistik') }}" class="btn btn-sm btn-outline-light">
-                <i class="fas fa-chart-bar me-1"></i>İstatistikler
-            </a>
-            <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">
-                <i class="fas fa-arrow-left me-1"></i>Geri
-            </a>
-        </div>
-    </div>
-</div>
+<x-navbar-superadmin active="acente-ai" />
 
 <div class="main-layout">
 
     {{-- Sidebar --}}
     <div class="sidebar">
-        <h6><i class="fas fa-search me-1"></i>Sorgulama</h6>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-id-card"></i>12572 belge no kime ait?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-map-marker-alt"></i>Van'da kaç acente var?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-layer-group"></i>Ege bölgesinde kaç acente var?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-sort-numeric-down"></i>En eski acente hangisi?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-sort-numeric-up"></i>En son kurulan acente hangisi?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-code-branch"></i>En çok şubesi olan acente hangisi?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-envelope"></i>info@ornek.com kaç acentede kayıtlı?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-phone"></i>0212 123 45 67 kaç acentede kayıtlı?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-building"></i>İzmir Konak Alsancak'ta kaç acente var?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-user-check"></i>Group Ticket Turizm üyemiz mi?</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-info-circle"></i>Group Ticket hakkında ne biliyoruz?</button>
-
-        <h6 class="mt-2"><i class="fas fa-paper-plane me-1"></i>Email & SMS</h6>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-envelope"></i>Group Ticket'e tanıtım emaili gönder</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-sms"></i>Group Ticket'e bayram tebriği SMS'i yolla</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-clock"></i>Cuma sabahı 9'da Group Ticket'e SMS gönder</button>
-        <button class="prompt-chip" onclick="setPrompt(this)"><i class="fas fa-history"></i>Bu ay kaç acenteye email/SMS gönderdik?</button>
+        <h6 id="sidebar-q-label"><i class="fas fa-search me-1"></i>Sorgulama</h6>
+        <div id="sidebar-sorgulama"></div>
+        <h6 class="mt-2" id="sidebar-a-label"><i class="fas fa-paper-plane me-1"></i>Email & SMS</h6>
+        <div id="sidebar-eylem"></div>
     </div>
 
     {{-- Chat --}}
@@ -181,6 +148,80 @@ const smsUrl     = '{{ route("superadmin.acente.ai.sms") }}';
 let isLoading    = false;
 let gecmis       = [];       // Konuşma geçmişi
 let aktifEylem   = null;     // Bekleyen eylem
+
+// ── Sidebar dinamik havuz ───────────────────────────────────────────────────
+const SORGULAR = [
+    // Belge / kimlik
+    {i:'fas fa-id-card',      t:'12572 belge nosu kime ait?'},
+    {i:'fas fa-id-card',      t:'Benim belge numaram nedir?'},
+    {i:'fas fa-search',       t:'Hilal Tur\'un belge nosu nedir?'},
+    {i:'fas fa-fingerprint',  t:'Group Ticket kaçıncı sırada kurulmuş?'},
+    {i:'fas fa-hashtag',      t:'15000 ile 15010 arasındaki belge nolarına sahip acenteler hangileri?'},
+    // İl / ilçe / bölge
+    {i:'fas fa-map-marker-alt', t:'Van\'da kaç acente var?'},
+    {i:'fas fa-map-marker-alt', t:'Ankara\'da kaç acente var?'},
+    {i:'fas fa-layer-group',    t:'Ege bölgesinde kaç acente var?'},
+    {i:'fas fa-layer-group',    t:'Karadeniz bölgesindeki acenteleri listele'},
+    {i:'fas fa-layer-group',    t:'Marmara ve Ege\'yi karşılaştır'},
+    {i:'fas fa-building',       t:'İzmir Konak Alsancak\'ta kaç acente var?'},
+    {i:'fas fa-building',       t:'Antalya Muratpaşa\'da kaç acente var?'},
+    {i:'fas fa-city',           t:'En fazla acente hangi ilçede?'},
+    {i:'fas fa-map',            t:'Hangi ilde hiç acente yok?'},
+    {i:'fas fa-chart-bar',      t:'İstanbul\'daki acentelerin ilçe dağılımı'},
+    // Sıralama / istatistik
+    {i:'fas fa-sort-numeric-down', t:'En eski acente hangisi?'},
+    {i:'fas fa-sort-numeric-up',   t:'En son kurulan acente hangisi?'},
+    {i:'fas fa-sort-numeric-up',   t:'Antalya\'da en son kurulan acente hangisi?'},
+    {i:'fas fa-code-branch',       t:'En çok şubesi olan acente hangisi?'},
+    {i:'fas fa-code-branch',       t:'5\'ten fazla şubesi olan acenteler hangileri?'},
+    {i:'fas fa-trophy',            t:'İstanbul\'da en çok şubeli ilk 5 acente'},
+    {i:'fas fa-star',              t:'A grubu kaç acente var, B ve C grubu kaç?'},
+    {i:'fas fa-percent',           t:'Kaç acentenin e-postası var, kaçının yok?'},
+    {i:'fas fa-mobile-alt',        t:'Kaç acentenin GSM numarası var?'},
+    {i:'fas fa-times-circle',      t:'İptal edilmiş kaç acente var?'},
+    // Kişisel / arama
+    {i:'fas fa-user-check',     t:'Group Ticket Turizm üyemiz mi?'},
+    {i:'fas fa-info-circle',    t:'Group Ticket hakkında ne biliyoruz?'},
+    {i:'fas fa-store',          t:'Benim acentemle aynı ilçedeki diğer acenteler hangileri?'},
+    {i:'fas fa-phone',          t:'0212 ile başlayan telefonu olan kaç acente var?'},
+    {i:'fas fa-envelope',       t:'Gmail adresi olan kaç acente var?'},
+    {i:'fas fa-globe',          t:'Web sitesi olan kaç acente var?'},
+    {i:'fas fa-database',       t:'Bakanlık kaynaklı ile TÜRSAB kaynaklı arasındaki fark ne?'},
+    {i:'fas fa-clock',          t:'Bu ay sisteme kaç yeni acente eklendi?'},
+];
+
+const EYLEMLER = [
+    {i:'fas fa-envelope',       t:'Bana tanıtım emaili gönder'},
+    {i:'fas fa-sms',            t:'Bana tanıtım SMS\'i yolla'},
+    {i:'fas fa-sms',            t:'Bana bayram tebriği SMS\'i hazırla'},
+    {i:'fas fa-clock',          t:'Yarın sabah 9\'da bana motivasyon SMS\'i gönder'},
+    {i:'fas fa-paper-plane',    t:'Üyemiz olmayan İzmir acentelerine tanıtım emaili gönder'},
+    {i:'fas fa-broadcast-tower',t:'Antalya\'daki GSM\'li acentelere tanıtım SMS\'i gönder'},
+    {i:'fas fa-history',        t:'Bu ay kaç acenteye email gönderdik?'},
+    {i:'fas fa-history',        t:'Bu ay kaç acenteye SMS gönderdik?'},
+    {i:'fas fa-redo',           t:'Daha önce email gönderdiğimiz acenteler hangileri?'},
+    {i:'fas fa-ban',            t:'Hiç email göndermediğimiz İstanbul acenteleri kaç tane?'},
+];
+
+function shuffle(arr) {
+    return arr.slice().sort(() => Math.random() - 0.5);
+}
+
+function buildSidebar() {
+    const sq = shuffle(SORGULAR).slice(0, 9);
+    const se = shuffle(EYLEMLER).slice(0, 5);
+    document.getElementById('sidebar-sorgulama').innerHTML =
+        sq.map(x => `<button class="prompt-chip" onclick="chipClick(this)"><i class="${x.i}"></i>${x.t}</button>`).join('');
+    document.getElementById('sidebar-eylem').innerHTML =
+        se.map(x => `<button class="prompt-chip" onclick="chipClick(this)"><i class="${x.i}"></i>${x.t}</button>`).join('');
+}
+
+function chipClick(btn) {
+    const input = document.getElementById('soruInput');
+    input.value = btn.textContent.trim();
+    autoResize(input);
+    input.focus();
+}
 
 // ── Yardımcılar ────────────────────────────────────────────────────────────
 function setPrompt(btn) {
@@ -418,6 +459,8 @@ async function sendMessage() {
     const soru  = input.value.trim();
     if (!soru) return;
 
+    buildSidebar();  // her gönderimde yenile
+
     isLoading = true;
     document.getElementById('sendBtn').disabled = true;
     input.value = '';
@@ -452,6 +495,8 @@ async function sendMessage() {
         input.focus();
     }
 }
+
+document.addEventListener('DOMContentLoaded', buildSidebar);
 </script>
 </body>
 </html>
