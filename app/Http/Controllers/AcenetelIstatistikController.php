@@ -28,6 +28,41 @@ class AcenetelIstatistikController extends Controller
         'Bursa','Ankara','Mersin','Adana','Edirne','Samsun',
     ];
 
+    // İlçe adını normalize et: "IL - ILCE" → "ILCE", "ILCE / IL" → "ILCE"
+    private static function normalizeIlce(string $ilce): string
+    {
+        $ilce = trim($ilce);
+        if (str_contains($ilce, ' - ')) {
+            $parts = explode(' - ', $ilce, 2);
+            $after = trim($parts[1]);
+            return $after !== '' ? $after : trim($parts[0]);
+        }
+        if (str_contains($ilce, ' / ')) {
+            return trim(explode(' / ', $ilce, 2)[0]);
+        }
+        return $ilce;
+    }
+
+    // Koleksiyon üzerinde ilçe adlarını normalize edip yeniden aggregate et
+    // $rows: [{il_ilce, toplam, ...}], $key: gruplama anahtarı(ları)
+    private static function reAggregateIlce($rows, array $extraKeys = []): \Illuminate\Support\Collection
+    {
+        $map = [];
+        foreach ($rows as $row) {
+            $norm = self::normalizeIlce($row->il_ilce ?? '');
+            $groupKey = $norm;
+            foreach ($extraKeys as $k) $groupKey .= '|' . ($row->$k ?? '');
+
+            if (!isset($map[$groupKey])) {
+                $map[$groupKey] = clone $row;
+                $map[$groupKey]->il_ilce = $norm;
+            } else {
+                $map[$groupKey]->toplam += $row->toplam;
+            }
+        }
+        return collect(array_values($map));
+    }
+
     public function normalizeKaynak(string $mode)
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
@@ -165,24 +200,26 @@ class AcenetelIstatistikController extends Controller
             ->orderByDesc('toplam')
             ->get();
 
-        // ── İLÇE DAĞILIMI (Top 15) ───────────────────────────────────────────
-        $ilceDagilim = DB::table('acenteler')
+        // ── İLÇE DAĞILIMI (Top 15) — normalize edilmiş ───────────────────────
+        $ilceDagilimRaw = DB::table('acenteler')
             ->selectRaw('il_ilce, il, COUNT(*) as toplam')
             ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
             ->groupBy('il_ilce', 'il')
-            ->orderByDesc('toplam')
-            ->limit(15)
             ->get();
+        $ilceDagilim = self::reAggregateIlce($ilceDagilimRaw, ['il'])
+            ->sortByDesc('toplam')->take(15)->values();
 
-        // ── TOP 5 İL → İLÇE DRILLDOWN ────────────────────────────────────────
+        // ── TOP 5 İL → İLÇE DRILLDOWN — normalize edilmiş ───────────────────
         $top5Iller = $ilDagilim->take(5)->pluck('il');
-        $ilceDrilldown = DB::table('acenteler')
+        $ilceDrilldownRaw = DB::table('acenteler')
             ->selectRaw('il, il_ilce, COUNT(*) as toplam')
             ->whereIn('il', $top5Iller)
             ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
             ->groupBy('il', 'il_ilce')
-            ->orderBy('il')->orderByDesc('toplam')
-            ->get()->groupBy('il');
+            ->get();
+        $ilceDrilldown = self::reAggregateIlce($ilceDrilldownRaw, ['il'])
+            ->groupBy('il')
+            ->map(fn($g) => $g->sortByDesc('toplam')->values());
 
         // ── DAVET İSTATİSTİĞİ ─────────────────────────────────────────────────
         $davetTableExists = Schema::hasTable('tursab_davetler');
@@ -225,15 +262,17 @@ class AcenetelIstatistikController extends Controller
             ->limit(15)
             ->get();
 
-        // ── İLÇE BAZLI ŞUBE YOĞUNLUĞU ────────────────────────────────────────
-        $ilceSubeYogunluk = DB::table('acenteler')
+        // ── İLÇE BAZLI ŞUBE YOĞUNLUĞU — normalize edilmiş ──────────────────
+        $ilceSubeYogunlukRaw = DB::table('acenteler')
             ->selectRaw('il, il_ilce, COUNT(*) as toplam_sube')
             ->where('is_sube', 1)
             ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
             ->groupBy('il', 'il_ilce')
-            ->orderByDesc('toplam_sube')
-            ->limit(15)
-            ->get();
+            ->get()
+            ->map(function ($r) { $r->toplam = $r->toplam_sube; return $r; });
+        $ilceSubeYogunluk = self::reAggregateIlce($ilceSubeYogunlukRaw, ['il'])
+            ->map(function ($r) { $r->toplam_sube = $r->toplam; return $r; })
+            ->sortByDesc('toplam_sube')->take(15)->values();
 
         // ── KAYNAK DAĞILIMI (Veri sekmesi için) ──────────────────────────────
         $kaynaklar = DB::table('acenteler')
