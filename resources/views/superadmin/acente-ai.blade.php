@@ -9,8 +9,8 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *{box-sizing:border-box}
-html{height:100%}
-body{min-height:100%;margin:0;background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column}
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column}
 
 .main-layout{flex:1;display:flex;overflow:hidden;min-height:0}
 
