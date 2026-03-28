@@ -442,6 +442,7 @@ FORMAT;
             }
         }
 
+        $sql = rtrim(trim($sql), ';');
         if (! str_contains($upper, 'LIMIT')) {
             $sql .= ' LIMIT 20';
         }
