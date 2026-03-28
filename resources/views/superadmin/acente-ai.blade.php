@@ -106,7 +106,7 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-dire
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1><i class="fas fa-robot me-2" style="color:#0d6efd"></i>AI Acente Asistanı</h1>
-            <p>Veritabanını sorgula · Email & SMS gönder · {{ now()->format('d.m.Y') }}</p>
+            <p>TURAi · Veritabanını sorgula · Email & SMS gönder · {{ now()->format('d.m.Y') }}</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('superadmin.acenteler.istatistik') }}" class="btn btn-sm btn-outline-light">
@@ -231,7 +231,7 @@ function appendMessage(role, content, eylem) {
         div.innerHTML = `
             <div class="bubble-ai">${marked.parse(content)}</div>
             ${eylemHtml}
-            <div class="msg-meta"><i class="fas fa-robot me-1"></i>Gemini · ${nowTime()}</div>`;
+            <div class="msg-meta"><i class="fas fa-robot me-1"></i>TURAi · ${nowTime()}</div>`;
     }
 
     msgs.appendChild(div);

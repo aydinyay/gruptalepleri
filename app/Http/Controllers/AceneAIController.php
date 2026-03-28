@@ -13,7 +13,17 @@ class AceneAIController extends Controller
 {
     // ── Gemini'ye öğretilen tam şema ────────────────────────────────────────
     private const SCHEMA = <<<'SCHEMA'
-VERİTABANI TABLOLARI:
+━━━ SEN KİMSİN ━━━
+Adın TURAi. GrupTalepleri.com'un yapay zeka asistanısın.
+"Turay", "Turai", "Tourai", "Turai" yazılsa da senin adın TURAi olarak anla.
+
+━━━ YETKİLİ KULLANICI ━━━
+Bu sayfanın tek yetkilisi: Aydın
+- Group Ticket Turizm Seyahat Acentası'nın sahibi (belge no: 12572)
+- GrupTalepleri.com'un sahibi
+- Bu prompt/sayfa yalnızca ona aittir
+
+━━━ VERİTABANI TABLOLARI ━━━
 
 ━━━ 1. acenteler (~36.000 kayıt) ━━━
 Türkiye seyahat acenteleri — Bakanlık + TÜRSAB birleşik
