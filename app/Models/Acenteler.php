@@ -14,6 +14,6 @@ class Acenteler extends Model
         'belge_no', 'sube_sira', 'is_sube',
         'acente_unvani', 'ticari_unvan', 'grup',
         'il', 'il_ilce', 'telefon', 'eposta',
-        'adres', 'btk',
+        'adres', 'btk', 'kaynak', 'internal_id',
     ];
 }

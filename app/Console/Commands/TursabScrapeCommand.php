@@ -20,7 +20,7 @@ class TursabScrapeCommand extends Command
 
     protected $description = 'TÜRSAB acenta-arama sayfasından belge no ile acente bilgisi çeker ve acenteler tablosuna kaydeder.';
 
-    private const TURSAB_URL   = 'https://www.tursab.org.tr/acenta-arama';
+    private const TURSAB_URL   = 'https://online.tursab.org.tr/publicpages/embedded/agencysearch/';
     private const SK_LAST_NO   = 'tursab_scrape_last_no';
     private const SK_FOUND     = 'tursab_scrape_found';
     private const SK_STATUS    = 'tursab_scrape_status';
@@ -125,6 +125,7 @@ class TursabScrapeCommand extends Command
                             'eposta'        => $row['eposta']        ?? null,
                             'adres'         => $row['adres']         ?? null,
                             'btk'           => $row['btk']           ?? null,
+                            'kaynak'        => 'tursab',
                         ]);
                         $found++;
                         $subeIdx++;
@@ -172,12 +173,14 @@ class TursabScrapeCommand extends Command
             $viewState          = $this->extractHidden($html, '__VIEWSTATE');
             $viewStateGen       = $this->extractHidden($html, '__VIEWSTATEGENERATOR');
             $eventValidation    = $this->extractHidden($html, '__EVENTVALIDATION');
+            $rsmTsm             = $this->extractHidden($html, 'RadScriptManager_TSM');
             $cookies            = $response->cookies()->toArray();
 
             return [
                 '__VIEWSTATE'          => $viewState,
                 '__VIEWSTATEGENERATOR' => $viewStateGen,
                 '__EVENTVALIDATION'    => $eventValidation,
+                'RadScriptManager_TSM' => $rsmTsm,
                 'cookies'              => $cookies,
                 'raw'                  => $html,
             ];
@@ -192,16 +195,21 @@ class TursabScrapeCommand extends Command
         usleep($delayMs * 1000);
 
         try {
-            // ASP.NET WebForms POST isteği
+            // ASP.NET WebForms POST isteği (online.tursab.org.tr)
             $postData = [
-                '__VIEWSTATE'                                => $tokens['__VIEWSTATE']          ?? '',
-                '__VIEWSTATEGENERATOR'                       => $tokens['__VIEWSTATEGENERATOR'] ?? '',
-                '__EVENTVALIDATION'                          => $tokens['__EVENTVALIDATION']    ?? '',
-                '__EVENTTARGET'                              => '',
-                '__EVENTARGUMENT'                            => '',
-                'ContentPlaceHolder1_TursabNoText'           => (string) $belgeNo,
-                'ContentPlaceHolder1_AcentaAdText'           => '',
-                'ContentPlaceHolder1_SearchButton'           => 'ARA',
+                'RadScriptManager_TSM'                                          => $tokens['RadScriptManager_TSM']   ?? '',
+                '__EVENTTARGET'                                                 => '',
+                '__EVENTARGUMENT'                                               => '',
+                '__LASTFOCUS'                                                   => '',
+                '__VIEWSTATE'                                                   => $tokens['__VIEWSTATE']            ?? '',
+                '__VIEWSTATEGENERATOR'                                          => $tokens['__VIEWSTATEGENERATOR']   ?? '',
+                '__EVENTVALIDATION'                                             => $tokens['__EVENTVALIDATION']      ?? '',
+                'ctl00$ContentPlaceHolder1$OprGroup'                            => 'NameSearchRadio',
+                'ctl00$ContentPlaceHolder1$TursabNo$AutoCompleteTextBox'        => '',
+                'ctl00$ContentPlaceHolder1$TursabNo$AutoCompleteTextBoxHF'      => '',
+                'ctl00$ContentPlaceHolder1$TursabNo$AutoCompleteTextBoxTF'      => '',
+                'ctl00$ContentPlaceHolder1$TursabNoText'                        => (string) $belgeNo,
+                'ctl00$ContentPlaceHolder1$SearchButton'                        => 'Ara',
             ];
 
             // Cookie header oluştur
@@ -230,66 +238,128 @@ class TursabScrapeCommand extends Command
     }
 
     // ── HTML yanıtından tüm acente kayıtlarını parse et ─────────────────
+    // Yeni format: div.lit-container içinde her satır
     private function parseResults(string $html): array
     {
         $results = [];
 
-        // Hata veya sonuç yok kontrolü
+        // Sonuç yok kontrolü
         if (
             str_contains($html, 'Acenta Bulunamadı') ||
             str_contains($html, 'Arama sonucu bulunamadı') ||
-            str_contains($html, 'kayıt bulunamadı')
+            str_contains($html, 'kayıt bulunamadı') ||
+            str_contains($html, 'sonuç bulunamadı')
         ) {
             return [];
         }
 
-        // Önce DOMDocument ile parse etmeyi dene
+        // div.lit-container yapısı:
+        // <div class="lit-container">
+        //   <div class="w3-row">
+        //     <div class="w3-col l1 lit"><div class="litc">18801</div></div>   ← belge no
+        //     <div class="w3-col l5 lit"><div class="litc"><span>Seyahat Acentası Adı : </span>CTG...</div></div>
+        //     <div class="w3-col l3 lit"><div class="litc"><span>Telefon : </span>...</div></div>
+        //     <div class="w3-col l3 lit"><div class="litc"><span>Email : </span>...</div></div>
+        //   </div>
+        //   <div class="w3-row"><div ...><span>Adres : </span>...</div></div>
+        //   <div class="w3-row"><div ...><span>BTK :</span> ...</div></div>
+        // </div>
+
         $dom = new \DOMDocument();
         @$dom->loadHTML('<?xml encoding="utf-8"?>' . $html);
         $xpath = new \DOMXPath($dom);
 
-        // TÜRSAB sonuç satırları genellikle <tr> içinde ya da tekrarlayan div blokları
-        // Önce <tr> ile deneyelim (tablo sonuç)
-        $rows = $xpath->query('//table[@id]//tr[position()>1]');
-        if ($rows && $rows->length > 0) {
-            foreach ($rows as $row) {
-                $cells = $xpath->query('td', $row);
-                if ($cells->length >= 3) {
-                    $record = $this->buildRecordFromCells($cells, $xpath);
-                    if ($record) $results[] = $record;
-                }
+        $containers = $xpath->query('//*[contains(@class,"lit-container")]');
+
+        if ($containers && $containers->length > 0) {
+            foreach ($containers as $container) {
+                $record = $this->parseLitContainer($container, $xpath);
+                if ($record) $results[] = $record;
             }
-            if (!empty($results)) return $results;
+            return $results;
         }
 
-        // Tablo bulunamazsa metin bazlı parse
+        // Fallback: metin bazlı parse (div yapısı da değişmişse)
         return $this->parseFromText($html);
     }
 
-    // ── Tablo hücrelerinden kayıt oluştur ────────────────────────────────
-    private function buildRecordFromCells(\DOMNodeList $cells, \DOMXPath $xpath): ?array
+    // ── div.lit-container'dan kayıt oluştur ──────────────────────────────
+    private function parseLitContainer(\DOMElement $container, \DOMXPath $xpath): ?array
     {
-        $texts = [];
-        foreach ($cells as $cell) {
-            $texts[] = trim($cell->textContent);
+        // Tüm metin içeriğini al ve " : " kalıbıyla parse et
+        $fullText = html_entity_decode($container->textContent, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $labelMap = [
+            'seyahat acentası adı' => 'acente_unvani',
+            'acenta adı'           => 'acente_unvani',
+            'telefon'              => 'telefon',
+            'email'                => 'eposta',
+            'e-posta'              => 'eposta',
+            'adres'                => 'adres',
+            'btk'                  => 'btk',
+            'il'                   => 'il',
+            'ilçe'                 => 'il_ilce',
+            'grup'                 => 'grup',
+        ];
+
+        $record   = [];
+        $belgeNo  = null;
+
+        // Belge no: litc içinde font-weight:700 olan ya da ilk l1 sütunundaki sayısal değer
+        $litcNodes = $xpath->query('.//*[contains(@class,"litc")]', $container);
+        foreach ($litcNodes as $litc) {
+            $style = strtolower($litc->getAttribute('style'));
+            $text  = trim($litc->textContent);
+            if ((str_contains($style, 'font-weight:700') || str_contains($style, 'font-weight: 700'))
+                && is_numeric($text)) {
+                $belgeNo = $text;
+                break;
+            }
         }
 
-        // En az acente adı olmalı
-        if (empty(array_filter($texts))) return null;
+        // Span'ları parse et: "Label : Değer" veya "Label :" + sonraki text
+        $spans = $xpath->query('.//span', $container);
+        foreach ($spans as $span) {
+            $spanText = trim($span->textContent);
+            // "Seyahat Acentası Adı : " gibi — iki nokta üstüyle biter
+            $colonPos = mb_strpos($spanText, ':');
+            if ($colonPos === false) continue;
 
-        // Belirli index'lere göre eşleştir (TÜRSAB tablo yapısına göre)
-        // Tipik düzen: BelgeNo | AcenteAdı | Grup | İl | İlçe | Telefon | Email
-        return [
-            'acente_unvani' => $texts[1] ?? $texts[0] ?? null,
-            'ticari_unvan'  => $texts[2] ?? null,
-            'grup'          => $texts[3] ?? null,
-            'il'            => $texts[4] ?? null,
-            'il_ilce'       => $texts[5] ?? null,
-            'telefon'       => $texts[6] ?? null,
-            'eposta'        => isset($texts[7]) && str_contains($texts[7], '@') ? $texts[7] : null,
-            'adres'         => null,
-            'btk'           => null,
-        ];
+            $label = mb_strtolower(trim(mb_substr($spanText, 0, $colonPos)));
+            $label = preg_replace('/\s+/', ' ', $label);
+
+            if (!isset($labelMap[$label])) continue;
+
+            $col = $labelMap[$label];
+
+            // Değer: span'ın nextSibling text node'u veya parent litc'in span sonrası metni
+            $parentText = trim($span->parentNode->textContent ?? '');
+            $afterColon = trim(mb_substr($parentText, mb_strpos($parentText, ':') + 1));
+
+            if ($afterColon && !isset($record[$col])) {
+                $record[$col] = $afterColon;
+            }
+        }
+
+        // Belge no'yu adres satırından çıkarmaya çalış (bold şehir/ilçe)
+        // Adres içindeki <b> tagları: il ve ilçe
+        if (isset($record['adres']) && !isset($record['il'])) {
+            $bolds = $xpath->query('.//b', $container);
+            $boldTexts = [];
+            foreach ($bolds as $b) $boldTexts[] = trim($b->textContent);
+            if (count($boldTexts) >= 2) {
+                $record['il_ilce'] = $boldTexts[0] . ' / ' . $boldTexts[1];
+                $record['il']      = $boldTexts[1]; // son bold = il
+            } elseif (count($boldTexts) === 1) {
+                $record['il'] = $boldTexts[0];
+            }
+        }
+
+        if (empty($record['acente_unvani'])) return null;
+
+        $record['belge_no_ham'] = $belgeNo; // kayıt için sakla (belge_no field değil)
+
+        return $record;
     }
 
     // ── Metin bazlı parse (tablo bulunamadığında fallback) ───────────────

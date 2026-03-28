@@ -138,6 +138,106 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return response('Silindi: ' . $deleted . ' dosya. View cache temizlendi.');
     });
 
+    // Route::get('/tursab-debug/{no}', function (int $no = 18801) { /* debug kaldırıldı */ });
+    Route::get('/tursab-debug-disabled', function (int $no = 18801) {
+        $base = 'https://online.tursab.org.tr/publicpages/embedded/agencysearch/';
+        $postUrl = $base;
+        $http = \Illuminate\Support\Facades\Http::withHeaders([
+            'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36',
+            'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language' => 'tr-TR,tr;q=0.9',
+        ])->timeout(20);
+
+        $out = "<pre style='font-size:11px;padding:10px;white-space:pre-wrap;'>";
+
+        // 1) GET sayfayı incele
+        $get  = $http->get($base);
+        $html = $get->body();
+        $title = '';
+        if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $m)) $title = trim(strip_tags($m[1]));
+
+        $out .= "=== GET {$base} ===\n";
+        $out .= "Status: " . $get->status() . " | Boyut: " . strlen($html) . "\n";
+        $out .= "Title: {$title}\n";
+        $out .= "ViewState: " . (str_contains($html,'__VIEWSTATE') ? 'EVET':'HAYIR') . "\n";
+        $out .= "Form: "      . (str_contains($html,'<form')       ? 'EVET':'HAYIR') . "\n";
+        $out .= "Table: "     . (str_contains($html,'<table')      ? 'EVET':'HAYIR') . "\n";
+
+        // Input adlarını çıkar
+        preg_match_all('/<input[^>]+name=["\']([^"\']+)["\'][^>]*>/i', $html, $inputs);
+        $out .= "Input isimleri: " . implode(', ', array_unique($inputs[1])) . "\n";
+
+        // Form action
+        preg_match('/<form[^>]+action=["\']([^"\']*)["\'][^>]*>/i', $html, $fa);
+        $out .= "Form action: " . ($fa[1] ?? '(yok)') . "\n";
+
+        // API/fetch ipuçları
+        preg_match_all('#["\']([^"\']*(?:api|search|agency|acen)[^"\']{0,60})["\']#i', $html, $apis);
+        $hints = array_slice(array_unique($apis[1]), 0, 10);
+        $out .= "API ipuçları:\n  " . implode("\n  ", array_map('htmlspecialchars', $hints)) . "\n";
+
+        // İlk 800 karakter
+        $out .= "\n--- HTML (ilk 800 karakter) ---\n" . htmlspecialchars(substr($html, 0, 800)) . "\n\n";
+
+        // 2) ViewState varsa POST dene
+        $extract = function(string $h, string $name): string {
+            if (preg_match('/name=["\']'.preg_quote($name,'/').'["\'][^>]*value=["\']([^"\']*)["\']/', $h, $m)) return $m[1];
+            if (preg_match('/value=["\']([^"\']*)["\'][^>]*name=["\']'.preg_quote($name,'/').'["\']/', $h, $m)) return $m[1];
+            return '';
+        };
+        $vs = $extract($html, '__VIEWSTATE');
+        $ev = $extract($html, '__EVENTVALIDATION');
+
+        if ($vs || str_contains($html, '<form')) {
+            $cookieHdr = '';
+            foreach ($get->cookies()->toArray() as $c) {
+                $n = $c['Name'] ?? $c['name'] ?? ''; $v = $c['Value'] ?? $c['value'] ?? '';
+                if ($n) $cookieHdr .= "{$n}={$v}; ";
+            }
+
+            // Tüm hidden input'ları topla
+            preg_match_all('/<input[^>]+type=["\']hidden["\'][^>]*>/i', $html, $hiddenTags);
+            $postData = [];
+            foreach ($hiddenTags[0] as $tag) {
+                if (preg_match('/name=["\']([^"\']+)["\']/', $tag, $nm) &&
+                    preg_match('/value=["\']([^"\']*)["\']/', $tag, $vl)) {
+                    $postData[$nm[1]] = $vl[1];
+                }
+            }
+
+            // Bilinen alan adları
+            $postData['ctl00$ContentPlaceHolder1$OprGroup']                = 'NameSearchRadio'; // radio: ad/belge no arama modu
+            $postData['ctl00$ContentPlaceHolder1$TursabNoText']            = (string) $no;
+            $postData['ctl00$ContentPlaceHolder1$SearchButton']            = 'Ara';
+            $postData['ctl00$ContentPlaceHolder1$TursabNo$AutoCompleteTextBox']   = '';
+            $postData['ctl00$ContentPlaceHolder1$TursabNo$AutoCompleteTextBoxHF'] = '';
+            $postData['ctl00$ContentPlaceHolder1$TursabNo$AutoCompleteTextBoxTF'] = '';
+            $out .= "POST data anahtarları: " . implode(', ', array_keys($postData)) . "\n";
+
+            $post = \Illuminate\Support\Facades\Http::withHeaders([
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36',
+                'Referer'    => $base,
+                'Cookie'     => trim($cookieHdr, '; '),
+            ])->timeout(15)->asForm()->post($postUrl, $postData);
+
+            $html2 = $post->body();
+            $out .= "\n=== POST {$postUrl} ===\n";
+            $out .= "Status: " . $post->status() . " | Boyut: " . strlen($html2) . "\n";
+            $out .= "Table: " . (str_contains($html2,'<table') ? 'EVET':'HAYIR') . "\n";
+
+            $ctgPos = stripos($html2, 'CTG');
+            $out .= "CTG var mı: " . ($ctgPos !== false ? 'EVET (pos:'.$ctgPos.')' : 'HAYIR') . "\n";
+            $out .= "Acente Bulunamadı: " . (str_contains($html2,'Bulunamadı') ? 'EVET' : 'HAYIR') . "\n";
+            // CTG etrafındaki sonuç bölümünü göster
+            if ($ctgPos !== false) {
+                $out .= "\n--- CTG Bölgesi (±600 karakter) ---\n" . htmlspecialchars(substr($html2, max(0,$ctgPos-600), 1400)) . "\n";
+            }
+        }
+
+        $out .= "</pre>";
+        return response($out);
+    });
+
 
 
     Route::get('/yonetim/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
@@ -265,6 +365,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/tursab-toplu-davet', [\App\Http\Controllers\TursabController::class, 'topluDavet'])->name('tursab.toplu-davet');
     Route::post('/tursab-scrape-start', [\App\Http\Controllers\TursabController::class, 'scrapeStart'])->name('tursab.scrape.start');
     Route::get('/tursab-scrape-status', [\App\Http\Controllers\TursabController::class, 'scrapeStatus'])->name('tursab.scrape.status');
+    Route::post('/tursab-manuel-ekle', [\App\Http\Controllers\TursabController::class, 'manuelEkle'])->name('tursab.manuel-ekle');
+    Route::post('/bakanlik-scrape-start',  [\App\Http\Controllers\TursabController::class, 'bakanlikScrapeStart'])->name('bakanlik.scrape.start');
+    Route::get( '/bakanlik-scrape-status', [\App\Http\Controllers\TursabController::class, 'bakanlikScrapeStatus'])->name('bakanlik.scrape.status');
 
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');

@@ -264,6 +264,54 @@ class TursabController extends Controller
     }
 
     /**
+     * Superadmin — Bakanlık scraper başlat.
+     */
+    public function bakanlikScrapeStart(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $batch      = max(1, (int) ($request->input('batch', 5)));
+        $reset      = $request->boolean('reset');
+        $illerReset = $request->boolean('iller_reset');
+
+        $args = ['--batch' => (string) $batch];
+        if ($reset)      $args['--reset']       = true;
+        if ($illerReset) $args['--iller-reset']  = true;
+
+        \Artisan::call('bakanlik:scrape', $args);
+
+        return $this->bakanlikScrapeStatus();
+    }
+
+    /**
+     * Superadmin — Bakanlık scraper durum bilgisi.
+     */
+    public function bakanlikScrapeStatus()
+    {
+        $this->assertSuperadmin();
+
+        $ilIdx  = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_il_idx', '0');
+        $found  = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_found',  '0');
+        $status = (string) \App\Models\SistemAyar::get('bakanlik_scrape_status', 'idle');
+        $at     = (string) \App\Models\SistemAyar::get('bakanlik_scrape_at',     '');
+        $endNo  = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_end',    '0');
+
+        $total  = \App\Models\Acenteler::where('kaynak', 'bakanlik')->count();
+        $done   = ($endNo > 0 && $ilIdx >= $endNo);
+
+        return response()->json([
+            'status'   => $status,
+            'il_idx'   => $ilIdx,
+            'end_no'   => $endNo,
+            'found'    => $found,
+            'db_total' => $total,
+            'at'       => $at,
+            'done'     => $done,
+            'percent'  => $endNo > 0 ? round($ilIdx / $endNo * 100, 1) : 0,
+        ]);
+    }
+
+    /**
      * Superadmin — Scraper durum bilgisi.
      */
     public function scrapeStatus()
@@ -289,6 +337,35 @@ class TursabController extends Controller
             'done'     => $done,
             'percent'  => $endNo > 0 ? round($lastNo / $endNo * 100, 1) : 0,
         ]);
+    }
+
+    /**
+     * Superadmin — El ile acente ekle / güncelle.
+     */
+    public function manuelEkle(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $data = $request->validate([
+            'belge_no'      => 'required|string|max:20',
+            'acente_unvani' => 'required|string|max:255',
+            'telefon'       => 'nullable|string|max:50',
+            'eposta'        => 'nullable|email|max:255',
+            'il'            => 'nullable|string|max:100',
+            'grup'          => 'nullable|string|max:50',
+            'adres'         => 'nullable|string|max:500',
+            'btk'           => 'nullable|string|max:20',
+        ]);
+
+        $payload = array_filter($data, fn($v) => $v !== null && $v !== '');
+        $payload['kaynak'] = 'manuel';
+
+        Acenteler::updateOrCreate(
+            ['belge_no' => $data['belge_no'], 'kaynak' => 'manuel'],
+            $payload
+        );
+
+        return back()->with('success', $data['belge_no'] . ' — ' . $data['acente_unvani'] . ' eklendi / güncellendi.');
     }
 
     private function assertSuperadmin(): void

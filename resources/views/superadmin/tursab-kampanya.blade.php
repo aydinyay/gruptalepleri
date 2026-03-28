@@ -116,6 +116,11 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <i class="fas fa-satellite-dish me-1"></i>Veri Güncelleme
             </button>
         </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-manuel">
+                <i class="fas fa-plus-circle me-1"></i>Manuel Ekle
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -292,24 +297,33 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
         {{-- VERİ GÜNCELLEME TAB --}}
         <div class="tab-pane fade" id="tab-scrape">
-            <div class="card shadow-sm">
+
+            {{-- KAYNAK SEÇİCİ --}}
+            <div class="d-flex gap-2 mb-3 align-items-center">
+                <span class="small fw-bold text-muted me-1">Kaynak:</span>
+                <button id="btnKaynakTursab" class="btn btn-sm btn-primary" onclick="kaynakSec('tursab')">
+                    <i class="fas fa-flag me-1"></i>TÜRSAB
+                </button>
+                <button id="btnKaynakBakanlik" class="btn btn-sm btn-outline-secondary" onclick="kaynakSec('bakanlik')">
+                    <i class="fas fa-landmark me-1"></i>Turizm Bakanlığı
+                </button>
+            </div>
+
+            {{-- TÜRSAB PANEL --}}
+            <div id="panelTursab" class="card shadow-sm">
                 <div class="card-header py-2" style="background:#1a1a2e;color:#fff;">
                     <i class="fas fa-satellite-dish me-2" style="color:#e94560;"></i>
                     <span class="fw-bold">TÜRSAB Veri Güncelleme</span>
-                    <span class="float-end small text-white-50">Şu an DB'de: <strong id="scrDbTotal" class="text-white">—</strong> kayıt</span>
+                    <span class="float-end small text-white-50">DB'de: <strong id="scrDbTotal" class="text-white">—</strong> kayıt</span>
                 </div>
                 <div class="card-body">
-
-                    {{-- Durum satırı --}}
-                    <div class="d-flex flex-wrap gap-3 mb-3 align-items-center" id="scrStatusBar">
+                    <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
                         <span class="small">Durum: <strong id="scrStatus">—</strong></span>
                         <span class="small">Son belge no: <strong id="scrLastNo">—</strong></span>
                         <span class="small">Hedef: <strong id="scrEndNo">—</strong></span>
                         <span class="small">Toplam bulunan: <strong id="scrFound">—</strong></span>
                         <span class="small text-muted" id="scrAt"></span>
                     </div>
-
-                    {{-- İlerleme çubuğu --}}
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small text-muted mb-1">
                             <span id="scrProgressLabel">—</span>
@@ -317,27 +331,21 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                         </div>
                         <div class="progress" style="height:16px;border-radius:8px;">
                             <div id="scrProgressBar" class="progress-bar" role="progressbar"
-                                 style="width:0%;background:linear-gradient(90deg,#e94560,#c0392b);border-radius:8px;transition:width .4s;">
-                            </div>
+                                 style="width:0%;background:linear-gradient(90deg,#e94560,#c0392b);border-radius:8px;transition:width .4s;"></div>
                         </div>
                     </div>
-
-                    {{-- Kontroller --}}
                     <div class="row g-2 mb-3">
                         <div class="col-md-2">
                             <label class="form-label small mb-1">Başlangıç No</label>
-                            <input type="number" id="scrStart" class="form-control form-control-sm"
-                                   placeholder="Kaldığı yerden" min="1" max="99999">
+                            <input type="number" id="scrStart" class="form-control form-control-sm" placeholder="Kaldığı yerden" min="1" max="99999">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small mb-1">Bitiş No</label>
-                            <input type="number" id="scrEnd" class="form-control form-control-sm"
-                                   value="18804" min="1" max="99999">
+                            <input type="number" id="scrEnd" class="form-control form-control-sm" value="18804" min="1" max="99999">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small mb-1">Batch (No/istek)</label>
-                            <input type="number" id="scrBatch" class="form-control form-control-sm"
-                                   value="50" min="1" max="200">
+                            <input type="number" id="scrBatch" class="form-control form-control-sm" value="50" min="1" max="200">
                         </div>
                         <div class="col-md-6 d-flex align-items-end gap-2 flex-wrap">
                             <div class="form-check mt-1 me-2">
@@ -355,11 +363,134 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             </button>
                         </div>
                     </div>
-
-                    {{-- Log --}}
                     <div id="scrLog" class="border rounded p-2" style="background:#f8f9fa;font-size:0.78rem;font-family:monospace;max-height:220px;overflow-y:auto;">
                         <span class="text-muted">Log burada görünecek…</span>
                     </div>
+                </div>
+            </div>
+
+            {{-- BAKANLIK PANEL --}}
+            <div id="panelBakanlik" class="card shadow-sm d-none">
+                <div class="card-header py-2" style="background:#1a1a2e;color:#fff;">
+                    <i class="fas fa-landmark me-2" style="color:#e8a020;"></i>
+                    <span class="fw-bold">Turizm Bakanlığı Veri Güncelleme</span>
+                    <span class="float-end small text-white-50">DB'de: <strong id="bkDbTotal" class="text-white">—</strong> kayıt</span>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info py-2 small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Yalnızca <strong>GEÇERLİ</strong> belgeler indirilir. İptal olanlar atlanır.
+                        İl bazlı tarama yapar — her batch N il işler.
+                    </div>
+                    <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
+                        <span class="small">Durum: <strong id="bkStatus">—</strong></span>
+                        <span class="small">Taranan il: <strong id="bkIlIdx">—</strong> / <strong id="bkEndNo">—</strong></span>
+                        <span class="small">Toplam bulunan: <strong id="bkFound">—</strong></span>
+                        <span class="small text-muted" id="bkAt"></span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span id="bkProgressLabel">—</span>
+                            <span id="bkPercent">—</span>
+                        </div>
+                        <div class="progress" style="height:16px;border-radius:8px;">
+                            <div id="bkProgressBar" class="progress-bar" role="progressbar"
+                                 style="width:0%;background:linear-gradient(90deg,#e8a020,#c07a10);border-radius:8px;transition:width .4s;"></div>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label small mb-1">Batch (il/istek)</label>
+                            <input type="number" id="bkBatch" class="form-control form-control-sm" value="5" min="1" max="20">
+                        </div>
+                        <div class="col-md-9 d-flex align-items-end gap-2 flex-wrap">
+                            <button class="btn btn-sm btn-success" id="bkStartBtn" onclick="bkBaslat()">
+                                <i class="fas fa-play me-1"></i>Başlat
+                            </button>
+                            <button class="btn btn-sm btn-danger d-none" id="bkStopBtn" onclick="bkDur()">
+                                <i class="fas fa-stop me-1"></i>Durdur
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="bkSifirla()">
+                                <i class="fas fa-redo me-1"></i>İl İndexini Sıfırla
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="bkIllerSifirla()">
+                                <i class="fas fa-list me-1"></i>İl Listesini Yenile
+                            </button>
+                        </div>
+                    </div>
+                    <div id="bkLog" class="border rounded p-2" style="background:#f8f9fa;font-size:0.78rem;font-family:monospace;max-height:220px;overflow-y:auto;">
+                        <span class="text-muted">Log burada görünecek…</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- MANUEL EKLE TAB --}}
+        <div class="tab-pane fade" id="tab-manuel">
+            <div class="card shadow-sm">
+                <div class="card-header py-2">
+                    <strong><i class="fas fa-plus-circle me-1 text-primary"></i>El ile Acente Ekle / Güncelle</strong>
+                    <span class="text-muted small ms-2">Belge no üzerinden: varsa günceller, yoksa yeni ekler.</span>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('superadmin.tursab.manuel-ekle') }}">
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">TÜRSAB Belge No <span class="text-danger">*</span></label>
+                                <input type="text" name="belge_no" class="form-control form-control-sm @error('belge_no') is-invalid @enderror"
+                                       value="{{ old('belge_no') }}" placeholder="örn. 18801" required>
+                                @error('belge_no')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold">Acente Ünvanı <span class="text-danger">*</span></label>
+                                <input type="text" name="acente_unvani" class="form-control form-control-sm @error('acente_unvani') is-invalid @enderror"
+                                       value="{{ old('acente_unvani') }}" placeholder="CTG ANCIENT MODERN TOUR" required>
+                                @error('acente_unvani')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Grup</label>
+                                <select name="grup" class="form-select form-select-sm">
+                                    <option value="">—</option>
+                                    <option value="A" {{ old('grup') === 'A' ? 'selected' : '' }}>A</option>
+                                    <option value="B" {{ old('grup') === 'B' ? 'selected' : '' }}>B</option>
+                                    <option value="C" {{ old('grup') === 'C' ? 'selected' : '' }}>C</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">İl</label>
+                                <input type="text" name="il" class="form-control form-control-sm"
+                                       value="{{ old('il') }}" placeholder="İstanbul">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Telefon</label>
+                                <input type="text" name="telefon" class="form-control form-control-sm"
+                                       value="{{ old('telefon') }}" placeholder="+90 212 000 00 00">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">E-posta</label>
+                                <input type="email" name="eposta" class="form-control form-control-sm @error('eposta') is-invalid @enderror"
+                                       value="{{ old('eposta') }}" placeholder="info@acente.com">
+                                @error('eposta')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">BTK</label>
+                                <input type="text" name="btk" class="form-control form-control-sm"
+                                       value="{{ old('btk') }}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Adres</label>
+                                <input type="text" name="adres" class="form-control form-control-sm"
+                                       value="{{ old('adres') }}" placeholder="Tam adres (isteğe bağlı)">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-save me-1"></i>Kaydet
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -371,6 +502,14 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const KALAN_HAK = {{ $kalanHak }};
+
+// Manuel Ekle sekmesinde hata varsa otomatik aç
+@if($errors->any() && old('belge_no') !== null)
+document.addEventListener('DOMContentLoaded', function() {
+    var tab = new bootstrap.Tab(document.querySelector('[data-bs-target="#tab-manuel"]'));
+    tab.show();
+});
+@endif
 
 function secimGuncelle(cb) {
     const row = cb.closest('tr');
@@ -514,6 +653,112 @@ function scrapeSifirla() {
         method: 'POST',
         body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', batch: '1' })
     }).then(r => r.json()).then(d => { scrapeGoster(d); scrapeLog('İlerleme sıfırlandı.', 'text-warning'); });
+}
+
+// ── KAYNAK SEÇİCİ ────────────────────────────────────────────────────────
+function kaynakSec(kaynak) {
+    const isTursab = kaynak === 'tursab';
+    document.getElementById('panelTursab').classList.toggle('d-none', !isTursab);
+    document.getElementById('panelBakanlik').classList.toggle('d-none', isTursab);
+    document.getElementById('btnKaynakTursab').className   = isTursab ? 'btn btn-sm btn-primary'          : 'btn btn-sm btn-outline-secondary';
+    document.getElementById('btnKaynakBakanlik').className = isTursab ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-warning';
+    if (!isTursab) bkStatusYukle();
+}
+
+// ── BAKANLIK SCRAPER ─────────────────────────────────────────────────────
+const BK_SCRAPE_URL  = '{{ route("superadmin.bakanlik.scrape.start") }}';
+const BK_STATUS_URL  = '{{ route("superadmin.bakanlik.scrape.status") }}';
+let   bkRunning      = false;
+let   bkStopFlag     = false;
+
+function bkStatusYukle() {
+    fetch(BK_STATUS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json()).then(d => bkGoster(d));
+}
+
+function bkGoster(d) {
+    const statusMap = { running:'Çalışıyor', idle:'Hazır', paused:'Duraklatıldı', error:'Hata' };
+    document.getElementById('bkStatus').textContent    = statusMap[d.status] || d.status;
+    document.getElementById('bkStatus').className      = d.status === 'running' ? 'text-success' : (d.status === 'error' ? 'text-danger' : 'text-secondary');
+    document.getElementById('bkIlIdx').textContent     = d.il_idx  || '0';
+    document.getElementById('bkEndNo').textContent     = d.end_no  || '—';
+    document.getElementById('bkFound').textContent     = d.found   || '0';
+    document.getElementById('bkDbTotal').textContent   = d.db_total || '—';
+    document.getElementById('bkAt').textContent        = d.at ? 'Son çalışma: ' + d.at : '';
+    const pct = d.percent || 0;
+    document.getElementById('bkProgressBar').style.width = pct + '%';
+    document.getElementById('bkPercent').textContent   = pct + '%';
+    document.getElementById('bkProgressLabel').textContent = (d.il_idx || 0) + ' / ' + (d.end_no || '?') + ' il tarandı';
+}
+
+function bkLog(msg, cls) {
+    const log = document.getElementById('bkLog');
+    const line = document.createElement('div');
+    line.className = cls || '';
+    line.textContent = new Date().toLocaleTimeString('tr') + ' — ' + msg;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+}
+
+async function bkBaslat() {
+    if (bkRunning) return;
+    bkRunning  = true;
+    bkStopFlag = false;
+    document.getElementById('bkStartBtn').classList.add('d-none');
+    document.getElementById('bkStopBtn').classList.remove('d-none');
+
+    const batchVal = document.getElementById('bkBatch').value;
+    document.getElementById('bkLog').innerHTML = '';
+    bkLog('Tarama başlatıldı… (her istek ' + batchVal + ' il işler)');
+
+    while (!bkStopFlag) {
+        try {
+            const res = await fetch(BK_SCRAPE_URL, {
+                method: 'POST',
+                body: new URLSearchParams({ _token: CSRF_TOKEN, batch: batchVal })
+            });
+            if (!res.ok) { bkLog('HTTP hatası: ' + res.status, 'text-danger'); break; }
+            const d = await res.json();
+            bkGoster(d);
+            bkLog('Batch bitti — İl: ' + d.il_idx + '/' + d.end_no + ' | Bulunan: ' + d.found + ' | DB: ' + d.db_total);
+
+            if (d.done || d.status === 'idle') {
+                bkLog('Tarama tamamlandı.', 'text-success fw-bold');
+                break;
+            }
+        } catch (e) {
+            bkLog('İstek hatası: ' + e.message, 'text-danger');
+            break;
+        }
+
+        await new Promise(r => setTimeout(r, 800));
+    }
+
+    bkRunning = false;
+    document.getElementById('bkStartBtn').classList.remove('d-none');
+    document.getElementById('bkStopBtn').classList.add('d-none');
+    if (bkStopFlag) bkLog('Kullanıcı tarafından durduruldu.', 'text-warning');
+}
+
+function bkDur() {
+    bkStopFlag = true;
+    bkLog('Durdurma isteği gönderildi…', 'text-warning');
+}
+
+function bkSifirla() {
+    if (!confirm('İl tarama indeksi sıfırlansın mı? (Veri silinmez, baştan tarar)')) return;
+    fetch(BK_SCRAPE_URL, {
+        method: 'POST',
+        body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', batch: '1' })
+    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('İndeks sıfırlandı.', 'text-warning'); });
+}
+
+function bkIllerSifirla() {
+    if (!confirm('İl listesi yeniden çekilsin mi?')) return;
+    fetch(BK_SCRAPE_URL, {
+        method: 'POST',
+        body: new URLSearchParams({ _token: CSRF_TOKEN, iller_reset: '1', batch: '1' })
+    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('İl listesi yenilendi.', 'text-info'); });
 }
 </script>
 </body>
