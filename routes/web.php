@@ -378,6 +378,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/normalize-kaynak/{mode}', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalizeKaynak'])->name('normalize.kaynak');
     Route::get('/acente-ai', [\App\Http\Controllers\AceneAIController::class, 'index'])->name('acente.ai');
     Route::post('/acente-ai/ask', [\App\Http\Controllers\AceneAIController::class, 'ask'])->name('acente.ai.ask');
+    Route::post('/acente-ai/email-gonder', [\App\Http\Controllers\AceneAIController::class, 'emailGonder'])->name('acente.ai.email');
+    Route::post('/acente-ai/sms-gonder', [\App\Http\Controllers\AceneAIController::class, 'smsGonder'])->name('acente.ai.sms');
 
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');

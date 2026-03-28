@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Bash(git *)",
+      "Bash(git **)",
       "Bash(curl -s \"https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyCVrF4w1ZWhMQfJXY7LA6tuSTr9cVSx61w\")",
       "Bash(php artisan:*)",
       "Bash(where nginx:*)",
@@ -54,7 +56,36 @@
       "Bash(php -r \":*)",
       "Bash(grep -r GroupRequest /c/gruptalepleri --include=*.php)",
       "Bash(grep -r group_request /c/gruptalepleri --include=*.php)",
-      "Bash(git fetch:*)"
-    ]
+      "Bash(git fetch:*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(sed \"s/.*->name\\(''''//\")",
+      "Bash(sed \"s/''''\\).*$//\")",
+      "Bash(curl -s \"https://api.github.com/repos/aydinyay/gruptalepleri/actions/runs?per_page=3\")",
+      "Bash(python3 -c \":*)",
+      "Bash(curl -s \"https://api.github.com/repos/aydinyay/gruptalepleri/actions/runs/23683721337/jobs\")",
+      "Bash(ls public/*.php)",
+      "Bash(mysql -h localhost -u gruprez1_gruprez1 -ppqcAnGRD6qF0Sz.G gruprez1_gruptalepleri -e \"SELECT kaynak, COUNT\\(*\\) as sayi FROM acenteler GROUP BY kaynak ORDER BY sayi DESC;\")",
+      "Bash(mysql --version)",
+      "Bash(where mysqldump:*)",
+      "Read(//c/Program Files/MySQL/MySQL Server 8.4/bin/**)",
+      "Bash(ls \"C:/laragon/bin/mysql/\"*/mysqldump.exe)",
+      "Bash(nslookup gruptalepleri.com)",
+      "Bash(Test-NetConnection -ComputerName 78.135.105.8 -Port 3306)",
+      "Bash(curl -s --connect-timeout 5 telnet://78.135.105.8:3306)",
+      "Bash(powershell -Command \"Test-NetConnection -ComputerName 78.135.105.8 -Port 3306 -InformationLevel Quiet\")",
+      "Bash(curl -s \"https://gruptalepleri.com/durum.php\")",
+      "Bash(curl -sk \"https://gruptalepleri.com/db-export.php?t=grt2026dbx\")",
+      "Bash(curl -sk \"https://gruptalepleri.com/durum.php\")",
+      "Bash(curl -sk \"https://gruptalepleri.com/db-export.php?t=grt2026dbx\" -o -)",
+      "Bash(curl -sk -w \"\\\\nHTTP_STATUS:%{http_code}\\\\nSIZE:%{size_download}\" \"https://gruptalepleri.com/db-export.php?t=grt2026dbx\")",
+      "Bash(curl -sk -w \"\\\\nHTTP:%{http_code}\" \"https://gruptalepleri.com/db-export.php?t=grt2026dbx\")",
+      "Bash(php -l app/Http/Controllers/AceneAIController.php)",
+      "Bash(grep -r \"Maps\\\\|google.*map\\\\|map.*key\\\\|GOOGLE_MAP\" .env config/ --include=*.php --include=*.env -l)",
+      "Bash(grep -r \"Mailable\\\\|Mail::\" app/Mail app/Http/Controllers --include=*.php -l)",
+      "Bash(grep -r \"Sms\\\\|sms\\\\|Netgsm\\\\|netgsm\\\\|twilio\\\\|vonage\" app/ --include=*.php -l)",
+      "Bash(grep -r \"netgsm\\\\|Netgsm\\\\|sms.*send\\\\|sendSms\\\\|send.*sms\" app/Http/Controllers/Admin/QuickReplyController.php app/Http/Controllers/Admin/BroadcastController.php --include=*.php -A5)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

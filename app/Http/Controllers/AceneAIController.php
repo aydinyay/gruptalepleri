@@ -2,24 +2,158 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Services\SmsService;
 
 class AceneAIController extends Controller
 {
+    // ── Gemini'ye öğretilen tam şema ────────────────────────────────────────
+    private const SCHEMA = <<<'SCHEMA'
+VERİTABANI TABLOLARI:
+
+━━━ 1. acenteler (~36.000 kayıt) ━━━
+Türkiye seyahat acenteleri — Bakanlık + TÜRSAB birleşik
+
+  id            : primary key
+  belge_no      : TÜRSAB belge no SMALLINT (küçük = eski, büyük = yeni acente kurulmuş)
+  sube_sira     : şube sırası (0 = merkez)
+  is_sube       : 0=merkez, 1=şube
+  acente_unvani : acente adı VARCHAR(100) mixed case
+  ticari_unvan  : ticari ünvan VARCHAR(250)
+  grup          : TÜRSAB grubu — 'A', 'B', 'C', 'AG', NULL/boş=bakanlık kaydı
+  il            : il adı mixed case ('İstanbul', 'İzmir', 'Van', 'Antalya' ...)
+  il_ilce       : "İL - İLÇE" büyük harf ('İSTANBUL - ŞİŞLİ', 'İZMİR - KONAK' ...)
+  telefon       : tel numarası — 5 ile başlıyorsa GSM, aksi halde sabit
+  faks          : faks
+  eposta        : e-posta adresi
+  website       : web sitesi
+  adres         : tam adres büyük harf ('ALSANCAK MAH. KIBRIS ŞEHİTLERİ CAD. NO:5')
+  durum         : 'GEÇERLİ', 'İPTAL', '' (boş), 'BİLİNMİYOR (eski kayıt)'
+  btk           : BTK bölgesi
+  kaynak        : 'tursab', 'bakanlik', 'manuel'
+  created_at, updated_at
+
+━━━ 2. agencies (platform üyeleri) ━━━
+Platforma kayıt olmuş acenteler.
+
+  id, user_id
+  tourism_title : turizm ünvanı
+  company_title : şirket adı
+  tursab_no     : TÜRSAB no VARCHAR — eşleşme: CAST(acenteler.belge_no AS CHAR) = agencies.tursab_no
+  phone, email, address, contact_name
+  is_active     : 1=aktif üye
+  created_at, updated_at
+
+━━━ 3. tursab_davetler (gönderim geçmişi) ━━━
+AI tarafından gönderilen email ve SMS geçmişi.
+
+  id
+  belge_no      : acente belge no VARCHAR
+  acente_unvani : acente adı
+  eposta        : gönderilen email
+  il            : il
+  tip           : 'email' veya 'sms'
+  icerik        : SMS içeriği (email için NULL)
+  status        : 'sent', 'failed', 'error'
+  hata          : hata mesajı
+  gonderen_user_id
+  created_at    : gönderim tarihi/saati
+
+━━━ JOIN ÖRNEKLERİ ━━━
+Üyelik kontrolü:
+  LEFT JOIN agencies ag ON CAST(a.belge_no AS CHAR) = ag.tursab_no
+
+Gönderim geçmişi:
+  LEFT JOIN tursab_davetler td ON td.belge_no = CAST(a.belge_no AS CHAR)
+
+━━━ SQL KURALLARI ━━━
+ 1. SADECE SELECT yaz. DROP/DELETE/UPDATE/INSERT/TRUNCATE yasak.
+ 2. Türkçe aramalarda LIKE kullan (LOWER() güvenilmez Türkçe için).
+ 3. il      : il LIKE '%Van%'
+ 4. il_ilce : il_ilce LIKE '%KONAK%'    (büyük harf)
+ 5. adres   : adres LIKE '%ALSANCAK%'  (büyük harf)
+ 6. acente adı: acente_unvani LIKE '%GROUP TICKET%'
+ 7. En yeni acente = is_sube=0 içinde MAX(belge_no)
+ 8. En eski acente = is_sube=0 içinde MIN(belge_no)
+ 9. Şube sayısı = WHERE belge_no=X AND is_sube=1 → COUNT(*)
+10. GSM: LEFT(REPLACE(REPLACE(telefon,' ',''),'(',''),1) = '5'
+11. Sabit: LEFT(REPLACE(REPLACE(telefon,' ',''),'(',''),1) != '5' AND telefon IS NOT NULL AND telefon != ''
+12. Aynı email/telefon/adres kaç acentede: GROUP BY + COUNT
+13. LIMIT: maksimum 20 (toplu sayım sorgularında LIMIT yok)
+14. Merkez mi şube mi: is_sube=0 merkez, is_sube=1 şube
+15. Belirli belgeno'da şube var mı: WHERE belge_no=X AND is_sube=1
+
+━━━ BÖLGE → İL ━━━
+Marmara   : İstanbul, Tekirdağ, Edirne, Kırklareli, Çanakkale, Balıkesir, Bursa, Kocaeli, Sakarya, Düzce, Bolu, Yalova
+Ege       : İzmir, Manisa, Afyonkarahisar, Kütahya, Uşak, Denizli, Aydın, Muğla
+Akdeniz   : Antalya, Isparta, Burdur, Mersin, Adana, Hatay, Kahramanmaraş, Osmaniye
+İç Anadolu: Ankara, Konya, Eskişehir, Sivas, Yozgat, Kayseri, Aksaray, Niğde, Nevşehir, Kırıkkale, Kırşehir, Çankırı
+Karadeniz : Zonguldak, Karabük, Bartın, Kastamonu, Çorum, Sinop, Samsun, Amasya, Tokat, Ordu, Giresun, Trabzon, Rize, Artvin, Gümüşhane, Bayburt
+Doğu Anadolu: Erzurum, Erzincan, Ağrı, Kars, Ardahan, Iğdır, Van, Bitlis, Muş, Bingöl, Tunceli, Elazığ, Malatya
+Güneydoğu : Diyarbakır, Şanlıurfa, Mardin, Batman, Siirt, Şırnak, Hakkari, Gaziantep, Kilis, Adıyaman
+SCHEMA;
+
+    // ── Eylem JSON formatı ──────────────────────────────────────────────────
+    private const EYLEM_FORMAT = <<<'FORMAT'
+━━━ YANIT FORMATI (sadece JSON döndür, başka hiçbir şey yazma) ━━━
+
+{
+  "yanit": "Kullanıcıya gösterilecek metin (markdown destekli)",
+  "eylem": null
+}
+
+VEYA eylem gerekiyorsa:
+
+{
+  "yanit": "Metin",
+  "eylem": {
+    "tip": "email_gonder" | "sms_gonder" | "secim",
+
+    // tip=email_gonder veya sms_gonder için:
+    "hedefler": [
+      {"belge_no": 123, "unvan": "X Tur", "eposta": "x@x.com", "telefon": "5321234567"}
+    ],
+    "hedef_sayisi": 5,
+    "hedef_sql": "SELECT belge_no, acente_unvani, eposta, telefon FROM acenteler WHERE ...",
+    "icerik": "SMS metni — {acente_unvani} değişkeni kişiselleştirme için kullanılabilir",
+    "zamanlama": null,
+    "onceki_uyari": "Bu 3 acenteye daha önce email gönderildi." | null,
+
+    // tip=secim için (birden fazla acente bulundu, hangisi?):
+    "secenekler": [
+      {"belge_no": 123, "unvan": "Hilal Tur", "il": "İstanbul", "il_ilce": "İSTANBUL - ŞİŞLİ"}
+    ]
+  }
+}
+
+EYLEM KURALLARI:
+- Sadece bilgi sorusu → eylem: null
+- Email/SMS göndermek isteniyor → uygun tip
+- 2-5 benzer acente bulundu → tip: "secim" (hangisini kastettiğini sor)
+- >10 hedef varsa hedef_sql doldur, hedefler boş bırak
+- ≤10 hedef varsa hedefler listesi doldur
+- onceki_uyari: tursab_davetler'de kayıt varsa belirt
+- Adres varsa yanit içine Google Maps linki ekle: https://maps.google.com/?q=ADRES_URL_ENCODED
+- İki adres varsa güzergah linki: https://maps.google.com/maps/dir/ADRES1/ADRES2
+FORMAT;
+
     public function index()
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
         return view('superadmin.acente-ai');
     }
 
+    // ── Ana sohbet endpoint'i ───────────────────────────────────────────────
     public function ask(Request $request)
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
 
         $soru = trim($request->input('soru', ''));
-        if (strlen($soru) < 3) {
+        if (strlen($soru) < 2) {
             return response()->json(['hata' => 'Lütfen bir soru girin.'], 422);
         }
 
@@ -28,284 +162,322 @@ class AceneAIController extends Controller
             return response()->json(['hata' => 'Gemini API anahtarı tanımlı değil.'], 500);
         }
 
-        $gecmis      = $request->input('gecmis', []);
-        $queryResult = $this->runSmartQuery($soru, $gecmis);
-        $prompt      = $this->buildPrompt($queryResult, $soru, $gecmis);
-        $model       = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
+        $model  = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
+        $gecmis = $request->input('gecmis', []);
 
         try {
-            $response = Http::timeout(60)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-                [
-                    'contents'         => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => [
-                        'thinkingConfig' => ['thinkingBudget' => 0],
-                    ],
-                ]
-            );
+            $sql     = $this->generateSql($soru, $gecmis, $apiKey, $model);
+            $results = $this->executeSql($sql);
+            $yanit   = $this->formatResult($soru, $sql, $results, $gecmis, $apiKey, $model);
 
-            if (! $response->successful()) {
-                return response()->json(['hata' => 'Gemini API hatası: '.$response->status()], 500);
-            }
-
-            $text = data_get($response->json(), 'candidates.0.content.parts.0.text', '');
-            if (! $text) {
-                return response()->json(['hata' => 'Yanıt alınamadı.'], 500);
-            }
-
-            return response()->json(['yanit' => $text]);
+            return response()->json($yanit);
         } catch (\Exception $e) {
-            return response()->json(['hata' => 'Bağlantı hatası: '.$e->getMessage()], 500);
+            return response()->json(['hata' => $e->getMessage()], 500);
         }
     }
 
-    // ── Soruya göre DB'den gerçek veri çek ─────────────────────────────────
-    private function runSmartQuery(string $soru, array $gecmis = []): string
+    // ── Email gönder endpoint'i ─────────────────────────────────────────────
+    public function emailGonder(Request $request)
     {
-        $s = mb_strtolower($soru, 'UTF-8');
-        $s = str_replace(["'", "'", "'"], '', $s);
+        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
 
-        // 0. Referanslı soru tespiti — "bu", "onun", "aynı", "o acente" gibi ifadeler
-        $referansKelimeler = ['bu acent', 'bu firma', 'bunun', 'bu şirket', 'o acent', 'onun', 'aynı acent', 'bu kayıt'];
-        $referansli = false;
-        foreach ($referansKelimeler as $k) {
-            if (str_contains($s, $k)) { $referansli = true; break; }
-        }
-        // Çok kısa sorular da referanslı olabilir ("nerde?", "telefonu?", "e-postası?")
-        if (! $referansli && mb_strlen(trim($soru)) < 30 && count($gecmis) > 0) {
-            $referansKelimeler2 = ['nerd', 'nerede', 'telefon', 'e-posta', 'eposta', 'mail', 'adres', 'il', 'ilçe', 'kaynak', 'şube'];
-            foreach ($referansKelimeler2 as $k) {
-                if (str_contains($s, $k) && ! preg_match('/\b\d{3,6}\b/', $soru)) {
-                    $referansli = true; break;
-                }
-            }
+        $hedefler  = $request->input('hedefler', []);
+        $hedefSql  = $request->input('hedef_sql');
+        $userId    = auth()->id();
+
+        // SQL'den hedef listesi oluştur
+        if (empty($hedefler) && $hedefSql) {
+            $hedefler = $this->getSqlHedefler($hedefSql, 'email');
         }
 
-        if ($referansli && count($gecmis) > 0) {
-            // Önceki AI mesajlarından belge no çıkar
-            foreach (array_reverse($gecmis) as $msg) {
-                if (($msg['rol'] ?? '') === 'ai') {
-                    if (preg_match('/belge\s*no[:\s]+(\d{3,6})/i', $msg['icerik'], $m)) {
-                        $no   = $m[1];
-                        $rows = DB::table('acenteler')
-                            ->where('belge_no', $no)
-                            ->get(['acente_unvani', 'belge_no', 'il', 'il_ilce', 'telefon', 'eposta', 'kaynak', 'is_sube']);
-                        if ($rows->isNotEmpty()) {
-                            $lines = $rows->map(function ($r) {
-                                return implode(' | ', array_filter([
-                                    $r->acente_unvani,
-                                    "Belge No: {$r->belge_no}",
-                                    $r->il      ? "İl: {$r->il}"         : null,
-                                    $r->il_ilce ? "İlçe: {$r->il_ilce}"  : null,
-                                    $r->telefon ? "Tel: {$r->telefon}"   : null,
-                                    $r->eposta  ? "E-posta: {$r->eposta}" : null,
-                                    "Kaynak: {$r->kaynak}",
-                                    $r->is_sube ? "(Şube)"                : null,
-                                ]));
-                            })->implode("\n");
-                            return "Belge no {$no} - önceki konuşmadan bağlam ({$rows->count()} kayıt):\n{$lines}";
-                        }
-                    }
-                    break;
-                }
-            }
+        if (empty($hedefler)) {
+            return response()->json(['hata' => 'Hedef bulunamadı.'], 422);
         }
 
-        // 1. Belge no sorgusu — soruda 3-6 haneli sayı varsa
-        if (preg_match('/\b(\d{3,6})\b/', $soru, $m)) {
-            $no   = $m[1];
-            $rows = DB::table('acenteler')
-                ->where('belge_no', $no)
-                ->get(['acente_unvani', 'belge_no', 'il', 'il_ilce', 'telefon', 'eposta', 'kaynak', 'is_sube']);
+        $gonderilen = 0;
+        $hatalar    = 0;
 
-            if ($rows->isEmpty()) {
-                return "Belge no {$no} ile kayıt bulunamadı.";
+        foreach ($hedefler as $h) {
+            $eposta = $h['eposta'] ?? null;
+            $belgeNo = (string) ($h['belge_no'] ?? '');
+            $unvan   = $h['unvan'] ?? '';
+            $il      = $h['il'] ?? '';
+
+            if (! $eposta || ! filter_var($eposta, FILTER_VALIDATE_EMAIL)) {
+                $hatalar++;
+                continue;
             }
 
-            $lines = $rows->map(function ($r) {
-                $parts = array_filter([
-                    $r->acente_unvani,
-                    "Belge No: {$r->belge_no}",
-                    $r->il       ? "İl: {$r->il}"         : null,
-                    $r->il_ilce  ? "İlçe: {$r->il_ilce}"  : null,
-                    $r->telefon  ? "Tel: {$r->telefon}"   : null,
-                    $r->eposta   ? "E-posta: {$r->eposta}" : null,
-                    "Kaynak: {$r->kaynak}",
-                    $r->is_sube  ? "(Şube)"                : null,
-                ]);
-                return implode(' | ', $parts);
-            })->implode("\n");
+            // Daha önce gönderilmiş mi kontrol et
+            $daha_once = DB::table('tursab_davetler')
+                ->where('belge_no', $belgeNo)
+                ->where('tip', 'email')
+                ->where('status', 'sent')
+                ->exists();
 
-            return "Belge no {$no} sorgusu ({$rows->count()} kayıt):\n{$lines}";
-        }
+            $status = 'sent';
+            $hata   = null;
 
-        // 2. Bölge sorgusu — "ege bölgesi", "marmara", "karadeniz" vb.
-        $bolgeMap = [
-            'marmara'      => ['İstanbul','Tekirdağ','Edirne','Kırklareli','Çanakkale','Balıkesir','Bursa','Kocaeli','Sakarya','Düzce','Bolu','Yalova'],
-            'ege'          => ['İzmir','Manisa','Afyonkarahisar','Kütahya','Uşak','Denizli','Aydın','Muğla'],
-            'akdeniz'      => ['Antalya','Isparta','Burdur','Mersin','Adana','Hatay','Kahramanmaraş','Osmaniye'],
-            'iç anadolu'   => ['Ankara','Konya','Eskişehir','Sivas','Yozgat','Kayseri','Aksaray','Niğde','Nevşehir','Kırıkkale','Kırşehir','Çankırı'],
-            'ic anadolu'   => ['Ankara','Konya','Eskişehir','Sivas','Yozgat','Kayseri','Aksaray','Niğde','Nevşehir','Kırıkkale','Kırşehir','Çankırı'],
-            'karadeniz'    => ['Zonguldak','Karabük','Bartın','Kastamonu','Çorum','Sinop','Samsun','Amasya','Tokat','Ordu','Giresun','Trabzon','Rize','Artvin','Gümüşhane','Bayburt'],
-            'doğu anadolu' => ['Erzurum','Erzincan','Ağrı','Kars','Ardahan','Iğdır','Van','Bitlis','Muş','Bingöl','Tunceli','Elazığ','Malatya'],
-            'dogu anadolu' => ['Erzurum','Erzincan','Ağrı','Kars','Ardahan','Iğdır','Van','Bitlis','Muş','Bingöl','Tunceli','Elazığ','Malatya'],
-            'güneydoğu'    => ['Diyarbakır','Şanlıurfa','Mardin','Batman','Siirt','Şırnak','Hakkari','Gaziantep','Kilis','Adıyaman'],
-            'guneydogu'    => ['Diyarbakır','Şanlıurfa','Mardin','Batman','Siirt','Şırnak','Hakkari','Gaziantep','Kilis','Adıyaman'],
-        ];
-
-        foreach ($bolgeMap as $bolgeAdi => $iller) {
-            if (str_contains($s, $bolgeAdi)) {
-                $total    = DB::table('acenteler')->whereIn('il', $iller)->count();
-                $tursab   = DB::table('acenteler')->whereIn('il', $iller)->where('kaynak', 'tursab')->count();
-                $bakanlik = DB::table('acenteler')->whereIn('il', $iller)->where('kaynak', 'bakanlik')->count();
-                $ilDetay  = DB::table('acenteler')
-                    ->selectRaw('il, COUNT(*) as toplam')
-                    ->whereIn('il', $iller)
-                    ->groupBy('il')->orderByDesc('toplam')->get()
-                    ->map(fn($r) => "{$r->il}: {$r->toplam}")->implode(', ');
-                $proper = ucwords($bolgeAdi === 'ic anadolu' ? 'İç Anadolu' : ($bolgeAdi === 'dogu anadolu' ? 'Doğu Anadolu' : ($bolgeAdi === 'guneydogu' ? 'Güneydoğu' : $bolgeAdi)));
-                return "{$proper} Bölgesi sorgusu: Toplam {$total} acente | TÜRSAB: {$tursab} | Bakanlık: {$bakanlik}\nİl detayı: {$ilDetay}";
+            try {
+                Mail::send(
+                    'emails.tursab_davet',
+                    ['acenteUnvani' => $unvan, 'belgeNo' => $belgeNo, 'kayitUrl' => route('register')],
+                    fn($mail) => $mail->to($eposta, $unvan)->subject('GrupTalepleri.com — Platforma Davet')
+                );
+                $gonderilen++;
+            } catch (\Exception $e) {
+                $status = 'error';
+                $hata   = $e->getMessage();
+                $hatalar++;
             }
+
+            DB::table('tursab_davetler')->insert([
+                'belge_no'        => $belgeNo,
+                'eposta'          => $eposta,
+                'acente_unvani'   => $unvan,
+                'il'              => $il,
+                'tip'             => 'email',
+                'status'          => $status,
+                'hata'            => $hata,
+                'gonderen_user_id'=> $userId,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
         }
 
-        // 3. İl sorgusu — Türk şehir adları (LIKE kullan, LOWER() Türkçe İ sorununu çözer)
-        $ilMap = [
-            'adana'          => 'Adana',          'adiyaman'       => 'Adıyaman',
-            'afyon'          => 'Afyonkarahisar',  'afyonkarahisar' => 'Afyonkarahisar',
-            'agri'           => 'Ağrı',            'aksaray'        => 'Aksaray',
-            'amasya'         => 'Amasya',          'ankara'         => 'Ankara',
-            'antalya'        => 'Antalya',         'ardahan'        => 'Ardahan',
-            'artvin'         => 'Artvin',          'aydin'          => 'Aydın',
-            'balikesir'      => 'Balıkesir',       'bartin'         => 'Bartın',
-            'batman'         => 'Batman',          'bayburt'        => 'Bayburt',
-            'bilecik'        => 'Bilecik',         'bingol'         => 'Bingöl',
-            'bitlis'         => 'Bitlis',          'bolu'           => 'Bolu',
-            'burdur'         => 'Burdur',          'bursa'          => 'Bursa',
-            'canakkale'      => 'Çanakkale',       'cankiri'        => 'Çankırı',
-            'corum'          => 'Çorum',           'denizli'        => 'Denizli',
-            'diyarbakir'     => 'Diyarbakır',      'duzce'          => 'Düzce',
-            'edirne'         => 'Edirne',          'elazig'         => 'Elazığ',
-            'erzincan'       => 'Erzincan',        'erzurum'        => 'Erzurum',
-            'eskisehir'      => 'Eskişehir',       'gaziantep'      => 'Gaziantep',
-            'giresun'        => 'Giresun',         'gumushane'      => 'Gümüşhane',
-            'hakkari'        => 'Hakkari',         'hatay'          => 'Hatay',
-            'igdir'          => 'Iğdır',           'isparta'        => 'Isparta',
-            'istanbul'       => 'İstanbul',        'izmir'          => 'İzmir',
-            'kahramanmaras'  => 'Kahramanmaraş',   'karabuk'        => 'Karabük',
-            'karaman'        => 'Karaman',         'kars'           => 'Kars',
-            'kastamonu'      => 'Kastamonu',       'kayseri'        => 'Kayseri',
-            'kilis'          => 'Kilis',           'kirikkale'      => 'Kırıkkale',
-            'kirklareli'     => 'Kırklareli',      'kirsehir'       => 'Kırşehir',
-            'kocaeli'        => 'Kocaeli',         'konya'          => 'Konya',
-            'kutahya'        => 'Kütahya',         'malatya'        => 'Malatya',
-            'manisa'         => 'Manisa',          'mardin'         => 'Mardin',
-            'mersin'         => 'Mersin',          'mugla'          => 'Muğla',
-            'mus'            => 'Muş',             'nevsehir'       => 'Nevşehir',
-            'nigde'          => 'Niğde',           'ordu'           => 'Ordu',
-            'osmaniye'       => 'Osmaniye',        'rize'           => 'Rize',
-            'sakarya'        => 'Sakarya',         'samsun'         => 'Samsun',
-            'siirt'          => 'Siirt',           'sinop'          => 'Sinop',
-            'sivas'          => 'Sivas',           'sanliurfa'      => 'Şanlıurfa',
-            'urfa'           => 'Şanlıurfa',       'sirnak'         => 'Şırnak',
-            'tekirdag'       => 'Tekirdağ',        'tokat'          => 'Tokat',
-            'trabzon'        => 'Trabzon',         'tunceli'        => 'Tunceli',
-            'usak'           => 'Uşak',            'van'            => 'Van',
-            'yalova'         => 'Yalova',          'yozgat'         => 'Yozgat',
-            'zonguldak'      => 'Zonguldak',
-        ];
+        // Bu ay özet
+        $aylikEmail = DB::table('tursab_davetler')
+            ->where('tip', 'email')->where('status', 'sent')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
 
-        // Soruyu ASCII'ye dönüştür (Türkçe harf sorununu bypass et)
-        $sAscii = strtr($s, [
-            'ş'=>'s','ğ'=>'g','ü'=>'u','ö'=>'o','ç'=>'c','ı'=>'i','İ'=>'i','Ş'=>'s','Ğ'=>'g','Ü'=>'u','Ö'=>'o','Ç'=>'c',
+        $aylikSms = DB::table('tursab_davetler')
+            ->where('tip', 'sms')->where('status', 'sent')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        return response()->json([
+            'yanit' => "✓ **{$gonderilen} email gönderildi.**"
+                . ($hatalar > 0 ? " ({$hatalar} hata)" : '')
+                . "\n\nBu ay toplam: **{$aylikEmail} email**, **{$aylikSms} SMS** gönderildi.",
         ]);
-
-        foreach ($ilMap as $ascii => $proper) {
-            if (str_contains($sAscii, $ascii)) {
-                // LIKE ile sorgula — Türkçe karakter duyarsız
-                $total    = DB::table('acenteler')->where('il', 'LIKE', $proper)->count();
-                $tursab   = DB::table('acenteler')->where('il', 'LIKE', $proper)->where('kaynak', 'tursab')->count();
-                $bakanlik = DB::table('acenteler')->where('il', 'LIKE', $proper)->where('kaynak', 'bakanlik')->count();
-                return "{$proper} il sorgusu: Toplam {$total} acente | TÜRSAB: {$tursab} | Bakanlık: {$bakanlik}";
-            }
-        }
-
-        // 3. Acente adı arama — tırnak içi veya anahtar kelimeden
-        $arama = null;
-
-        // Tırnak içi
-        if (preg_match('/["\'""](.+?)["\'""]/', $soru, $m)) {
-            $arama = trim($m[1]);
-        }
-
-        // "X tur / X seyahat / X travel" pattern
-        if (! $arama && preg_match('/^([\p{L}\s]{3,40?}?)\s+(?:tur\b|turizm|seyahat|travel|acente)/iu', $soru, $m)) {
-            $arama = trim($m[1]);
-        }
-
-        // Soru sonunda "nedir/kime ait/kim" → önceki kısım acente adı
-        if (! $arama && preg_match('/^([\p{L}\s]{3,40}?)\s+(?:belge\s*no\s*(?:nedir|kaç|ne)?|kime\s+ait|kim|nerede)/iu', $soru, $m)) {
-            $arama = trim($m[1]);
-        }
-
-        if ($arama && mb_strlen($arama) >= 3) {
-            $rows = DB::table('acenteler')
-                ->whereRaw('acente_unvani LIKE ?', ['%'.$arama.'%'])
-                ->limit(10)
-                ->get(['acente_unvani', 'belge_no', 'il', 'il_ilce', 'telefon', 'eposta', 'kaynak']);
-
-            if ($rows->isEmpty()) {
-                return "'{$arama}' araması: Kayıt bulunamadı.";
-            }
-
-            $lines = $rows->map(fn($r) => implode(' | ', array_filter([
-                $r->acente_unvani,
-                "Belge No: {$r->belge_no}",
-                $r->il      ? "İl: {$r->il}"         : null,
-                $r->il_ilce ? "İlçe: {$r->il_ilce}"  : null,
-                $r->telefon ? "Tel: {$r->telefon}"   : null,
-                $r->eposta  ? "E-posta: {$r->eposta}" : null,
-            ])))->implode("\n");
-
-            return "'{$arama}' araması ({$rows->count()} sonuç):\n{$lines}";
-        }
-
-        // 4. Genel istatistik
-        $toplam   = DB::table('acenteler')->count();
-        $tursab   = DB::table('acenteler')->where('kaynak', 'tursab')->count();
-        $bakanlik = DB::table('acenteler')->where('kaynak', 'bakanlik')->count();
-        $manuel   = DB::table('acenteler')->where('kaynak', 'manuel')->count();
-
-        return "Genel istatistik: Toplam {$toplam} acente | TÜRSAB: {$tursab} | Bakanlık: {$bakanlik} | Manuel: {$manuel}";
     }
 
-    // ── Prompt oluştur ─────────────────────────────────────────────────────
-    private function buildPrompt(string $queryResult, string $soru, array $gecmis = []): string
+    // ── SMS gönder endpoint'i ───────────────────────────────────────────────
+    public function smsGonder(Request $request)
     {
-        $gecmisBolum = '';
-        if (count($gecmis) > 0) {
-            $satirlar = [];
-            foreach (array_slice($gecmis, -6) as $msg) {
-                $rol = ($msg['rol'] ?? '') === 'kullanici' ? 'Kullanıcı' : 'Asistan';
-                $satirlar[] = "{$rol}: " . ($msg['icerik'] ?? '');
-            }
-            $gecmisBolum = "\n## ÖNCEKİ KONUŞMA\n" . implode("\n", $satirlar) . "\n";
+        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
+
+        $hedefler  = $request->input('hedefler', []);
+        $hedefSql  = $request->input('hedef_sql');
+        $icerik    = trim($request->input('icerik', ''));
+        $zamanlama = $request->input('zamanlama');
+
+        if (empty($icerik)) {
+            return response()->json(['hata' => 'SMS içeriği boş olamaz.'], 422);
         }
 
-        return <<<PROMPT
-Sen bir veri sorgulama motorusun. Veritabanından gelen gerçek sonucu kullanıcıya aktar.
-{$gecmisBolum}
-## VERİTABANI SORGU SONUCU
-{$queryResult}
+        if (empty($hedefler) && $hedefSql) {
+            $hedefler = $this->getSqlHedefler($hedefSql, 'sms');
+        }
 
-## KULLANICI SORUSU
-{$soru}
+        if (empty($hedefler)) {
+            return response()->json(['hata' => 'Hedef bulunamadı.'], 422);
+        }
 
-## TALİMATLAR
-- Sadece yukarıdaki sorgu sonucunu kullanarak cevap ver.
-- Birden fazla kayıt varsa her birini yeni satırda listele.
-- Yorum yapma, analiz yapma, açıklama ekleme.
-- Cevabı kısa ve net tut.
-- Soru dışı bilgi verme.
-PROMPT;
+        $scheduledFor = $zamanlama ? Carbon::parse($zamanlama) : null;
+        $smsService   = new SmsService();
+        $userId       = auth()->id();
+        $gonderilen   = 0;
+        $hatalar      = 0;
+
+        foreach ($hedefler as $h) {
+            $telefon = preg_replace('/\D/', '', $h['telefon'] ?? '');
+            $belgeNo = (string) ($h['belge_no'] ?? '');
+            $unvan   = $h['unvan'] ?? '';
+            $il      = $h['il'] ?? '';
+
+            if (strlen($telefon) < 10) {
+                $hatalar++;
+                continue;
+            }
+
+            // {acente_unvani} kişiselleştirme
+            $mesaj = str_replace('{acente_unvani}', $unvan, $icerik);
+
+            $status = 'sent';
+            $hata   = null;
+
+            try {
+                $ok = $smsService->send(null, 'acente', $unvan, $telefon, $mesaj, $scheduledFor);
+                if ($ok) {
+                    $gonderilen++;
+                } else {
+                    $status = 'failed';
+                    $hatalar++;
+                }
+            } catch (\Exception $e) {
+                $status = 'error';
+                $hata   = $e->getMessage();
+                $hatalar++;
+            }
+
+            DB::table('tursab_davetler')->insert([
+                'belge_no'        => $belgeNo,
+                'eposta'          => '',
+                'acente_unvani'   => $unvan,
+                'il'              => $il,
+                'tip'             => 'sms',
+                'icerik'          => $mesaj,
+                'status'          => $status,
+                'hata'            => $hata,
+                'gonderen_user_id'=> $userId,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+        }
+
+        $aylikEmail = DB::table('tursab_davetler')
+            ->where('tip', 'email')->where('status', 'sent')
+            ->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)
+            ->count();
+
+        $aylikSms = DB::table('tursab_davetler')
+            ->where('tip', 'sms')->where('status', 'sent')
+            ->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)
+            ->count();
+
+        $zamanlamaMetin = $scheduledFor ? " ({$scheduledFor->format('d.m.Y H:i')} için planlandı)" : '';
+
+        return response()->json([
+            'yanit' => "✓ **{$gonderilen} SMS gönderildi{$zamanlamaMetin}.**"
+                . ($hatalar > 0 ? " ({$hatalar} hata)" : '')
+                . "\n\nBu ay toplam: **{$aylikEmail} email**, **{$aylikSms} SMS** gönderildi.",
+        ]);
+    }
+
+    // ── SQL üret (Gemini — 1. çağrı) ───────────────────────────────────────
+    private function generateSql(string $soru, array $gecmis, string $apiKey, string $model): string
+    {
+        $gecmisBolum = $this->buildGecmisBolum($gecmis, 4, 200);
+
+        $prompt = self::SCHEMA
+            . "\n" . $gecmisBolum
+            . "\nKULLANICI SORUSU: {$soru}\n\n"
+            . "Yukarıdaki soruyu yanıtlayacak MySQL SELECT sorgusunu yaz.\n"
+            . "SADECE SQL döndür. Açıklama ve markdown backtick kullanma.";
+
+        $sql = $this->geminiCall($prompt, $apiKey, $model, 512);
+        $sql = preg_replace('/^```sql\s*/i', '', trim($sql));
+        $sql = preg_replace('/\s*```$/i', '', $sql);
+
+        return trim($sql);
+    }
+
+    // ── SQL çalıştır ────────────────────────────────────────────────────────
+    private function executeSql(string $sql): array
+    {
+        $upper = strtoupper(ltrim($sql));
+
+        if (! str_starts_with($upper, 'SELECT')) {
+            throw new \Exception('Güvenlik: Yalnızca SELECT sorgusu çalıştırılabilir.');
+        }
+
+        foreach (['DROP', 'DELETE', 'UPDATE', 'INSERT', 'TRUNCATE', 'ALTER', 'CREATE', 'GRANT', 'REVOKE'] as $w) {
+            if (preg_match('/\b' . $w . '\b/', $upper)) {
+                throw new \Exception("Güvenlik: '{$w}' komutu yasak.");
+            }
+        }
+
+        if (! str_contains($upper, 'LIMIT')) {
+            $sql .= ' LIMIT 20';
+        }
+
+        return array_map(fn($r) => (array) $r, DB::select($sql));
+    }
+
+    // ── Sonucu formatla + eylem tespiti (Gemini — 2. çağrı) ────────────────
+    private function formatResult(string $soru, string $sql, array $results, array $gecmis, string $apiKey, string $model): array
+    {
+        $sonucJson   = count($results) > 0
+            ? json_encode($results, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+            : 'Sonuç bulunamadı.';
+
+        $gecmisBolum = $this->buildGecmisBolum($gecmis, 4, 300);
+
+        $prompt = self::SCHEMA . "\n"
+            . self::EYLEM_FORMAT . "\n\n"
+            . $gecmisBolum
+            . "SORU: {$soru}\n\n"
+            . "ÇALIŞAN SQL:\n{$sql}\n\n"
+            . "SORGU SONUCU:\n{$sonucJson}\n\n"
+            . "SADECE JSON döndür. Başka hiçbir şey yazma.";
+
+        $raw = $this->geminiCall($prompt, $apiKey, $model, 0);
+
+        // JSON parse
+        $raw = preg_replace('/^```json\s*/i', '', trim($raw));
+        $raw = preg_replace('/\s*```$/i', '', $raw);
+
+        $parsed = json_decode(trim($raw), true);
+
+        if (! $parsed || ! isset($parsed['yanit'])) {
+            // Parse başarısız — düz metin olarak döndür
+            return ['yanit' => $raw, 'eylem' => null];
+        }
+
+        return $parsed;
+    }
+
+    // ── Bulk SQL'den hedef listesi ──────────────────────────────────────────
+    private function getSqlHedefler(string $sql, string $tip): array
+    {
+        $rows = $this->executeSql($sql . ' LIMIT 500');
+        return array_map(fn($r) => [
+            'belge_no' => $r['belge_no'] ?? '',
+            'unvan'    => $r['acente_unvani'] ?? $r['unvan'] ?? '',
+            'eposta'   => $r['eposta'] ?? '',
+            'telefon'  => $r['telefon'] ?? '',
+            'il'       => $r['il'] ?? '',
+        ], $rows);
+    }
+
+    // ── Gemini API çağrısı ──────────────────────────────────────────────────
+    private function geminiCall(string $prompt, string $apiKey, string $model, int $thinkingBudget): string
+    {
+        $response = Http::timeout(60)->post(
+            "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+            [
+                'contents'         => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['thinkingConfig' => ['thinkingBudget' => $thinkingBudget]],
+            ]
+        );
+
+        if (! $response->successful()) {
+            throw new \Exception('Gemini API hatası: ' . $response->status());
+        }
+
+        $text = data_get($response->json(), 'candidates.0.content.parts.0.text', '');
+        if (! $text) {
+            throw new \Exception('Gemini boş yanıt döndürdü.');
+        }
+
+        return $text;
+    }
+
+    // ── Konuşma geçmişi metni ───────────────────────────────────────────────
+    private function buildGecmisBolum(array $gecmis, int $limit, int $maxLen): string
+    {
+        if (count($gecmis) === 0) return '';
+
+        $satirlar = [];
+        foreach (array_slice($gecmis, -$limit) as $msg) {
+            $rol        = ($msg['rol'] ?? '') === 'kullanici' ? 'Kullanıcı' : 'Asistan';
+            $satirlar[] = "{$rol}: " . mb_substr($msg['icerik'] ?? '', 0, $maxLen);
+        }
+
+        return "\nÖNCEKİ KONUŞMA (bağlam):\n" . implode("\n", $satirlar) . "\n\n";
     }
 }
