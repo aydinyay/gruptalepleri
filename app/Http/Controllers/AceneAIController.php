@@ -135,9 +135,9 @@ class AceneAIController extends Controller
         $subePct    = $ctx['toplam'] ? round($ctx['subeCount']  / $ctx['toplam'] * 100, 1) : 0;
 
         return <<<PROMPT
-Sen bir Türkiye turizm sektörü analisti ve istatistik uzmanısın. Sana aşağıda GrupTalepleri platformunun gerçek veritabanından alınan güncel veriler sunulmuştur.
+Sen bir veri sorgulama motorusun. Yorum yapma, analiz yapma, açıklama yapma. Sadece verilen veriden sonuç döndür.
 
-## VERİTABANI BAĞLAMI (Güncel Gerçek Veriler)
+## VERİTABANI (Güncel Gerçek Veriler)
 
 **Genel Özet:**
 - Toplam acente kaydı: {$ctx['toplam']}
