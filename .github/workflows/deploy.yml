@@ -9,9 +9,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push main to work branch (cPanel tracking)
+        run: |
+          git push https://aydinyay:${{ secrets.GITHUB_TOKEN }}@github.com/aydinyay/gruptalepleri.git main:work
+
       - name: Pull latest code to cPanel
         run: |
-          RESPONSE=$(curl -s -k \
+          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 \
             -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
             "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControl/update?repository_root=/home/gruprez1/repositories/gruptalepleri2")
           echo "$RESPONSE" | python3 -m json.tool || echo "$RESPONSE"
@@ -19,7 +27,7 @@ jobs:
 
       - name: Deploy HEAD to web root
         run: |
-          RESPONSE=$(curl -s -k \
+          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 \
             -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
             -X POST \
             --data "repository_root=/home/gruprez1/repositories/gruptalepleri2" \
