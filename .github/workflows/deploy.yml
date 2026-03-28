@@ -31,7 +31,7 @@ jobs:
           for FILE in $FILES; do
             if [ -f "$FILE" ]; then
               CONTENT=$(base64 -w 0 "$FILE")
-              RESP=$(curl -sf -X POST "$HOOK" \
+              RESP=$(curl -sf --max-time 60 --connect-timeout 15 -X POST "$HOOK" \
                 -F "t=$TOKEN" \
                 -F "p=$FILE" \
                 -F "c=$CONTENT")

@@ -84,11 +84,11 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;flex-dire
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 
 /* Input */
-.input-bar{flex-shrink:0;background:#fff;border-top:1px solid #e9ecef;padding:12px 18px}
-.input-wrap{display:flex;gap:9px;align-items:flex-end;max-width:900px}
-.input-wrap textarea{flex:1;resize:none;border:1.5px solid #dee2e6;border-radius:11px;padding:9px 13px;font-size:.88rem;font-family:inherit;transition:border-color .15s;outline:none;overflow-y:hidden;max-height:130px}
+.input-bar{flex-shrink:0;background:#fff;border-top:1px solid #e9ecef;padding:14px 20px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom,20px))}
+.input-wrap{display:flex;gap:10px;align-items:flex-end;max-width:900px}
+.input-wrap textarea{flex:1;resize:none;border:1.5px solid #dee2e6;border-radius:14px;padding:12px 16px;font-size:.92rem;font-family:inherit;transition:border-color .15s;outline:none;overflow-y:hidden;max-height:130px;min-height:46px;line-height:1.5}
 .input-wrap textarea:focus{border-color:#0d6efd;box-shadow:0 0 0 3px #0d6efd12}
-.send-btn{background:#0d6efd;color:#fff;border:none;border-radius:11px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
+.send-btn{background:#0d6efd;color:#fff;border:none;border-radius:14px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
 .send-btn:hover{background:#0b5ed7}
 .send-btn:disabled{background:#6c757d;cursor:not-allowed}
 
