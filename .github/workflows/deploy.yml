@@ -16,29 +16,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create deployment archive
-        run: git archive --format=zip HEAD -o /tmp/deploy.zip
-
-      - name: Delete old deploy.zip
+      - name: Create or update cPanel git repo
         run: |
-          curl -s -k \
+          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 \
             -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
-            -X POST \
-            -d "files[0][file]=/home/gruprez1/deploy.zip" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/Fileman/unlink" || true
+            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControl/create?repository_root=/home/gruprez1/repositories/gruptalepleri2&remote_url=https://github.com/aydinyay/gruptalepleri.git&branch=main")
+          echo "$RESPONSE"
 
-      - name: Upload archive to cPanel home dir
+      - name: Pull latest code to cPanel
         run: |
-          RESPONSE=$(curl -s -k \
+          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 --retry 3 --retry-delay 10 \
             -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
-            -F "dir=/home/gruprez1" \
-            -F "file=@/tmp/deploy.zip;filename=deploy.zip" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/Fileman/upload_files")
+            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControl/update?repository_root=/home/gruprez1/repositories/gruptalepleri2")
           echo "$RESPONSE"
           echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('status',0)==1 else 1)"
 
-      - name: Trigger PHP deployment
+      - name: Wait for fetch to complete
+        run: sleep 10
+
+      - name: Deploy HEAD to web root
         run: |
-          RESPONSE=$(curl -sk "https://gruptalepleri.com/gitfix.php?t=grt2026fix")
+          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 \
+            -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
+            -X POST \
+            --data "repository_root=/home/gruprez1/repositories/gruptalepleri2" \
+            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create")
           echo "$RESPONSE"
-          echo "$RESPONSE" | grep -q "BAŞARILI" && echo "Deploy OK" || exit 1
+          echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('status',0)==1 else 1)"
