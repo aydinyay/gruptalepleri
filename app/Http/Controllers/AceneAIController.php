@@ -28,8 +28,9 @@ class AceneAIController extends Controller
             return response()->json(['hata' => 'Gemini API anahtarı tanımlı değil.'], 500);
         }
 
-        $queryResult = $this->runSmartQuery($soru);
-        $prompt      = $this->buildPrompt($queryResult, $soru);
+        $gecmis      = $request->input('gecmis', []);
+        $queryResult = $this->runSmartQuery($soru, $gecmis);
+        $prompt      = $this->buildPrompt($queryResult, $soru, $gecmis);
         $model       = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
 
         try {
@@ -59,10 +60,56 @@ class AceneAIController extends Controller
     }
 
     // ── Soruya göre DB'den gerçek veri çek ─────────────────────────────────
-    private function runSmartQuery(string $soru): string
+    private function runSmartQuery(string $soru, array $gecmis = []): string
     {
         $s = mb_strtolower($soru, 'UTF-8');
         $s = str_replace(["'", "'", "'"], '', $s);
+
+        // 0. Referanslı soru tespiti — "bu", "onun", "aynı", "o acente" gibi ifadeler
+        $referansKelimeler = ['bu acent', 'bu firma', 'bunun', 'bu şirket', 'o acent', 'onun', 'aynı acent', 'bu kayıt'];
+        $referansli = false;
+        foreach ($referansKelimeler as $k) {
+            if (str_contains($s, $k)) { $referansli = true; break; }
+        }
+        // Çok kısa sorular da referanslı olabilir ("nerde?", "telefonu?", "e-postası?")
+        if (! $referansli && mb_strlen(trim($soru)) < 30 && count($gecmis) > 0) {
+            $referansKelimeler2 = ['nerd', 'nerede', 'telefon', 'e-posta', 'eposta', 'mail', 'adres', 'il', 'ilçe', 'kaynak', 'şube'];
+            foreach ($referansKelimeler2 as $k) {
+                if (str_contains($s, $k) && ! preg_match('/\b\d{3,6}\b/', $soru)) {
+                    $referansli = true; break;
+                }
+            }
+        }
+
+        if ($referansli && count($gecmis) > 0) {
+            // Önceki AI mesajlarından belge no çıkar
+            foreach (array_reverse($gecmis) as $msg) {
+                if (($msg['rol'] ?? '') === 'ai') {
+                    if (preg_match('/belge\s*no[:\s]+(\d{3,6})/i', $msg['icerik'], $m)) {
+                        $no   = $m[1];
+                        $rows = DB::table('acenteler')
+                            ->where('belge_no', $no)
+                            ->get(['acente_unvani', 'belge_no', 'il', 'il_ilce', 'telefon', 'eposta', 'kaynak', 'is_sube']);
+                        if ($rows->isNotEmpty()) {
+                            $lines = $rows->map(function ($r) {
+                                return implode(' | ', array_filter([
+                                    $r->acente_unvani,
+                                    "Belge No: {$r->belge_no}",
+                                    $r->il      ? "İl: {$r->il}"         : null,
+                                    $r->il_ilce ? "İlçe: {$r->il_ilce}"  : null,
+                                    $r->telefon ? "Tel: {$r->telefon}"   : null,
+                                    $r->eposta  ? "E-posta: {$r->eposta}" : null,
+                                    "Kaynak: {$r->kaynak}",
+                                    $r->is_sube ? "(Şube)"                : null,
+                                ]));
+                            })->implode("\n");
+                            return "Belge no {$no} - önceki konuşmadan bağlam ({$rows->count()} kayıt):\n{$lines}";
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
         // 1. Belge no sorgusu — soruda 3-6 haneli sayı varsa
         if (preg_match('/\b(\d{3,6})\b/', $soru, $m)) {
@@ -199,11 +246,21 @@ class AceneAIController extends Controller
     }
 
     // ── Prompt oluştur ─────────────────────────────────────────────────────
-    private function buildPrompt(string $queryResult, string $soru): string
+    private function buildPrompt(string $queryResult, string $soru, array $gecmis = []): string
     {
+        $gecmisBolum = '';
+        if (count($gecmis) > 0) {
+            $satirlar = [];
+            foreach (array_slice($gecmis, -6) as $msg) {
+                $rol = ($msg['rol'] ?? '') === 'kullanici' ? 'Kullanıcı' : 'Asistan';
+                $satirlar[] = "{$rol}: " . ($msg['icerik'] ?? '');
+            }
+            $gecmisBolum = "\n## ÖNCEKİ KONUŞMA\n" . implode("\n", $satirlar) . "\n";
+        }
+
         return <<<PROMPT
 Sen bir veri sorgulama motorusun. Veritabanından gelen gerçek sonucu kullanıcıya aktar.
-
+{$gecmisBolum}
 ## VERİTABANI SORGU SONUCU
 {$queryResult}
 

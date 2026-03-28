@@ -172,6 +172,7 @@ body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; display: flex; 
 const csrfToken = '{{ csrf_token() }}';
 const askUrl    = '{{ route("superadmin.acente.ai.ask") }}';
 let isLoading   = false;
+let gecmis      = []; // Konuşma geçmişi
 
 function setPrompt(btn) {
     const input = document.getElementById('soruInput');
@@ -247,7 +248,7 @@ async function sendMessage() {
         const res = await fetch(askUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-            body: JSON.stringify({ soru })
+            body: JSON.stringify({ soru, gecmis: gecmis.slice(-6) })
         });
         const data = await res.json();
         typingEl.remove();
@@ -255,6 +256,8 @@ async function sendMessage() {
         if (data.hata) {
             appendMessage('ai', `> **Hata:** ${data.hata}`);
         } else {
+            gecmis.push({ rol: 'kullanici', icerik: soru });
+            gecmis.push({ rol: 'ai', icerik: data.yanit });
             appendMessage('ai', data.yanit);
         }
     } catch (err) {
