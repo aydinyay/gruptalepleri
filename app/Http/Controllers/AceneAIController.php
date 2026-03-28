@@ -202,6 +202,12 @@ FORMAT;
         $gecmis = $request->input('gecmis', []);
 
         try {
+            // Web/sosyal medya araştırma isteği mi?
+            if ($this->isWebSearchIntent($soru)) {
+                $yanit = $this->webArastir($soru, $gecmis, $apiKey, $model);
+                return response()->json($yanit);
+            }
+
             $sql     = $this->generateSql($soru, $gecmis, $apiKey, $model);
             $results = $sql === 'NO_SQL' ? [] : $this->executeSql($sql);
             $yanit   = $this->formatResult($soru, $sql, $results, $gecmis, $apiKey, $model);
@@ -502,6 +508,112 @@ FORMAT;
             'telefon'  => $r['telefon'] ?? '',
             'il'       => $r['il'] ?? '',
         ], $rows);
+    }
+
+    // ── Web arama intent tespiti ────────────────────────────────────────────
+    private function isWebSearchIntent(string $soru): bool
+    {
+        $lower = mb_strtolower($soru, 'UTF-8');
+        $keywords = [
+            'internette', 'internet\'te', 'web\'de', 'google\'da', 'google\'la',
+            'sosyal medya', 'sosyal medyada', 'instagram', 'facebook', 'twitter',
+            'linkedin', 'youtube', 'tiktok', 'web sitesi', 'website', 'sitesi var mı',
+            'online ara', 'internette ara', 'web\'de ara', 'araştır', 'hakkında ara',
+            'ne kadar aktif', 'takipçi', 'dijital varlık',
+        ];
+        foreach ($keywords as $kw) {
+            if (str_contains($lower, $kw)) return true;
+        }
+        return false;
+    }
+
+    // ── Web + DB birleşik araştırma ─────────────────────────────────────────
+    private function webArastir(string $soru, array $gecmis, string $apiKey, string $model): array
+    {
+        // DB'den eşleşen acente bul
+        $dbKayit = $this->findAgencyInDb($soru);
+
+        $gecmisBolum = $this->buildGecmisBolum($gecmis, 3, 200);
+
+        $dbContext = $dbKayit
+            ? "\n━━━ VERİTABANI KAYDI (eşleşen acente) ━━━\n"
+              . json_encode($dbKayit, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\n"
+            : '';
+
+        $prompt = self::SCHEMA . "\n"
+            . $this->zamanBolumu()
+            . $gecmisBolum
+            . $dbContext
+            . "KULLANICI SORUSU: {$soru}\n\n"
+            . "Görevi: Bu seyahat acentesini internette ve sosyal medyada araştır.\n"
+            . ($dbKayit ? "Veritabanı kaydındaki bilgileri (acente adı, il, telefon vb.) araştırmayla örtüştür.\n" : "")
+            . "Şunları bul ve özetle:\n"
+            . "- Web sitesi var mı? Adresi ne?\n"
+            . "- Instagram / Facebook / LinkedIn hesabı var mı? Aktif mi?\n"
+            . "- Ağırlıklı ne iş yapıyor? (tur, charter, kurumsal, yurt dışı vb.)\n"
+            . "- Son haberler / dikkat çekici bilgi var mı?\n"
+            . "Kısa, öz ve madde madde yaz. Türkçe yanıt ver.";
+
+        $yanit = $this->geminiWebSearch($prompt, $apiKey, $model);
+
+        return ['yanit' => $yanit, 'eylem' => null];
+    }
+
+    // ── DB'de acente ara (query'den isim çıkar) ─────────────────────────────
+    private function findAgencyInDb(string $soru): ?array
+    {
+        // Türkçe stop words ve web arama kelimeleri — bunları filtrele
+        $stopwords = ['internette', 'internet', 'websitesi', 'sosyal', 'medya', 'instagram',
+                      'facebook', 'twitter', 'linkedin', 'araştır', 'bakabilir', 'hakkında',
+                      'sitesi', 'varmı', 'var', 'mı', 'mi', 'bu', 'bir', 've', 'ile', 'olan',
+                      'olan', 'için', 'bak', 'ara', 'bana', 'acente', 'acentesi', 'turizm',
+                      'seyahat', 'online', 'aktif', 'hesap', 'profil', 'takipçi'];
+
+        $words = preg_split('/[\s\'\"\/\-]+/', mb_strtolower($soru, 'UTF-8'));
+        $candidates = array_filter($words, function ($w) use ($stopwords) {
+            return mb_strlen($w, 'UTF-8') > 3 && !in_array($w, $stopwords, true);
+        });
+
+        if (empty($candidates)) return null;
+
+        $query = DB::table('acenteler')
+            ->select(['acente_unvani', 'ticari_unvan', 'belge_no', 'grup',
+                      'il', 'il_ilce', 'telefon', 'eposta', 'adres', 'kaynak']);
+
+        foreach (array_values($candidates) as $i => $word) {
+            $method = $i === 0 ? 'where' : 'orWhere';
+            $query->$method('acente_unvani', 'LIKE', '%' . $word . '%');
+        }
+
+        $row = $query->first();
+
+        return $row ? (array) $row : null;
+    }
+
+    // ── Gemini Web Search (google_search tool) ──────────────────────────────
+    private function geminiWebSearch(string $prompt, string $apiKey, string $model): string
+    {
+        $response = Http::timeout(60)->post(
+            "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+            [
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'tools'    => [['google_search' => (object) []]],
+            ]
+        );
+
+        if (! $response->successful()) {
+            throw new \Exception('Gemini Web Search hatası: ' . $response->body());
+        }
+
+        // Parts içinden tüm text parçalarını birleştir
+        $parts = data_get($response->json(), 'candidates.0.content.parts', []);
+        $text  = implode('', array_column($parts, 'text'));
+
+        if (! $text) {
+            throw new \Exception('Gemini web search boş yanıt döndürdü.');
+        }
+
+        return $text;
     }
 
     // ── Gemini API çağrısı ──────────────────────────────────────────────────
