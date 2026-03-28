@@ -210,6 +210,7 @@ FORMAT;
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
 
+        try {
         $hedefler  = $request->input('hedefler', []);
         $hedefSql  = $request->input('hedef_sql');
         $userId    = auth()->id();
@@ -292,6 +293,9 @@ FORMAT;
                 . ($hatalar > 0 ? " ({$hatalar} hata)" : '')
                 . "\n\nBu ay toplam: **{$aylikEmail} email**, **{$aylikSms} SMS** gönderildi.",
         ]);
+        } catch (\Throwable $e) {
+            return response()->json(['hata' => $e->getMessage()], 500);
+        }
     }
 
     // ── SMS gönder endpoint'i ───────────────────────────────────────────────
@@ -299,6 +303,7 @@ FORMAT;
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
 
+        try {
         $hedefler  = $request->input('hedefler', []);
         $hedefSql  = $request->input('hedef_sql');
         $icerik    = trim($request->input('icerik', ''));
@@ -385,16 +390,21 @@ FORMAT;
                 . ($hatalar > 0 ? " ({$hatalar} hata)" : '')
                 . "\n\nBu ay toplam: **{$aylikEmail} email**, **{$aylikSms} SMS** gönderildi.",
         ]);
+        } catch (\Throwable $e) {
+            return response()->json(['hata' => $e->getMessage()], 500);
+        }
     }
 
     // ── Anlık zaman bloğu ───────────────────────────────────────────────────
     private function zamanBolumu(): string
     {
-        $now = now()->locale('tr')->setTimezone('Europe/Istanbul');
+        $now  = now()->setTimezone('Europe/Istanbul');
+        $gunler = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+        $aylar  = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
         return "━━━ GÜNCEL ZAMAN ━━━\n"
-            . "Tarih     : " . $now->format('d.m.Y') . " " . $now->translatedFormat('l') . "\n"
-            . "Saat      : " . $now->format('H:i') . " (Türkiye saati)\n"
-            . "Ay        : " . $now->translatedFormat('F Y') . "\n\n";
+            . "Tarih : " . $now->format('d.m.Y') . " " . $gunler[$now->dayOfWeek] . "\n"
+            . "Saat  : " . $now->format('H:i') . " (Türkiye saati)\n"
+            . "Ay    : " . $aylar[(int)$now->format('n')] . " " . $now->format('Y') . "\n\n";
     }
 
     // ── SQL üret (Gemini — 1. çağrı) ───────────────────────────────────────
