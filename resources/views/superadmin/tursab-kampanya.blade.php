@@ -30,8 +30,15 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
 <div class="page-header">
     <div class="container-fluid px-4">
-        <h5><i class="fas fa-envelope-open-text me-2" style="color:#e94560;"></i>Davet Kampanyası</h5>
-        <p>TÜRSAB listesindeki acentelere toplu davet e-postası gönder — günlük limit: 50</p>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h5><i class="fas fa-envelope-open-text me-2" style="color:#e94560;"></i>Davet Kampanyası</h5>
+                <p>TÜRSAB listesindeki acentelere toplu davet e-postası gönder — günlük limit: 50</p>
+            </div>
+            <a href="{{ route('superadmin.acenteler.istatistik') }}" class="btn btn-sm btn-outline-light">
+                <i class="fas fa-chart-bar me-1"></i>İstatistikler
+            </a>
+        </div>
     </div>
 </div>
 
