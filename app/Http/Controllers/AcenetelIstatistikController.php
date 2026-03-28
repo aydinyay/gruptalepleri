@@ -7,6 +7,26 @@ use Illuminate\Support\Facades\Schema;
 
 class AcenetelIstatistikController extends Controller
 {
+    // Türkiye 2023 nüfus (TÜİK)
+    private const TURKIYE_NUFUS = 85_279_553;
+
+    // 7 coğrafi bölge → il eşlemesi
+    private const BOLGELER = [
+        'Marmara'        => ['İstanbul','Tekirdağ','Edirne','Kırklareli','Çanakkale','Balıkesir','Bursa','Kocaeli','Sakarya','Düzce','Bolu','Yalova'],
+        'Ege'            => ['İzmir','Manisa','Afyonkarahisar','Kütahya','Uşak','Denizli','Aydın','Muğla'],
+        'Akdeniz'        => ['Antalya','Isparta','Burdur','Mersin','Adana','Hatay','Kahramanmaraş','Osmaniye'],
+        'İç Anadolu'     => ['Ankara','Konya','Eskişehir','Sivas','Yozgat','Kayseri','Aksaray','Niğde','Nevşehir','Kırıkkale','Kırşehir','Çankırı'],
+        'Karadeniz'      => ['Zonguldak','Karabük','Bartın','Kastamonu','Çorum','Sinop','Samsun','Amasya','Tokat','Ordu','Giresun','Trabzon','Rize','Artvin','Gümüşhane','Bayburt'],
+        'Doğu Anadolu'   => ['Erzurum','Erzincan','Ağrı','Kars','Ardahan','Iğdır','Van','Bitlis','Muş','Bingöl','Tunceli','Elazığ','Malatya'],
+        'Güneydoğu'      => ['Diyarbakır','Şanlıurfa','Mardin','Batman','Siirt','Şırnak','Hakkari','Gaziantep','Kilis','Adıyaman'],
+    ];
+
+    // Önemli turizm destinasyonları
+    private const DESTINASYONLAR = [
+        'Antalya','Muğla','İstanbul','İzmir','Nevşehir','Trabzon',
+        'Bursa','Ankara','Mersin','Adana','Edirne','Samsun',
+    ];
+
     public function index()
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
@@ -18,35 +38,37 @@ class AcenetelIstatistikController extends Controller
         $subeCount   = DB::table('acenteler')->where('is_sube', 1)->count();
         $anaMerkez   = $toplam - $subeCount;
 
-        // ── KAYNAK DAĞILIMI ───────────────────────────────────────────────────
-        $kaynaklar = DB::table('acenteler')
-            ->selectRaw("
-                COALESCE(kaynak, 'bilinmiyor') as kaynak,
-                COUNT(*) as toplam,
-                SUM(eposta  IS NOT NULL AND eposta  != '') as eposta_var,
-                SUM(telefon IS NOT NULL AND telefon != '') as telefon_var,
-                SUM(adres   IS NOT NULL AND adres   != '') as adres_var,
-                SUM(il      IS NOT NULL AND il      != '') as il_var
-            ")
-            ->groupBy('kaynak')
-            ->orderByDesc('toplam')
-            ->get();
-
-        // ── İL DAĞILIMI (Top 20) ─────────────────────────────────────────────
-        $ilDagilim = DB::table('acenteler')
-            ->selectRaw("
-                il,
-                COUNT(*) as toplam,
-                SUM(eposta IS NOT NULL AND eposta != '') as eposta_var
-            ")
+        // ── İL DAĞILIMI (tüm iller) ──────────────────────────────────────────
+        $ilDagilimTumu = DB::table('acenteler')
+            ->selectRaw('il, COUNT(*) as toplam')
             ->whereNotNull('il')->where('il', '!=', '')
             ->groupBy('il')
             ->orderByDesc('toplam')
-            ->limit(20)
             ->get();
 
-        // Büyük 3 vs diğerleri
-        $buyuk3Iller = ['İstanbul', 'Ankara', 'İzmir'];
+        $ilDagilim = $ilDagilimTumu->take(20);
+
+        // En az acenteli iller (minimum 1 acente olan)
+        $enAzIller = $ilDagilimTumu->sortBy('toplam')->take(15)->values();
+
+        // ── BÖLGE DAĞILIMI ────────────────────────────────────────────────────
+        $bolgeVerisi = [];
+        foreach (self::BOLGELER as $bolge => $iller) {
+            $sayi = DB::table('acenteler')->whereIn('il', $iller)->count();
+            $bolgeVerisi[] = ['bolge' => $bolge, 'toplam' => $sayi, 'il_sayisi' => count($iller)];
+        }
+        usort($bolgeVerisi, fn($a, $b) => $b['toplam'] - $a['toplam']);
+
+        // ── DESTİNASYON ANALİZİ ──────────────────────────────────────────────
+        $destinasyonlar = DB::table('acenteler')
+            ->selectRaw('il, COUNT(*) as toplam')
+            ->whereIn('il', self::DESTINASYONLAR)
+            ->groupBy('il')
+            ->orderByDesc('toplam')
+            ->get();
+
+        // ── BÜYÜK 3 vs DİĞER ─────────────────────────────────────────────────
+        $buyuk3Iller  = ['İstanbul', 'Ankara', 'İzmir'];
         $buyuk3Toplam = DB::table('acenteler')->whereIn('il', $buyuk3Iller)->count();
         $digerIlToplam = $toplam - $buyuk3Toplam;
 
@@ -62,21 +84,6 @@ class AcenetelIstatistikController extends Controller
             ->orderByDesc('toplam')
             ->get();
 
-        // ── İL BAZINDA E-POSTA ORANI (Top 20) ───────────────────────────────
-        $ilEpostaOran = DB::table('acenteler')
-            ->selectRaw("
-                il,
-                COUNT(*) as toplam,
-                SUM(eposta IS NOT NULL AND eposta != '') as eposta_var,
-                ROUND(SUM(eposta IS NOT NULL AND eposta != '') / COUNT(*) * 100, 1) as oran
-            ")
-            ->whereNotNull('il')->where('il', '!=', '')
-            ->groupBy('il')
-            ->having('toplam', '>=', 10)
-            ->orderByDesc('oran')
-            ->limit(20)
-            ->get();
-
         // ── İLÇE DAĞILIMI (Top 15) ───────────────────────────────────────────
         $ilceDagilim = DB::table('acenteler')
             ->selectRaw('il_ilce, il, COUNT(*) as toplam')
@@ -86,27 +93,79 @@ class AcenetelIstatistikController extends Controller
             ->limit(15)
             ->get();
 
+        // ── TOP 5 İL → İLÇE DRILLDOWN ────────────────────────────────────────
+        $top5Iller = $ilDagilim->take(5)->pluck('il');
+        $ilceDrilldown = DB::table('acenteler')
+            ->selectRaw('il, il_ilce, COUNT(*) as toplam')
+            ->whereIn('il', $top5Iller)
+            ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
+            ->groupBy('il', 'il_ilce')
+            ->orderBy('il')->orderByDesc('toplam')
+            ->get()->groupBy('il');
+
+        // ── DAVET İSTATİSTİĞİ ─────────────────────────────────────────────────
+        $davetTableExists = Schema::hasTable('tursab_davetler');
+        $davetBasarili = $davetTableExists ? DB::table('tursab_davetler')->where('status', 'sent')->count() : 0;
+
         // ── BELGE NO HİSTOGRAM ────────────────────────────────────────────────
         $belgeNoHistogram = DB::table('acenteler')
-            ->selectRaw("
-                FLOOR(CAST(belge_no AS UNSIGNED) / 1000) * 1000 as aralik,
-                COUNT(*) as toplam
-            ")
-            ->whereRaw("belge_no REGEXP '^[0-9]+$'")
-            ->where('belge_no', '!=', '0')
-            ->groupBy('aralik')
-            ->orderBy('aralik')
-            ->get();
+            ->selectRaw("FLOOR(CAST(belge_no AS UNSIGNED) / 1000) * 1000 as aralik, COUNT(*) as toplam")
+            ->whereRaw("belge_no REGEXP '^[0-9]+$'")->where('belge_no', '!=', '0')
+            ->groupBy('aralik')->orderBy('aralik')->get();
 
         // ── ŞUBE DAĞILIMI ─────────────────────────────────────────────────────
         $subeDagilim = DB::table('acenteler')
             ->selectRaw('sube_sira, COUNT(*) as toplam')
-            ->groupBy('sube_sira')
-            ->orderBy('sube_sira')
-            ->limit(10)
+            ->groupBy('sube_sira')->orderBy('sube_sira')->limit(10)->get();
+
+        // ── EN ÇOK ŞUBELİ ACENTELER ──────────────────────────────────────────
+        $enCokSubeliAcenteler = DB::table('acenteler')
+            ->selectRaw("
+                belge_no,
+                MAX(CASE WHEN is_sube = 0 THEN acente_unvani ELSE NULL END) as unvan,
+                MAX(CASE WHEN is_sube = 0 THEN il ELSE NULL END) as il,
+                SUM(CASE WHEN is_sube = 1 THEN 1 ELSE 0 END) as sube_sayisi
+            ")
+            ->whereNotNull('belge_no')->where('belge_no', '!=', '')->where('belge_no', '!=', '0')
+            ->whereRaw("belge_no REGEXP '^[0-9]+$'")
+            ->groupBy('belge_no')
+            ->having('sube_sayisi', '>', 0)
+            ->orderByDesc('sube_sayisi')
+            ->limit(15)
             ->get();
 
-        // ── VERİ KALİTESİ (Radar için) ───────────────────────────────────────
+        // ── İL BAZLI ŞUBE YOĞUNLUĞU ──────────────────────────────────────────
+        $ilSubeYogunluk = DB::table('acenteler')
+            ->selectRaw('il, COUNT(*) as toplam_sube')
+            ->where('is_sube', 1)
+            ->whereNotNull('il')->where('il', '!=', '')
+            ->groupBy('il')
+            ->orderByDesc('toplam_sube')
+            ->limit(15)
+            ->get();
+
+        // ── İLÇE BAZLI ŞUBE YOĞUNLUĞU ────────────────────────────────────────
+        $ilceSubeYogunluk = DB::table('acenteler')
+            ->selectRaw('il, il_ilce, COUNT(*) as toplam_sube')
+            ->where('is_sube', 1)
+            ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
+            ->groupBy('il', 'il_ilce')
+            ->orderByDesc('toplam_sube')
+            ->limit(15)
+            ->get();
+
+        // ── KAYNAK DAĞILIMI (Veri sekmesi için) ──────────────────────────────
+        $kaynaklar = DB::table('acenteler')
+            ->selectRaw("
+                COALESCE(kaynak, 'bilinmiyor') as kaynak,
+                COUNT(*) as toplam,
+                SUM(eposta  IS NOT NULL AND eposta  != '') as eposta_var,
+                SUM(telefon IS NOT NULL AND telefon != '') as telefon_var,
+                SUM(adres   IS NOT NULL AND adres   != '') as adres_var,
+                SUM(il      IS NOT NULL AND il      != '') as il_var
+            ")
+            ->groupBy('kaynak')->orderByDesc('toplam')->get();
+
         $veriKalitesi = DB::table('acenteler')
             ->selectRaw("
                 COALESCE(kaynak, 'bilinmiyor') as kaynak,
@@ -118,39 +177,34 @@ class AcenetelIstatistikController extends Controller
                 ROUND(SUM(grup    IS NOT NULL AND grup    != '') / COUNT(*) * 100, 1) as grup_pct,
                 ROUND(SUM(ticari_unvan IS NOT NULL AND ticari_unvan != '') / COUNT(*) * 100, 1) as ticari_pct
             ")
-            ->groupBy('kaynak')
-            ->get();
+            ->groupBy('kaynak')->get();
 
-        // ── DAVET İSTATİSTİĞİ ─────────────────────────────────────────────────
-        $davetTableExists = Schema::hasTable('tursab_davetler');
-        $davetEdilen   = $davetTableExists ? DB::table('tursab_davetler')->count() : 0;
-        $davetBasarili = $davetTableExists ? DB::table('tursab_davetler')->where('status', 'sent')->count() : 0;
-        $davetHatali   = $davetTableExists ? DB::table('tursab_davetler')->where('status', 'failed')->count() : 0;
+        $ilEpostaOran = DB::table('acenteler')
+            ->selectRaw("
+                il, COUNT(*) as toplam,
+                SUM(eposta IS NOT NULL AND eposta != '') as eposta_var,
+                ROUND(SUM(eposta IS NOT NULL AND eposta != '') / COUNT(*) * 100, 1) as oran
+            ")
+            ->whereNotNull('il')->where('il', '!=', '')
+            ->groupBy('il')->having('toplam', '>=', 10)
+            ->orderByDesc('oran')->limit(20)->get();
 
-        // ── TOP 5 İL → İLÇE DRILLDOWN ────────────────────────────────────────
-        $top5Iller = $ilDagilim->take(5)->pluck('il');
-        $ilceDrilldown = DB::table('acenteler')
-            ->selectRaw('il, il_ilce, COUNT(*) as toplam')
-            ->whereIn('il', $top5Iller)
-            ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
-            ->groupBy('il', 'il_ilce')
-            ->orderBy('il')
-            ->orderByDesc('toplam')
-            ->get()
-            ->groupBy('il');
+        // ── NÜFUS BAŞINA ACENTE ───────────────────────────────────────────────
+        $nufusBasinaAcente = $toplam > 0 ? round(self::TURKIYE_NUFUS / $toplam) : 0;
 
         return view('superadmin.acenteler-istatistik', compact(
             'toplam', 'epostaVar', 'telefonVar', 'subeCount', 'anaMerkez',
-            'kaynaklar',
-            'ilDagilim', 'buyuk3Toplam', 'digerIlToplam',
+            'kaynaklar', 'veriKalitesi', 'ilEpostaOran',
+            'ilDagilim', 'ilDagilimTumu', 'enAzIller',
+            'buyuk3Toplam', 'digerIlToplam',
+            'bolgeVerisi',
+            'destinasyonlar',
             'grupDagilim',
-            'ilEpostaOran',
-            'ilceDagilim',
-            'belgeNoHistogram',
-            'subeDagilim',
-            'veriKalitesi',
-            'davetEdilen', 'davetBasarili', 'davetHatali',
-            'ilceDrilldown', 'top5Iller'
+            'ilceDagilim', 'ilceDrilldown', 'top5Iller',
+            'belgeNoHistogram', 'subeDagilim',
+            'enCokSubeliAcenteler', 'ilSubeYogunluk', 'ilceSubeYogunluk',
+            'davetBasarili',
+            'nufusBasinaAcente'
         ));
     }
 }
