@@ -4,6 +4,4 @@ deployment:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
     - /bin/mkdir -p "$APPPATH"
     - git checkout-index -a -f --prefix="$APPPATH/"
-    - /usr/bin/php "$APPPATH/artisan" view:clear --quiet
-    - /usr/bin/php "$APPPATH/artisan" config:clear --quiet
-    - /usr/bin/php "$APPPATH/artisan" cache:clear --quiet
+    - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
