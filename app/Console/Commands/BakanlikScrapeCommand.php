@@ -14,6 +14,7 @@ class BakanlikScrapeCommand extends Command
     protected $signature = 'bakanlik:scrape
                             {--batch=20   : Bu çalışmada kaç belge no işlensin}
                             {--delay=400  : İstekler arası bekleme (ms)}
+                            {--start=     : Başlangıç belge no (boş = kaldığı yer)}
                             {--end=18804  : Bitiş belge no}
                             {--reset      : İlerlemeyi sıfırla, baştan başla}';
 
@@ -42,7 +43,14 @@ class BakanlikScrapeCommand extends Command
         $endNo     = (int) ($this->option('end') ?: SistemAyar::get(self::SK_END, '18804') ?: 18804);
         $batch     = max(1, (int) ($this->option('batch') ?: 20));
         $delay     = max(200, (int) ($this->option('delay') ?: 400));
-        $startNo   = max(1, (int) (SistemAyar::get(self::SK_CURRENT, '1') ?: 1));
+
+        $startOpt  = $this->option('start');
+        if ($startOpt) {
+            $startNo = max(1, (int) $startOpt);
+            SistemAyar::set(self::SK_CURRENT, (string) $startNo);
+        } else {
+            $startNo = max(1, (int) (SistemAyar::get(self::SK_CURRENT, '1') ?: 1));
+        }
 
         SistemAyar::set(self::SK_END,    (string) $endNo);
         SistemAyar::set(self::SK_STATUS, 'running');
