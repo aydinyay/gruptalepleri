@@ -380,7 +380,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     <div class="alert alert-info py-2 small mb-3">
                         <i class="fas fa-info-circle me-1"></i>
                         Yalnızca <strong>GEÇERLİ</strong> belgeler indirilir. İptal olanlar atlanır.
-                        İl bazlı tarama yapar — her batch N il işler.
+                        Belge no bazlı tarama yapar — her batch N belge no işler.
                     </div>
                     <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
                         <span class="small">Durum: <strong id="bkStatus">—</strong></span>
@@ -400,10 +400,14 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-md-3">
+                            <label class="form-label small mb-1">Başlangıç No (boş = kaldığı yer)</label>
+                            <input type="number" id="bkStartNo" class="form-control form-control-sm" placeholder="örn. 705" min="1">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label small mb-1">Batch (No/istek)</label>
                             <input type="number" id="bkBatch" class="form-control form-control-sm" value="20" min="1" max="100">
                         </div>
-                        <div class="col-md-9 d-flex align-items-end gap-2 flex-wrap">
+                        <div class="col-md-6 d-flex align-items-end gap-2 flex-wrap">
                             <button class="btn btn-sm btn-success" id="bkStartBtn" onclick="bkBaslat()">
                                 <i class="fas fa-play me-1"></i>Başlat
                             </button>
@@ -704,15 +708,20 @@ async function bkBaslat() {
     document.getElementById('bkStartBtn').classList.add('d-none');
     document.getElementById('bkStopBtn').classList.remove('d-none');
 
-    const batchVal = document.getElementById('bkBatch').value;
+    const batchVal  = document.getElementById('bkBatch').value;
+    const startVal  = document.getElementById('bkStartNo').value;
     document.getElementById('bkLog').innerHTML = '';
     bkLog('Tarama başlatıldı… (her istek ' + batchVal + ' belge no işler)');
 
+    let firstReq = true;
     while (!bkStopFlag) {
         try {
+            const params = { _token: CSRF_TOKEN, batch: batchVal };
+            if (firstReq && startVal) params.start = startVal;
+            firstReq = false;
             const res = await fetch(BK_SCRAPE_URL, {
                 method: 'POST',
-                body: new URLSearchParams({ _token: CSRF_TOKEN, batch: batchVal })
+                body: new URLSearchParams(params)
             });
             if (!res.ok) { bkLog('HTTP hatası: ' + res.status, 'text-danger'); break; }
             const d = await res.json();
@@ -743,11 +752,12 @@ function bkDur() {
 }
 
 function bkSifirla() {
-    if (!confirm('Tarama sıfırlansın mı? (Veri silinmez, 1. belge nodan baştan tarar)')) return;
+    const startVal = document.getElementById('bkStartNo').value || '1';
+    if (!confirm('Tarama sıfırlansın mı? (' + startVal + '. belge nodan baştan tarar, veri silinmez)')) return;
     fetch(BK_SCRAPE_URL, {
         method: 'POST',
-        body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', batch: '1' })
-    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('Sıfırlandı.', 'text-warning'); });
+        body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', start: startVal, batch: '1' })
+    }).then(r => r.json()).then(d => { bkGoster(d); bkLog('Sıfırlandı — ' + startVal + "'den başlayacak.", 'text-warning'); });
 }
 </script>
 </body>
