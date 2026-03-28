@@ -3,7 +3,8 @@ deployment:
   tasks:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
     - /bin/mkdir -p "$APPPATH"
-    - git archive HEAD | tar -x -C "$APPPATH"
+    - git log -1 --format="%H %ai" refs/heads/work > "$APPPATH/deploy-info.txt" 2>&1 || git log -1 --format="%H %ai" HEAD > "$APPPATH/deploy-info.txt" 2>&1
+    - git archive refs/heads/work | tar -x -C "$APPPATH" 2>/dev/null || git archive HEAD | tar -x -C "$APPPATH"
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
