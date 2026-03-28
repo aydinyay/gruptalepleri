@@ -1,11 +1,10 @@
 ---
 deployment:
   tasks:
-    - export APPPATH=/home/gruprez1/gruptalepleri.com
-    - /bin/mkdir -p "$APPPATH/public"
-    - /bin/echo "DEPLOY_OK $(date)" > "$APPPATH/public/deploy-time.txt"
-    - git --work-tree="$APPPATH" checkout -f HEAD -- .
-    - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
-    - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
-    - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
+    - /bin/mkdir -p /home/gruprez1/gruptalepleri.com
+    - /bin/echo "DEPLOY $(date)" > /home/gruprez1/gruptalepleri.com/public/deploy-time.txt
+    - git --work-tree=/home/gruprez1/gruptalepleri.com checkout -f HEAD -- .
+    - /bin/rm -f /home/gruprez1/gruptalepleri.com/storage/framework/views/*.php
+    - /bin/rm -f /home/gruprez1/gruptalepleri.com/bootstrap/cache/routes-v7.php
+    - /bin/rm -f /home/gruprez1/gruptalepleri.com/bootstrap/cache/config.php
     - php -r "if(function_exists('opcache_reset')){opcache_reset();}" 2>/dev/null || true
