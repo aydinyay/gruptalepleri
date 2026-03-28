@@ -216,3 +216,4 @@ Cevap: xyz tur kayıtlı değil
 PROMPT;
     }
 }
+
