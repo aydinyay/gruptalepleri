@@ -30,7 +30,31 @@
       "Bash(php fix_old_beklemede.php)",
       "Bash(php -r \"unlink\\(''c:/gruptalepleri/fix_old_beklemede.php''\\);\")",
       "Bash(php check_users.php)",
-      "Bash(php -r \"unlink\\(''c:/gruptalepleri/check_users.php''\\);\")"
+      "Bash(php -r \"unlink\\(''c:/gruptalepleri/check_users.php''\\);\")",
+      "Bash(find /c/gruptalepleri/app/Http/Controllers -type f -name *Payment* -o -name *Odeme*)",
+      "Bash(find /c/gruptalepleri/database/migrations -name *request_payment* -o -name *offer*)",
+      "Bash(php -r \"echo ''PHP OK'';\")",
+      "Bash(find /c/gruptalepleri -type f -name *NotificationService* -o -name *SmsService* -o -name *EmailService*)",
+      "Bash(read -p 'Waiting for background task...')",
+      "Read(//c/Users/GNEYAY~1/AppData/Local/Temp/claude/c--gruptalepleri/9862d36b-7a62-4eb0-8e95-078896eeff38/tasks/**)",
+      "Bash(gh run:*)",
+      "Bash(curl -s \"https://gruptalepleri.com/deploy-run.php?key=gtp2026deploy&action=migrate\")",
+      "Bash(curl -s \"https://gruptalepleri.com/deploy-run.php?key=gtp2026deploy&action=status\")",
+      "Bash(curl -s \"https://gruptalepleri.com/deploy-run.php?key=gtp2026deploy&action=full-clear\")",
+      "WebFetch(domain:gruptalepleri.com)",
+      "Bash(grep -i \"broadcast\\\\|websocket\\\\|pusher\\\\|realtime\" c:/gruptalepleri/app/Http/Controllers/Acente/*.php)",
+      "Bash(find /c/gruptalepleri -type f \\\\\\(-name *.sql -o -name *.dump \\\\\\))",
+      "Bash(grep -rn \"acenteler\\\\|Table::create\\(''''acenteler\" /c/gruptalepleri/database/migrations/ --include=*.php)",
+      "Bash(grep -l \"acenteler\\\\|agencies\" /c/gruptalepleri/database/migrations/*.php)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Bash(grep -rn \"option_date\\\\|option_time\" /c/gruptalepleri/app/ --include=*.php)",
+      "Bash(grep -rn \"Opsiyon bitiş\\\\|opsiyon_bitis\\\\|deposit_amount\\\\|deposit_percent\\\\|depozito_miktar\\\\|depozito_yuzde\" /c/gruptalepleri/ --include=*.php)",
+      "Bash(php -r \"echo md5\\(''C:\\\\gruptalepleri\\\\resources\\\\views\\\\admin\\\\requests\\\\show.blade.php''\\) . PHP_EOL;\")",
+      "Bash(php -r \":*)",
+      "Bash(grep -r GroupRequest /c/gruptalepleri --include=*.php)",
+      "Bash(grep -r group_request /c/gruptalepleri --include=*.php)",
+      "Bash(git fetch:*)"
     ]
   }
 }
