@@ -27,6 +27,48 @@ class AcenetelIstatistikController extends Controller
         'Bursa','Ankara','Mersin','Adana','Edirne','Samsun',
     ];
 
+    public function normalize(\Illuminate\Http\Request $request)
+    {
+        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
+        $dryRun = $request->query('mode', 'dry') !== 'run';
+        $log = [$dryRun ? '🔍 DRY-RUN — değişiklik yok' : '✅ UYGULANIYOR...', ''];
+
+        $log[] = '─── Mevcut dağılım ───';
+        foreach (DB::table('acenteler')->selectRaw("COALESCE(kaynak,'NULL') as k, COUNT(*) as t")->groupBy('k')->orderByDesc('t')->get() as $r) {
+            $log[] = "  {$r->k}: {$r->t}";
+        }
+        $log[] = '';
+
+        $rules = [
+            'tursab'   => "LOWER(CONVERT(kaynak USING utf8mb4)) LIKE '%tursab%'",
+            'bakanlik' => "LOWER(CONVERT(kaynak USING utf8mb4)) LIKE '%bakanl%'",
+            'manuel'   => "LOWER(CONVERT(kaynak USING utf8mb4)) LIKE '%manuel%'",
+        ];
+        $log[] = '─── kaynak normalize ───';
+        foreach ($rules as $val => $cond) {
+            $n = DB::table('acenteler')->whereRaw($cond)->where('kaynak', '!=', $val)->count();
+            $log[] = "  '{$val}' → {$n} kayıt";
+            if (!$dryRun && $n > 0) DB::table('acenteler')->whereRaw($cond)->where('kaynak', '!=', $val)->update(['kaynak' => $val]);
+        }
+
+        $log[] = '';
+        $log[] = '─── is_sube normalize ───';
+        $n = DB::table('acenteler')->where('is_sube', 0)->where(fn($q) => $q->whereRaw("UPPER(acente_unvani) LIKE '%ŞUBE%'")->orWhereRaw("UPPER(acente_unvani) LIKE '%SUBE%'"))->count();
+        $log[] = "  is_sube=0 ama adında ŞUBE geçen: {$n}";
+        if (!$dryRun && $n > 0) DB::table('acenteler')->where('is_sube', 0)->where(fn($q) => $q->whereRaw("UPPER(acente_unvani) LIKE '%ŞUBE%'")->orWhereRaw("UPPER(acente_unvani) LIKE '%SUBE%'"))->update(['is_sube' => 1]);
+
+        if (!$dryRun) {
+            $log[] = ''; $log[] = '─── Sonuç ───';
+            foreach (DB::table('acenteler')->selectRaw("COALESCE(kaynak,'NULL') as k, COUNT(*) as t")->groupBy('k')->orderByDesc('t')->get() as $r) {
+                $log[] = "  {$r->k}: {$r->t}";
+            }
+            $log[] = '  is_sube=1: ' . DB::table('acenteler')->where('is_sube', 1)->count();
+        }
+
+        $btn = $dryRun ? '<br><a href="?mode=run" style="background:#e94560;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-family:monospace;">▶ Uygulamak için tıkla</a>' : '';
+        return response('<pre style="background:#1a1a2e;color:#0f0;padding:20px;font-size:14px;margin:0;">' . htmlspecialchars(implode("\n", $log)) . '</pre>' . $btn);
+    }
+
     public function index()
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
