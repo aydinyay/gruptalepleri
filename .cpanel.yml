@@ -2,9 +2,8 @@
 deployment:
   tasks:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
-    - /bin/mkdir -p "$APPPATH"
-    - git fetch origin
-    - git reset --hard origin/work
+    - /bin/mkdir -p "$APPPATH/public"
+    - /bin/echo "DEPLOY_OK $(date)" > "$APPPATH/public/deploy-time.txt"
     - git --work-tree="$APPPATH" checkout -f HEAD -- .
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
