@@ -4,7 +4,9 @@ deployment:
     - export APPPATH=/home/gruprez1/gruptalepleri.com
     - /bin/mkdir -p "$APPPATH"
     - git fetch origin
-    - git archive origin/work | /bin/tar -x -C "$APPPATH"
+    - git reset --hard origin/work
+    - git --work-tree="$APPPATH" checkout -f HEAD -- .
     - /bin/rm -f "$APPPATH"/storage/framework/views/*.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/routes-v7.php
     - /bin/rm -f "$APPPATH"/bootstrap/cache/config.php
+    - php -r "if(function_exists('opcache_reset')){opcache_reset();}" 2>/dev/null || true
