@@ -1,22 +1,25 @@
 <?php
-if (($_GET['t'] ?? '') !== 'grt2026fix') {
+$token = 'grt2026fix';
+if (($_POST['t'] ?? $_GET['t'] ?? '') !== $token) {
     http_response_code(403); die('Forbidden');
 }
 
 $webRoot = '/home/gruprez1/gruptalepleri.com';
-$zipPath = '/home/gruprez1/deploy.zip';
 
-if (!file_exists($zipPath)) { die("HATA: deploy.zip yok"); }
-if (!class_exists('ZipArchive')) { die("HATA: ZipArchive yok"); }
+// Dosya yazma modu
+if (!empty($_POST['p']) && isset($_POST['c'])) {
+    $path = $_POST['p'];
+    if (str_contains($path, '..')) die('INVALID');
+    $full = "$webRoot/$path";
+    $dir = dirname($full);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    $result = file_put_contents($full, base64_decode($_POST['c']));
+    echo $result !== false ? "OK" : "FAIL";
+    exit;
+}
 
-$zip = new ZipArchive();
-if ($zip->open($zipPath) !== TRUE) { die("HATA: ZIP açılamadı"); }
-
-$result = $zip->extractTo($webRoot);
-$zip->close();
-
-@unlink($webRoot . '/bootstrap/cache/routes-v7.php');
-@unlink($webRoot . '/bootstrap/cache/config.php');
+// Cache temizleme
+@unlink("$webRoot/bootstrap/cache/routes-v7.php");
+@unlink("$webRoot/bootstrap/cache/config.php");
 if (function_exists('opcache_reset')) opcache_reset();
-
-echo $result ? "BAŞARILI" : "HATA: extract başarısız";
+echo "CACHE_CLEARED";

@@ -5,41 +5,40 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
-      - name: Create or update cPanel git repo
+      - name: Deploy changed files to server
         run: |
-          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 \
-            -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControl/create?repository_root=/home/gruprez1/repositories/gruptalepleri2&remote_url=https://github.com/aydinyay/gruptalepleri.git&branch=main")
-          echo "$RESPONSE"
+          HOOK="https://gruptalepleri.com/gitfix.php"
+          TOKEN="grt2026fix"
 
-      - name: Pull latest code to cPanel
+          # İlk commit ise tüm dosyalar, değilse sadece değişenler
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            FILES=$(git diff --name-only HEAD~1 HEAD)
+          else
+            FILES=$(git ls-files)
+          fi
+
+          echo "Deploy edilecek dosyalar:"
+          echo "$FILES"
+
+          for FILE in $FILES; do
+            if [ -f "$FILE" ]; then
+              CONTENT=$(base64 -w 0 "$FILE")
+              RESP=$(curl -sf -X POST "$HOOK" \
+                -F "t=$TOKEN" \
+                -F "p=$FILE" \
+                -F "c=$CONTENT")
+              echo "$FILE: $RESP"
+            fi
+          done
+
+      - name: Clear caches
         run: |
-          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 --retry 3 --retry-delay 10 \
-            -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControl/update?repository_root=/home/gruprez1/repositories/gruptalepleri2")
-          echo "$RESPONSE"
-          echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('status',0)==1 else 1)"
-
-      - name: Wait for fetch to complete
-        run: sleep 10
-
-      - name: Deploy HEAD to web root
-        run: |
-          RESPONSE=$(curl -s -k --connect-timeout 30 --max-time 120 \
-            -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_PASSWORD }}" \
-            -X POST \
-            --data "repository_root=/home/gruprez1/repositories/gruptalepleri2" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create")
-          echo "$RESPONSE"
-          echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('status',0)==1 else 1)"
+          curl -sf "https://gruptalepleri.com/gitfix.php?t=grt2026fix" && echo "Cache temizlendi"
