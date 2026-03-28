@@ -139,59 +139,92 @@ class AceneAIController extends Controller
             return "Belge no {$no} sorgusu ({$rows->count()} kayıt):\n{$lines}";
         }
 
-        // 2. İl sorgusu — Türk şehir adları
+        // 2. Bölge sorgusu — "ege bölgesi", "marmara", "karadeniz" vb.
+        $bolgeMap = [
+            'marmara'      => ['İstanbul','Tekirdağ','Edirne','Kırklareli','Çanakkale','Balıkesir','Bursa','Kocaeli','Sakarya','Düzce','Bolu','Yalova'],
+            'ege'          => ['İzmir','Manisa','Afyonkarahisar','Kütahya','Uşak','Denizli','Aydın','Muğla'],
+            'akdeniz'      => ['Antalya','Isparta','Burdur','Mersin','Adana','Hatay','Kahramanmaraş','Osmaniye'],
+            'iç anadolu'   => ['Ankara','Konya','Eskişehir','Sivas','Yozgat','Kayseri','Aksaray','Niğde','Nevşehir','Kırıkkale','Kırşehir','Çankırı'],
+            'ic anadolu'   => ['Ankara','Konya','Eskişehir','Sivas','Yozgat','Kayseri','Aksaray','Niğde','Nevşehir','Kırıkkale','Kırşehir','Çankırı'],
+            'karadeniz'    => ['Zonguldak','Karabük','Bartın','Kastamonu','Çorum','Sinop','Samsun','Amasya','Tokat','Ordu','Giresun','Trabzon','Rize','Artvin','Gümüşhane','Bayburt'],
+            'doğu anadolu' => ['Erzurum','Erzincan','Ağrı','Kars','Ardahan','Iğdır','Van','Bitlis','Muş','Bingöl','Tunceli','Elazığ','Malatya'],
+            'dogu anadolu' => ['Erzurum','Erzincan','Ağrı','Kars','Ardahan','Iğdır','Van','Bitlis','Muş','Bingöl','Tunceli','Elazığ','Malatya'],
+            'güneydoğu'    => ['Diyarbakır','Şanlıurfa','Mardin','Batman','Siirt','Şırnak','Hakkari','Gaziantep','Kilis','Adıyaman'],
+            'guneydogu'    => ['Diyarbakır','Şanlıurfa','Mardin','Batman','Siirt','Şırnak','Hakkari','Gaziantep','Kilis','Adıyaman'],
+        ];
+
+        foreach ($bolgeMap as $bolgeAdi => $iller) {
+            if (str_contains($s, $bolgeAdi)) {
+                $total    = DB::table('acenteler')->whereIn('il', $iller)->count();
+                $tursab   = DB::table('acenteler')->whereIn('il', $iller)->where('kaynak', 'tursab')->count();
+                $bakanlik = DB::table('acenteler')->whereIn('il', $iller)->where('kaynak', 'bakanlik')->count();
+                $ilDetay  = DB::table('acenteler')
+                    ->selectRaw('il, COUNT(*) as toplam')
+                    ->whereIn('il', $iller)
+                    ->groupBy('il')->orderByDesc('toplam')->get()
+                    ->map(fn($r) => "{$r->il}: {$r->toplam}")->implode(', ');
+                $proper = ucwords($bolgeAdi === 'ic anadolu' ? 'İç Anadolu' : ($bolgeAdi === 'dogu anadolu' ? 'Doğu Anadolu' : ($bolgeAdi === 'guneydogu' ? 'Güneydoğu' : $bolgeAdi)));
+                return "{$proper} Bölgesi sorgusu: Toplam {$total} acente | TÜRSAB: {$tursab} | Bakanlık: {$bakanlik}\nİl detayı: {$ilDetay}";
+            }
+        }
+
+        // 3. İl sorgusu — Türk şehir adları (LIKE kullan, LOWER() Türkçe İ sorununu çözer)
         $ilMap = [
-            'adana'          => 'Adana',          'adıyaman'       => 'Adıyaman',
+            'adana'          => 'Adana',          'adiyaman'       => 'Adıyaman',
             'afyon'          => 'Afyonkarahisar',  'afyonkarahisar' => 'Afyonkarahisar',
-            'ağrı'           => 'Ağrı',            'aksaray'        => 'Aksaray',
+            'agri'           => 'Ağrı',            'aksaray'        => 'Aksaray',
             'amasya'         => 'Amasya',          'ankara'         => 'Ankara',
             'antalya'        => 'Antalya',         'ardahan'        => 'Ardahan',
-            'artvin'         => 'Artvin',          'aydın'          => 'Aydın',
-            'balıkesir'      => 'Balıkesir',       'bartın'         => 'Bartın',
+            'artvin'         => 'Artvin',          'aydin'          => 'Aydın',
+            'balikesir'      => 'Balıkesir',       'bartin'         => 'Bartın',
             'batman'         => 'Batman',          'bayburt'        => 'Bayburt',
-            'bilecik'        => 'Bilecik',         'bingöl'         => 'Bingöl',
+            'bilecik'        => 'Bilecik',         'bingol'         => 'Bingöl',
             'bitlis'         => 'Bitlis',          'bolu'           => 'Bolu',
             'burdur'         => 'Burdur',          'bursa'          => 'Bursa',
-            'çanakkale'      => 'Çanakkale',       'çankırı'        => 'Çankırı',
-            'çorum'          => 'Çorum',           'denizli'        => 'Denizli',
-            'diyarbakır'     => 'Diyarbakır',      'düzce'          => 'Düzce',
-            'edirne'         => 'Edirne',          'elazığ'         => 'Elazığ',
+            'canakkale'      => 'Çanakkale',       'cankiri'        => 'Çankırı',
+            'corum'          => 'Çorum',           'denizli'        => 'Denizli',
+            'diyarbakir'     => 'Diyarbakır',      'duzce'          => 'Düzce',
+            'edirne'         => 'Edirne',          'elazig'         => 'Elazığ',
             'erzincan'       => 'Erzincan',        'erzurum'        => 'Erzurum',
-            'eskişehir'      => 'Eskişehir',       'gaziantep'      => 'Gaziantep',
-            'giresun'        => 'Giresun',         'gümüşhane'      => 'Gümüşhane',
+            'eskisehir'      => 'Eskişehir',       'gaziantep'      => 'Gaziantep',
+            'giresun'        => 'Giresun',         'gumushane'      => 'Gümüşhane',
             'hakkari'        => 'Hakkari',         'hatay'          => 'Hatay',
-            'ığdır'          => 'Iğdır',           'iğdır'          => 'Iğdır',
-            'ısparta'        => 'Isparta',         'isparta'        => 'Isparta',
-            'istanbul'       => 'İstanbul',        'i̇stanbul'       => 'İstanbul',
-            'izmir'          => 'İzmir',           'i̇zmir'          => 'İzmir',
-            'kahramanmaraş'  => 'Kahramanmaraş',   'karabük'        => 'Karabük',
+            'igdir'          => 'Iğdır',           'isparta'        => 'Isparta',
+            'istanbul'       => 'İstanbul',        'izmir'          => 'İzmir',
+            'kahramanmaras'  => 'Kahramanmaraş',   'karabuk'        => 'Karabük',
             'karaman'        => 'Karaman',         'kars'           => 'Kars',
             'kastamonu'      => 'Kastamonu',       'kayseri'        => 'Kayseri',
-            'kilis'          => 'Kilis',           'kırıkkale'      => 'Kırıkkale',
-            'kırklareli'     => 'Kırklareli',      'kırşehir'       => 'Kırşehir',
+            'kilis'          => 'Kilis',           'kirikkale'      => 'Kırıkkale',
+            'kirklareli'     => 'Kırklareli',      'kirsehir'       => 'Kırşehir',
             'kocaeli'        => 'Kocaeli',         'konya'          => 'Konya',
-            'kütahya'        => 'Kütahya',         'malatya'        => 'Malatya',
+            'kutahya'        => 'Kütahya',         'malatya'        => 'Malatya',
             'manisa'         => 'Manisa',          'mardin'         => 'Mardin',
-            'mersin'         => 'Mersin',          'muğla'          => 'Muğla',
-            'muş'            => 'Muş',             'nevşehir'       => 'Nevşehir',
-            'niğde'          => 'Niğde',           'ordu'           => 'Ordu',
+            'mersin'         => 'Mersin',          'mugla'          => 'Muğla',
+            'mus'            => 'Muş',             'nevsehir'       => 'Nevşehir',
+            'nigde'          => 'Niğde',           'ordu'           => 'Ordu',
             'osmaniye'       => 'Osmaniye',        'rize'           => 'Rize',
             'sakarya'        => 'Sakarya',         'samsun'         => 'Samsun',
             'siirt'          => 'Siirt',           'sinop'          => 'Sinop',
-            'sivas'          => 'Sivas',           'şanlıurfa'      => 'Şanlıurfa',
-            'urfa'           => 'Şanlıurfa',       'şırnak'         => 'Şırnak',
-            'tekirdağ'       => 'Tekirdağ',        'tokat'          => 'Tokat',
+            'sivas'          => 'Sivas',           'sanliurfa'      => 'Şanlıurfa',
+            'urfa'           => 'Şanlıurfa',       'sirnak'         => 'Şırnak',
+            'tekirdag'       => 'Tekirdağ',        'tokat'          => 'Tokat',
             'trabzon'        => 'Trabzon',         'tunceli'        => 'Tunceli',
-            'uşak'           => 'Uşak',            'van'            => 'Van',
+            'usak'           => 'Uşak',            'van'            => 'Van',
             'yalova'         => 'Yalova',          'yozgat'         => 'Yozgat',
             'zonguldak'      => 'Zonguldak',
         ];
 
-        foreach ($ilMap as $lower => $proper) {
-            if (str_contains($s, $lower)) {
-                $total    = DB::table('acenteler')->whereRaw('LOWER(il) = ?', [$proper === 'İstanbul' ? 'istanbul' : mb_strtolower($proper, 'UTF-8')])->count();
-                $tursab   = DB::table('acenteler')->whereRaw('LOWER(il) = ?', [$proper === 'İstanbul' ? 'istanbul' : mb_strtolower($proper, 'UTF-8')])->where('kaynak', 'tursab')->count();
-                $bakanlik = DB::table('acenteler')->whereRaw('LOWER(il) = ?', [$proper === 'İstanbul' ? 'istanbul' : mb_strtolower($proper, 'UTF-8')])->where('kaynak', 'bakanlik')->count();
+        // Soruyu ASCII'ye dönüştür (Türkçe harf sorununu bypass et)
+        $sAscii = strtr($s, [
+            'ş'=>'s','ğ'=>'g','ü'=>'u','ö'=>'o','ç'=>'c','ı'=>'i','İ'=>'i','Ş'=>'s','Ğ'=>'g','Ü'=>'u','Ö'=>'o','Ç'=>'c',
+        ]);
+
+        foreach ($ilMap as $ascii => $proper) {
+            if (str_contains($sAscii, $ascii)) {
+                // LIKE ile sorgula — Türkçe karakter duyarsız
+                $total    = DB::table('acenteler')->where('il', 'LIKE', $proper)->count();
+                $tursab   = DB::table('acenteler')->where('il', 'LIKE', $proper)->where('kaynak', 'tursab')->count();
+                $bakanlik = DB::table('acenteler')->where('il', 'LIKE', $proper)->where('kaynak', 'bakanlik')->count();
                 return "{$proper} il sorgusu: Toplam {$total} acente | TÜRSAB: {$tursab} | Bakanlık: {$bakanlik}";
             }
         }
