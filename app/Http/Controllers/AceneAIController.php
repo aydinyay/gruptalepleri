@@ -183,7 +183,7 @@ FORMAT;
 
         try {
             $sql     = $this->generateSql($soru, $gecmis, $apiKey, $model);
-            $results = $this->executeSql($sql);
+            $results = $sql === 'NO_SQL' ? [] : $this->executeSql($sql);
             $yanit   = $this->formatResult($soru, $sql, $results, $gecmis, $apiKey, $model);
 
             return response()->json($yanit);
@@ -394,7 +394,8 @@ FORMAT;
             . $gecmisBolum
             . "\nKULLANICI SORUSU: {$soru}\n\n"
             . "Yukarıdaki soruyu yanıtlayacak MySQL SELECT sorgusunu yaz.\n"
-            . "SADECE SQL döndür. Açıklama ve markdown backtick kullanma.";
+            . "Eğer soru veritabanı gerektirmiyorsa (selamlama, sohbet, zaman sorusu, genel soru) SADECE şunu yaz: NO_SQL\n"
+            . "Aksi halde SADECE SQL döndür. Açıklama ve markdown backtick kullanma.";
 
         $sql = $this->geminiCall($prompt, $apiKey, $model, 512);
         $sql = preg_replace('/^```sql\s*/i', '', trim($sql));
