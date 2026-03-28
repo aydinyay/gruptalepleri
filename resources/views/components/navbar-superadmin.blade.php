@@ -31,6 +31,12 @@
                     'icon' => 'fas fa-envelope-open-text',
                     'keys' => ['tursab-kampanya'],
                 ],
+                [
+                    'label' => 'TURAi',
+                    'href' => route('superadmin.acente.ai'),
+                    'icon' => 'fas fa-robot',
+                    'keys' => ['acente-ai'],
+                ],
             ],
         ],
         [
