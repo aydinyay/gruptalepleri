@@ -338,6 +338,7 @@
         .sm-toast.show { transform: translateY(0); opacity: 1; }
         .sm-toast.success { border-left: 4px solid #22c55e; }
         .sm-toast.error   { border-left: 4px solid #ef4444; }
+        .sm-toast.warning { border-left: 4px solid #f59e0b; }
 
         /* ── Empty state ── */
         .empty-state { text-align: center; padding: 40px 20px; color: var(--sm-muted); }
@@ -790,7 +791,8 @@ function toast(msg, type = 'success') {
     const el = document.getElementById('smToast');
     el.textContent = msg;
     el.className = `sm-toast show ${type}`;
-    setTimeout(() => el.classList.remove('show'), 3200);
+    const dur = type === 'warning' ? 8000 : 3200;
+    setTimeout(() => el.classList.remove('show'), dur);
 }
 
 function pfIcon(p) {
@@ -1159,9 +1161,32 @@ function gorselPromptUyar(val) {
 }
 
 // ── Görsel Üret ──────────────────────────────────────────────────────────
+let gorselGeriSayimTimer = null;
+
+function gorselGeriSayimBaslat(saniye, onBitis) {
+    const btn = document.getElementById('btnGorsel');
+    const txt = document.getElementById('btnGorselTxt');
+    btn.disabled = true;
+    let kalan = saniye;
+
+    gorselGeriSayimTimer = setInterval(() => {
+        kalan--;
+        txt.innerHTML = `⏳ ${kalan}s bekle…`;
+        if (kalan <= 0) {
+            clearInterval(gorselGeriSayimTimer);
+            gorselGeriSayimTimer = null;
+            btn.disabled = false;
+            txt.innerHTML = 'Görsel Üret';
+            if (onBitis) onBitis();
+        }
+    }, 1000);
+}
+
 async function uretGorsel() {
     const prompt = document.getElementById('gorselPromptInput').value.trim();
     if (!prompt) { toast('Görsel promptu boş olamaz.', 'error'); return; }
+
+    if (gorselGeriSayimTimer) return; // geri sayım devam ediyorsa çift tıklamayı engelle
 
     const btn = document.getElementById('btnGorsel');
     const txt = document.getElementById('btnGorselTxt');
@@ -1174,7 +1199,24 @@ async function uretGorsel() {
             platform: curPlatform,
         });
 
-        if (data.hata) { toast(data.hata, 'error'); return; }
+        if (data.hata) {
+            const isRateLimit = data.hata.includes('429') || data.hata.includes('quota') ||
+                                data.hata.includes('RESOURCE_EXHAUSTED') || data.hata.includes('rate');
+            if (isRateLimit) {
+                btn.disabled = false;
+                txt.innerHTML = 'Görsel Üret';
+                toast('⏳ Rate limit: 65 saniye sonra otomatik yeniden denenecek…', 'warning');
+                gorselGeriSayimBaslat(65, () => {
+                    toast('Yeniden deneniyor…');
+                    uretGorsel();
+                });
+            } else {
+                btn.disabled = false;
+                txt.innerHTML = 'Görsel Üret';
+                toast('Görsel hatası: ' + data.hata.substring(0, 300), 'error');
+            }
+            return;
+        }
 
         // Gerçek logoyu üzerine canvas ile yapıştır
         const logoSrc = data.logo || data.logo_url || 'https://gruptalepleri.com/logo.png';
@@ -1185,10 +1227,12 @@ async function uretGorsel() {
         document.getElementById('gorselPreviewWrap').style.display = 'block';
         toast('Görsel üretildi — logo eklendi!');
     } catch (e) {
-        toast('Görsel üretme hatası.', 'error');
+        toast('Bağlantı hatası: ' + (e.message || e), 'error');
     } finally {
-        btn.disabled = false;
-        txt.innerHTML = 'Görsel Üret';
+        if (!gorselGeriSayimTimer) {
+            btn.disabled = false;
+            txt.innerHTML = 'Görsel Üret';
+        }
     }
 }
 
