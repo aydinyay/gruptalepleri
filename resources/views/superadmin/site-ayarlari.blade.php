@@ -20,6 +20,25 @@
             display:flex; align-items:center; justify-content:center; font-size:1.05rem;
         }
         .table td, .table th { font-size:0.86rem; vertical-align:middle; }
+
+        /* Placeholder silik + italik — boş alan hemen anlaşılsın */
+        .form-control::placeholder,
+        .form-select::placeholder {
+            color: #b0bec5 !important;
+            font-style: italic;
+            font-weight: 400;
+        }
+        .form-control:placeholder-shown,
+        textarea:placeholder-shown {
+            border-color: #dee2e6;
+            background-color: #fafbfc;
+        }
+        .form-control:not(:placeholder-shown),
+        textarea:not(:placeholder-shown) {
+            border-color: #86b7fe;
+            background-color: #fff;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
