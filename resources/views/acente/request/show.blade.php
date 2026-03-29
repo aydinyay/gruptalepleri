@@ -799,14 +799,14 @@
                 </div>
             </div>
 
-            {{-- ── ROTA HARİTASI (collapsible, kapalı) ── --}}
+            {{-- ── ROTA HARİTASI (collapsible, açık) ── --}}
             <div class="card shadow-sm mb-3">
-                <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle collapsed"
-                     data-bs-toggle="collapse" data-bs-target="#harita-collapse" aria-expanded="false">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle"
+                     data-bs-toggle="collapse" data-bs-target="#harita-collapse" aria-expanded="true">
                     <span class="fw-semibold"><i class="fas fa-map-marked-alt me-2 text-success"></i>Rota Haritası</span>
                     <i class="fas fa-chevron-down chevron text-muted" style="font-size:0.75rem;" id="harita-chevron"></i>
                 </div>
-                <div class="collapse" id="harita-collapse">
+                <div class="collapse show" id="harita-collapse">
                     <div id="map"></div>
                 </div>
             </div>
