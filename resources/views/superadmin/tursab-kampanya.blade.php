@@ -124,6 +124,11 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
             </button>
         </li>
         <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-sync">
+                <i class="fas fa-sync-alt me-1"></i>Senkronizasyon
+            </button>
+        </li>
+        <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-manuel">
                 <i class="fas fa-plus-circle me-1"></i>Manuel Ekle
             </button>
@@ -434,8 +439,9 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
         </div>
 
-        {{-- TAM SENKRONİZASYON KARTI --}}
-        <div class="card shadow-sm mt-4 border-primary">
+        {{-- TAM SENKRONİZASYON TAB --}}
+        <div class="tab-pane fade" id="tab-sync">
+        <div class="card shadow-sm mt-2 border-primary">
             <div class="card-header py-2 bg-primary text-white">
                 <strong><i class="fas fa-sync-alt me-1"></i>Bakanlık Tam Senkronizasyon</strong>
                 <span class="small ms-2 opacity-75">GEÇERLİ + İPTAL — updateOrInsert — haftalık otomatik</span>
@@ -491,6 +497,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 </div>
             </div>
         </div>
+        </div>{{-- /tab-sync --}}
 
         {{-- MANUEL EKLE TAB --}}
         <div class="tab-pane fade" id="tab-manuel">
