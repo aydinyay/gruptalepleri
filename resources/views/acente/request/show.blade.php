@@ -1402,12 +1402,10 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
         <span class="turai-badge">AI</span>
     </button>
 
-    {{-- Karşılama baloncuğu (1 kez gösterilir) --}}
+    {{-- Karşılama baloncuğu --}}
     <div id="turai-hello" style="display:none;" onclick="turaiHelloKapat()">
         <button id="turai-hello-close" onclick="turaiHelloKapat()" title="Kapat">✕</button>
-        👋 Merhaba <strong>{{ $talep->agency_name }}</strong>!<br>
-        Ben <strong>TURAi</strong>, GrupTalepleri.com yapay zeka asistanıyım.<br>
-        <span style="color:#6c757d;font-size:0.75rem;">Sormak istediğin bir şey varsa tıkla →</span>
+        <span id="turai-hello-text"></span>
     </div>
 
     {{-- Chat paneli --}}
@@ -1495,21 +1493,33 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     };
 
     // ── Karşılama baloncuğu ──
-    const TURAI_HELLO_KEY = 'turai_hello_seen_{{ $talep->user_id }}';
     window.turaiHelloKapat = function () {
         const el = document.getElementById('turai-hello');
         if (el) el.style.display = 'none';
-        localStorage.setItem(TURAI_HELLO_KEY, '1');
     };
-    // 2 saniye sonra göster — sadece daha önce gösterilmediyse
-    if (!localStorage.getItem(TURAI_HELLO_KEY)) {
-        setTimeout(function () {
-            const el = document.getElementById('turai-hello');
-            if (el && !panelAcik) el.style.display = 'block';
-            // 8 saniye sonra otomatik kapat
-            setTimeout(turaiHelloKapat, 8000);
-        }, 2000);
-    }
+
+    setTimeout(function () {
+        const el = document.getElementById('turai-hello');
+        if (!el || panelAcik) return;
+
+        const saat = new Date().getHours();
+        let selam;
+        if      (saat >= 6  && saat < 12) selam = '☀️ Günaydın';
+        else if (saat >= 12 && saat < 15) selam = '👋 Merhaba';
+        else if (saat >= 15 && saat < 18) selam = '🌤️ Tünaydın';
+        else if (saat >= 18 && saat < 22) selam = '🌆 İyi akşamlar';
+        else                               selam = '🌙 İyi geceler';
+
+        document.getElementById('turai-hello-text').innerHTML =
+            `<strong>${selam}, {{ $talep->agency_name }}!</strong><br>`
+            + `Ben <strong>TURAi</strong>, GrupTalepleri.com'un size özel yapay zeka asistanıyım. `
+            + `Talep, teklif veya ödeme hakkında her şeyi sorabilirsiniz.<br>`
+            + `<span style="font-size:0.75rem;opacity:0.7;">Konuşmak için tıklayın →</span>`;
+
+        el.style.display = 'block';
+        // 10 saniye sonra otomatik kapat
+        setTimeout(turaiHelloKapat, 10000);
+    }, 2000);
 
     // ── Chip tıklandı ──
     // ── Acil panel — TURAi API çağrısı yapmadan anlık render ──
