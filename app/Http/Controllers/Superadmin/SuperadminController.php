@@ -319,7 +319,7 @@ class SuperadminController extends Controller
         if ($activeTab === 'sirket') {
             $sirketKeys = [
                 'sirket_unvan', 'sirket_vkn', 'sirket_vergi_dairesi',
-                'sirket_mersis_no', 'sirket_adres', 'sirket_telefon',
+                'sirket_mersis_no', 'sirket_adres', 'sirket_telefon', 'sirket_cep',
                 'sirket_whatsapp', 'sirket_eposta', 'sirket_tursab_no',
                 'sirket_tursab_grup', 'sirket_instagram',
                 // Eski tek-hesap keys (geriye uyumluluk)
@@ -364,7 +364,7 @@ class SuperadminController extends Controller
 
         $keys = [
             'sirket_unvan', 'sirket_vkn', 'sirket_vergi_dairesi',
-            'sirket_mersis_no', 'sirket_adres', 'sirket_telefon',
+            'sirket_mersis_no', 'sirket_adres', 'sirket_telefon', 'sirket_cep',
             'sirket_whatsapp', 'sirket_eposta', 'sirket_tursab_no',
             'sirket_tursab_grup', 'sirket_instagram',
             'banka_adi', 'banka_hesap_sahibi', 'banka_iban', 'banka_sube', 'banka_aciklama',

@@ -763,11 +763,19 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
-                            <i class="fas fa-phone me-1 text-muted"></i>Telefon
+                            <i class="fas fa-phone me-1 text-muted"></i>Telefon (Sabit / Merkez)
                         </label>
                         <input type="text" name="sirket_telefon" class="form-control"
                                placeholder="+90 212 000 00 00"
                                value="{{ $sirketBilgileri['sirket_telefon'] ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-mobile-alt me-1 text-muted"></i>Cep Telefonu
+                        </label>
+                        <input type="text" name="sirket_cep" class="form-control"
+                               placeholder="0 532 426 26 30"
+                               value="{{ $sirketBilgileri['sirket_cep'] ?? '' }}">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">

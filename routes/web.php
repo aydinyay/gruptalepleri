@@ -125,6 +125,7 @@ Route::get('/', function () {
         'mersis_no'      => $s('sirket_mersis_no',      '0411047752900001'),
         'adres'          => $s('sirket_adres',          'İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli / İstanbul'),
         'telefon'        => $s('sirket_telefon',        '+90 535 415 47 99'),
+        'cep'            => $s('sirket_cep',            ''),
         'whatsapp'       => $s('sirket_whatsapp',       '+90 535 415 47 99'),
         'eposta'         => $s('sirket_eposta',         'destek@gruptalepleri.com'),
         'tursab_no'      => $s('sirket_tursab_no',      '12572'),
