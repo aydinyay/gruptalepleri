@@ -1258,6 +1258,8 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .turai-chip:hover { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+.turai-chip-acil { border-color: #e94560 !important; color: #e94560 !important; font-weight: 600; }
+.turai-chip-acil:hover { background: #e94560 !important; color: #fff !important; }
 
 /* ── Mesaj alanı ── */
 #turai-messages {
@@ -1381,6 +1383,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             <span class="turai-chip" onclick="turaiSend('📋 Diğer taleplerimde durum nedir? Hangileri beklemede?')">📋 Taleplerim</span>
             <span class="turai-chip" onclick="turaiSend('✈️ ' + '{{ $talep->segments->last()?->to_iata }}' + ' havalimanı ve şehri hakkında bilgi ver, gezilecek yerler, ulaşım.')">✈️ Destinasyon</span>
             <span class="turai-chip" onclick="turaiSend('📞 Acil durumda sizi nasıl arayabilirim?')">📞 Acil</span>
+            <span class="turai-chip turai-chip-acil" onclick="turaiAcilSms()" id="turai-acil-btn">🆘 Acil SMS Gönder</span>
         </div>
 
         {{-- Mesajlar --}}
@@ -1413,9 +1416,10 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 
 <script>
 (function () {
-    const GTPNR    = '{{ $talep->gtpnr }}';
-    const CSRF     = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    const ENDPOINT = '/acente/talep/' + GTPNR + '/turai';
+    const GTPNR       = '{{ $talep->gtpnr }}';
+    const CSRF        = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const ENDPOINT    = '/acente/talep/' + GTPNR + '/turai';
+    const ACIL_ENDPOINT = '/acente/talep/' + GTPNR + '/acil-sms';
 
     let panelAcik  = false;
     let yukleniyor = false;
@@ -1438,6 +1442,34 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     };
 
     // ── Chip tıklandı ──
+    window.turaiAcilSms = function () {
+        const btn = document.getElementById('turai-acil-btn');
+        if (btn.dataset.loading) return;
+
+        if (!confirm('Admininize sizin adınıza acil destek SMS\'i gönderilsin mi?')) return;
+
+        btn.dataset.loading = '1';
+        btn.textContent = '⏳ Gönderiliyor...';
+
+        fetch(ACIL_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({}),
+        })
+        .then(async r => { const t = await r.text(); try { return JSON.parse(t); } catch(e) { throw new Error(t.substring(0,200)); } })
+        .then(data => {
+            delete btn.dataset.loading;
+            btn.textContent = '✅ SMS Gönderildi';
+            btn.style.pointerEvents = 'none';
+            turaiMesajEkle('ai', data.mesaj || data.hata || 'SMS işlendi.');
+        })
+        .catch(err => {
+            delete btn.dataset.loading;
+            btn.textContent = '🆘 Acil SMS Gönder';
+            turaiMesajEkle('ai', '⚠️ SMS gönderilemedi: ' + (err.message || 'Lütfen doğrudan arayın.'), true);
+        });
+    };
+
     window.turaiSend = function (metin) {
         const input = document.getElementById('turai-input');
         input.value = metin;

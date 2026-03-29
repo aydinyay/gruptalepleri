@@ -56,6 +56,47 @@ class TuraiController extends Controller
         }
     }
 
+    // ── Acil SMS gönder ────────────────────────────────────────────────────────
+    public function acilSms(Request $request, string $gtpnr): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+
+            $talep = GrupTalep::where('gtpnr', $gtpnr)
+                ->where('user_id', $user->id)
+                ->with('segments')
+                ->first();
+
+            if (! $talep) {
+                return response()->json(['hata' => 'Talep bulunamadı.'], 404);
+            }
+
+            $rota = $talep->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
+            $tarih = $talep->segments->first()?->departure_date ?? '-';
+            $acente = $user->name ?? 'Acente';
+            $telefon = $user->phone ?? '-';
+
+            $mesaj = "🆘 ACİL DESTEK\n"
+                . "Acente: {$acente}\n"
+                . "Talep : {$gtpnr}\n"
+                . "Rota  : {$rota} | {$tarih}\n"
+                . "Tel   : {$telefon}\n"
+                . "Hemen aranmak istiyor.";
+
+            $gonderildi = (new \App\Services\SmsService())->sendToAdmin($talep->id, $mesaj);
+
+            if ($gonderildi) {
+                return response()->json(['mesaj' => "✅ Acil SMS gönderildi. En kısa sürede sizi arayacağız."]);
+            }
+
+            return response()->json(['mesaj' => "⚠️ SMS gönderilemedi. Lütfen doğrudan arayın: "
+                . (string) SistemAyar::get('sirket_cep', SistemAyar::get('sirket_telefon', ''))]);
+
+        } catch (\Exception $e) {
+            return response()->json(['hata' => 'SMS gönderilemedi: ' . $e->getMessage()], 500);
+        }
+    }
+
     // ── Bağlam oluşturucu ──────────────────────────────────────────────────────
     private function buildContext(GrupTalep $talep, $digerTalepler): string
     {
@@ -67,6 +108,7 @@ class TuraiController extends Controller
         $whatsapp     = SistemAyar::get('sirket_whatsapp', '+90 535 415 47 99');
         $eposta       = SistemAyar::get('sirket_eposta', 'destek@gruptalepleri.com');
         $telefon      = SistemAyar::get('sirket_telefon', '+90 535 415 47 99');
+        $cep          = SistemAyar::get('sirket_cep', $telefon); // acil için cep
 
         // Çoklu banka hesapları
         $bankaHesaplari = [];
@@ -260,11 +302,12 @@ FİNANSAL ÖZET:
 {$bankaStr}
 
 ━━━ İLETİŞİM VE ACİL ━━━
-WhatsApp : {$whatsapp}
-Telefon  : {$telefon}
-E-posta  : {$eposta}
-Çalışma  : Hafta içi 09:00–18:00
+Cep (ACİL — 7/24) : {$cep}
+WhatsApp           : {$whatsapp}
+Ofis Telefonu      : {$telefon}
+E-posta            : {$eposta}
 WhatsApp hızlı link: {$waLink}
+ACİL SMS: Kullanıcı "Acil SMS Gönder" butonuna basarsa sistem otomatik olarak adminin cep telefonuna SMS atar.
 
 ━━━ DAVRANIŞ KURALLARI ━━━
 1. TALEPLERİ SORARKEN: Yalnızca yukarıdaki verileri kullan. Veritabanında olmayan hiçbir tarih, tutar veya bilgi söyleme. "Sistemde bu bilgi yok." de.
@@ -275,10 +318,13 @@ WhatsApp hızlı link: {$waLink}
 6. KISA ve NET cevapla. Gereksiz giriş cümlesi kurma.
 7. Türkçe cevapla.
 8. Emoji kullanabilirsin, ama abartma.
-9. İLETİŞİME YÖNLENDİRME KURALI (ÇOK ÖNEMLİ): Yanıtta herhangi bir iletişim yönlendirmesi yapacaksan ASLA soyut bırakma. Her zaman şu formatı kullan (markdown link):
+9. ACİL DURUM KURALI (ÇOK ÖNEMLİ): Acil durumda şu şekilde yanıt ver — çalışma saatinden ASLA bahsetme:
+   📱 **Cep (7/24):** [{$cep}](tel:{$cep})
+   💬 **WhatsApp:** [WhatsApp ile Yaz →]({$waLink})
+   Ardından mutlaka şunu ekle: "Veya aşağıdaki **[🆘 Acil SMS Gönder]** butonuna basarak sizin adınıza adminine anında SMS gönderebilirim."
+10. NORMAL İLETİŞİM KURALI: Acil olmayan iletişim yönlendirmelerinde URL'yi ham metin olarak yazma — mutlaka [tıklanabilir metin](url) formatında yaz:
    📞 **Telefon:** [{$telefon}](tel:{$telefon})
    💬 **WhatsApp:** [WhatsApp ile Yaz →]({$waLink})
-   URL'yi ham metin olarak yazma — mutlaka [tıklanabilir metin](url) formatında yaz.
 PROMPT;
     }
 
