@@ -418,7 +418,13 @@
             {{-- Görsel alanı --}}
             <div class="gorsel-zone" id="gorselZone" style="display:none;">
                 <div class="gorsel-prompt-row mt-3">
-                    <input type="text" id="gorselPromptInput" placeholder="Görsel prompt (İngilizce veya Türkçe)…">
+                    <input type="text" id="gorselPromptInput"
+                        placeholder="Görsel prompt — sadece sahne/atmosfer tanımla, yazı/ekran/logo isteme"
+                        oninput="gorselPromptUyar(this.value)">
+                    <div id="gorselPromptUyari" style="display:none;font-size:.75rem;color:#f59e0b;margin-top:4px;">
+                        ⚠️ "Ekran", "monitör", "dashboard", "yazı" içeren promptlar AI'ın hatalı metin üretmesine yol açar.
+                        Bunların yerine sahne/mekan/atmosfer tanımla — örn: "modern ofis, seyahat haritası, uçak penceresi manzarası"
+                    </div>
                     <button class="btn-gorsel" id="btnGorsel" onclick="uretGorsel()">
                         <i class="fas fa-image"></i> <span id="btnGorselTxt">Görsel Üret</span>
                     </button>
@@ -820,6 +826,12 @@ function kopyala() {
     navigator.clipboard.writeText(txt).then(() => toast('İçerik kopyalandı!'));
 }
 
+// ── Prompt uyarısı ───────────────────────────────────────────────────────
+function gorselPromptUyar(val) {
+    const risk = /ekran|monitör|monitor|dashboard|panel|yaz[ıi]|logo|ui|screen|text|title|header/i.test(val);
+    document.getElementById('gorselPromptUyari').style.display = risk ? 'block' : 'none';
+}
+
 // ── Görsel Üret ──────────────────────────────────────────────────────────
 async function uretGorsel() {
     const prompt = document.getElementById('gorselPromptInput').value.trim();
@@ -854,59 +866,83 @@ async function uretGorsel() {
     }
 }
 
-// ── Logo bindirme: AI görseli + gerçek logo → tek PNG ────────────────────
+// ── Logo + yazı bindirme: AI görseli tamamen yazısız gelir, biz ekleriz ──
 async function bindirLogo(gorselSrc, logoSrc) {
     return new Promise((resolve) => {
-        const canvas  = document.createElement('canvas');
-        const ctx     = canvas.getContext('2d');
-        const bgImg   = new Image();
+        const canvas = document.createElement('canvas');
+        const ctx    = canvas.getContext('2d');
+        const bgImg  = new Image();
         bgImg.crossOrigin = 'anonymous';
+
         bgImg.onload = () => {
             canvas.width  = bgImg.naturalWidth;
             canvas.height = bgImg.naturalHeight;
             ctx.drawImage(bgImg, 0, 0);
 
-            // Logo boyutlandırma: genişliğin %22'si, max 280px
-            const logoW = Math.min(Math.round(canvas.width * 0.22), 280);
+            const W   = canvas.width;
+            const H   = canvas.height;
+            const pad = Math.round(W * 0.03);
 
+            // ── URL yazısı — sağ alt ───────────────────────────────────────
+            const urlFontSize = Math.max(18, Math.round(W * 0.022));
+            ctx.save();
+            ctx.font         = `600 ${urlFontSize}px 'Segoe UI', Arial, sans-serif`;
+            ctx.textBaseline = 'bottom';
+            const urlText    = 'www.gruptalepleri.com';
+            const urlW       = ctx.measureText(urlText).width;
+            const urlX       = W - urlW - pad;
+            const urlY       = H - pad;
+
+            // Pill arka plan
+            drawPill(ctx, urlX - 12, urlY - urlFontSize - 8, urlW + 24, urlFontSize + 16, 8, 'rgba(0,0,0,0.55)');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(urlText, urlX, urlY);
+            ctx.restore();
+
+            // ── Logo — sol alt ────────────────────────────────────────────
+            const logoW  = Math.min(Math.round(W * 0.20), 240);
             const logoImg = new Image();
             logoImg.crossOrigin = 'anonymous';
+
             logoImg.onload = () => {
                 const logoH = Math.round(logoImg.naturalHeight * (logoW / logoImg.naturalWidth));
-                const pad   = Math.round(canvas.width * 0.025); // %2.5 kenar boşluğu
-                const x     = pad;                               // sol alt köşe
-                const y     = canvas.height - logoH - pad;
+                const lx    = pad;
+                const ly    = H - logoH - pad;
 
-                // Hafif beyaz arka plan pill — logo okunurluğu için
-                ctx.save();
-                ctx.globalAlpha = 0.82;
-                ctx.fillStyle   = '#ffffff';
-                const r = 10;
-                const rx = x - 10, ry = y - 8, rw = logoW + 20, rh = logoH + 16;
-                ctx.beginPath();
-                ctx.moveTo(rx + r, ry);
-                ctx.lineTo(rx + rw - r, ry);
-                ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + r);
-                ctx.lineTo(rx + rw, ry + rh - r);
-                ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - r, ry + rh);
-                ctx.lineTo(rx + r, ry + rh);
-                ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - r);
-                ctx.lineTo(rx, ry + r);
-                ctx.quadraticCurveTo(rx, ry, rx + r, ry);
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-
-                // Logoyu çiz
-                ctx.drawImage(logoImg, x, y, logoW, logoH);
+                // Pill arka plan
+                drawPill(ctx, lx - 10, ly - 8, logoW + 20, logoH + 16, 10, 'rgba(255,255,255,0.88)');
+                ctx.drawImage(logoImg, lx, ly, logoW, logoH);
                 resolve(canvas.toDataURL('image/png'));
             };
-            logoImg.onerror = () => resolve(gorselSrc); // logo yüklenemezse ham görseli döndür
-            logoImg.src = logoSrc;
+            logoImg.onerror = () => {
+                // Logo yüklenemedi — sadece URL yazısıyla devam et
+                resolve(canvas.toDataURL('image/png'));
+            };
+            logoImg.src = logoSrc + '?v=' + Date.now(); // cache bypass
         };
+
         bgImg.onerror = () => resolve(gorselSrc);
         bgImg.src = gorselSrc;
     });
+}
+
+function drawPill(ctx, x, y, w, h, r, color) {
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle   = color;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
 }
 
 function gorselIndir() {

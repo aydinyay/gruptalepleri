@@ -320,18 +320,23 @@ MARKA;
             default     => 'Clean corporate visual.',
         };
 
-        // ── KESIN TALIMAT: Logo üretme, yazı koyma ──────────────────────────
+        // ── KESIN TALIMAT: Görselde tek bir harf bile olmasın ───────────────
+        // Gemini metin yazarken her zaman hatalı yazar (GrupTalelperi, Yapa Zela vb.)
+        // Çözüm: görselde HİÇ yazı olmayacak. Tüm yazılar canvas ile üstten ekleniyor.
         $enrichedPrompt =
-            'Create a high-quality social media background image for GrupTalepleri.com, a B2B travel agency platform from Turkey. '
+            '### ABSOLUTE RULE — READ THIS FIRST AND OBEY WITHOUT EXCEPTION ###' . "\n"
+            . 'This image must contain ZERO text, ZERO letters, ZERO words, ZERO numbers, ZERO symbols.' . "\n"
+            . 'Do NOT write anything. Do NOT put any label, title, caption, watermark, UI element, screen content, sign, billboard, poster text, dashboard text, or any readable character anywhere in the image.' . "\n"
+            . 'If you are tempted to write something — DO NOT. Leave that area as a clean visual element instead.' . "\n"
+            . 'Do NOT generate any logo, brand mark, or icon that represents a company.' . "\n"
+            . 'Do NOT render any computer screen, TV screen, phone screen, or monitor that contains text or UI.' . "\n"
+            . '### END OF ABSOLUTE RULE ###' . "\n\n"
+            . 'Now create a photorealistic or high-quality illustration background image. Subject: '
             . $validated['gorsel_prompt'] . '. '
-            . $platformTavsiye . ' '
-            . 'STRICT RULES — follow exactly: '
-            . '1. NO logos, NO brand marks, NO watermarks of any kind in the image. '
-            . '2. NO text, NO words, NO letters, NO numbers anywhere in the image. '
-            . '3. DO NOT invent or generate any logo or brand identity. '
-            . '4. Leave the lower-left corner area clean and uncluttered (logo will be overlaid separately). '
-            . '5. Professional, clean, high-quality photography or illustration style. '
-            . '6. Turkish travel & tourism atmosphere when relevant.';
+            . 'Style guidance: ' . $platformTavsiye . ' '
+            . 'The image is purely visual — no text, no screens with content, no logos. '
+            . 'Leave the bottom-left corner area free of busy visual elements (a logo will be placed there in post-processing). '
+            . 'Professional travel & tourism atmosphere, suitable for a Turkish B2B platform.';
 
         // ── Logoyu sun­ucudan çek ve response ile birlikte gönder ────────────
         $logoBase64  = null;
