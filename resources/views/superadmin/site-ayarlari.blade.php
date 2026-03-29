@@ -76,6 +76,12 @@
                 <i class="fas fa-robot me-1"></i>AI Kutlama
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link tab-btn {{ $activeTab === 'sirket' ? 'active' : 'btn btn-outline-secondary' }}"
+               href="{{ route('superadmin.site.ayarlar', ['sekme' => 'sirket']) }}">
+                <i class="fas fa-building me-1"></i>Şirket Bilgileri
+            </a>
+        </li>
     </ul>
 
     @if($activeTab === 'bildirim')
@@ -664,6 +670,212 @@
         </div>
     @endif
 </div>
+
+    @if($activeTab === 'sirket')
+    <form method="POST" action="{{ route('superadmin.sirket.guncelle') }}">
+        @csrf
+
+        {{-- ── Şirket Kimlik Bilgileri ── --}}
+        <div class="card shadow-sm mb-4" style="border:none;border-radius:16px;overflow:hidden;">
+            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
+                 style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border:none;">
+                <div style="width:36px;height:36px;background:rgba(233,69,96,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-building" style="color:#e94560;font-size:0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white" style="font-size:0.95rem;">Şirket Kimlik Bilgileri</div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;">Ünvan, vergi ve TÜRSAB bilgileri</div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-briefcase me-1 text-muted"></i>Şirket Tam Ünvanı
+                        </label>
+                        <input type="text" name="sirket_unvan" class="form-control"
+                               placeholder="Grup Talepleri Turizm San. ve Tic. Ltd. Şti."
+                               value="{{ $sirketBilgileri['sirket_unvan'] ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-id-card me-1 text-muted"></i>Vergi Kimlik No (VKN)
+                        </label>
+                        <input type="text" name="sirket_vkn" class="form-control font-monospace"
+                               placeholder="1234567890"
+                               value="{{ $sirketBilgileri['sirket_vkn'] ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-landmark me-1 text-muted"></i>Vergi Dairesi
+                        </label>
+                        <input type="text" name="sirket_vergi_dairesi" class="form-control"
+                               placeholder="Şişli Vergi Dairesi"
+                               value="{{ $sirketBilgileri['sirket_vergi_dairesi'] ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-certificate me-1 text-muted"></i>TÜRSAB Belge No
+                        </label>
+                        <div class="input-group">
+                            <input type="text" name="sirket_tursab_no" class="form-control font-monospace"
+                                   placeholder="12572"
+                                   value="{{ $sirketBilgileri['sirket_tursab_no'] ?? '' }}">
+                            <select name="sirket_tursab_grup" class="form-select" style="max-width:80px;">
+                                @foreach(['A','B','C','AG'] as $g)
+                                    <option value="{{ $g }}" {{ ($sirketBilgileri['sirket_tursab_grup'] ?? '') === $g ? 'selected' : '' }}>{{ $g }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-map-marker-alt me-1 text-muted"></i>Adres
+                        </label>
+                        <textarea name="sirket_adres" class="form-control" rows="2"
+                                  placeholder="İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli / İstanbul">{{ $sirketBilgileri['sirket_adres'] ?? '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── İletişim Bilgileri ── --}}
+        <div class="card shadow-sm mb-4" style="border:none;border-radius:16px;overflow:hidden;">
+            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
+                 style="background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);border:none;">
+                <div style="width:36px;height:36px;background:rgba(233,69,96,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-headset" style="color:#e94560;font-size:0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white" style="font-size:0.95rem;">İletişim Bilgileri</div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;">Telefon, WhatsApp ve e-posta</div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-phone me-1 text-muted"></i>Telefon
+                        </label>
+                        <input type="text" name="sirket_telefon" class="form-control"
+                               placeholder="+90 212 000 00 00"
+                               value="{{ $sirketBilgileri['sirket_telefon'] ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fab fa-whatsapp me-1" style="color:#25d366;"></i>WhatsApp
+                            <span class="badge bg-success ms-1" style="font-size:0.65rem;">Acil hattı</span>
+                        </label>
+                        <input type="text" name="sirket_whatsapp" class="form-control"
+                               placeholder="+90 535 415 47 99"
+                               value="{{ $sirketBilgileri['sirket_whatsapp'] ?? '' }}">
+                        <div class="form-text" style="font-size:0.72rem;">TURAi bu numaraya yönlendirecek</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-envelope me-1 text-muted"></i>E-posta
+                        </label>
+                        <input type="email" name="sirket_eposta" class="form-control"
+                               placeholder="destek@gruptalepleri.com"
+                               value="{{ $sirketBilgileri['sirket_eposta'] ?? '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Banka / Ödeme Bilgileri ── --}}
+        <div class="card shadow-sm mb-4" style="border:none;border-radius:16px;overflow:hidden;">
+            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
+                 style="background:linear-gradient(135deg,#1a3a1a 0%,#1e4a1e 100%);border:none;">
+                <div style="width:36px;height:36px;background:rgba(40,167,69,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-university" style="color:#28a745;font-size:0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white" style="font-size:0.95rem;">Banka / Ödeme Bilgileri</div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;">EFT / Havale bilgileri — TURAi ve ödeme sayfalarında otomatik kullanılır</div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-university me-1 text-muted"></i>Banka Adı
+                        </label>
+                        <input type="text" name="banka_adi" class="form-control"
+                               placeholder="Ziraat Bankası"
+                               value="{{ $sirketBilgileri['banka_adi'] ?? '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-code-branch me-1 text-muted"></i>Şube
+                        </label>
+                        <input type="text" name="banka_sube" class="form-control"
+                               placeholder="Şişli Şubesi"
+                               value="{{ $sirketBilgileri['banka_sube'] ?? '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-user me-1 text-muted"></i>Hesap Sahibi
+                        </label>
+                        <input type="text" name="banka_hesap_sahibi" class="form-control"
+                               placeholder="Grup Talepleri Turizm San. ve Tic. Ltd. Şti."
+                               value="{{ $sirketBilgileri['banka_hesap_sahibi'] ?? '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-hashtag me-1 text-muted"></i>IBAN
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold" style="font-size:0.8rem;background:#f8f9fa;">TR</span>
+                            <input type="text" name="banka_iban" class="form-control font-monospace"
+                                   placeholder="00 0000 0000 0000 0000 0000 00"
+                                   value="{{ $sirketBilgileri['banka_iban'] ?? '' }}"
+                                   oninput="this.value=this.value.replace(/[^0-9\s]/g,'')">
+                        </div>
+                        <div class="form-text" style="font-size:0.72rem;">TR hariç rakamları girin — TURAi otomatik TR ekleyerek gösterir</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-comment-alt me-1 text-muted"></i>Havale Açıklama Notu
+                            <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">TURAi bu metni aktarır</span>
+                        </label>
+                        <input type="text" name="banka_aciklama" class="form-control"
+                               placeholder="Lütfen açıklama kısmına GTPNR numaranızı yazınız."
+                               value="{{ $sirketBilgileri['banka_aciklama'] ?? '' }}">
+                    </div>
+                </div>
+
+                {{-- IBAN önizleme --}}
+                @if(!empty($sirketBilgileri['banka_iban']))
+                <div class="mt-4 p-3 rounded-3" style="background:linear-gradient(135deg,#f8fff8 0%,#edfaed 100%);border:1.5px solid #b7dfb8;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <span class="fw-semibold text-success" style="font-size:0.85rem;">Mevcut Banka Kaydı</span>
+                    </div>
+                    <div style="font-size:0.88rem;line-height:1.8;color:#2d5a2d;">
+                        <div><strong>Banka:</strong> {{ $sirketBilgileri['banka_adi'] ?? '-' }} @if(!empty($sirketBilgileri['banka_sube'])) / {{ $sirketBilgileri['banka_sube'] }}@endif</div>
+                        <div><strong>Hesap Sahibi:</strong> {{ $sirketBilgileri['banka_hesap_sahibi'] ?? '-' }}</div>
+                        <div class="font-monospace fw-bold mt-1" style="font-size:1rem;color:#1a3a1a;letter-spacing:1px;">
+                            TR{{ $sirketBilgileri['banka_iban'] ?? '' }}
+                        </div>
+                        @if(!empty($sirketBilgileri['banka_aciklama']))
+                            <div class="mt-1 text-muted" style="font-size:0.8rem;"><i class="fas fa-info-circle me-1"></i>{{ $sirketBilgileri['banka_aciklama'] }}</div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Kaydet --}}
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-lg px-5 fw-bold"
+                    style="background:linear-gradient(135deg,#1a1a2e 0%,#e94560 100%);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 20px rgba(233,69,96,0.35);">
+                <i class="fas fa-save me-2"></i>Bilgileri Kaydet
+            </button>
+        </div>
+    </form>
+    @endif
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

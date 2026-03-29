@@ -405,6 +405,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/talepler/{gtpnr}/odeme/gateway-start', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'startLegacy'])->name('requests.gateway-payment.start');
 
     Route::get('/site-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'siteAyarlari'])->name('site.ayarlar');
+    Route::post('/site-ayarlari/sirket', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'sirketBilgileriGuncelle'])->name('sirket.guncelle');
     Route::get('/leisure-ayarlar', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'index'])->name('leisure.settings.index');
     Route::post('/leisure-ayarlar/paketler', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'storePackage'])->name('leisure.settings.packages.store');
     Route::patch('/leisure-ayarlar/paketler/{template}', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'updatePackage'])->name('leisure.settings.packages.update');
@@ -736,6 +737,7 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::post('/talep/olustur', [\App\Http\Controllers\Acente\RequestController::class, 'store'])->name('requests.store');
     Route::get('/talep/{gtpnr}', [\App\Http\Controllers\Acente\RequestController::class, 'show'])->name('requests.show');
     Route::post('/talep/{gtpnr}/ai-analiz', [\App\Http\Controllers\Acente\RequestController::class, 'aiAnaliz'])->name('requests.ai-analiz');
+    Route::post('/talep/{gtpnr}/turai', [\App\Http\Controllers\Acente\TuraiController::class, 'chat'])->name('requests.turai');
     Route::post('/talep/{gtpnr}/ai-kaydet', [\App\Http\Controllers\Acente\RequestController::class, 'aiKaydet'])->name('requests.ai-kaydet');
     Route::post('/talep/{gtpnr}/teklif/{offer}/kabul', [\App\Http\Controllers\Acente\RequestController::class, 'acceptOffer'])->name('requests.accept');
     Route::post('/talep/{gtpnr}/odeme/gateway-start', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'startLegacy'])->name('requests.gateway-payment.start');

@@ -1150,5 +1150,434 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>
 @include('acente.partials.theme-script')
+
+{{-- ══════════════════════════════════════════════════════
+     TURAi — Acente Chat Asistanı
+══════════════════════════════════════════════════════ --}}
+<style>
+/* ── Widget genel ── */
+#turai-widget {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Açma butonu ── */
+#turai-fab {
+    width: 58px; height: 58px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #e94560 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(233,69,96,0.45);
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+#turai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(233,69,96,0.6); }
+#turai-fab i { color: #fff; font-size: 1.3rem; transition: all 0.2s; }
+#turai-fab .turai-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #28a745; color: #fff;
+    width: 16px; height: 16px;
+    border-radius: 50%; font-size: 0.55rem;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; border: 2px solid #fff;
+    animation: turai-pulse 2s infinite;
+}
+@keyframes turai-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(40,167,69,0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(40,167,69,0); }
+}
+
+/* ── Panel ── */
+#turai-panel {
+    position: absolute;
+    bottom: 70px; right: 0;
+    width: 380px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 600px;
+    animation: turai-slide-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes turai-slide-in {
+    from { opacity:0; transform: translateY(16px) scale(0.96); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+}
+@media(max-width:480px) {
+    #turai-panel { width: calc(100vw - 32px); right: 0; bottom: 70px; }
+}
+
+/* ── Panel header ── */
+#turai-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+}
+.turai-avatar {
+    width: 38px; height: 38px;
+    background: rgba(233,69,96,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.turai-avatar i { color: #e94560; font-size: 1rem; }
+#turai-header-info { flex: 1; min-width: 0; }
+#turai-header-info .name { color: #fff; font-weight: 700; font-size: 0.9rem; }
+#turai-header-info .sub  {
+    color: rgba(255,255,255,0.5); font-size: 0.7rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#turai-header-info .sub .gtpnr { color: #e94560; font-weight: 600; }
+#turai-close {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.8rem; flex-shrink: 0;
+    transition: background 0.15s;
+}
+#turai-close:hover { background: rgba(233,69,96,0.4); }
+
+/* ── Hızlı aksiyonlar ── */
+#turai-chips {
+    padding: 10px 12px 0;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    flex-shrink: 0;
+}
+.turai-chip {
+    background: #f0f2f5; border: 1.5px solid #e0e3e8;
+    border-radius: 999px; padding: 4px 10px;
+    font-size: 0.72rem; font-weight: 600; color: #1a1a2e;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.turai-chip:hover { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
+/* ── Mesaj alanı ── */
+#turai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 200px;
+    scroll-behavior: smooth;
+}
+#turai-messages::-webkit-scrollbar { width: 4px; }
+#turai-messages::-webkit-scrollbar-thumb { background: #e0e3e8; border-radius: 4px; }
+
+.turai-msg { display: flex; gap: 8px; max-width: 90%; }
+.turai-msg.ai   { align-self: flex-start; }
+.turai-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+.turai-msg .bubble {
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    word-break: break-word;
+}
+.turai-msg.ai   .bubble { background: #f0f2f5; color: #1a1a2e; border-bottom-left-radius: 4px; }
+.turai-msg.user .bubble { background: linear-gradient(135deg, #1a1a2e, #0f3460); color: #fff; border-bottom-right-radius: 4px; }
+
+.turai-msg .bubble strong { font-weight: 700; }
+.turai-msg .bubble ul { margin: 4px 0 0 16px; padding: 0; }
+.turai-msg .bubble li { margin-bottom: 2px; }
+.turai-msg .bubble a { color: #e94560; }
+.turai-msg.ai .bubble a { color: #e94560; }
+
+.turai-ai-icon {
+    width: 26px; height: 26px;
+    background: rgba(233,69,96,0.1);
+    border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+}
+.turai-ai-icon i { color: #e94560; font-size: 0.65rem; }
+
+/* Yazıyor animasyonu */
+.turai-typing { display: flex; gap: 4px; padding: 4px 2px; }
+.turai-typing span {
+    width: 7px; height: 7px;
+    background: #adb5bd; border-radius: 50%;
+    animation: turai-bounce 1.2s infinite;
+}
+.turai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.turai-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes turai-bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30%          { transform: translateY(-6px); }
+}
+
+/* ── Giriş alanı ── */
+#turai-footer {
+    padding: 10px 12px 12px;
+    border-top: 1px solid #f0f2f5;
+    flex-shrink: 0;
+}
+#turai-input-wrap {
+    display: flex; align-items: flex-end; gap: 8px;
+    background: #f7f8fa;
+    border: 1.5px solid #e0e3e8;
+    border-radius: 14px;
+    padding: 8px 10px;
+    transition: border-color 0.15s;
+}
+#turai-input-wrap:focus-within { border-color: #1a1a2e; }
+#turai-input {
+    flex: 1; border: none; background: transparent;
+    resize: none; outline: none;
+    font-size: 0.84rem; line-height: 1.4;
+    max-height: 90px; overflow-y: auto;
+    font-family: inherit; color: #1a1a2e;
+}
+#turai-input::placeholder { color: #adb5bd; }
+#turai-send {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #e94560, #c73652);
+    border: none; border-radius: 10px;
+    color: #fff; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; transition: all 0.15s;
+}
+#turai-send:hover:not(:disabled) { transform: scale(1.05); }
+#turai-send:disabled { opacity: 0.5; cursor: not-allowed; }
+#turai-hint { font-size: 0.68rem; color: #adb5bd; text-align: center; margin-top: 5px; }
+</style>
+
+<div id="turai-widget">
+    {{-- Floating buton --}}
+    <button id="turai-fab" onclick="turaiToggle()" title="TURAi ile sohbet et">
+        <i class="fas fa-robot" id="turai-fab-icon"></i>
+        <span class="turai-badge">AI</span>
+    </button>
+
+    {{-- Chat paneli --}}
+    <div id="turai-panel">
+        {{-- Header --}}
+        <div id="turai-header">
+            <div class="turai-avatar"><i class="fas fa-robot"></i></div>
+            <div id="turai-header-info">
+                <div class="name">TURAi Asistan</div>
+                <div class="sub">
+                    <span class="gtpnr">{{ $talep->gtpnr }}</span>
+                    &nbsp;·&nbsp;
+                    {{ $talep->segments->map(fn($s)=>$s->from_iata.'→'.$s->to_iata)->implode(' / ') }}
+                </div>
+            </div>
+            <button id="turai-close" onclick="turaiToggle()"><i class="fas fa-times"></i></button>
+        </div>
+
+        {{-- Hızlı aksiyonlar --}}
+        <div id="turai-chips">
+            <span class="turai-chip" onclick="turaiSend('📅 Opsiyonum ne zaman bitiyor?')">📅 Opsiyonum?</span>
+            <span class="turai-chip" onclick="turaiSend('💳 Havale için hangi hesaba yollayacağım? IBAN lazım.')">💳 Havale hesabı</span>
+            <span class="turai-chip" onclick="turaiSend('💰 Ne kadar ödedim, ne kadar borcum kaldı?')">💰 Kalan ödeme</span>
+            <span class="turai-chip" onclick="turaiSend('📋 Diğer taleplerimde durum nedir? Hangileri beklemede?')">📋 Taleplerim</span>
+            <span class="turai-chip" onclick="turaiSend('✈️ ' + '{{ $talep->segments->last()?->to_iata }}' + ' havalimanı ve şehri hakkında bilgi ver, gezilecek yerler, ulaşım.')">✈️ Destinasyon</span>
+            <span class="turai-chip" onclick="turaiSend('📞 Acil durumda sizi nasıl arayabilirim?')">📞 Acil</span>
+        </div>
+
+        {{-- Mesajlar --}}
+        <div id="turai-messages">
+            <div class="turai-msg ai">
+                <div class="turai-ai-icon"><i class="fas fa-robot"></i></div>
+                <div class="bubble">
+                    Merhaba! Ben <strong>TURAi</strong>, talep asistanınızım. 👋<br><br>
+                    <strong>{{ $talep->gtpnr }}</strong> numaralı talebiniz hakkında veya diğer taleplerinizle ilgili soru sorabilirsiniz.<br><br>
+                    Opsiyon tarihi, ödeme durumu, havale bilgisi, destinasyon rehberi — hepsinde yardımcı olurum.
+                </div>
+            </div>
+        </div>
+
+        {{-- Input --}}
+        <div id="turai-footer">
+            <div id="turai-input-wrap">
+                <textarea id="turai-input" rows="1"
+                          placeholder="Soru sorun..."
+                          onkeydown="turaiKeydown(event)"
+                          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                <button id="turai-send" onclick="turaiSendClick()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div id="turai-hint">Enter ile gönder &nbsp;·&nbsp; Shift+Enter yeni satır</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const GTPNR    = '{{ $talep->gtpnr }}';
+    const CSRF     = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const ENDPOINT = '/acente/talep/' + GTPNR + '/turai';
+
+    let panelAcik  = false;
+    let yukleniyor = false;
+    let gecmis     = [];   // [{rol:'kullanici'|'asistan', icerik:'...'}]
+
+    // ── Aç/kapat ──
+    window.turaiToggle = function () {
+        panelAcik = !panelAcik;
+        const panel = document.getElementById('turai-panel');
+        const icon  = document.getElementById('turai-fab-icon');
+        if (panelAcik) {
+            panel.style.display = 'flex';
+            icon.className = 'fas fa-times';
+            document.getElementById('turai-input').focus();
+            turaiScrollBottom();
+        } else {
+            panel.style.display = 'none';
+            icon.className = 'fas fa-robot';
+        }
+    };
+
+    // ── Chip tıklandı ──
+    window.turaiSend = function (metin) {
+        const input = document.getElementById('turai-input');
+        input.value = metin;
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+        turaiGonder();
+    };
+
+    // ── Buton tıklandı ──
+    window.turaiSendClick = function () { turaiGonder(); };
+
+    // ── Enter ──
+    window.turaiKeydown = function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            turaiGonder();
+        }
+    };
+
+    // ── Ana gönder ──
+    function turaiGonder() {
+        const input = document.getElementById('turai-input');
+        const metin = input.value.trim();
+        if (!metin || yukleniyor) return;
+
+        // Kullanıcı mesajı ekle
+        turaiMesajEkle('user', metin);
+        gecmis.push({ rol: 'kullanici', icerik: metin });
+        input.value = '';
+        input.style.height = 'auto';
+
+        // Yazıyor göster
+        const yaziyorId = turaiYaziyorGoster();
+        yukleniyor = true;
+        document.getElementById('turai-send').disabled = true;
+
+        fetch(ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF,
+            },
+            body: JSON.stringify({ mesaj: metin, gecmis: gecmis.slice(-10) }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            turaiYaziyorGizle(yaziyorId);
+            if (data.hata) {
+                turaiMesajEkle('ai', '⚠️ ' + data.hata, true);
+            } else {
+                const yanit = data.yanit || '';
+                gecmis.push({ rol: 'asistan', icerik: yanit });
+                turaiMesajEkle('ai', yanit);
+            }
+        })
+        .catch(() => {
+            turaiYaziyorGizle(yaziyorId);
+            turaiMesajEkle('ai', '⚠️ Bağlantı hatası. Lütfen tekrar deneyin.', true);
+        })
+        .finally(() => {
+            yukleniyor = false;
+            document.getElementById('turai-send').disabled = false;
+            document.getElementById('turai-input').focus();
+        });
+    }
+
+    // ── Mesaj balonu ekle ──
+    function turaiMesajEkle(rol, icerik, hata = false) {
+        const container = document.getElementById('turai-messages');
+        const wrap  = document.createElement('div');
+        wrap.className = 'turai-msg ' + (rol === 'ai' ? 'ai' : 'user');
+
+        if (rol === 'ai') {
+            const iconWrap = document.createElement('div');
+            iconWrap.className = 'turai-ai-icon';
+            iconWrap.innerHTML = '<i class="fas fa-robot"></i>';
+            wrap.appendChild(iconWrap);
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        if (hata) bubble.style.cssText = 'background:#fff5f5;color:#c0392b;border:1px solid #f5c6cb;';
+
+        if (rol === 'ai') {
+            bubble.innerHTML = turaiMarkdown(icerik);
+        } else {
+            bubble.textContent = icerik;
+        }
+
+        wrap.appendChild(bubble);
+        container.appendChild(wrap);
+        turaiScrollBottom();
+    }
+
+    // ── Yazıyor animasyonu ──
+    function turaiYaziyorGoster() {
+        const container = document.getElementById('turai-messages');
+        const wrap   = document.createElement('div');
+        wrap.className = 'turai-msg ai';
+        const uid = 'ty-' + Date.now();
+        wrap.id = uid;
+
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'turai-ai-icon';
+        iconWrap.innerHTML = '<i class="fas fa-robot"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerHTML = '<div class="turai-typing"><span></span><span></span><span></span></div>';
+
+        wrap.appendChild(iconWrap);
+        wrap.appendChild(bubble);
+        container.appendChild(wrap);
+        turaiScrollBottom();
+        return uid;
+    }
+
+    function turaiYaziyorGizle(id) {
+        document.getElementById(id)?.remove();
+    }
+
+    function turaiScrollBottom() {
+        const el = document.getElementById('turai-messages');
+        setTimeout(() => { el.scrollTop = el.scrollHeight; }, 30);
+    }
+
+    // ── Minimal markdown render ──
+    function turaiMarkdown(text) {
+        return text
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/`(.+?)`/g, '<code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;font-size:0.85em;">$1</code>')
+            .replace(/\[(.*?)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+            .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:0.9em;">$1</strong>')
+            .replace(/^[-•]\s+(.+)$/gm, '• $1')
+            .replace(/\n{2,}/g, '<br><br>')
+            .replace(/\n/g, '<br>');
+    }
+})();
+</script>
 </body>
 </html>

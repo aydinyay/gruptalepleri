@@ -236,7 +236,7 @@ class SuperadminController extends Controller
 
     public function siteAyarlari(Request $request)
     {
-        $allowedTabs = ['bildirim', 'sms', 'duyuru', 'rapor', 'ai'];
+        $allowedTabs = ['bildirim', 'sms', 'duyuru', 'rapor', 'ai', 'sirket'];
         $activeTab = $request->query('sekme', 'bildirim');
         if (! in_array($activeTab, $allowedTabs, true)) {
             $activeTab = 'bildirim';
@@ -315,6 +315,20 @@ class SuperadminController extends Controller
             ];
         }
 
+        $sirketBilgileri = [];
+        if ($activeTab === 'sirket') {
+            $sirketKeys = [
+                'sirket_unvan', 'sirket_vkn', 'sirket_vergi_dairesi',
+                'sirket_adres', 'sirket_telefon', 'sirket_whatsapp',
+                'sirket_eposta', 'sirket_tursab_no', 'sirket_tursab_grup',
+                'banka_adi', 'banka_hesap_sahibi', 'banka_iban',
+                'banka_sube', 'banka_aciklama',
+            ];
+            foreach ($sirketKeys as $key) {
+                $sirketBilgileri[$key] = SistemAyar::get($key, '');
+            }
+        }
+
         return view(
             'superadmin.site-ayarlari',
             compact(
@@ -332,9 +346,31 @@ class SuperadminController extends Controller
                 'aiModuleEnabled',
                 'aiCampaigns',
                 'aiDismissedCampaigns',
-                'aiStats'
+                'aiStats',
+                'sirketBilgileri'
             )
         );
+    }
+
+    public function sirketBilgileriGuncelle(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $keys = [
+            'sirket_unvan', 'sirket_vkn', 'sirket_vergi_dairesi',
+            'sirket_adres', 'sirket_telefon', 'sirket_whatsapp',
+            'sirket_eposta', 'sirket_tursab_no', 'sirket_tursab_grup',
+            'banka_adi', 'banka_hesap_sahibi', 'banka_iban',
+            'banka_sube', 'banka_aciklama',
+        ];
+
+        foreach ($keys as $key) {
+            SistemAyar::set($key, trim($request->input($key, '')));
+        }
+
+        return redirect()
+            ->route('superadmin.site.ayarlar', ['sekme' => 'sirket'])
+            ->with('success', 'Şirket ve banka bilgileri güncellendi.');
     }
 
     public function aiKutlamaAyarGuncelle(Request $request)
