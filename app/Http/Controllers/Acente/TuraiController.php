@@ -71,26 +71,49 @@ class TuraiController extends Controller
                 return response()->json(['hata' => 'Talep bulunamadı.'], 404);
             }
 
-            $rota = $talep->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
-            $tarih = $talep->segments->first()?->departure_date ?? '-';
-            $acente = $user->name ?? 'Acente';
-            $telefon = $user->phone ?? '-';
+            $rota    = $talep->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
+            $tarih   = $talep->segments->first()?->departure_date ?? '-';
+            $acente  = $user->name ?? 'Acente';
+            $acenteTel = $user->phone ?? '-';
 
             $mesaj = "🆘 ACİL DESTEK\n"
                 . "Acente: {$acente}\n"
                 . "Talep : {$gtpnr}\n"
                 . "Rota  : {$rota} | {$tarih}\n"
-                . "Tel   : {$telefon}\n"
+                . "Tel   : {$acenteTel}\n"
                 . "Hemen aranmak istiyor.";
 
-            $gonderildi = (new \App\Services\SmsService())->sendToAdmin($talep->id, $mesaj);
+            $sms = new \App\Services\SmsService();
 
-            if ($gonderildi) {
+            // 1. Admin bildirim numarasına (SMS_ADMIN_PHONE)
+            $adminPhone = (string) config('services.sms.notify_phone', '');
+
+            // 2. Süperadmin cep numarasına (sirket_cep)
+            $cepRaw = preg_replace('/[^0-9]/', '', (string) SistemAyar::get('sirket_cep', ''));
+            // Türkiye formatına normalize et (9053xxxxxxxx)
+            $cepPhone = $cepRaw;
+            if (strlen($cepPhone) === 10 && str_starts_with($cepPhone, '0')) {
+                $cepPhone = '90' . substr($cepPhone, 1);
+            } elseif (strlen($cepPhone) === 10) {
+                $cepPhone = '90' . $cepPhone;
+            }
+
+            $normalizedAdmin = preg_replace('/[^0-9]/', '', $adminPhone);
+
+            $sonuc1 = $sms->sendToAdmin($talep->id, $mesaj);
+
+            // Süperadmin cep farklıysa ona da gönder
+            $sonuc2 = true;
+            if ($cepPhone && $cepPhone !== $normalizedAdmin) {
+                $sonuc2 = $sms->send($talep->id, 'superadmin', 'SuperAdmin', $cepPhone, $mesaj);
+            }
+
+            if ($sonuc1 || $sonuc2) {
                 return response()->json(['mesaj' => "✅ Acil SMS gönderildi. En kısa sürede sizi arayacağız."]);
             }
 
-            return response()->json(['mesaj' => "⚠️ SMS gönderilemedi. Lütfen doğrudan arayın: "
-                . (string) SistemAyar::get('sirket_cep', SistemAyar::get('sirket_telefon', ''))]);
+            $acilNo = SistemAyar::get('sirket_cep', SistemAyar::get('sirket_telefon', ''));
+            return response()->json(['mesaj' => "⚠️ SMS gönderilemedi. Lütfen doğrudan arayın: {$acilNo}"]);
 
         } catch (\Exception $e) {
             return response()->json(['hata' => 'SMS gönderilemedi: ' . $e->getMessage()], 500);
