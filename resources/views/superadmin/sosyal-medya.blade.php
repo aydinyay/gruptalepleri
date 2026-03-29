@@ -955,40 +955,58 @@ function getIcerik() {
     return (document.getElementById('icerikBox').innerText || '').trim();
 }
 
+// ── Görsel varsa otomatik indir ───────────────────────────────────────────
+function gorselOtomatikIndir(platform) {
+    if (!gorselData || gorselData.startsWith('data:video')) return false;
+    const a = document.createElement('a');
+    a.href = gorselData;
+    a.download = `gruptalepleri-${platform}-${Date.now()}.png`;
+    a.click();
+    return true;
+}
+
 function paylasX() {
     const txt = getIcerik();
     if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
-    // X 280 karakter sınırı — fazlası kesik gelir ama kullanıcı düzenleyebilir
+    const gorselVar = gorselOtomatikIndir('x');
+    // X intent URL — metin otomatik dolar
     const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(txt);
     window.open(url, '_blank', 'width=600,height=450');
-    toast('X paylaşım penceresi açıldı.');
+    toast(gorselVar ? 'Görsel indirildi — X penceresinde "Medya ekle" ile ekleyin.' : 'X paylaşım penceresi açıldı.');
 }
 
 function paylasFb() {
     const txt = getIcerik();
     if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
-    // Facebook sharer — metin + site linki
     navigator.clipboard.writeText(txt);
-    const url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('https://gruptalepleri.com');
-    window.open(url, '_blank', 'width=600,height=500');
-    toast('Metin kopyalandı — Facebook\'ta yapıştırabilirsiniz.');
+    const gorselVar = gorselOtomatikIndir('facebook');
+    // Sharer değil, direkt gönderi oluşturma sayfası — görsel eklenebilir
+    window.open('https://www.facebook.com/', '_blank');
+    toast(gorselVar
+        ? 'Metin kopyalandı + görsel indirildi — Facebook\'ta "Gönderi oluştur → Fotoğraf/Video ekle" ile yükleyin.'
+        : 'Metin kopyalandı — Facebook\'ta "Gönderi oluştur"a yapıştırın.');
 }
 
 function paylasLi() {
     const txt = getIcerik();
     if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
     navigator.clipboard.writeText(txt);
+    const gorselVar = gorselOtomatikIndir('linkedin');
     window.open('https://www.linkedin.com/feed/', '_blank');
-    toast('Metin kopyalandı — LinkedIn\'de "Gönderi Oluştur"a yapıştırın.');
+    toast(gorselVar
+        ? 'Metin kopyalandı + görsel indirildi — LinkedIn\'de "Gönderi Oluştur → Görsel ekle" ile yükleyin.'
+        : 'Metin kopyalandı — LinkedIn\'de "Gönderi Oluştur"a yapıştırın.');
 }
 
 function paylasIg() {
     const txt = getIcerik();
     if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
     navigator.clipboard.writeText(txt);
-    // Instagram web'de direkt post atılamıyor — kopyalayıp yeni gönderi sayfasına yönlendir
+    const gorselVar = gorselOtomatikIndir('instagram');
     window.open('https://www.instagram.com/', '_blank');
-    toast('Metin kopyalandı — Instagram\'da "+" ile yeni gönderi açıp yapıştırın.');
+    toast(gorselVar
+        ? 'Metin kopyalandı + görsel indirildi — Instagram\'da "+" → görsel seç → caption yapıştır.'
+        : 'Metin kopyalandı — Instagram\'da "+" ile yeni gönderi açıp yapıştırın.');
 }
 
 // Paylaş butonlarını sadece seçili platforma göre öne çıkar
