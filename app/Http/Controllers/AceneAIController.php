@@ -68,7 +68,9 @@ Türkiye seyahat acenteleri — Bakanlık + TÜRSAB birleşik (henüz tekilleşt
   website       : web sitesi
   adres         : tam adres büyük harf ('ALSANCAK MAH. KIBRIS ŞEHİTLERİ CAD. NO:5')
   btk           : BTK bölgesi
-  kaynak        : 'tursab', 'bakanlik', 'manuel'
+  kaynak        : 'bakanlik' veya 'manuel' (tursab kayıtları temizlendi)
+  durum         : 'GEÇERLİ' veya 'İPTAL' — Bakanlık resmi durumu (bakanlik kayıtlarında dolu)
+  synced_at     : Son Bakanlık senkronizasyon tarihi
   created_at, updated_at
 
 ━━━ 2. agencies (platform üyeleri) ━━━

@@ -9,6 +9,33 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Route;
 
+// ── Bakanlık Sync HTTP tetikleyici (cron + manuel için, token korumalı) ──
+Route::get('/acente-sync-run', function () {
+    if (request('t') !== 'grtacesync2026') abort(403);
+    $batch = min(100, max(1, (int) (request('batch') ?: 50)));
+    $reset = request('reset') === '1';
+    $args  = ['--batch' => $batch, '--delay' => 300];
+    if ($reset) $args['--reset'] = true;
+    \Illuminate\Support\Facades\Artisan::call('acenteler:sync', $args);
+    return response(\Illuminate\Support\Facades\Artisan::output())
+        ->header('Content-Type', 'text/plain');
+});
+
+// ── Migration runner (durum + synced_at kolonları) ──
+Route::get('/mig-acesync-2026', function () {
+    if (request('t') !== 'grtmigace2026') abort(403);
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', [
+            '--force' => true,
+            '--path'  => 'database/migrations/2026_03_29_163021_add_durum_syncedat_to_acenteler.php',
+        ]);
+        return response(\Illuminate\Support\Facades\Artisan::output())
+            ->header('Content-Type', 'text/plain');
+    } catch (\Throwable $e) {
+        return response('❌ ' . $e->getMessage(), 500)->header('Content-Type', 'text/plain');
+    }
+});
+
 // ── Tek seferlik migration runner (token korumalı, tablolar oluştuktan sonra bu satır silinir) ──
 Route::get('/mig-sm-2026', function () {
     if (request('t') !== 'grtmig2026sm') abort(403);
@@ -397,6 +424,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/tursab-manuel-ekle', [\App\Http\Controllers\TursabController::class, 'manuelEkle'])->name('tursab.manuel-ekle');
     Route::post('/bakanlik-scrape-start',  [\App\Http\Controllers\TursabController::class, 'bakanlikScrapeStart'])->name('bakanlik.scrape.start');
     Route::get( '/bakanlik-scrape-status', [\App\Http\Controllers\TursabController::class, 'bakanlikScrapeStatus'])->name('bakanlik.scrape.status');
+    Route::post('/acente-sync-start',  [\App\Http\Controllers\TursabController::class, 'aceneSyncBaslat'])->name('acente.sync.start');
+    Route::get( '/acente-sync-status', [\App\Http\Controllers\TursabController::class, 'aceneSyncStatus'])->name('acente.sync.status');
     Route::get('/acenteler-istatistik', [\App\Http\Controllers\AcenetelIstatistikController::class, 'index'])->name('acenteler.istatistik');
     Route::get('/acenteler-normalize', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalize'])->name('acenteler.normalize');
     Route::get('/normalize-kaynak/{mode}', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalizeKaynak'])->name('normalize.kaynak');

@@ -434,6 +434,61 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
         </div>
 
+        {{-- TAM SENKRONİZASYON KARTI --}}
+        <div class="card shadow-sm mt-4 border-primary">
+            <div class="card-header py-2 bg-primary text-white">
+                <strong><i class="fas fa-sync-alt me-1"></i>Bakanlık Tam Senkronizasyon</strong>
+                <span class="small ms-2 opacity-75">GEÇERLİ + İPTAL — updateOrInsert — haftalık otomatik</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3 text-center">
+                    <div class="col-4">
+                        <div class="fw-bold fs-5 text-success" id="syncGecerli">—</div>
+                        <div class="small text-muted">GEÇERLİ</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold fs-5 text-danger" id="syncIptal">—</div>
+                        <div class="small text-muted">İPTAL</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold fs-5 text-warning" id="syncTursab">—</div>
+                        <div class="small text-muted">TÜRSAB (silinecek)</div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span id="syncGecisLabel">—</span>
+                        <span id="syncPercent">—</span>
+                    </div>
+                    <div class="progress" style="height:14px;border-radius:7px;">
+                        <div id="syncProgressBar" class="progress-bar bg-primary" role="progressbar"
+                             style="width:0%;border-radius:7px;transition:width .4s;"></div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                    <span class="small text-muted">Son: <span id="syncAt">—</span></span>
+                    <span class="badge" id="syncStatusBadge">—</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" id="syncStartBtn" onclick="syncBaslat()">
+                        <i class="fas fa-sync-alt me-1"></i>Şimdi Senkronize Et
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="syncDurumYukle()">
+                        <i class="fas fa-refresh me-1"></i>Durum Yenile
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="syncSifirla()">
+                        <i class="fas fa-redo me-1"></i>Baştan Başlat
+                    </button>
+                </div>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="syncSkipCleanup">
+                    <label class="form-check-label small text-muted" for="syncSkipCleanup">
+                        TÜRSAB satırlarını silme (test için)
+                    </label>
+                </div>
+            </div>
+        </div>
+
         {{-- MANUEL EKLE TAB --}}
         <div class="tab-pane fade" id="tab-manuel">
             <div class="card shadow-sm">
@@ -672,6 +727,84 @@ function kaynakSec(kaynak) {
     document.getElementById('btnKaynakBakanlik').className = isTursab ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-warning';
     if (!isTursab) bkStatusYukle();
 }
+
+// ── TAM SENKRONİZASYON ───────────────────────────────────────────────────
+const SYNC_START_URL  = '/superadmin/acente-sync-start';
+const SYNC_STATUS_URL = '/superadmin/acente-sync-status';
+let syncPolling = null;
+
+async function syncDurumYukle() {
+    try {
+        const res = await fetch(SYNC_STATUS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const d   = await res.json();
+        syncGoster(d);
+    } catch(e) {}
+}
+
+function syncGoster(d) {
+    document.getElementById('syncGecerli').textContent  = (d.gecerli_count ?? '—').toLocaleString();
+    document.getElementById('syncIptal').textContent    = (d.iptal_count   ?? '—').toLocaleString();
+    document.getElementById('syncTursab').textContent   = (d.tursab_count  ?? '—').toLocaleString();
+    document.getElementById('syncGecisLabel').textContent = d.gecis_label ?? '—';
+    document.getElementById('syncPercent').textContent  = (d.percent ?? 0) + '%';
+    document.getElementById('syncProgressBar').style.width = (d.percent ?? 0) + '%';
+    document.getElementById('syncAt').textContent       = d.at || '—';
+
+    const badge = document.getElementById('syncStatusBadge');
+    const statusMap = {
+        idle: ['secondary', 'Bekliyor'],
+        running: ['primary', 'Çalışıyor…'],
+        paused: ['warning', 'Duraklatıldı'],
+        done: ['success', '✅ Tamamlandı'],
+        error: ['danger', '❌ Hata'],
+    };
+    const [cls, lbl] = statusMap[d.status] || ['secondary', d.status];
+    badge.className = `badge bg-${cls}`;
+    badge.textContent = lbl;
+
+    const btn = document.getElementById('syncStartBtn');
+    if (d.status === 'running') {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Çalışıyor…';
+        if (!syncPolling) syncPolling = setInterval(syncDurumYukle, 4000);
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>' + (d.status === 'paused' ? 'Devam Et' : 'Şimdi Senkronize Et');
+        if (syncPolling) { clearInterval(syncPolling); syncPolling = null; }
+    }
+}
+
+async function syncBaslat() {
+    const body = new FormData();
+    body.append('_token', CSRF_TOKEN);
+    body.append('batch', '30');
+    if (document.getElementById('syncSkipCleanup').checked) body.append('skip_cleanup', '1');
+
+    document.getElementById('syncStartBtn').disabled = true;
+    try {
+        const res = await fetch(SYNC_START_URL, { method: 'POST', body });
+        const d   = await res.json();
+        syncGoster(d);
+    } catch(e) {
+        alert('Bağlantı hatası: ' + e.message);
+        document.getElementById('syncStartBtn').disabled = false;
+    }
+}
+
+async function syncSifirla() {
+    if (!confirm('Senkronizasyon baştan başlayacak. Emin misiniz?')) return;
+    const body = new FormData();
+    body.append('_token', CSRF_TOKEN);
+    body.append('batch', '30');
+    body.append('reset', '1');
+    try {
+        const res = await fetch(SYNC_START_URL, { method: 'POST', body });
+        const d   = await res.json();
+        syncGoster(d);
+    } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', syncDurumYukle);
 
 // ── BAKANLIK SCRAPER ─────────────────────────────────────────────────────
 const BK_SCRAPE_URL  = '{{ route("superadmin.bakanlik.scrape.start") }}';

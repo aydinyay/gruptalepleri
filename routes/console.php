@@ -17,6 +17,17 @@ Schedule::command('sms:send-scheduled')->everyMinute();
 // Zamanlanmış broadcast duyurularını her dakika kontrol et ve gönder
 Schedule::command('broadcast:send-scheduled')->everyMinute();
 
+// Bakanlık ile haftalık tam senkronizasyon — Her Pazar 02:00
+// Her çalışmada 50 belge_no işler; tüm listeyi taramak için birden fazla
+// schedule:run çevrimi gerekir (cron her dakika tetikliyor, withoutOverlapping korur)
+Schedule::command('acenteler:sync', ['--batch' => '50', '--delay' => '300'])
+    ->weekly()
+    ->sundays()
+    ->at('02:00')
+    ->withoutOverlapping(120)
+    ->runInBackground()
+    ->environments(['production']);
+
 // Local geliştirme ortamında DB boşalma riskine karşı otomatik sağlık kontrolü
 Schedule::command('db:ensure-local-health --import-on-empty --min-requests=1')
     ->everyTenMinutes()

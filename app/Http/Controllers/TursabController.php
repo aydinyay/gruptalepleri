@@ -309,6 +309,64 @@ class TursabController extends Controller
         ]);
     }
 
+    // ── Bakanlık Tam Senkronizasyon ──────────────────────────────────────────
+
+    public function aceneSyncBaslat(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $batch = max(1, (int) ($request->input('batch', 30)));
+        $reset = $request->boolean('reset');
+        $skip  = $request->boolean('skip_cleanup');
+
+        $args = ['--batch' => (string) $batch, '--delay' => '300'];
+        if ($reset) $args['--reset']        = true;
+        if ($skip)  $args['--skip-cleanup'] = true;
+
+        \Artisan::call('acenteler:sync', $args);
+
+        return $this->aceneSyncStatus();
+    }
+
+    public function aceneSyncStatus()
+    {
+        $this->assertSuperadmin();
+
+        $status    = (string) \App\Models\SistemAyar::get('acente_sync_status',     'idle');
+        $gecis     = (int)    \App\Models\SistemAyar::get('acente_sync_gecis',      '1');
+        $currentNo = (int)    \App\Models\SistemAyar::get('acente_sync_current_no', '1');
+        $found     = (int)    \App\Models\SistemAyar::get('acente_sync_found',      '0');
+        $at        = (string) \App\Models\SistemAyar::get('acente_sync_at',         '');
+        $startedAt = (string) \App\Models\SistemAyar::get('acente_sync_started_at', '');
+        $endNo     = 18804;
+
+        // Genel ilerleme: Geçiş 1 = 0-50%, Geçiş 2 = 50-100%
+        $gecisPercent = $endNo > 0 ? min(100, round(($currentNo - 1) / $endNo * 100, 1)) : 0;
+        $totalPercent = $gecis === 1
+            ? round($gecisPercent / 2, 1)
+            : round(50 + $gecisPercent / 2, 1);
+
+        $gecerli = \DB::table('acenteler')->where('kaynak', 'bakanlik')->where('durum', 'GEÇERLİ')->count();
+        $iptal   = \DB::table('acenteler')->where('kaynak', 'bakanlik')->where('durum', 'İPTAL')->count();
+        $tursab  = \DB::table('acenteler')->where('kaynak', 'tursab')->count();
+
+        return response()->json([
+            'status'        => $status,
+            'gecis'         => $gecis,
+            'gecis_label'   => $gecis === 1 ? 'GEÇERLİ taranıyor' : 'İPTAL taranıyor',
+            'current_no'    => $currentNo,
+            'end_no'        => $endNo,
+            'found'         => $found,
+            'percent'       => $totalPercent,
+            'at'            => $at,
+            'started_at'    => $startedAt,
+            'done'          => $status === 'done',
+            'gecerli_count' => $gecerli,
+            'iptal_count'   => $iptal,
+            'tursab_count'  => $tursab,
+        ]);
+    }
+
     /**
      * Superadmin — Scraper durum bilgisi.
      */
