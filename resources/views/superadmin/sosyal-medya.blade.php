@@ -880,7 +880,7 @@ async function uretIcerik() {
     txt.innerHTML = '<span class="spinner"></span> Üretiliyor…';
 
     try {
-        const data = await postJson('{{ route("superadmin.sosyal.medya.uret") }}', {
+        const data = await postJson('/superadmin/sosyal-medya/uret', {
             platform: curPlatform,
             format:   curFormat,
             konu:     konu,
@@ -1201,7 +1201,7 @@ async function uretGorsel() {
     txt.innerHTML = '<span class="spinner" style="border-top-color:#4f46e5;border-color:#e5e7eb;"></span> Üretiliyor…';
 
     try {
-        const data = await postJson('{{ route("superadmin.sosyal.medya.gorsel") }}', {
+        const data = await postJson('/superadmin/sosyal-medya/gorsel', {
             gorsel_prompt: prompt,
             platform: curPlatform,
         });
@@ -1357,7 +1357,7 @@ async function sendRevizyon() {
     addBubble('ai', '…', loadingBubbleId);
 
     try {
-        const data = await postJson('{{ route("superadmin.sosyal.medya.revize") }}', {
+        const data = await postJson('/superadmin/sosyal-medya/revize', {
             icerik:   mevcutIcerik,
             mesaj:    mesaj,
             platform: curPlatform,
@@ -1437,7 +1437,7 @@ async function kaydet(durum, planlananTarih) {
     const konu   = document.getElementById('konuInput').value.trim();
 
     try {
-        const data = await postJson('{{ route("superadmin.sosyal.medya.kaydet") }}', {
+        const data = await postJson('/superadmin/sosyal-medya/kaydet', {
             platform:        curPlatform,
             format:          curFormat,
             tema:            sonTema || null,
@@ -1469,7 +1469,7 @@ async function loadTakvim(force = false) {
     document.getElementById('kanbanBoard').style.opacity = '0.4';
 
     try {
-        const res = await fetch('{{ route("superadmin.sosyal.medya.takvim") }}?json=1', {
+        const res = await fetch('/superadmin/sosyal-medya/takvim?json=1', {
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
         });
         takvimData = await res.json();
