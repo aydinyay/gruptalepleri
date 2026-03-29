@@ -1482,7 +1482,14 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             },
             body: JSON.stringify({ mesaj: metin, gecmis: gecmis.slice(-10) }),
         })
-        .then(r => r.json())
+        .then(async r => {
+            const text = await r.text();
+            let data;
+            try { data = JSON.parse(text); } catch(e) {
+                throw new Error('HTTP ' + r.status + ': ' + text.substring(0, 400));
+            }
+            return data;
+        })
         .then(data => {
             turaiYaziyorGizle(yaziyorId);
             if (data.hata) {
@@ -1493,9 +1500,9 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
                 turaiMesajEkle('ai', yanit);
             }
         })
-        .catch(() => {
+        .catch(err => {
             turaiYaziyorGizle(yaziyorId);
-            turaiMesajEkle('ai', '⚠️ Bağlantı hatası. Lütfen tekrar deneyin.', true);
+            turaiMesajEkle('ai', '⚠️ ' + (err.message || 'Bağlantı hatası. Lütfen tekrar deneyin.'), true);
         })
         .finally(() => {
             yukleniyor = false;

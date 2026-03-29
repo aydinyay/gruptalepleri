@@ -14,40 +14,45 @@ class TuraiController extends Controller
 {
     public function chat(Request $request, string $gtpnr): JsonResponse
     {
-        $user = auth()->user();
-
-        $talep = GrupTalep::where('gtpnr', $gtpnr)
-            ->where('user_id', $user->id)
-            ->with(['segments', 'offers' => fn ($q) => $q->where('is_visible', true), 'payments'])
-            ->firstOrFail();
-
-        $digerTalepler = GrupTalep::where('user_id', $user->id)
-            ->where('gtpnr', '!=', $gtpnr)
-            ->with(['segments', 'offers' => fn ($q) => $q->where('is_visible', true)])
-            ->latest()
-            ->limit(40)
-            ->get();
-
-        $context   = $this->buildContext($talep, $digerTalepler);
-        $gecmis    = array_slice($request->input('gecmis', []), -12);
-        $mesaj     = trim($request->input('mesaj', ''));
-
-        if (strlen($mesaj) < 1) {
-            return response()->json(['hata' => 'Mesaj boş olamaz.'], 422);
-        }
-
-        $apiKey = (string) config('services.gemini.key');
-        if ($apiKey === '') {
-            return response()->json(['hata' => 'AI servisi şu an kullanılamıyor.'], 500);
-        }
-
-        $model = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
-
         try {
-            $yanit = $this->geminiChat($context, $gecmis, $mesaj, $apiKey, $model);
+            $user = auth()->user();
+
+            $talep = GrupTalep::where('gtpnr', $gtpnr)
+                ->where('user_id', $user->id)
+                ->with(['segments', 'offers', 'payments'])
+                ->first();
+
+            if (! $talep) {
+                return response()->json(['hata' => 'Talep bulunamadı.'], 404);
+            }
+
+            $digerTalepler = GrupTalep::where('user_id', $user->id)
+                ->where('gtpnr', '!=', $gtpnr)
+                ->with(['segments', 'offers'])
+                ->latest()
+                ->limit(40)
+                ->get();
+
+            $gecmis = array_slice($request->input('gecmis', []), -12);
+            $mesaj  = trim($request->input('mesaj', ''));
+
+            if ($mesaj === '') {
+                return response()->json(['hata' => 'Mesaj boş olamaz.'], 422);
+            }
+
+            $apiKey = (string) config('services.gemini.key');
+            if ($apiKey === '') {
+                return response()->json(['hata' => 'AI servisi şu an kullanılamıyor.'], 503);
+            }
+
+            $model   = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
+            $context = $this->buildContext($talep, $digerTalepler);
+            $yanit   = $this->geminiChat($context, $gecmis, $mesaj, $apiKey, $model);
+
             return response()->json(['yanit' => $yanit]);
+
         } catch (\Exception $e) {
-            return response()->json(['hata' => $e->getMessage()], 500);
+            return response()->json(['hata' => 'Sunucu hatası: ' . $e->getMessage()], 500);
         }
     }
 
