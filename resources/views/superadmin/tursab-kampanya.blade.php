@@ -473,6 +473,9 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     <button class="btn btn-primary" id="syncStartBtn" onclick="syncBaslat()">
                         <i class="fas fa-sync-alt me-1"></i>Şimdi Senkronize Et
                     </button>
+                    <button class="btn btn-warning btn-sm" onclick="syncDurdur()">
+                        <i class="fas fa-pause me-1"></i>Durdur
+                    </button>
                     <button class="btn btn-outline-secondary btn-sm" onclick="syncDurumYukle()">
                         <i class="fas fa-refresh me-1"></i>Durum Yenile
                     </button>
@@ -774,34 +777,47 @@ function syncGoster(d) {
     }
 }
 
-async function syncBaslat() {
-    const body = new FormData();
-    body.append('_token', CSRF_TOKEN);
-    body.append('batch', '30');
-    if (document.getElementById('syncSkipCleanup').checked) body.append('skip_cleanup', '1');
+let syncDurdurildi = false;
 
-    document.getElementById('syncStartBtn').disabled = true;
-    try {
-        const res = await fetch(SYNC_START_URL, { method: 'POST', body });
-        const d   = await res.json();
-        syncGoster(d);
-    } catch(e) {
-        alert('Bağlantı hatası: ' + e.message);
-        document.getElementById('syncStartBtn').disabled = false;
+async function syncBaslat(reset = false) {
+    syncDurdurildi = false;
+    const btn = document.getElementById('syncStartBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Çalışıyor…';
+
+    while (!syncDurdurildi) {
+        const body = new FormData();
+        body.append('_token', CSRF_TOKEN);
+        body.append('batch', '30');
+        if (reset) { body.append('reset', '1'); reset = false; }
+        if (document.getElementById('syncSkipCleanup').checked) body.append('skip_cleanup', '1');
+
+        try {
+            const res = await fetch(SYNC_START_URL, { method: 'POST', body });
+            const d   = await res.json();
+            syncGoster(d);
+
+            if (d.status === 'done' || d.status === 'error') break;
+            // Geçiş 1 bitti, geçiş 2'ye devam
+            // paused da olsa devam et — kaldığı yerden sürer
+            await new Promise(r => setTimeout(r, 800)); // sunucuyu soluklandır
+        } catch(e) {
+            document.getElementById('syncStatusBadge').textContent = 'Bağlantı hatası';
+            break;
+        }
     }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Şimdi Senkronize Et';
+}
+
+function syncDurdur() {
+    syncDurdurildi = true;
 }
 
 async function syncSifirla() {
     if (!confirm('Senkronizasyon baştan başlayacak. Emin misiniz?')) return;
-    const body = new FormData();
-    body.append('_token', CSRF_TOKEN);
-    body.append('batch', '30');
-    body.append('reset', '1');
-    try {
-        const res = await fetch(SYNC_START_URL, { method: 'POST', body });
-        const d   = await res.json();
-        syncGoster(d);
-    } catch(e) {}
+    await syncBaslat(true);
 }
 
 document.addEventListener('DOMContentLoaded', syncDurumYukle);
