@@ -135,10 +135,16 @@ class TuraiController extends Controller
         $now  = Carbon::now('Europe/Istanbul');
 
         // ── Şirket/iletişim/banka bilgileri ──
-        $sirketUnvan  = SistemAyar::get('sirket_unvan', 'Grup Talepleri Turizm San. ve Tic. Ltd. Şti.');
-        $whatsapp     = SistemAyar::get('sirket_whatsapp', '+90 535 415 47 99');
-        $eposta       = SistemAyar::get('sirket_eposta', 'destek@gruptalepleri.com');
-        $telefon      = SistemAyar::get('sirket_telefon', '+90 535 415 47 99');
+        $sirketUnvan     = SistemAyar::get('sirket_unvan',          'Grup Talepleri Turizm San. ve Tic. Ltd. Şti.');
+        $sirketVkn       = SistemAyar::get('sirket_vkn',            '4110477529');
+        $sirketVD        = SistemAyar::get('sirket_vergi_dairesi',  'Beyoğlu VD');
+        $sirketMersis    = SistemAyar::get('sirket_mersis_no',      '0411047752900001');
+        $sirketAdres     = SistemAyar::get('sirket_adres',          'İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli / İstanbul');
+        $sirketTursabNo  = SistemAyar::get('sirket_tursab_no',      '12572');
+        $sirketTursabGrp = SistemAyar::get('sirket_tursab_grup',    'A');
+        $whatsapp        = SistemAyar::get('sirket_whatsapp',       '+90 535 415 47 99');
+        $eposta          = SistemAyar::get('sirket_eposta',         'destek@gruptalepleri.com');
+        $telefon         = SistemAyar::get('sirket_telefon',        '+90 535 415 47 99');
 
         // ── Admin telefon numaraları (users tablosundan) ──
         $adminUsers = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
@@ -344,6 +350,15 @@ FİNANSAL ÖZET:
 {$digerStr}
 ━━━ BANKA / HAVALE BİLGİLERİ ━━━
 {$bankaStr}
+
+━━━ ŞİRKET / FATURA BİLGİLERİ ━━━
+Unvan          : {$sirketUnvan}
+Vergi No (VKN) : {$sirketVkn}
+Vergi Dairesi  : {$sirketVD}
+MERSİS No      : {$sirketMersis}
+Adres          : {$sirketAdres}
+TÜRSAB         : {$sirketTursabGrp} Grubu Belge No: {$sirketTursabNo}
+E-posta        : {$eposta}
 
 ━━━ İLETİŞİM VE ACİL (7/24) ━━━
 {$adminTelStr}WhatsApp: [WhatsApp ile Yaz →]({$waLink})
