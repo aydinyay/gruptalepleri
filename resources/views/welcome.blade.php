@@ -798,10 +798,25 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}"><i class="fas fa-phone me-2" style="color:var(--red);width:14px;"></i>{{ $sirket['telefon'] }}</a>
             @if($sirket['cep'])<a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['cep']) }}"><i class="fas fa-mobile-alt me-2" style="color:var(--red);width:14px;"></i>{{ $sirket['cep'] }}</a>@endif
             <a href="mailto:{{ $sirket['eposta'] }}" style="unicode-bidi:plaintext;"><i class="fas fa-envelope me-2" style="color:var(--red);width:14px;"></i>{{ $sirket['eposta'] }}</a>
-            <div style="margin-top:0.8rem;">
-                <a href="https://www.instagram.com/{{ $sirket['instagram'] }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.78rem;color:rgba(255,255,255,0.6);transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(233,69,96,0.5)';this.style.color='#fff';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.6)';">
-                    <i class="fab fa-instagram" style="color:#e1306c;"></i> @{{ $sirket['instagram'] }}
-                </a>
+            @php
+                $sosyalMedya = [
+                    ['url' => $sirket['instagram'] ? 'https://www.instagram.com/'.$sirket['instagram'] : '', 'icon' => 'fab fa-instagram', 'color' => '#e1306c', 'label' => '@'.$sirket['instagram']],
+                    ['url' => $sirket['facebook'],  'icon' => 'fab fa-facebook',  'color' => '#1877f2', 'label' => 'Facebook'],
+                    ['url' => $sirket['twitter']  ? 'https://x.com/'.$sirket['twitter'] : '', 'icon' => 'fab fa-x-twitter', 'color' => '#fff', 'label' => '@'.$sirket['twitter']],
+                    ['url' => $sirket['linkedin'],  'icon' => 'fab fa-linkedin',  'color' => '#0a66c2', 'label' => 'LinkedIn'],
+                ];
+            @endphp
+            <div style="margin-top:0.8rem;display:flex;flex-wrap:wrap;gap:6px;">
+                @foreach($sosyalMedya as $sm)
+                    @if($sm['url'])
+                    <a href="{{ $sm['url'] }}" target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.78rem;color:rgba(255,255,255,0.6);transition:all 0.2s;"
+                       onmouseover="this.style.borderColor='rgba(233,69,96,0.5)';this.style.color='#fff';"
+                       onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.6)';">
+                        <i class="{{ $sm['icon'] }}" style="color:{{ $sm['color'] }};"></i> {{ $sm['label'] }}
+                    </a>
+                    @endif
+                @endforeach
             </div>
         </div>
 

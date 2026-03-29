@@ -131,6 +131,9 @@ Route::get('/', function () {
         'tursab_no'      => $s('sirket_tursab_no',      '12572'),
         'tursab_grup'    => $s('sirket_tursab_grup',    'A'),
         'instagram'      => $s('sirket_instagram',      'grup.talepleri'),
+        'facebook'       => $s('sirket_facebook',       ''),
+        'twitter'        => $s('sirket_twitter',        ''),
+        'linkedin'       => $s('sirket_linkedin',       ''),
     ];
 
     return view('welcome', compact('stats', 'sirket'));

@@ -806,6 +806,33 @@
                                    value="{{ $sirketBilgileri['sirket_instagram'] ?? '' }}">
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fab fa-facebook me-1" style="color:#1877f2;"></i>Facebook Sayfası URL
+                        </label>
+                        <input type="text" name="sirket_facebook" class="form-control"
+                               placeholder="https://facebook.com/gruptalepleri"
+                               value="{{ $sirketBilgileri['sirket_facebook'] ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fab fa-x-twitter me-1" style="color:#000;"></i>X (Twitter) Kullanıcı Adı
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="font-size:0.8rem;background:#f8f9fa;">@</span>
+                            <input type="text" name="sirket_twitter" class="form-control"
+                                   placeholder="gruptalepleri"
+                                   value="{{ $sirketBilgileri['sirket_twitter'] ?? '' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fab fa-linkedin me-1" style="color:#0a66c2;"></i>LinkedIn Sayfası URL
+                        </label>
+                        <input type="text" name="sirket_linkedin" class="form-control"
+                               placeholder="https://linkedin.com/company/gruptalepleri"
+                               value="{{ $sirketBilgileri['sirket_linkedin'] ?? '' }}">
+                    </div>
                 </div>
             </div>
         </div>
