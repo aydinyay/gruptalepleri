@@ -350,21 +350,56 @@ MARKA;
             }
         } catch (\Throwable) {}
 
+        $sonHata = '';
+
         foreach ($models as $model) {
+            // Imagen modelleri farklı endpoint kullanır
+            $isImagen = str_starts_with($model, 'imagen-');
+
             try {
-                $response = Http::timeout(90)->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-                    [
-                        'contents'         => [['parts' => [['text' => $enrichedPrompt]]]],
-                        'generationConfig' => ['responseModalities' => ['TEXT', 'IMAGE']],
-                    ]
-                );
+                if ($isImagen) {
+                    $response = Http::timeout(90)->post(
+                        "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateImages?key={$apiKey}",
+                        [
+                            'prompt'            => ['text' => $enrichedPrompt],
+                            'number_of_images'  => 1,
+                            'safety_filter_level' => 'BLOCK_ONLY_HIGH',
+                        ]
+                    );
+                } else {
+                    $response = Http::timeout(90)->post(
+                        "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                        [
+                            'contents'         => [['parts' => [['text' => $enrichedPrompt]]]],
+                            'generationConfig' => ['responseModalities' => ['TEXT', 'IMAGE']],
+                        ]
+                    );
+                }
             } catch (\Throwable $e) {
+                $sonHata = $e->getMessage();
                 continue;
             }
 
-            if (! $response->ok()) continue;
+            if (! $response->ok()) {
+                $sonHata = "Model {$model}: HTTP {$response->status()} — " . $response->body();
+                continue;
+            }
 
+            // Imagen yanıt formatı
+            if ($isImagen) {
+                $base64 = (string) data_get($response->json(), 'generatedImages.0.image.imageBytes', '');
+                if ($base64 !== '') {
+                    return response()->json([
+                        'gorsel'   => "data:image/png;base64,{$base64}",
+                        'logo'     => $logoBase64 ? "data:{$logoMime};base64,{$logoBase64}" : null,
+                        'logo_url' => 'https://gruptalepleri.com/logo.png',
+                    ]);
+                }
+                $sonHata = "Model {$model}: görsel verisi boş.";
+                continue;
+            }
+
+            // Gemini flash yanıt formatı
             $parts = (array) data_get($response->json(), 'candidates.0.content.parts', []);
             foreach ($parts as $part) {
                 $inlineData = $part['inlineData'] ?? $part['inline_data'] ?? null;
@@ -372,17 +407,16 @@ MARKA;
                 $base64   = (string) ($inlineData['data'] ?? '');
                 if ($base64 === '') continue;
                 $mimeType = strtolower((string) ($inlineData['mimeType'] ?? $inlineData['mime_type'] ?? 'image/png'));
-
                 return response()->json([
-                    'gorsel'      => "data:{$mimeType};base64,{$base64}",
-                    // Gerçek logo — view tarafında canvas ile üzerine bindiriliyor
-                    'logo'        => $logoBase64 ? "data:{$logoMime};base64,{$logoBase64}" : null,
-                    'logo_url'    => 'https://gruptalepleri.com/logo.png',
+                    'gorsel'   => "data:{$mimeType};base64,{$base64}",
+                    'logo'     => $logoBase64 ? "data:{$logoMime};base64,{$logoBase64}" : null,
+                    'logo_url' => 'https://gruptalepleri.com/logo.png',
                 ]);
             }
+            $sonHata = "Model {$model}: yanıtta görsel parçası bulunamadı.";
         }
 
-        return response()->json(['hata' => 'Görsel üretilemedi.'], 502);
+        return response()->json(['hata' => 'Görsel üretilemedi. ' . $sonHata], 502);
     }
 
     // ── Revizyon Chat ────────────────────────────────────────────────────────
