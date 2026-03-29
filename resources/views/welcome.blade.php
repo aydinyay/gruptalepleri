@@ -822,7 +822,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 
         {{-- Sağ: Yasal / Fatura --}}
         <div class="footer-col">
-            <div class="footer-col-title">Fatura Bilgileri</div>
+            <div class="footer-col-title">Şirket Bilgileri</div>
             <p style="font-weight:600;color:rgba(255,255,255,0.75);">{{ $sirket['unvan'] }}</p>
             <p>Vergi Dairesi: {{ $sirket['vergi_dairesi'] }}</p>
             <p>Vergi No: {{ $sirket['vkn'] }}</p>
