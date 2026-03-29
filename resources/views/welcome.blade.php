@@ -33,30 +33,22 @@
 <meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
 
 {{-- JSON-LD Yapılandırılmış Veri (Google arama sonucu zengin snippet) --}}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "TravelAgency",
-  "name": "{{ addslashes($sirket['unvan']) }}",
-  "alternateName": "GrupTalepleri",
-  "url": "https://gruptalepleri.com",
-  "logo": "https://gruptalepleri.com/og-image.png",
-  "description": "Turizm acenteleri ve kurumsal şirketler için grup uçuş ve charter talep platformu.",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "{{ addslashes($sirket['adres']) }}",
-    "addressCountry": "TR"
-  },
-  "telephone": "{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}",
-  "email": "{{ $sirket['eposta'] }}",
-  "sameAs": [
-    "https://www.instagram.com/{{ $sirket['instagram'] }}"
-  ],
-  "areaServed": "TR",
-  "priceRange": "₺₺",
-  "openingHours": "Mo-Fr 09:00-18:00"
-}
-</script>
+<script type="application/ld+json">{!! json_encode([
+    '@context'     => 'https://schema.org',
+    '@type'        => 'TravelAgency',
+    'name'         => $sirket['unvan'],
+    'alternateName'=> 'GrupTalepleri',
+    'url'          => 'https://gruptalepleri.com',
+    'logo'         => 'https://gruptalepleri.com/og-image.png',
+    'description'  => 'Turizm acenteleri ve kurumsal şirketler için grup uçuş ve charter talep platformu.',
+    'address'      => ['@type'=>'PostalAddress','streetAddress'=>$sirket['adres'],'addressCountry'=>'TR'],
+    'telephone'    => preg_replace('/[^0-9+]/','',$sirket['telefon']),
+    'email'        => $sirket['eposta'],
+    'sameAs'       => ['https://www.instagram.com/'.$sirket['instagram']],
+    'areaServed'   => 'TR',
+    'priceRange'   => '₺₺',
+    'openingHours' => 'Mo-Fr 09:00-18:00',
+], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
