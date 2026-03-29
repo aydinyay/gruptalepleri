@@ -19,7 +19,7 @@ class TuraiController extends Controller
 
             $talep = GrupTalep::where('gtpnr', $gtpnr)
                 ->where('user_id', $user->id)
-                ->with(['segments', 'offers' => fn ($q) => $q->where('is_visible', true), 'payments'])
+                ->with(['segments', 'offers' => fn ($q) => $q->where(fn ($q2) => $q2->where('is_visible', true)->orWhere('is_accepted', true)), 'payments'])
                 ->first();
 
             if (! $talep) {
@@ -28,7 +28,7 @@ class TuraiController extends Controller
 
             $digerTalepler = GrupTalep::where('user_id', $user->id)
                 ->where('gtpnr', '!=', $gtpnr)
-                ->with(['segments', 'offers' => fn ($q) => $q->where('is_visible', true)])
+                ->with(['segments', 'offers' => fn ($q) => $q->where(fn ($q2) => $q2->where('is_visible', true)->orWhere('is_accepted', true))])
                 ->latest()
                 ->limit(40)
                 ->get();
