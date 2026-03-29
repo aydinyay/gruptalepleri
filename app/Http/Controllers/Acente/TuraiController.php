@@ -89,12 +89,15 @@ class TuraiController extends Controller
             $segmentStr .= ($i + 1) . ". {$seg->from_iata}({$seg->from_city}) → {$seg->to_iata}({$seg->to_city}) | {$seg->departure_date}" . ($seg->departure_time ? " {$seg->departure_time}" : '') . "\n";
         }
 
-        // ── Teklifler ──
+        // ── Teklifler — kabul edilmiş varsa sadece onu göster ──
+        $kabulTeklif  = $talep->offers->where('is_accepted', true)->first();
+        $gosterOffers = $kabulTeklif
+            ? $talep->offers->where('is_accepted', true)          // sadece kabul edilen
+            : $talep->offers->where('is_visible', true);          // henüz kabul yok → görünenler
+
         $teklifStr = '';
-        $kabulTeklif = null;
-        foreach ($talep->offers as $i => $o) {
+        foreach ($gosterOffers as $i => $o) {
             $durum = $o->is_accepted ? '✅ Kabul Edildi' : 'Bekliyor';
-            if ($o->is_accepted) $kabulTeklif = $o;
             $opsiyon = ($o->option_date ? $o->option_date : '-') . ($o->option_time ? " {$o->option_time}" : '');
 
             // Opsiyon geri sayım
