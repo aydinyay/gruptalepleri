@@ -1573,22 +1573,32 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 
     // ── Minimal markdown render ──
     function turaiMarkdown(text) {
-        return text
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        // 1. Önce [metin](url) linklerini placeholder'a al (HTML escape'den korumak için)
+        const links = [];
+        text = text.replace(/\[([^\]]+)\]\(((?:https?|tel|mailto):[^\)]+)\)/g, (_, label, url) => {
+            const isExt = url.startsWith('http');
+            const tag = `<a href="${url}"${isExt ? ' target="_blank" rel="noopener"' : ''} style="color:#e94560;font-weight:600;">${label}</a>`;
+            links.push(tag);
+            return `\x00LINK${links.length - 1}\x00`;
+        });
+
+        // 2. HTML escape
+        text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // 3. Markdown formatları
+        text = text
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/`(.+?)`/g, '<code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;font-size:0.85em;">$1</code>')
-            // [metin](url) → tıklanabilir link
-            .replace(/\[(.*?)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#e94560;word-break:break-all;">$1</a>')
-            // ham https:// URL → tıklanabilir link (zaten link içinde değilse)
-            .replace(/(?<![">])(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#e94560;word-break:break-all;">$1</a>')
-            // +90... veya 0... telefon numarası → tel: linki
-            .replace(/(\+90[\s\-]?\d{3}[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}|\+90\d{10}|0\d{3}[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2})/g,
-                '<a href="tel:$1" style="color:#e94560;font-weight:600;">📞 $1</a>')
             .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:0.9em;">$1</strong>')
             .replace(/^[-•]\s+(.+)$/gm, '• $1')
             .replace(/\n{2,}/g, '<br><br>')
             .replace(/\n/g, '<br>');
+
+        // 4. Placeholder'ları geri yükle
+        text = text.replace(/\x00LINK(\d+)\x00/g, (_, i) => links[+i]);
+
+        return text;
     }
 })();
 </script>

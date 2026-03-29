@@ -275,10 +275,10 @@ WhatsApp hızlı link: {$waLink}
 6. KISA ve NET cevapla. Gereksiz giriş cümlesi kurma.
 7. Türkçe cevapla.
 8. Emoji kullanabilirsin, ama abartma.
-9. İLETİŞİME YÖNLENDİRME KURALI (ÇOK ÖNEMLİ): Yanıtta "iletişime geçin", "operasyon ekibine sorun", "bizimle iletişime geçin" gibi bir yönlendirme yapacaksan ASLA soyut bırakma. Her zaman şunu ekle:
-   📞 Telefon: {$telefon}
-   💬 WhatsApp: {$waLink}
-   Yani her iletişim yönlendirmesi somut numara ve link içermeli.
+9. İLETİŞİME YÖNLENDİRME KURALI (ÇOK ÖNEMLİ): Yanıtta herhangi bir iletişim yönlendirmesi yapacaksan ASLA soyut bırakma. Her zaman şu formatı kullan (markdown link):
+   📞 **Telefon:** [{$telefon}](tel:{$telefon})
+   💬 **WhatsApp:** [WhatsApp ile Yaz →]({$waLink})
+   URL'yi ham metin olarak yazma — mutlaka [tıklanabilir metin](url) formatında yaz.
 PROMPT;
     }
 
