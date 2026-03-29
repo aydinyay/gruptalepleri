@@ -784,14 +784,21 @@ async function postJson(url, data) {
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify(data),
     });
-    return res.json();
+    const text = await res.text();
+    try {
+        return JSON.parse(text);
+    } catch {
+        // Sunucu JSON değil HTML döndürdü (PHP hatası, 403, 419 vb.)
+        const snippet = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 300);
+        throw new Error(`HTTP ${res.status} — ${snippet}`);
+    }
 }
 
 function toast(msg, type = 'success') {
     const el = document.getElementById('smToast');
     el.textContent = msg;
     el.className = `sm-toast show ${type}`;
-    const dur = type === 'warning' ? 8000 : 3200;
+    const dur = (type === 'warning' || type === 'error') ? 8000 : 3200;
     setTimeout(() => el.classList.remove('show'), dur);
 }
 
