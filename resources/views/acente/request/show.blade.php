@@ -1265,6 +1265,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 #turai-messages {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 12px 14px;
     display: flex; flex-direction: column; gap: 10px;
     min-height: 200px;
@@ -1273,7 +1274,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 #turai-messages::-webkit-scrollbar { width: 4px; }
 #turai-messages::-webkit-scrollbar-thumb { background: #e0e3e8; border-radius: 4px; }
 
-.turai-msg { display: flex; gap: 8px; max-width: 90%; }
+.turai-msg { display: flex; gap: 8px; max-width: 90%; min-width: 0; }
 .turai-msg.ai   { align-self: flex-start; }
 .turai-msg.user { align-self: flex-end; flex-direction: row-reverse; }
 
@@ -1283,6 +1284,10 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     font-size: 0.82rem;
     line-height: 1.55;
     word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 .turai-msg.ai   .bubble { background: #f0f2f5; color: #1a1a2e; border-bottom-left-radius: 4px; }
 .turai-msg.user .bubble { background: linear-gradient(135deg, #1a1a2e, #0f3460); color: #fff; border-bottom-right-radius: 4px; }
@@ -1663,7 +1668,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
                 const bg = isReturn ? '#e8f4ff' : '#eaf7ee';
                 const border = isReturn ? '#b6d8f5' : '#b2dfc0';
                 return `<span style="display:inline-block;background:${bg};border:1px solid ${border};`
-                    + `border-radius:6px;padding:2px 8px;font-size:0.78rem;font-weight:600;white-space:nowrap;">${txt.trim()}</span>`;
+                    + `border-radius:6px;padding:2px 8px;font-size:0.78rem;font-weight:600;word-break:break-all;">${txt.trim()}</span>`;
             };
 
             let rotaHtml;
