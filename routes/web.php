@@ -381,6 +381,16 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/acente-ai/email-gonder', [\App\Http\Controllers\AceneAIController::class, 'emailGonder'])->name('acente.ai.email');
     Route::post('/acente-ai/sms-gonder', [\App\Http\Controllers\AceneAIController::class, 'smsGonder'])->name('acente.ai.sms');
 
+    // Sosyal Medya Stüdyosu
+    Route::get('/sosyal-medya',           [\App\Http\Controllers\SosyalMedyaController::class, 'index'])->name('sosyal.medya');
+    Route::post('/sosyal-medya/uret',     [\App\Http\Controllers\SosyalMedyaController::class, 'uret'])->name('sosyal.medya.uret');
+    Route::post('/sosyal-medya/gorsel',   [\App\Http\Controllers\SosyalMedyaController::class, 'gorselUret'])->name('sosyal.medya.gorsel');
+    Route::post('/sosyal-medya/revize',   [\App\Http\Controllers\SosyalMedyaController::class, 'revize'])->name('sosyal.medya.revize');
+    Route::post('/sosyal-medya/kaydet',   [\App\Http\Controllers\SosyalMedyaController::class, 'kaydet'])->name('sosyal.medya.kaydet');
+    Route::get('/sosyal-medya/takvim',    [\App\Http\Controllers\SosyalMedyaController::class, 'takvim'])->name('sosyal.medya.takvim');
+    Route::post('/sosyal-medya/buffer',   [\App\Http\Controllers\SosyalMedyaController::class, 'bufferGonder'])->name('sosyal.medya.buffer');
+    Route::delete('/sosyal-medya/{id}',   [\App\Http\Controllers\SosyalMedyaController::class, 'sil'])->name('sosyal.medya.sil');
+
     // Acenteler
     Route::get('/acenteler', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteler'])->name('acenteler');
     Route::post('/acenteler/{agency}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteToggle'])->name('acenteler.toggle');

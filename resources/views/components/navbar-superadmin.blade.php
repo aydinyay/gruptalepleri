@@ -38,6 +38,12 @@
                     'keys' => ['acente-ai'],
                 ],
                 [
+                    'label' => 'Sosyal Medya',
+                    'href'  => route('superadmin.sosyal.medya'),
+                    'icon'  => 'fas fa-share-nodes',
+                    'keys'  => ['sosyal-medya'],
+                ],
+                [
                     'label' => 'Acente İstatistikleri',
                     'href' => route('superadmin.acenteler.istatistik'),
                     'icon' => 'fas fa-chart-bar',
