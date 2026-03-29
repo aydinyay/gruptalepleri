@@ -176,6 +176,7 @@ class TuraiController extends Controller
         }
 
         // ── Mevcut talep segmentleri ──
+        $tripTypeLabel = ($talep->trip_type ?? '') === 'round_trip' ? 'Gidiş-Dönüş' : 'Tek Yön';
         $segmentStr = '';
         foreach ($talep->segments as $i => $seg) {
             $segmentStr .= ($i + 1) . ". {$seg->from_iata}({$seg->from_city}) → {$seg->to_iata}({$seg->to_city}) | {$seg->departure_date}" . ($seg->departure_time ? " {$seg->departure_time}" : '') . "\n";
@@ -265,8 +266,15 @@ class TuraiController extends Controller
         // ── Diğer talepler ──
         $digerStr = '';
         foreach ($digerTalepler as $dt) {
-            $rota = $dt->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
-            $tarih = $dt->segments->first()?->departure_date ?? '-';
+            $isRT  = ($dt->trip_type ?? '') === 'round_trip';
+            $ilkSeg = $dt->segments->first();
+            $sonSeg = $dt->segments->last();
+            if ($isRT && $ilkSeg && $sonSeg && $ilkSeg->id !== $sonSeg->id) {
+                $rota = "{$ilkSeg->from_iata} ⇄ {$sonSeg->from_iata}"; // G/D
+            } else {
+                $rota = $dt->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
+            }
+            $tarih = $ilkSeg?->departure_date ?? '-';
             $teklifSayisi = $dt->offers->count();
             $enIyiTeklif = $dt->offers->where('is_accepted', true)->first()
                 ?? $dt->offers->sortBy('total_price')->first();
@@ -329,6 +337,7 @@ Bugünün tarihi ve saati: {$now->format('d.m.Y H:i')} (Türkiye saati)
 GTPNR       : {$talep->gtpnr}
 Durum       : {$talep->status}
 Oluşturulma : {$talep->created_at->format('d.m.Y H:i')}
+Uçuş Türü   : {$tripTypeLabel}
 Yolcu Sayısı: {$talep->pax_total} kişi ({$talep->pax_adult}Y + {$talep->pax_child}Ç + {$talep->pax_infant}B)
 Seyahat Amacı: {$talep->flight_purpose}
 Tercih Edilen Havayolu: {$talep->preferred_airline}
