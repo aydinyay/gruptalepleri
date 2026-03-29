@@ -526,7 +526,8 @@
         <div class="ozel-gunler-grid">
             @forelse($yaklasanGunlerTumu as $gun)
             @php
-                $kalan = now()->diffInDays($gun->tarih, false);
+                $kalanHam = now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($gun->tarih)->startOfDay(), false);
+                $kalan = (int) $kalanHam;
                 $kalanLabel = $kalan <= 0 ? 'Bugün!' : "{$kalan} gün kaldı";
                 $urgency = $kalan <= 7 ? 'urgent' : ($kalan <= 21 ? 'soon' : 'normal');
                 $ikon = match($gun->kategori) {
@@ -557,7 +558,12 @@
                             @else
                                 {{ $kalanLabel }}
                             @endif
-                            — {{ \Carbon\Carbon::parse($gun->tarih)->format('d M Y') }}
+                            @php
+                                $aylar = ['','Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+                                $dt = \Carbon\Carbon::parse($gun->tarih);
+                                $tarihTR = $dt->day . ' ' . $aylar[$dt->month] . ' ' . $dt->year;
+                            @endphp
+                            — {{ $tarihTR }}
                         </div>
                     </div>
                 </div>

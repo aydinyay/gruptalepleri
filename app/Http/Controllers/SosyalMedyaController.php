@@ -619,7 +619,7 @@ MARKA;
         // 1. En yakın özel gün hatırlatması
         if ($yaklasanGunler->isNotEmpty()) {
             $gun   = $yaklasanGunler->first();
-            $kalan = now()->diffInDays($gun->tarih);
+            $kalan = (int) now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($gun->tarih)->startOfDay());
             return [
                 'tip'    => 'ozel_gun',
                 'mesaj'  => "📅 <strong>{$gun->ad}</strong> için {$kalan} gün kaldı — içerik hazırlamak ister misin?",
