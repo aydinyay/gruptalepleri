@@ -149,16 +149,6 @@
         $headerToplamCur    = $minFiyatTeklif?->currency;
     }
 
-    // AI
-    $hashKaynagi = $talep->segments->map(fn($s) =>
-        $s->from_iata . $s->to_iata . $s->departure_date . $s->departure_time
-    )->join('|') . '||' . $talep->offers->map(fn($o) =>
-        $o->airline . $o->price_per_pax . $o->total_price . $o->option_date . $o->option_time
-    )->join('|') . '||' . $talep->pax_total . $talep->flight_purpose . '||' . ($fiyatKiyas['hash_context'] ?? '');
-    $mevcutHash = md5($hashKaynagi);
-    $analizVarMi  = $talep->ai_analysis && $talep->ai_analysis_hash === $mevcutHash;
-    $analizEskiMi = $talep->ai_analysis && $talep->ai_analysis_hash !== $mevcutHash;
-
     // Havayolu logo map
     $airlineIata = [
         'turkish airlines'=>'TK','thy'=>'TK','tk'=>'TK',
@@ -809,43 +799,6 @@
                 </div>
             </div>
 
-            {{-- ── AI OPERASYONANALİZİ (collapsible) ── --}}
-            <div class="card shadow-sm mb-3">
-                <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle {{ ($analizVarMi || $analizEskiMi) ? '' : 'collapsed' }}"
-                     data-bs-toggle="collapse" data-bs-target="#ai-collapse" aria-expanded="{{ ($analizVarMi || $analizEskiMi) ? 'true' : 'false' }}">
-                    <div>
-                        <i class="fas fa-robot me-2 text-primary"></i>
-                        <span class="fw-semibold">AI Operasyon Analizi</span>
-                        @if($analizVarMi)
-                            <small class="text-muted fw-normal ms-1">· {{ $talep->ai_analysis_updated_at?->format('d.m.Y H:i') }}</small>
-                        @elseif($analizEskiMi)
-                            <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">Güncelleme var</span>
-                        @endif
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button class="btn btn-sm {{ $analizVarMi ? 'btn-outline-secondary' : 'btn-primary' }} py-0 px-2"
-                                id="ai-analiz-btn" onclick="event.stopPropagation(); aiAnalizBaslat()">
-                            @if($analizVarMi) <i class="fas fa-sync"></i>
-                            @else <i class="fas fa-play"></i> Başlat
-                            @endif
-                        </button>
-                        <i class="fas fa-chevron-down chevron text-muted" style="font-size:0.75rem;"></i>
-                    </div>
-                </div>
-                <div class="collapse {{ ($analizVarMi || $analizEskiMi) ? 'show' : '' }}" id="ai-collapse">
-                    <div class="card-body p-2" id="ai-analiz-icerik">
-                        @if($analizVarMi || $analizEskiMi)
-                            {!! $talep->ai_analysis !!}
-                        @else
-                            <div class="text-center text-muted py-3" style="font-size:0.85rem;">
-                                <i class="fas fa-robot fa-2x opacity-25 d-block mb-2"></i>
-                                Havalimanı istihbaratı, transfer önerisi ve fiyat değerlendirmesi için <strong>Başlat</strong>'a tıklayın.
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
             {{-- ── ROTA HARİTASI (collapsible, kapalı) ── --}}
             <div class="card shadow-sm mb-3">
                 <div class="card-header py-2 d-flex justify-content-between align-items-center collapse-toggle collapsed"
@@ -984,108 +937,6 @@ document.querySelectorAll('[id^="opsiyon-ts-"]').forEach(input => {
     }
     guncelle();
 });
-
-// ── AI Analiz ──
-async function aiAnalizBaslat() {
-    const btn    = document.getElementById('ai-analiz-btn');
-    const icerik = document.getElementById('ai-analiz-icerik');
-    // AI collapse aç
-    const aiCollapse = document.getElementById('ai-collapse');
-    if (aiCollapse && !aiCollapse.classList.contains('show')) {
-        new bootstrap.Collapse(aiCollapse, { toggle: true });
-    }
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-    const fromIata = "{{ $talep->segments->first()?->from_iata }}";
-    const toIata   = "{{ $talep->segments->last()?->to_iata }}";
-    const pax      = {{ $talep->pax_total ?? 0 }};
-    const tarih    = "{{ $talep->segments->first()?->departure_date }}";
-    const amac     = "{{ $talep->flight_purpose ?? '' }}";
-    const acenteNotu = @json($acenteNotu);
-
-    @php
-    $offerData = $talep->offers->map(fn($o) => [
-        'airline'        => $o->airline,
-        'currency'       => $o->currency,
-        'price_per_pax'  => $o->price_per_pax,
-        'total_price'    => $o->total_price,
-        'deposit_rate'   => $o->deposit_rate,
-        'deposit_amount' => $o->deposit_amount,
-        'option_date'    => $o->option_date,
-        'option_time'    => $o->option_time,
-        'offer_text'     => $o->offer_text,
-    ])->values()->toArray();
-    @endphp
-    const teklifler = @json($offerData);
-    const fiyatKiyasOzeti = @json($fiyatKiyas['prompt_summary'] ?? 'Endeksli geçmiş kıyas verisi yok.');
-
-    let teklifBilgisi = 'Henüz teklif girilmemiş.';
-    if (teklifler.length > 0) {
-        teklifBilgisi = teklifler.map((t, i) => {
-            const depozito = t.deposit_amount ? `${t.deposit_amount} ${t.currency} (%${t.deposit_rate})` : '-';
-            const opsiyon  = (t.option_date && t.option_time) ? `${t.option_date} ${t.option_time}` : (t.option_date || '-');
-            return `Teklif #${i+1}: ${t.airline||'-'} | Kişi Başı: ${t.price_per_pax} ${t.currency} | Toplam: ${t.total_price} ${t.currency} | Depozito: ${depozito} | Opsiyon: ${opsiyon}`;
-        }).join('\n');
-    }
-
-    const prompt = `Sen bir acente operasyon asistanısın. Aşağıdaki grup uçuşu için KISA ve ÖZET analiz yap.
-
-TALEP: ${fromIata} ? ${toIata} | ${pax} PAX | ${tarih} | ${amac || '-'}
-ACENTE NOTU: ${acenteNotu || '-'}
-TEKLIF OZETLERI: ${teklifBilgisi}
-ENDEKSLI GECMIS FIYAT KIYASI: ${fiyatKiyasOzeti}
-
-Sadece acenteye gösterilecek bilgi üret.
-İç operasyon verileri (maliyet, kâr/kârlılık, tedarikçi referansı, hazırlayan kişi) hakkında yorum yapma.
-Veri yoksa "yetersiz veri" de, tahmin uydurma.
-Fiyat değerlendirmesinde suçlayıcı dil kullanma. "kazık", "fahiş" gibi ifadeler kullanma.
-Bunun bir referans kıyas olduğunu belirt; kesin yargı verme.
-
-4 ayrı Bootstrap card oluştur. Her card MAX 4 madde, kısa cümleler, emoji ikon kullan.
-
-CARD 1 (border-primary): 🛬 VARIŞ - ${toIata}
-• Şehir ve uzaklık • En iyi ulaşım (${pax} kişi için) • Tahmini transfer süresi/ücreti • 1 kritik operasyon notu
-
-CARD 2 (border-success): 🛫 KALKIŞ - ${fromIata}
-• Kaç saat önce havalimanında olunmalı • Check-in tahmini süre • Terminal/buluşma noktası
-
-CARD 3 (border-warning): 📅 TARİH - ${tarih}
-• Hava durumu karakteri • Yakın tatil/bayram varsa • Trafik/yoğunluk uyarısı
-
-CARD 4 (border-purple, style="border-color:#6f42c1"): 💰 FİYAT & OPSİYON
-• Kişi başı fiyat seviyesi (yalnız mevcut tekliflere göre) • Opsiyon riski • Net aksiyon önerisi • Belirsizlik varsa kısa uyarı
-
-Sadece 4 card HTML ver, başka hiçbir şey yazma. Her card compact olsun (card-body p-2).`;
-
-    try {
-        const res = await fetch('{{ route("acente.requests.ai-analiz", $talep->gtpnr) }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ prompt })
-        });
-        const raw = await res.text();
-        let data;
-        try { data = JSON.parse(raw); } catch(je) {
-            icerik.innerHTML = '<div class="alert alert-danger small">Sunucu hatası: ' + raw.substring(0,200) + '</div>';
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-play"></i> Tekrar';
-            return;
-        }
-        const temiz = (data.html ?? data.error ?? 'Analiz alınamadı.').replace(/```html|```/g,'').trim();
-        icerik.innerHTML = temiz;
-        btn.innerHTML = '<i class="fas fa-check"></i>';
-        btn.className = 'btn btn-sm btn-success py-0 px-2';
-
-        fetch('{{ route("acente.requests.ai-kaydet", $talep->gtpnr) }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ html: temiz, hash: '{{ $mevcutHash }}' })
-        }).catch(() => {});
-    } catch(e) {
-        icerik.innerHTML = '<div class="alert alert-danger small">Hata: ' + e.message + '</div>';
-        btn.disabled = false; btn.innerHTML = '<i class="fas fa-play"></i> Başlat';
-    }
-}
 
 // ── Harita (Google Maps) ──
 @php
