@@ -9,6 +9,30 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Route;
 
+// ── Tek seferlik migration runner (token korumalı, tablolar oluştuktan sonra bu satır silinir) ──
+Route::get('/mig-sm-2026', function () {
+    if (request('t') !== 'grtmig2026sm') abort(403);
+    $out = [];
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true, '--path' => 'database/migrations/2026_03_29_085116_create_sosyal_medya_icerikleri_table.php']);
+        $out[] = trim(\Illuminate\Support\Facades\Artisan::output());
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true, '--path' => 'database/migrations/2026_03_29_085117_create_ozel_gunler_table.php']);
+        $out[] = trim(\Illuminate\Support\Facades\Artisan::output());
+        $count = DB::table('ozel_gunler')->count();
+        if ($count === 0) {
+            \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\OzelGunlerSeeder', '--force' => true]);
+            $out[] = trim(\Illuminate\Support\Facades\Artisan::output());
+            $out[] = 'Seeder: ' . DB::table('ozel_gunler')->count() . ' kayıt eklendi.';
+        } else {
+            $out[] = "ozel_gunler zaten dolu ({$count} kayıt), seeder atlandı.";
+        }
+        $out[] = '✅ Tamamlandı.';
+    } catch (\Throwable $e) {
+        return response('❌ HATA: ' . $e->getMessage(), 500)->header('Content-Type', 'text/plain');
+    }
+    return response(implode("\n", $out))->header('Content-Type', 'text/plain');
+});
+
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
 Route::get('/', function () {
     if (auth()->check()) {

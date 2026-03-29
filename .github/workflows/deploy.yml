@@ -41,7 +41,8 @@ jobs:
 
       - name: Run migrations (sosyal medya)
         run: |
-          RESP=$(curl -sf "https://gruptalepleri.com/run-migrate-sm.php?t=grtmig2026sm" 2>&1 || true)
+          sleep 8
+          RESP=$(curl -sf --max-time 60 "https://gruptalepleri.com/mig-sm-2026?t=grtmig2026sm" 2>&1 || true)
           echo "$RESP"
 
       - name: Clear caches
