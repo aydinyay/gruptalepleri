@@ -837,17 +837,76 @@ async function uretGorsel() {
         });
 
         if (data.hata) { toast(data.hata, 'error'); return; }
-        gorselData = data.gorsel;
+
+        // Gerçek logoyu üzerine canvas ile yapıştır
+        const logoSrc = data.logo || data.logo_url || 'https://gruptalepleri.com/logo.png';
+        gorselData = await bindirLogo(data.gorsel, logoSrc);
+
         const img = document.getElementById('gorselPreviewImg');
         img.src = gorselData;
         document.getElementById('gorselPreviewWrap').style.display = 'block';
-        toast('Görsel üretildi!');
+        toast('Görsel üretildi — logo eklendi!');
     } catch (e) {
         toast('Görsel üretme hatası.', 'error');
     } finally {
         btn.disabled = false;
         txt.innerHTML = 'Görsel Üret';
     }
+}
+
+// ── Logo bindirme: AI görseli + gerçek logo → tek PNG ────────────────────
+async function bindirLogo(gorselSrc, logoSrc) {
+    return new Promise((resolve) => {
+        const canvas  = document.createElement('canvas');
+        const ctx     = canvas.getContext('2d');
+        const bgImg   = new Image();
+        bgImg.crossOrigin = 'anonymous';
+        bgImg.onload = () => {
+            canvas.width  = bgImg.naturalWidth;
+            canvas.height = bgImg.naturalHeight;
+            ctx.drawImage(bgImg, 0, 0);
+
+            // Logo boyutlandırma: genişliğin %22'si, max 280px
+            const logoW = Math.min(Math.round(canvas.width * 0.22), 280);
+
+            const logoImg = new Image();
+            logoImg.crossOrigin = 'anonymous';
+            logoImg.onload = () => {
+                const logoH = Math.round(logoImg.naturalHeight * (logoW / logoImg.naturalWidth));
+                const pad   = Math.round(canvas.width * 0.025); // %2.5 kenar boşluğu
+                const x     = pad;                               // sol alt köşe
+                const y     = canvas.height - logoH - pad;
+
+                // Hafif beyaz arka plan pill — logo okunurluğu için
+                ctx.save();
+                ctx.globalAlpha = 0.82;
+                ctx.fillStyle   = '#ffffff';
+                const r = 10;
+                const rx = x - 10, ry = y - 8, rw = logoW + 20, rh = logoH + 16;
+                ctx.beginPath();
+                ctx.moveTo(rx + r, ry);
+                ctx.lineTo(rx + rw - r, ry);
+                ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + r);
+                ctx.lineTo(rx + rw, ry + rh - r);
+                ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - r, ry + rh);
+                ctx.lineTo(rx + r, ry + rh);
+                ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - r);
+                ctx.lineTo(rx, ry + r);
+                ctx.quadraticCurveTo(rx, ry, rx + r, ry);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+                // Logoyu çiz
+                ctx.drawImage(logoImg, x, y, logoW, logoH);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            logoImg.onerror = () => resolve(gorselSrc); // logo yüklenemezse ham görseli döndür
+            logoImg.src = logoSrc;
+        };
+        bgImg.onerror = () => resolve(gorselSrc);
+        bgImg.src = gorselSrc;
+    });
 }
 
 function gorselIndir() {

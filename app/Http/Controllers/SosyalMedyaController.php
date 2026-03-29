@@ -306,23 +306,44 @@ MARKA;
             'platform'      => 'required|in:facebook,instagram,linkedin,x',
         ]);
 
-        $apiKey         = (string) config('services.gemini.key');
-        $configModel    = (string) config('services.gemini.image_model', 'gemini-2.5-flash-image');
-        $fallbackRaw    = (string) config('services.gemini.image_model_fallbacks', '');
-        $fallbacks      = array_filter(array_map('trim', explode(',', $fallbackRaw)));
-        $models         = array_values(array_unique(array_filter(array_merge([$configModel], $fallbacks))));
+        $apiKey      = (string) config('services.gemini.key');
+        $configModel = (string) config('services.gemini.image_model', 'gemini-2.5-flash-image');
+        $fallbackRaw = (string) config('services.gemini.image_model_fallbacks', '');
+        $fallbacks   = array_filter(array_map('trim', explode(',', $fallbackRaw)));
+        $models      = array_values(array_unique(array_filter(array_merge([$configModel], $fallbacks))));
 
         $platformTavsiye = match ($validated['platform']) {
-            'instagram' => 'Kare format (1:1), canlı renkler, modern minimalist tasarım.',
-            'facebook'  => 'Yatay format (1.91:1), profesyonel ve dikkat çekici.',
-            'linkedin'  => 'Profesyonel kurumsal görsel, temiz arka plan, mavi-beyaz tonlar.',
-            'x'         => 'Yatay banner format, sade ve net.',
-            default     => 'Temiz kurumsal görsel.',
+            'instagram' => 'Square format (1:1 ratio), vibrant colors, modern minimalist design.',
+            'facebook'  => 'Landscape format (1.91:1 ratio), professional and eye-catching.',
+            'linkedin'  => 'Professional corporate visual, clean background, blue-white tones.',
+            'x'         => 'Landscape banner format, clean and clear.',
+            default     => 'Clean corporate visual.',
         };
 
-        $enrichedPrompt = $validated['gorsel_prompt']
-            . '. ' . $platformTavsiye
-            . ' Üzerinde yazı olmayan, temiz ve kurumsal görsel. GrupTalepleri.com B2B turizm platformu stili.';
+        // ── KESIN TALIMAT: Logo üretme, yazı koyma ──────────────────────────
+        $enrichedPrompt =
+            'Create a high-quality social media background image for GrupTalepleri.com, a B2B travel agency platform from Turkey. '
+            . $validated['gorsel_prompt'] . '. '
+            . $platformTavsiye . ' '
+            . 'STRICT RULES — follow exactly: '
+            . '1. NO logos, NO brand marks, NO watermarks of any kind in the image. '
+            . '2. NO text, NO words, NO letters, NO numbers anywhere in the image. '
+            . '3. DO NOT invent or generate any logo or brand identity. '
+            . '4. Leave the lower-left corner area clean and uncluttered (logo will be overlaid separately). '
+            . '5. Professional, clean, high-quality photography or illustration style. '
+            . '6. Turkish travel & tourism atmosphere when relevant.';
+
+        // ── Logoyu sun­ucudan çek ve response ile birlikte gönder ────────────
+        $logoBase64  = null;
+        $logoMime    = 'image/png';
+        try {
+            $logoRaw    = Http::timeout(10)->get('https://gruptalepleri.com/logo.png');
+            if ($logoRaw->ok()) {
+                $logoBase64 = base64_encode($logoRaw->body());
+                $logoMime   = $logoRaw->header('Content-Type') ?: 'image/png';
+                $logoMime   = strtolower(explode(';', $logoMime)[0]);
+            }
+        } catch (\Throwable) {}
 
         foreach ($models as $model) {
             try {
@@ -346,7 +367,13 @@ MARKA;
                 $base64   = (string) ($inlineData['data'] ?? '');
                 if ($base64 === '') continue;
                 $mimeType = strtolower((string) ($inlineData['mimeType'] ?? $inlineData['mime_type'] ?? 'image/png'));
-                return response()->json(['gorsel' => "data:{$mimeType};base64,{$base64}"]);
+
+                return response()->json([
+                    'gorsel'      => "data:{$mimeType};base64,{$base64}",
+                    // Gerçek logo — view tarafında canvas ile üzerine bindiriliyor
+                    'logo'        => $logoBase64 ? "data:{$logoMime};base64,{$logoBase64}" : null,
+                    'logo_url'    => 'https://gruptalepleri.com/logo.png',
+                ]);
             }
         }
 
