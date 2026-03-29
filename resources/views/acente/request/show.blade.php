@@ -1648,17 +1648,34 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
         // 2. HTML escape
         text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-        // 3. Markdown formatları
+        // 3. Talep kartları: 🎫 **GTPNR** ✈️ ... satırını kart olarak render et
+        text = text.replace(/🎫\s*\*\*([A-Z0-9\-]+)\*\*\s+(.+?)(?=<br>|$)/gm, (_, gtpnr, rest) => {
+            // ⇄ veya → içeren rota kısmını bul
+            const isRT  = rest.includes('⇄');
+            const icon  = isRT ? '🔄' : '✈️';
+            // kalan bilgileri | ile böl
+            const parts = rest.split('|').map(s => s.trim().replace(/✈️\s*/g, ''));
+            const rota  = parts[0] || '';
+            const extra = parts.slice(1).join(' &nbsp;·&nbsp; ');
+            return `<div style="background:#f8f9ff;border:1.5px solid #dde3f5;border-radius:10px;padding:7px 11px;margin:4px 0;font-size:0.82rem;">`
+                + `<span style="background:#1a1a2e;color:#fff;border-radius:5px;padding:1px 7px;font-weight:700;font-size:0.78rem;margin-right:6px;">${gtpnr}</span>`
+                + `${icon} <strong>${rota}</strong>`
+                + (extra ? `<span style="color:#6c757d;margin-left:8px;">${extra}</span>` : '')
+                + `</div>`;
+        });
+
+        // 4. Markdown formatları
         text = text
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/`(.+?)`/g, '<code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;font-size:0.85em;">$1</code>')
             .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:0.9em;">$1</strong>')
-            .replace(/^[-•]\s+(.+)$/gm, '• $1')
-            .replace(/\n{2,}/g, '<br><br>')
+            .replace(/^[-•]\s+(.+)$/gm,
+                '<div style="padding:2px 0 2px 4px;border-left:2px solid #dde3f5;margin:2px 0;">$1</div>')
+            .replace(/\n{2,}/g, '<br>')
             .replace(/\n/g, '<br>');
 
-        // 4. Placeholder'ları geri yükle
+        // 5. Placeholder'ları geri yükle
         text = text.replace(/\x00LINK(\d+)\x00/g, (_, i) => links[+i]);
 
         return text;
