@@ -95,8 +95,10 @@ class TuraiController extends Controller
 
             // 2. SistemAyar sirket_cep (farklıysa ekle)
             $cepRaw = preg_replace('/[^0-9]/', '', (string) SistemAyar::get('sirket_cep', ''));
-            if (strlen($cepRaw) === 10) {
-                $cepRaw = '90' . substr($cepRaw, 1); // 0532... → 90532...
+            if (strlen($cepRaw) === 11 && str_starts_with($cepRaw, '0')) {
+                $cepRaw = '90' . substr($cepRaw, 1); // 05324262630 → 905324262630
+            } elseif (strlen($cepRaw) === 10) {
+                $cepRaw = '90' . $cepRaw; // 5324262630 → 905324262630
             }
             if ($cepRaw && ! isset($hedefler[$cepRaw])) {
                 $hedefler[$cepRaw] = 'SuperAdmin Cep';
