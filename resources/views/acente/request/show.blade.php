@@ -1182,34 +1182,33 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 #turai-hello {
     position: absolute;
     bottom: 70px; right: 0;
-    background: #fff;
-    border: 1.5px solid #e0e3e8;
+    background: #e8ff00;
+    border: none;
     border-radius: 14px 14px 4px 14px;
     padding: 10px 14px;
     font-size: 0.8rem;
     line-height: 1.5;
     color: #1a1a2e;
     width: 220px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 24px rgba(232,255,0,0.5), 0 2px 8px rgba(0,0,0,0.15);
     animation: turaiHelloPop 0.35s cubic-bezier(.34,1.56,.64,1) forwards;
     cursor: pointer;
     z-index: 10001;
 }
-#turai-hello strong { color: #e94560; }
+#turai-hello strong { color: #1a1a2e; }
 #turai-hello::after {
     content: '';
     position: absolute;
     bottom: -8px; right: 18px;
     width: 14px; height: 8px;
-    background: #fff;
+    background: #e8ff00;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
-    border-bottom: 1.5px solid #e0e3e8;
 }
 #turai-hello-close {
     position: absolute;
     top: 5px; right: 8px;
     background: none; border: none;
-    color: #aaa; font-size: 0.75rem;
+    color: rgba(26,26,46,0.5); font-size: 0.75rem;
     cursor: pointer; line-height: 1;
 }
 @keyframes turaiHelloPop {
