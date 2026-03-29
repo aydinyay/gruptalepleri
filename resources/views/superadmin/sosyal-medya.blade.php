@@ -268,6 +268,21 @@
             border: 1.5px solid var(--sm-border); border-radius: 8px; padding: 8px 12px; font-size: 0.875rem;
         }
 
+        /* ── Paylaş butonları ── */
+        .paylas-row { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--sm-border); }
+        .paylas-label { font-size: .75rem; font-weight: 600; color: var(--sm-muted); white-space: nowrap; }
+        .paylas-btn {
+            display: flex; align-items: center; gap: 6px;
+            border: none; border-radius: 8px; padding: 7px 14px;
+            font-size: .82rem; font-weight: 600; cursor: pointer; color: #fff;
+            transition: opacity .2s, transform .15s;
+        }
+        .paylas-btn:hover { opacity: .88; transform: translateY(-1px); }
+        .paylas-x  { background: #14171A; }
+        .paylas-fb { background: #1877F2; }
+        .paylas-li { background: #0A66C2; }
+        .paylas-ig { background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
+
         /* ── Görsel mod tabs ── */
         .gorsel-mod-tabs { display: flex; gap: 6px; }
         .gorsel-mod-btn {
@@ -454,6 +469,23 @@
                 <button onclick="yenidenUret()"><i class="fas fa-rotate-right"></i> Yeniden Üret</button>
                 <button onclick="kaydetTaslak()" class="btn-save-primary"><i class="fas fa-floppy-disk"></i> Taslak Kaydet</button>
                 <button onclick="showPlanlaModal()"><i class="fas fa-calendar-plus"></i> Planla</button>
+            </div>
+
+            {{-- Paylaş Butonları --}}
+            <div class="paylas-row" id="paralasRow" style="display:none;">
+                <span class="paylas-label">Paylaş:</span>
+                <button class="paylas-btn paylas-x"        id="btnPaylasX"  onclick="paylasX()">
+                    <i class="fab fa-x-twitter"></i> X'te Paylaş
+                </button>
+                <button class="paylas-btn paylas-fb"       id="btnPaylasFb" onclick="paylasFb()">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </button>
+                <button class="paylas-btn paylas-li"       id="btnPaylasLi" onclick="paylasLi()">
+                    <i class="fab fa-linkedin-in"></i> LinkedIn
+                </button>
+                <button class="paylas-btn paylas-ig"       id="btnPaylasIg" onclick="paylasIg()">
+                    <i class="fab fa-instagram"></i> Instagram
+                </button>
             </div>
 
             {{-- Görsel / Video Alanı --}}
@@ -857,6 +889,7 @@ async function uretIcerik() {
         revGecmis  = [];
 
         renderResult(sonIcerik, sonAiSkor, data.karakter, curLimit);
+        updatePaylasBtnlari();
 
         // Görsel prompt önerisi
         if (sonGorselP) document.getElementById('gorselPromptInput').value = sonGorselP;
@@ -915,6 +948,62 @@ function updateMeter(len) {
 function kopyala() {
     const txt = document.getElementById('icerikBox').innerText || document.getElementById('icerikBox').textContent;
     navigator.clipboard.writeText(txt).then(() => toast('İçerik kopyalandı!'));
+}
+
+// ── Paylaş fonksiyonları ─────────────────────────────────────────────────
+function getIcerik() {
+    return (document.getElementById('icerikBox').innerText || '').trim();
+}
+
+function paylasX() {
+    const txt = getIcerik();
+    if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
+    // X 280 karakter sınırı — fazlası kesik gelir ama kullanıcı düzenleyebilir
+    const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(txt);
+    window.open(url, '_blank', 'width=600,height=450');
+    toast('X paylaşım penceresi açıldı.');
+}
+
+function paylasFb() {
+    const txt = getIcerik();
+    if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
+    // Facebook sharer — metin + site linki
+    navigator.clipboard.writeText(txt);
+    const url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('https://gruptalepleri.com');
+    window.open(url, '_blank', 'width=600,height=500');
+    toast('Metin kopyalandı — Facebook\'ta yapıştırabilirsiniz.');
+}
+
+function paylasLi() {
+    const txt = getIcerik();
+    if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
+    navigator.clipboard.writeText(txt);
+    window.open('https://www.linkedin.com/feed/', '_blank');
+    toast('Metin kopyalandı — LinkedIn\'de "Gönderi Oluştur"a yapıştırın.');
+}
+
+function paylasIg() {
+    const txt = getIcerik();
+    if (!txt) { toast('Önce içerik üretin.', 'error'); return; }
+    navigator.clipboard.writeText(txt);
+    // Instagram web'de direkt post atılamıyor — kopyalayıp yeni gönderi sayfasına yönlendir
+    window.open('https://www.instagram.com/', '_blank');
+    toast('Metin kopyalandı — Instagram\'da "+" ile yeni gönderi açıp yapıştırın.');
+}
+
+// Paylaş butonlarını sadece seçili platforma göre öne çıkar
+function updatePaylasBtnlari() {
+    const row = document.getElementById('paralasRow');
+    if (!row || !sonIcerik) return;
+    row.style.display = 'flex';
+    // Seçili platforma göre opacity
+    ['X','Fb','Li','Ig'].forEach(p => {
+        const btn = document.getElementById('btnPaylas' + p);
+        if (!btn) return;
+        const platform = { X:'x', Fb:'facebook', Li:'linkedin', Ig:'instagram' }[p];
+        btn.style.opacity = (platform === curPlatform) ? '1' : '0.45';
+        btn.title = platform === curPlatform ? '' : 'İçerik ' + pfLabel(curPlatform) + ' için üretildi';
+    });
 }
 
 // ── Platform görsel boyutları ─────────────────────────────────────────────
@@ -1215,6 +1304,7 @@ async function sendRevizyon() {
         sonIcerik = data.icerik;
         document.getElementById('icerikBox').textContent = sonIcerik;
         updateMeter(data.karakter || sonIcerik.length);
+        updatePaylasBtnlari();
         addBubble('ai', sonIcerik);
 
         revGecmis.push({ rol: 'kullanici', icerik: mesaj });
