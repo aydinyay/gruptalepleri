@@ -176,10 +176,25 @@ class TuraiController extends Controller
         }
 
         // ── Mevcut talep segmentleri ──
-        $tripTypeLabel = ($talep->trip_type ?? '') === 'round_trip' ? 'Gidiş-Dönüş' : 'Tek Yön';
-        $segmentStr = '';
+        $isRoundTrip   = ($talep->trip_type ?? '') === 'round_trip';
+        $tripTypeLabel = $isRoundTrip ? 'Gidiş-Dönüş' : 'Tek Yön';
+        $segmentStr    = '';
         foreach ($talep->segments as $i => $seg) {
             $segmentStr .= ($i + 1) . ". {$seg->from_iata}({$seg->from_city}) → {$seg->to_iata}({$seg->to_city}) | {$seg->departure_date}" . ($seg->departure_time ? " {$seg->departure_time}" : '') . "\n";
+        }
+
+        // Mevcut talep için hazır badge formatı (AI bunu kopyalasın, tahmin etmesin)
+        $ilkSeg = $talep->segments->first();
+        $sonSeg = $talep->segments->last();
+        if ($isRoundTrip && $ilkSeg && $sonSeg && $ilkSeg->id !== $sonSeg->id) {
+            $t1 = $ilkSeg->departure_date ? \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d M Y') : '';
+            $t2 = $sonSeg->departure_date ? \Carbon\Carbon::parse($sonSeg->departure_date)->format('d M Y') : '';
+            $rotaBadge = "🎫 **{$talep->gtpnr}** 🛫 {$ilkSeg->from_iata} → {$ilkSeg->to_iata} · {$t1} / 🛬 {$sonSeg->from_iata} ← {$sonSeg->to_iata} · {$t2}";
+        } else {
+            $from = $ilkSeg?->from_iata ?? '';
+            $to   = $ilkSeg?->to_iata ?? '';
+            $t1   = $ilkSeg?->departure_date ? \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d M Y') : '';
+            $rotaBadge = "🎫 **{$talep->gtpnr}** 🛫 {$from} → {$to} · {$t1}";
         }
 
         // ── Teklifler — kabul edilmiş varsa sadece onu göster ──
@@ -347,6 +362,9 @@ Acente Notu : {$talep->notes}
 
 ROTA:
 {$segmentStr}
+MEVCUT TALEBİN BADGE FORMATI (liste yaparken sadece bunu kopyala, tahmin etme):
+{$rotaBadge}
+
 TEKLİFLER:
 {$teklifStr}
 ÖDEME PLANI:
@@ -387,9 +405,9 @@ E-posta : {$eposta}
 9. ACİL DURUM KURALI: Acil sorusunda yukarıdaki İLETİŞİM VE ACİL bölümündeki numaraları ver. Hepsini listele. Çalışma saatinden ASLA bahsetme.
 10. GÖRSEL FORMAT KURALI (ÇOK ÖNEMLİ): Talep veya rota listelerken her zaman şu formatı kullan:
     - Her talep ayrı satırda, başında 🎫
-    - Gidiş-dönüş: `🎫 **GTPNR** ✈️ KAL ⇄ VAR | Tarih | Durum`
-    - Tek yön:      `🎫 **GTPNR** ✈️ KAL → VAR | Tarih | Durum`
-    - Örnek: `🎫 **UG-NQ2POZ** ✈️ IST ⇄ MAD | 05 Eyl 2026 | ✅ Onaylı`
+    - Gidiş-dönüş: `🎫 **GTPNR** 🛫 KAL → VAR · Tarih / 🛬 VAR ← KAL · DönüşTarihi | Durum`
+    - Tek yön:      `🎫 **GTPNR** 🛫 KAL → VAR · Tarih | Durum`
+    - MEVCUT TALEBİN BADGE FORMATI YUKARIDA HAZIR — sadece kopyala, yeniden üretme!
     Şehir adlarını IATA kodunun yanına koyma — sadece IATA kodu yeterli.
     Düz paragraf veya `*` bullet ile talep listesi YAZMA.
 PROMPT;
