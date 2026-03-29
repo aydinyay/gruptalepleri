@@ -1177,6 +1177,45 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     position: relative;
 }
 #turai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(233,69,96,0.6); }
+
+/* ── TURAi karşılama baloncuğu ── */
+#turai-hello {
+    position: absolute;
+    bottom: 70px; right: 0;
+    background: #fff;
+    border: 1.5px solid #e0e3e8;
+    border-radius: 14px 14px 4px 14px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #1a1a2e;
+    width: 220px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    animation: turaiHelloPop 0.35s cubic-bezier(.34,1.56,.64,1) forwards;
+    cursor: pointer;
+    z-index: 10001;
+}
+#turai-hello strong { color: #e94560; }
+#turai-hello::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; right: 18px;
+    width: 14px; height: 8px;
+    background: #fff;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    border-bottom: 1.5px solid #e0e3e8;
+}
+#turai-hello-close {
+    position: absolute;
+    top: 5px; right: 8px;
+    background: none; border: none;
+    color: #aaa; font-size: 0.75rem;
+    cursor: pointer; line-height: 1;
+}
+@keyframes turaiHelloPop {
+    from { opacity: 0; transform: scale(0.85) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 #turai-fab i { color: #fff; font-size: 1.3rem; transition: all 0.2s; }
 #turai-fab .turai-badge {
     position: absolute; top: -4px; right: -4px;
@@ -1364,6 +1403,14 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
         <span class="turai-badge">AI</span>
     </button>
 
+    {{-- Karşılama baloncuğu (1 kez gösterilir) --}}
+    <div id="turai-hello" style="display:none;" onclick="turaiHelloKapat()">
+        <button id="turai-hello-close" onclick="turaiHelloKapat()" title="Kapat">✕</button>
+        👋 Merhaba <strong>{{ $talep->agency_name }}</strong>!<br>
+        Ben <strong>TURAi</strong>, GrupTalepleri.com yapay zeka asistanıyım.<br>
+        <span style="color:#6c757d;font-size:0.75rem;">Sormak istediğin bir şey varsa tıkla →</span>
+    </div>
+
     {{-- Chat paneli --}}
     <div id="turai-panel">
         {{-- Header --}}
@@ -1441,11 +1488,29 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             icon.className = 'fas fa-times';
             document.getElementById('turai-input').focus();
             turaiScrollBottom();
+            turaiHelloKapat(); // panel açılınca baloncuğu gizle
         } else {
             panel.style.display = 'none';
             icon.className = 'fas fa-robot';
         }
     };
+
+    // ── Karşılama baloncuğu ──
+    const TURAI_HELLO_KEY = 'turai_hello_seen_{{ $talep->user_id }}';
+    window.turaiHelloKapat = function () {
+        const el = document.getElementById('turai-hello');
+        if (el) el.style.display = 'none';
+        localStorage.setItem(TURAI_HELLO_KEY, '1');
+    };
+    // 2 saniye sonra göster — sadece daha önce gösterilmediyse
+    if (!localStorage.getItem(TURAI_HELLO_KEY)) {
+        setTimeout(function () {
+            const el = document.getElementById('turai-hello');
+            if (el && !panelAcik) el.style.display = 'block';
+            // 8 saniye sonra otomatik kapat
+            setTimeout(turaiHelloKapat, 8000);
+        }, 2000);
+    }
 
     // ── Chip tıklandı ──
     // ── Acil panel — TURAi API çağrısı yapmadan anlık render ──
