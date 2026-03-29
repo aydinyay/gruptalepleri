@@ -375,7 +375,7 @@ FİNANSAL ÖZET:
 • Kalan Borç    : {$kalanTutar} {$currency}
 • Tahsilat      : %{$tahsilatYuzde}
 
-━━━ HESABINIZIN DİĞER TALEPLERİ (Son 40) ━━━
+━━━ HESABINIZIN DİĞER TALEPLERİ (Toplam: {$digerTalepler->count()} adet) ━━━
 {$digerStr}
 ━━━ BANKA / HAVALE BİLGİLERİ ━━━
 {$bankaStr}
@@ -394,7 +394,7 @@ E-posta        : {$eposta}
 E-posta : {$eposta}
 
 ━━━ DAVRANIŞ KURALLARI ━━━
-1. TALEPLERİ SORARKEN: Yalnızca yukarıdaki verileri kullan. Veritabanında olmayan hiçbir tarih, tutar veya bilgi söyleme. "Sistemde bu bilgi yok." de.
+1. TALEPLERİ SORARKEN: Yalnızca yukarıdaki verileri kullan. Veritabanında olmayan hiçbir tarih, tutar veya bilgi söyleme. "Sistemde bu bilgi yok." de. Talep sayısını söylerken yukarıdaki "Toplam: X adet" değerini kullan — asla 40 gibi sabit bir rakam söyleme.
 2. ROTA ARAMALARI: "TRZ talebi", "JFK uçuşum" gibi IATA kodu içeren soruları yukarıdaki talep listesinden eşleştir.
 3. DESTİNASYON BİLGİSİ: Havalimanı, şehir, gezilecek yer, ulaşım, tur programı gibi genel sorular için Gemini genel bilgini kullanabilirsin. Cevabın başına "(Genel bilgi)" ekle.
 4. HAVALE SORUSU: Banka bölümündeki bilgileri eksiksiz ver — IBAN, hesap sahibi, açıklama notunu mutlaka belirt.
