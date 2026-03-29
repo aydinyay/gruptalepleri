@@ -9,6 +9,20 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Route;
 
+// ── Git Pull (deploy, token korumalı) ──
+Route::get('/git-pull-2026', function () {
+    if (request('t') !== 'grtdeploy2026') abort(403);
+    $output = [];
+    $code = 0;
+    exec('cd ' . base_path() . ' && git pull origin main 2>&1', $output, $code);
+    $text = implode("\n", $output);
+    // View cache temizle
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return response("Exit code: $code\n\n$text\n\n--- Cache & View temizlendi ---", 200)
+        ->header('Content-Type', 'text/plain');
+});
+
 // ── Bakanlık Sync HTTP tetikleyici (cron + manuel için, token korumalı) ──
 Route::get('/acente-sync-run', function () {
     if (request('t') !== 'grtacesync2026') abort(403);
