@@ -1382,8 +1382,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             <span class="turai-chip" onclick="turaiSend('💰 Ne kadar ödedim, ne kadar borcum kaldı?')">💰 Kalan ödeme</span>
             <span class="turai-chip" onclick="turaiSend('📋 Diğer taleplerimde durum nedir? Hangileri beklemede?')">📋 Taleplerim</span>
             <span class="turai-chip" onclick="turaiSend('✈️ ' + '{{ $talep->segments->last()?->to_iata }}' + ' havalimanı ve şehri hakkında bilgi ver, gezilecek yerler, ulaşım.')">✈️ Destinasyon</span>
-            <span class="turai-chip" onclick="turaiSend('📞 Acil durumda sizi nasıl arayabilirim?')">📞 Acil</span>
-            <span class="turai-chip turai-chip-acil" onclick="turaiAcilSms()" id="turai-acil-btn">🆘 Acil SMS Gönder</span>
+            <span class="turai-chip turai-chip-acil" onclick="turaiAcilGoster()" id="turai-acil-btn">🆘 Acil</span>
         </div>
 
         {{-- Mesajlar --}}
@@ -1416,10 +1415,12 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 
 <script>
 (function () {
-    const GTPNR       = '{{ $talep->gtpnr }}';
-    const CSRF        = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    const ENDPOINT    = '/acente/talep/' + GTPNR + '/turai';
+    const GTPNR         = '{{ $talep->gtpnr }}';
+    const CSRF          = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const ENDPOINT      = '/acente/talep/' + GTPNR + '/turai';
     const ACIL_ENDPOINT = '/acente/talep/' + GTPNR + '/acil-sms';
+    const ADMIN_PHONES  = @json($adminTelefonlar ?? []);
+    const WA_LINK       = '{{ "https://wa.me/" . preg_replace("/[^0-9]/", "", \App\Models\SistemAyar::get("sirket_whatsapp", "905354154799")) . "?text=" . rawurlencode($talep->gtpnr . " numaralı talebim hakkında görüşmek istiyorum.") }}';
 
     let panelAcik  = false;
     let yukleniyor = false;
@@ -1442,14 +1443,42 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     };
 
     // ── Chip tıklandı ──
-    window.turaiAcilSms = function () {
-        const btn = document.getElementById('turai-acil-btn');
+    // ── Acil panel — TURAi API çağrısı yapmadan anlık render ──
+    window.turaiAcilGoster = function () {
+        // Zaten açıksa tekrar açma
+        if (document.getElementById('turai-acil-panel')) return;
+
+        // Telefon listesi oluştur
+        let telHtml = '';
+        if (ADMIN_PHONES.length) {
+            ADMIN_PHONES.forEach(function(u) {
+                const label = u.role === 'superadmin' ? 'Süperadmin' : 'Admin';
+                const tel   = u.phone.replace(/[^0-9]/g, '');
+                const display = u.phone.replace(/^90/, '+90 ').replace(/(\d{3})(\d{3})(\d{2})(\d{2})$/, '$1 $2 $3 $4');
+                telHtml += '<div style="margin:4px 0;">📞 <strong>' + label + '</strong> ('
+                    + u.name + '): <a href="tel:+' + tel
+                    + '" style="color:#e94560;font-weight:700;">' + display + '</a></div>';
+            });
+        }
+
+        const html = '<div style="font-size:0.88rem;line-height:1.8;">'
+            + '<div style="font-weight:700;font-size:0.95rem;margin-bottom:6px;">🚨 Acil İletişim</div>'
+            + telHtml
+            + '<div style="margin:4px 0;">💬 <a href="' + WA_LINK + '" target="_blank" rel="noopener" style="color:#e94560;font-weight:700;">WhatsApp ile Yaz →</a></div>'
+            + '<div style="margin-top:10px;">'
+            + '<button id="turai-acil-panel" onclick="turaiAcilSmsGonder(this)" '
+            + 'style="background:#e94560;color:#fff;border:none;border-radius:8px;padding:7px 16px;'
+            + 'font-size:0.82rem;font-weight:700;cursor:pointer;width:100%;">📨 Acil SMS Gönder</button>'
+            + '</div></div>';
+
+        turaiMesajEkle('ai', html, false, true); // rawHtml=true
+    };
+
+    window.turaiAcilSmsGonder = function (btn) {
         if (btn.dataset.loading) return;
-
-        if (!confirm('Admininize sizin adınıza acil destek SMS\'i gönderilsin mi?')) return;
-
         btn.dataset.loading = '1';
         btn.textContent = '⏳ Gönderiliyor...';
+        btn.disabled = true;
 
         fetch(ACIL_ENDPOINT, {
             method: 'POST',
@@ -1458,14 +1487,14 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
         })
         .then(async r => { const t = await r.text(); try { return JSON.parse(t); } catch(e) { throw new Error(t.substring(0,200)); } })
         .then(data => {
-            delete btn.dataset.loading;
             btn.textContent = '✅ SMS Gönderildi';
-            btn.style.pointerEvents = 'none';
-            turaiMesajEkle('ai', data.mesaj || data.hata || 'SMS işlendi.');
+            btn.style.background = '#198754';
+            btn.removeAttribute('id'); // artık tekrar açılabilir
         })
         .catch(err => {
             delete btn.dataset.loading;
-            btn.textContent = '🆘 Acil SMS Gönder';
+            btn.disabled = false;
+            btn.textContent = '📨 Acil SMS Gönder';
             turaiMesajEkle('ai', '⚠️ SMS gönderilemedi: ' + (err.message || 'Lütfen doğrudan arayın.'), true);
         });
     };
@@ -1544,7 +1573,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     }
 
     // ── Mesaj balonu ekle ──
-    function turaiMesajEkle(rol, icerik, hata = false) {
+    function turaiMesajEkle(rol, icerik, hata = false, rawHtml = false) {
         const container = document.getElementById('turai-messages');
         const wrap  = document.createElement('div');
         wrap.className = 'turai-msg ' + (rol === 'ai' ? 'ai' : 'user');
@@ -1560,7 +1589,9 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
         bubble.className = 'bubble';
         if (hata) bubble.style.cssText = 'background:#fff5f5;color:#c0392b;border:1px solid #f5c6cb;';
 
-        if (rol === 'ai') {
+        if (rawHtml) {
+            bubble.innerHTML = icerik;
+        } else if (rol === 'ai') {
             bubble.innerHTML = turaiMarkdown(icerik);
         } else {
             bubble.textContent = icerik;

@@ -276,6 +276,11 @@ class RequestController extends Controller
 
         $fiyatKiyas = app(OfferPriceBenchmarkService::class)->forRequest($talep);
 
-        return view('acente.request.show', compact('talep', 'eskiOpsiyon', 'fiyatKiyas'));
+        $adminTelefonlar = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
+            ->whereNotNull('phone')->where('phone', '!=', '')
+            ->orderByRaw("role = 'superadmin' DESC")
+            ->get(['name', 'phone', 'role']);
+
+        return view('acente.request.show', compact('talep', 'eskiOpsiyon', 'fiyatKiyas', 'adminTelefonlar'));
     }
 }

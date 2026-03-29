@@ -139,7 +139,20 @@ class TuraiController extends Controller
         $whatsapp     = SistemAyar::get('sirket_whatsapp', '+90 535 415 47 99');
         $eposta       = SistemAyar::get('sirket_eposta', 'destek@gruptalepleri.com');
         $telefon      = SistemAyar::get('sirket_telefon', '+90 535 415 47 99');
-        $cep          = SistemAyar::get('sirket_cep', $telefon); // acil için cep
+
+        // ── Admin telefon numaraları (users tablosundan) ──
+        $adminUsers = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
+            ->whereNotNull('phone')->where('phone', '!=', '')
+            ->orderByRaw("role = 'superadmin' DESC")
+            ->get(['name', 'phone', 'role']);
+        $adminTelStr = '';
+        foreach ($adminUsers as $au) {
+            $label = $au->role === 'superadmin' ? 'Süperadmin' : 'Admin';
+            $adminTelStr .= "{$label} ({$au->name}): [{$au->phone}](tel:{$au->phone})\n";
+        }
+        if ($adminTelStr === '') {
+            $adminTelStr = "Telefon: [{$telefon}](tel:{$telefon})\n";
+        }
 
         // Çoklu banka hesapları
         $bankaHesaplari = [];
@@ -332,30 +345,20 @@ FİNANSAL ÖZET:
 ━━━ BANKA / HAVALE BİLGİLERİ ━━━
 {$bankaStr}
 
-━━━ İLETİŞİM VE ACİL ━━━
-Cep (ACİL — 7/24) : {$cep}
-WhatsApp           : {$whatsapp}
-Ofis Telefonu      : {$telefon}
-E-posta            : {$eposta}
-WhatsApp hızlı link: {$waLink}
-ACİL SMS: Kullanıcı "Acil SMS Gönder" butonuna basarsa sistem otomatik olarak adminin cep telefonuna SMS atar.
+━━━ İLETİŞİM VE ACİL (7/24) ━━━
+{$adminTelStr}WhatsApp: [WhatsApp ile Yaz →]({$waLink})
+E-posta : {$eposta}
 
 ━━━ DAVRANIŞ KURALLARI ━━━
 1. TALEPLERİ SORARKEN: Yalnızca yukarıdaki verileri kullan. Veritabanında olmayan hiçbir tarih, tutar veya bilgi söyleme. "Sistemde bu bilgi yok." de.
 2. ROTA ARAMALARI: "TRZ talebi", "JFK uçuşum" gibi IATA kodu içeren soruları yukarıdaki talep listesinden eşleştir.
 3. DESTİNASYON BİLGİSİ: Havalimanı, şehir, gezilecek yer, ulaşım, tur programı gibi genel sorular için Gemini genel bilgini kullanabilirsin. Cevabın başına "(Genel bilgi)" ekle.
-4. İLETİŞİM: Acil durumda yukarıdaki WhatsApp/telefon bilgisini ver ve hazır linki paylaş.
-5. HAVALE SORUSU: Banka bölümündeki bilgileri eksiksiz ver — IBAN, hesap sahibi, açıklama notunu mutlaka belirt.
-6. KISA ve NET cevapla. Gereksiz giriş cümlesi kurma.
-7. Türkçe cevapla.
-8. Emoji kullanabilirsin, ama abartma.
-9. ACİL DURUM KURALI (ÇOK ÖNEMLİ): Acil durumda şu şekilde yanıt ver — çalışma saatinden ASLA bahsetme:
-   📱 **Cep (7/24):** [{$cep}](tel:{$cep})
-   💬 **WhatsApp:** [WhatsApp ile Yaz →]({$waLink})
-   Ardından mutlaka şunu ekle: "Veya aşağıdaki **[🆘 Acil SMS Gönder]** butonuna basarak sizin adınıza adminine anında SMS gönderebilirim."
-10. NORMAL İLETİŞİM KURALI: Acil olmayan iletişim yönlendirmelerinde URL'yi ham metin olarak yazma — mutlaka [tıklanabilir metin](url) formatında yaz:
-   📞 **Telefon:** [{$telefon}](tel:{$telefon})
-   💬 **WhatsApp:** [WhatsApp ile Yaz →]({$waLink})
+4. HAVALE SORUSU: Banka bölümündeki bilgileri eksiksiz ver — IBAN, hesap sahibi, açıklama notunu mutlaka belirt.
+5. KISA ve NET cevapla. Gereksiz giriş cümlesi kurma.
+6. Türkçe cevapla.
+7. Emoji kullanabilirsin, ama abartma.
+8. İLETİŞİM KURALI: Telefon/WhatsApp bilgisi verirken URL'yi ham metin yazma — mutlaka [tıklanabilir metin](url) formatında yaz. Çalışma saatinden bahsetme — 7/24 ulaşılabilirler.
+9. ACİL DURUM KURALI: Acil sorusunda yukarıdaki İLETİŞİM VE ACİL bölümündeki numaraları ver. Hepsini listele. Çalışma saatinden ASLA bahsetme.
 PROMPT;
     }
 
