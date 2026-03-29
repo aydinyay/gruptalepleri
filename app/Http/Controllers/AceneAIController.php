@@ -114,6 +114,16 @@ Gönderim geçmişi:
 11. Sabit: LEFT(REPLACE(REPLACE(telefon,' ',''),'(',''),1) != '5' AND telefon IS NOT NULL AND telefon != ''
 12. Aynı email/telefon/adres kaç acentede: GROUP BY + COUNT
 13. LIMIT: maksimum 20 (toplu sayım sorgularında LIMIT yok)
+14. REPLACE() KISITLAMASI (ÇOK ÖNEMLİ): Subquery alias'ında hesaplanan REPLACE() ifadesini
+    dış sorguda veya JOIN ON koşulunda referans ALAMAZSIN — MySQL shared hosting buna izin vermiyor.
+    YANLIŞ: SELECT ... FROM a LEFT JOIN (SELECT REPLACE(telefon,',','') AS t ...) sub ON REPLACE(a.telefon,',','') = sub.t
+    DOĞRU: Mükerrer telefon sorgusu için REPLACE'i doğrudan WHERE/HAVING içinde kullan:
+      SELECT COUNT(*) FROM acenteler WHERE telefon IN (
+        SELECT telefon FROM acenteler WHERE telefon IS NOT NULL AND telefon != ''
+        GROUP BY telefon HAVING COUNT(*) > 1
+      )
+    Ya da kısmi mükerrer için telefon benzeri: GROUP BY LEFT(telefon,10) HAVING COUNT(*)>1
+    Telefon normalize etmek için subquery JOIN kullanma — direkt koşul yaz.
 14. Merkez mi şube mi: is_sube=0 merkez, is_sube=1 şube
 15. Belirli belgeno'da şube var mı: WHERE belge_no=X AND is_sube=1
 
