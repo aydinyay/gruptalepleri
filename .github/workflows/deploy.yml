@@ -39,6 +39,11 @@ jobs:
             fi
           done
 
+      - name: Run migrations (sosyal medya)
+        run: |
+          RESP=$(curl -sf "https://gruptalepleri.com/run-migrate-sm.php?t=grtmig2026sm" 2>&1 || true)
+          echo "$RESP"
+
       - name: Clear caches
         run: |
           curl -sf "https://gruptalepleri.com/gitfix.php?t=grt2026fix" && echo "Cache temizlendi"
