@@ -967,7 +967,10 @@ function initMap() {
         zoom: 4, center: {lat:39.0,lng:30.0}, mapTypeId: 'roadmap',
         styles: [{featureType:'poi',stylers:[{visibility:'off'}]}]
     });
+    const bounds  = new google.maps.LatLngBounds();
     const geocoder = new google.maps.Geocoder();
+    let pending = 0;
+
     function getCoords(iata, city, cb) {
         if (havalimanları[iata]) { cb(havalimanları[iata]); return; }
         if (city) geocoder.geocode({address: city + ' airport'}, (r,s) => { if (s==='OK') cb(r[0].geometry.location); });
@@ -978,13 +981,32 @@ function initMap() {
             label:{ text:code, color:'white', fontSize:'9px', fontWeight:'bold' }
         });
     }
+    function afterSegment() {
+        pending--;
+        if (pending === 0) {
+            map.fitBounds(bounds);
+            // Tek nokta ise yakınlaştırma çok fazla olmasın
+            const listener = google.maps.event.addListener(map, 'idle', () => {
+                if (map.getZoom() > 7) map.setZoom(7);
+                google.maps.event.removeListener(listener);
+            });
+        }
+    }
+
+    pending = segmentler.length;
+    if (pending === 0) return;
+
     segmentler.forEach(seg => {
         getCoords(seg.from, seg.fromCity, from => {
             getCoords(seg.to, seg.toCity, to => {
-                if (!from || !to) return;
-                new google.maps.Polyline({ path:[from,to], geodesic:true, strokeColor:'#e94560', strokeOpacity:0.9, strokeWeight:3, map });
-                addMarker(from, seg.from);
-                addMarker(to, seg.to);
+                if (from && to) {
+                    new google.maps.Polyline({ path:[from,to], geodesic:true, strokeColor:'#e94560', strokeOpacity:0.9, strokeWeight:3, map });
+                    addMarker(from, seg.from);
+                    addMarker(to, seg.to);
+                    bounds.extend(from);
+                    bounds.extend(to);
+                }
+                afterSegment();
             });
         });
     });
