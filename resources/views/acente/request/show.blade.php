@@ -1654,13 +1654,30 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             const isRT  = rest.includes('⇄');
             const icon  = isRT ? '🔄' : '✈️';
             // kalan bilgileri | ile böl
-            const parts = rest.split('|').map(s => s.trim().replace(/✈️\s*/g, ''));
-            const rota  = parts[0] || '';
-            const extra = parts.slice(1).join(' &nbsp;·&nbsp; ');
-            return `<div style="background:#f8f9ff;border:1.5px solid #dde3f5;border-radius:10px;padding:7px 11px;margin:4px 0;font-size:0.82rem;">`
-                + `<span style="background:#1a1a2e;color:#fff;border-radius:5px;padding:1px 7px;font-weight:700;font-size:0.78rem;margin-right:6px;">${gtpnr}</span>`
-                + `${icon} <strong>${rota}</strong>`
-                + (extra ? `<span style="color:#6c757d;margin-left:8px;">${extra}</span>` : '')
+            const parts   = rest.split('|').map(s => s.trim().replace(/✈️\s*/g, ''));
+            const rotaRaw = parts[0] || '';
+            const extra   = parts.slice(1).join(' &nbsp;·&nbsp; ');
+            const legs    = rotaRaw.split(' / ');
+
+            const legBadge = (txt, isReturn) => {
+                const bg = isReturn ? '#e8f4ff' : '#eaf7ee';
+                const border = isReturn ? '#b6d8f5' : '#b2dfc0';
+                return `<span style="display:inline-block;background:${bg};border:1px solid ${border};`
+                    + `border-radius:6px;padding:2px 8px;font-size:0.78rem;font-weight:600;white-space:nowrap;">${txt.trim()}</span>`;
+            };
+
+            let rotaHtml;
+            if (legs.length > 1) {
+                rotaHtml = legBadge(legs[0], false) + ` <span style="color:#aaa;">🔄</span> ` + legBadge(legs[1], true);
+            } else {
+                rotaHtml = legBadge(rotaRaw, false);
+            }
+
+            return `<div style="background:#f8f9ff;border:1.5px solid #dde3f5;border-radius:10px;`
+                + `padding:8px 11px;margin:4px 0;font-size:0.82rem;display:flex;flex-wrap:wrap;align-items:center;gap:6px;">`
+                + `<span style="background:#1a1a2e;color:#fff;border-radius:5px;padding:2px 8px;font-weight:700;font-size:0.78rem;">${gtpnr}</span>`
+                + rotaHtml
+                + (extra ? `<span style="color:#6c757d;font-size:0.78rem;">${extra}</span>` : '')
                 + `</div>`;
         });
 

@@ -269,12 +269,14 @@ class TuraiController extends Controller
             $isRT  = ($dt->trip_type ?? '') === 'round_trip';
             $ilkSeg = $dt->segments->first();
             $sonSeg = $dt->segments->last();
-            if ($isRT && $ilkSeg && $sonSeg && $ilkSeg->id !== $sonSeg->id) {
-                $rota = "{$ilkSeg->from_iata} ⇄ {$sonSeg->from_iata}"; // G/D
-            } else {
-                $rota = $dt->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
-            }
             $tarih = $ilkSeg?->departure_date ?? '-';
+            if ($isRT && $ilkSeg && $sonSeg && $ilkSeg->id !== $sonSeg->id) {
+                $t1 = $ilkSeg->departure_date ? \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d M Y') : '';
+                $t2 = $sonSeg->departure_date ? \Carbon\Carbon::parse($sonSeg->departure_date)->format('d M Y') : '';
+                $rota = "🛫 {$ilkSeg->from_iata} → {$ilkSeg->to_iata} · {$t1} / 🛬 {$sonSeg->from_iata} ← {$sonSeg->to_iata} · {$t2}";
+            } else {
+                $rota = $dt->segments->map(fn ($s) => "🛫 {$s->from_iata} → {$s->to_iata}")->implode(' / ');
+            }
             $teklifSayisi = $dt->offers->count();
             $enIyiTeklif = $dt->offers->where('is_accepted', true)->first()
                 ?? $dt->offers->sortBy('total_price')->first();
