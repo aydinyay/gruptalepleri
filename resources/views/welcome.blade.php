@@ -393,6 +393,39 @@ nav{
 }
 .btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2);color:var(--red);}
 
+/* HİZMETLER */
+.hizmetler-section{background:var(--white);padding:5rem 5%;}
+.hizmetler-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.5rem;margin-top:3rem;}
+.hizmet-card{
+    border:1.5px solid #e8ecf0;
+    border-radius:14px;padding:1.8rem 1.2rem;
+    text-align:center;
+    transition:all 0.25s;
+    color:inherit;
+    display:block;
+}
+.hizmet-card:hover{
+    border-color:var(--red);
+    box-shadow:0 8px 32px rgba(233,69,96,0.12);
+    transform:translateY(-4px);
+    color:inherit;
+}
+.hizmet-icon{
+    width:58px;height:58px;
+    background:rgba(233,69,96,0.08);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 1.1rem;
+    font-size:1.4rem;color:var(--red);
+    transition:all 0.25s;
+}
+.hizmet-card:hover .hizmet-icon{background:var(--red);color:var(--white);}
+.hizmet-card h3{font-size:0.92rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem;}
+.hizmet-card p{font-size:0.78rem;color:var(--gray);line-height:1.5;margin-bottom:0.9rem;}
+.hizmet-link{font-size:0.78rem;color:var(--red);font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+.hizmet-link i{font-size:0.65rem;transition:transform 0.2s;}
+.hizmet-card:hover .hizmet-link i{transform:translateX(3px);}
+
 /* FOOTER */
 footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2.5rem;padding-bottom:2rem;border-bottom:1px solid rgba(255,255,255,0.08);}
@@ -418,6 +451,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
     <a href="/" class="logo">✈ Grup<span>Talepleri</span></a>
     <div class="nav-links">
         <a href="{{ route('marketing.grup-talepleri') }}" class="nav-item">Grup Talepleri</a>
+        <a href="#hizmetler" class="nav-item">Hizmetler</a>
         <a href="#nasil" class="nav-item">Nasıl Çalışır</a>
         <a href="#neden" class="nav-item">Neden Biz</a>
         <a href="#kimler" class="nav-item">Kimler İçin</a>
@@ -591,6 +625,57 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
                 <div class="stat-sub">Büyük & uluslararası<br>kategorisinde</div>
             </div>
         </div>
+    </div>
+</section>
+
+{{-- HİZMETLERİMİZ --}}
+<section class="hizmetler-section" id="hizmetler">
+    <div class="section-label">Hizmetlerimiz</div>
+    <div class="section-title">Tek Platformda Tüm Seyahat Hizmetleri</div>
+    <div class="section-sub">Grup uçuşundan özel jet'e, transferden yat kiralamaya — tüm operasyonel ihtiyaçlarınız için tek çatı altında profesyonel çözümler.</div>
+    <div class="hizmetler-grid">
+        <a href="{{ route('register') }}" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-plane-departure"></i></div>
+            <h3>Grup Uçuş Talebi</h3>
+            <p>Tarifeli gruplar için rekabetçi teklifler, GTPNR takip sistemi.</p>
+            <span class="hizmet-link">Talep Oluştur <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="/charter-ucak" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-plane-circle-check"></i></div>
+            <h3>Charter Uçak</h3>
+            <p>Tam kabin charter kiralama, paket tur grupları için özel çözümler.</p>
+            <span class="hizmet-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="/private-jet-kiralama" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-jet-fighter"></i></div>
+            <h3>Özel Jet Kiralama</h3>
+            <p>VIP ve kurumsal seyahatler için özel jet temini ve rezervasyonu.</p>
+            <span class="hizmet-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="/helikopter-kiralama" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-helicopter"></i></div>
+            <h3>Helikopter Kiralama</h3>
+            <p>VIP transfer, gezi ve iş seyahati için helikopter çözümleri.</p>
+            <span class="hizmet-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="{{ route('register') }}" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-car-side"></i></div>
+            <h3>Transfer Hizmetleri</h3>
+            <p>Havalimanı, otel ve etkinlik transferleri için VIP araç temini.</p>
+            <span class="hizmet-link">Talep Oluştur <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="{{ route('register') }}" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-ship"></i></div>
+            <h3>Yat Kiralama</h3>
+            <p>Tekne kiralama, mavi yolculuk ve özel yat organizasyonları.</p>
+            <span class="hizmet-link">Talep Oluştur <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="{{ route('register') }}" class="hizmet-card">
+            <div class="hizmet-icon"><i class="fas fa-anchor"></i></div>
+            <h3>Dinner Cruise</h3>
+            <p>Boğaz ve koy turları, özel akşam yemeği etkinlikleri.</p>
+            <span class="hizmet-link">Talep Oluştur <i class="fas fa-arrow-right"></i></span>
+        </a>
     </div>
 </section>
 
