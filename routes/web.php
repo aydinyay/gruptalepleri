@@ -400,6 +400,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/acenteler-istatistik', [\App\Http\Controllers\AcenetelIstatistikController::class, 'index'])->name('acenteler.istatistik');
     Route::get('/acenteler-normalize', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalize'])->name('acenteler.normalize');
     Route::get('/normalize-kaynak/{mode}', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalizeKaynak'])->name('normalize.kaynak');
+    Route::get('/acenteler-tani', [\App\Http\Controllers\AcenetelIstatistikController::class, 'tani'])->name('acenteler.tani');
     Route::get('/acente-ai', [\App\Http\Controllers\AceneAIController::class, 'index'])->name('acente.ai');
     Route::post('/acente-ai/ask', [\App\Http\Controllers\AceneAIController::class, 'ask'])->name('acente.ai.ask');
     Route::post('/acente-ai/email-gonder', [\App\Http\Controllers\AceneAIController::class, 'emailGonder'])->name('acente.ai.email');

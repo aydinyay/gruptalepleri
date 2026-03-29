@@ -45,8 +45,13 @@ KULLANICI REFERANSI KURALLARI:
 
 ━━━ VERİTABANI TABLOLARI ━━━
 
-━━━ 1. acenteler (~36.000 kayıt) ━━━
-Türkiye seyahat acenteleri — Bakanlık + TÜRSAB birleşik
+━━━ 1. acenteler tablosu ━━━
+⚠️ ÖNEMLİ: Bu tablo çapraz-kaynak yineleme içeriyor!
+- Toplam satır: ~36.000 (tursab + bakanlik ayrı satır + şubeler)
+- Gerçek benzersiz acenta sayısı: SELECT COUNT(DISTINCT belge_no) FROM acenteler WHERE is_sube=0
+- "Kaç acenta var?" sorusunda ASLA COUNT(*) kullanma — şişirilmiş sonuç verir
+- Bakanlık kayıtlı gerçek acenta: ~18.804 (GEÇERLİ, benzersiz belge_no, is_sube=0)
+Türkiye seyahat acenteleri — Bakanlık + TÜRSAB birleşik (henüz tekilleştirilmemiş)
 
   id            : primary key
   belge_no      : TÜRSAB belge no SMALLINT (küçük = eski, büyük = yeni acente kurulmuş)

@@ -327,4 +327,71 @@ class AcenetelIstatistikController extends Controller
             'nufusBasinaAcente'
         ));
     }
+
+    // ── Tanısal: veri kalitesi / yineleme raporu ─────────────────────────────
+    public function tani(): \Illuminate\Http\JsonResponse
+    {
+        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
+
+        // 1. Kaynak bazında satır sayısı
+        $kaynakBazinda = DB::table('acenteler')
+            ->selectRaw('COALESCE(kaynak, "bilinmiyor") as kaynak, COUNT(*) as adet')
+            ->groupBy('kaynak')
+            ->orderByDesc('adet')
+            ->get();
+
+        // 2. Merkez vs Şube
+        $merkez = DB::table('acenteler')->where('is_sube', 0)->count();
+        $sube   = DB::table('acenteler')->where('is_sube', 1)->count();
+        $toplam = $merkez + $sube;
+
+        // 3. Gerçek benzersiz acenta (merkez, distinct belge_no)
+        $benzersiz = DB::table('acenteler')
+            ->where('is_sube', 0)
+            ->whereNotNull('belge_no')
+            ->where('belge_no', '!=', '')
+            ->distinct('belge_no')
+            ->count('belge_no');
+
+        // 4. Çapraz yineleme: aynı belge_no'da hem tursab hem bakanlik
+        $caprazYineleme = DB::table(DB::raw('(
+            SELECT belge_no FROM acenteler
+            WHERE belge_no IS NOT NULL AND belge_no != ""
+            GROUP BY belge_no
+            HAVING COUNT(DISTINCT kaynak) > 1
+        ) t'))->count();
+
+        // 5. Sadece tursab'da olanlar (bakanlik'ta yok)
+        $sadeceTursab = DB::table('acenteler')
+            ->where('kaynak', 'tursab')
+            ->where('is_sube', 0)
+            ->whereNotIn('belge_no', function ($q) {
+                $q->select('belge_no')->from('acenteler')->where('kaynak', 'bakanlik');
+            })
+            ->count();
+
+        // 6. Sadece bakanlik'ta olanlar (tursab'da yok)
+        $sadeceBakanlik = DB::table('acenteler')
+            ->where('kaynak', 'bakanlik')
+            ->whereNotIn('belge_no', function ($q) {
+                $q->select('belge_no')->from('acenteler')->where('kaynak', 'tursab');
+            })
+            ->count();
+
+        return response()->json([
+            'toplam_satir'       => $toplam,
+            'merkez'             => $merkez,
+            'sube'               => $sube,
+            'benzersiz_acenta'   => $benzersiz,
+            'capraz_yineleme'    => $caprazYineleme,
+            'sadece_tursab'      => $sadeceTursab,
+            'sadece_bakanlik'    => $sadeceBakanlik,
+            'her_ikisinde'       => $caprazYineleme,
+            'kaynak_dagilimi'    => $kaynakBazinda,
+            'yorum'              => [
+                'neden_36k'      => "Aynı acenta hem 'tursab' hem 'bakanlik' kaydıyla {$caprazYineleme} kez yineleniyor. Şubeler ({$sube} adet) de ayrı satır.",
+                'gercek_sayi'    => "Benzersiz merkez acenta: {$benzersiz} (Bakanlık ~18.804 ile karşılaştır)",
+            ],
+        ]);
+    }
 }
