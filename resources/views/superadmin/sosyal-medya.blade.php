@@ -1283,7 +1283,7 @@ async function bindirLogo(gorselSrc, logoSrc) {
 
             logoImg.onload = () => {
                 const logoH = Math.round(logoImg.naturalHeight * (logoW / logoImg.naturalWidth));
-                const lx    = W - logoW - pad;
+                const lx    = pad;
                 const ly    = pad;
 
                 // Pill arka plan
