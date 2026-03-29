@@ -10,8 +10,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('acenteler', function (Blueprint $table) {
-            $table->string('durum', 20)->nullable()->after('internal_id');
-            $table->timestamp('synced_at')->nullable()->after('durum');
+            if (!Schema::hasColumn('acenteler', 'durum')) {
+                $table->string('durum', 20)->nullable()->after('internal_id');
+            }
+            if (!Schema::hasColumn('acenteler', 'synced_at')) {
+                $table->timestamp('synced_at')->nullable()->after('durum');
+            }
         });
 
         // Mevcut bakanlik kayıtları GEÇERLİ (scraper sadece GEÇERLİ çekiyordu)
