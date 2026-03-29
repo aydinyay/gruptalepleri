@@ -83,32 +83,38 @@ class TuraiController extends Controller
                 . "Tel   : {$acenteTel}\n"
                 . "Hemen aranmak istiyor.";
 
-            $sms = new \App\Services\SmsService();
+            $sms      = new \App\Services\SmsService();
+            $hedefler = [];
 
-            // 1. Admin bildirim numarasına (SMS_ADMIN_PHONE)
-            $adminPhone = (string) config('services.sms.notify_phone', '');
+            // 1. Superadmin User'ının phone alanı
+            $superadminUser = \App\Models\User::where('role', 'superadmin')
+                ->whereNotNull('phone')->first();
+            if ($superadminUser?->phone) {
+                $hedefler[$superadminUser->phone] = 'SuperAdmin';
+            }
 
-            // 2. Süperadmin cep numarasına (sirket_cep)
+            // 2. SistemAyar sirket_cep (farklıysa ekle)
             $cepRaw = preg_replace('/[^0-9]/', '', (string) SistemAyar::get('sirket_cep', ''));
-            // Türkiye formatına normalize et (9053xxxxxxxx)
-            $cepPhone = $cepRaw;
-            if (strlen($cepPhone) === 10 && str_starts_with($cepPhone, '0')) {
-                $cepPhone = '90' . substr($cepPhone, 1);
-            } elseif (strlen($cepPhone) === 10) {
-                $cepPhone = '90' . $cepPhone;
+            if (strlen($cepRaw) === 10) {
+                $cepRaw = '90' . substr($cepRaw, 1); // 0532... → 90532...
+            }
+            if ($cepRaw && ! isset($hedefler[$cepRaw])) {
+                $hedefler[$cepRaw] = 'SuperAdmin Cep';
             }
 
-            $normalizedAdmin = preg_replace('/[^0-9]/', '', $adminPhone);
-
-            $sonuc1 = $sms->sendToAdmin($talep->id, $mesaj);
-
-            // Süperadmin cep farklıysa ona da gönder
-            $sonuc2 = true;
-            if ($cepPhone && $cepPhone !== $normalizedAdmin) {
-                $sonuc2 = $sms->send($talep->id, 'superadmin', 'SuperAdmin', $cepPhone, $mesaj);
+            if (empty($hedefler)) {
+                $acilNo = SistemAyar::get('sirket_cep', SistemAyar::get('sirket_telefon', ''));
+                return response()->json(['mesaj' => "⚠️ SMS alıcısı tanımlı değil. Lütfen doğrudan arayın: {$acilNo}"]);
             }
 
-            if ($sonuc1 || $sonuc2) {
+            $gonderildi = false;
+            foreach ($hedefler as $phone => $name) {
+                if ($sms->send($talep->id, 'admin', $name, (string) $phone, $mesaj)) {
+                    $gonderildi = true;
+                }
+            }
+
+            if ($gonderildi) {
                 return response()->json(['mesaj' => "✅ Acil SMS gönderildi. En kısa sürede sizi arayacağız."]);
             }
 
