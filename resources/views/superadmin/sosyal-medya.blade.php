@@ -1276,15 +1276,15 @@ async function bindirLogo(gorselSrc, logoSrc) {
             ctx.fillText(urlText, urlX, urlY);
             ctx.restore();
 
-            // ── Logo — sol alt ────────────────────────────────────────────
+            // ── Logo — sağ üst ────────────────────────────────────────────
             const logoW  = Math.min(Math.round(W * 0.20), 240);
             const logoImg = new Image();
             logoImg.crossOrigin = 'anonymous';
 
             logoImg.onload = () => {
                 const logoH = Math.round(logoImg.naturalHeight * (logoW / logoImg.naturalWidth));
-                const lx    = pad;
-                const ly    = H - logoH - pad;
+                const lx    = W - logoW - pad;
+                const ly    = pad;
 
                 // Pill arka plan
                 drawPill(ctx, lx - 10, ly - 8, logoW + 20, logoH + 16, 10, 'rgba(255,255,255,0.88)');
@@ -1292,10 +1292,22 @@ async function bindirLogo(gorselSrc, logoSrc) {
                 resolve(canvas.toDataURL('image/png'));
             };
             logoImg.onerror = () => {
-                // Logo yüklenemedi — sadece URL yazısıyla devam et
-                resolve(canvas.toDataURL('image/png'));
+                // Dış URL CORS ile yüklenemedi — fetch ile base64'e çevirip dene
+                if (!logoSrc.startsWith('data:')) {
+                    fetch(logoSrc)
+                        .then(r => r.blob())
+                        .then(b => {
+                            const reader = new FileReader();
+                            reader.onload = e2 => { logoImg.src = e2.target.result; };
+                            reader.readAsDataURL(b);
+                        })
+                        .catch(() => resolve(canvas.toDataURL('image/png')));
+                } else {
+                    resolve(canvas.toDataURL('image/png'));
+                }
             };
-            logoImg.src = logoSrc + '?v=' + Date.now(); // cache bypass
+            // Base64 ise direkt ata, dış URL ise crossOrigin ile dene
+            logoImg.src = logoSrc.startsWith('data:') ? logoSrc : (logoSrc + '?cb=' + Date.now());
         };
 
         bgImg.onerror = () => resolve(gorselSrc);
