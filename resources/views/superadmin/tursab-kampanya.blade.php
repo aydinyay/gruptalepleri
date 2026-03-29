@@ -772,16 +772,7 @@ function syncGoster(d) {
     badge.className = `badge bg-${cls}`;
     badge.textContent = lbl;
 
-    const btn = document.getElementById('syncStartBtn');
-    if (d.status === 'running') {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Çalışıyor…';
-        if (!syncPolling) syncPolling = setInterval(syncDurumYukle, 4000);
-    } else {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>' + (d.status === 'paused' ? 'Devam Et' : 'Şimdi Senkronize Et');
-        if (syncPolling) { clearInterval(syncPolling); syncPolling = null; }
-    }
+    // Buton durumu syncBaslat() döngüsü tarafından yönetilir
 }
 
 let syncDurdurildi = false;
