@@ -28,10 +28,13 @@
                 {{ $slot }}
             </div>
 
+            @php
+                $sa = fn($k,$d='') => (string)\App\Models\SistemAyar::get($k,$d);
+            @endphp
             <div class="mt-6 text-center" style="font-size:0.72rem;color:#9ca3af;line-height:1.8;">
-                <div>Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</div>
-                <div>İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli/İstanbul &nbsp;·&nbsp; 0535 415 47 99</div>
-                <div>Beyoğlu VD · Vergi No: 4110477529 &nbsp;·&nbsp; TÜRSAB A Grubu Belge No: 12572</div>
+                <div>{{ $sa('sirket_unvan','Grup Talepleri Turizm San. ve Tic. Ltd. Şti.') }}</div>
+                <div>{{ $sa('sirket_adres','İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli/İstanbul') }} &nbsp;·&nbsp; {{ $sa('sirket_telefon','0535 415 47 99') }}</div>
+                <div>{{ $sa('sirket_vergi_dairesi','Beyoğlu VD') }} · Vergi No: {{ $sa('sirket_vkn','4110477529') }} &nbsp;·&nbsp; TÜRSAB {{ $sa('sirket_tursab_grup','A') }} Grubu Belge No: {{ $sa('sirket_tursab_no','12572') }}</div>
             </div>
         </div>
     </body>
