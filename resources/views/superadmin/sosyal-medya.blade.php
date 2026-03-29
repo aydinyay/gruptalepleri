@@ -268,6 +268,30 @@
             border: 1.5px solid var(--sm-border); border-radius: 8px; padding: 8px 12px; font-size: 0.875rem;
         }
 
+        /* ── Görsel mod tabs ── */
+        .gorsel-mod-tabs { display: flex; gap: 6px; }
+        .gorsel-mod-btn {
+            flex: 1; padding: 9px 14px; border-radius: 10px; font-size: 0.83rem; font-weight: 600;
+            border: 1.5px solid var(--sm-border); background: var(--sm-card); color: var(--sm-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+            transition: all .2s;
+        }
+        .gorsel-mod-btn.active { background: var(--sm-accent); color: #fff; border-color: var(--sm-accent); }
+        .gorsel-mod-btn:not(.active):hover { border-color: var(--sm-accent); color: var(--sm-accent); }
+        .gorsel-panel { margin-top: 10px; }
+
+        /* ── Yükle alanı ── */
+        .yukle-alan {
+            border: 2px dashed var(--sm-border); border-radius: 12px; padding: 32px 20px;
+            text-align: center; cursor: pointer; transition: all .2s; color: var(--sm-muted);
+        }
+        .yukle-alan:hover, .yukle-alan.drag-over {
+            border-color: var(--sm-accent); background: rgba(79,70,229,.05); color: var(--sm-accent);
+        }
+        .yukle-alan i { font-size: 2rem; margin-bottom: 10px; display: block; }
+        .yukle-baslik { font-weight: 600; font-size: 0.92rem; margin-bottom: 4px; }
+        .yukle-alt { font-size: 0.78rem; }
+
         /* ── Loading spinner ── */
         .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -415,27 +439,68 @@
                 <button onclick="showPlanlaModal()"><i class="fas fa-calendar-plus"></i> Planla</button>
             </div>
 
-            {{-- Görsel alanı --}}
+            {{-- Görsel / Video Alanı --}}
             <div class="gorsel-zone" id="gorselZone" style="display:none;">
-                <div class="gorsel-prompt-row mt-3">
-                    <input type="text" id="gorselPromptInput"
-                        placeholder="Görsel prompt — sadece sahne/atmosfer tanımla, yazı/ekran/logo isteme"
-                        oninput="gorselPromptUyar(this.value)">
-                    <div id="gorselPromptUyari" style="display:none;font-size:.75rem;color:#f59e0b;margin-top:4px;">
-                        ⚠️ "Ekran", "monitör", "dashboard", "yazı" içeren promptlar AI'ın hatalı metin üretmesine yol açar.
-                        Bunların yerine sahne/mekan/atmosfer tanımla — örn: "modern ofis, seyahat haritası, uçak penceresi manzarası"
-                    </div>
-                    <button class="btn-gorsel" id="btnGorsel" onclick="uretGorsel()">
-                        <i class="fas fa-image"></i> <span id="btnGorselTxt">Görsel Üret</span>
+
+                {{-- Mod seçici --}}
+                <div class="gorsel-mod-tabs mt-3">
+                    <button class="gorsel-mod-btn active" id="modAiBtn" onclick="switchGorselMod('ai')">
+                        <i class="fas fa-wand-magic-sparkles"></i> AI ile Üret
+                    </button>
+                    <button class="gorsel-mod-btn" id="modYukleBtn" onclick="switchGorselMod('yukle')">
+                        <i class="fas fa-upload"></i> Görsel / Video Yükle
                     </button>
                 </div>
-                <div id="gorselPreviewWrap" class="gorsel-preview" style="display:none;">
-                    <img id="gorselPreviewImg" src="" alt="Üretilen görsel">
-                    <div class="gorsel-actions">
-                        <button class="result-actions button" style="background:var(--sm-card);border:1.5px solid var(--sm-border);border-radius:8px;padding:7px 14px;font-size:.83rem;cursor:pointer;display:flex;align-items:center;gap:6px;"
-                            onclick="gorselIndir()"><i class="fas fa-download"></i> İndir</button>
+
+                {{-- AI Üret Paneli --}}
+                <div id="panelAi" class="gorsel-panel">
+                    <div class="gorsel-prompt-row mt-2">
+                        <input type="text" id="gorselPromptInput"
+                            placeholder="Sahne / atmosfer tanımla — yazı, ekran, logo isteme"
+                            oninput="gorselPromptUyar(this.value)">
+                        <button class="btn-gorsel" id="btnGorsel" onclick="uretGorsel()">
+                            <i class="fas fa-image"></i> <span id="btnGorselTxt">Üret</span>
+                        </button>
+                    </div>
+                    <div id="gorselPromptUyari" style="display:none;font-size:.75rem;color:#f59e0b;margin-top:4px;padding:6px 10px;background:rgba(245,158,11,.08);border-radius:6px;">
+                        ⚠️ "Ekran / monitör / dashboard / yazı" içeren promptlar AI'ın yanlış metin yazmasına yol açar.
+                        Bunlar yerine sahne tanımla — örn: <em>"modern ofis, uçak penceresi, İstanbul Boğazı gün batımı"</em>
                     </div>
                 </div>
+
+                {{-- Yükle Paneli --}}
+                <div id="panelYukle" class="gorsel-panel" style="display:none;">
+                    <div class="yukle-alan" id="yukleDrop"
+                        onclick="document.getElementById('gorselDosya').click()"
+                        ondragover="event.preventDefault();this.classList.add('drag-over')"
+                        ondragleave="this.classList.remove('drag-over')"
+                        ondrop="gorselDrop(event)">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div class="yukle-baslik">Görsel veya video yükle</div>
+                        <div class="yukle-alt">Tıkla veya sürükle — JPG, PNG, GIF, MP4, MOV (max 50 MB)</div>
+                        <input type="file" id="gorselDosya" accept="image/*,video/*" style="display:none" onchange="gorselDosyaSec(this)">
+                    </div>
+                    <div id="yukleVideoWrap" style="display:none;margin-top:12px;">
+                        <video id="yukleVideoEl" controls style="max-width:100%;border-radius:10px;border:1.5px solid var(--sm-border);"></video>
+                        <div style="font-size:.75rem;color:var(--sm-muted);margin-top:6px;">
+                            <i class="fas fa-info-circle me-1"></i>Video sosyal medya uygulamasında yayınlanacak — buradan önizleme amaçlıdır.
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Önizleme (AI veya yüklenen görsel) --}}
+                <div id="gorselPreviewWrap" class="gorsel-preview" style="display:none;">
+                    <img id="gorselPreviewImg" src="" alt="Görsel">
+                    <div class="gorsel-actions">
+                        <button onclick="gorselIndir()" style="background:var(--sm-card);border:1.5px solid var(--sm-border);border-radius:8px;padding:7px 14px;font-size:.83rem;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-download"></i> İndir
+                        </button>
+                        <button onclick="gorselTemizle()" style="background:var(--sm-card);border:1.5px solid #fca5a5;color:#ef4444;border-radius:8px;padding:7px 14px;font-size:.83rem;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-trash"></i> Kaldır
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -824,6 +889,71 @@ function updateMeter(len) {
 function kopyala() {
     const txt = document.getElementById('icerikBox').innerText || document.getElementById('icerikBox').textContent;
     navigator.clipboard.writeText(txt).then(() => toast('İçerik kopyalandı!'));
+}
+
+// ── Görsel mod geçiş ─────────────────────────────────────────────────────
+let gorselMod = 'ai'; // 'ai' | 'yukle'
+
+function switchGorselMod(mod) {
+    gorselMod = mod;
+    document.getElementById('panelAi').style.display    = mod === 'ai'    ? 'block' : 'none';
+    document.getElementById('panelYukle').style.display = mod === 'yukle' ? 'block' : 'none';
+    document.getElementById('modAiBtn').classList.toggle('active',    mod === 'ai');
+    document.getElementById('modYukleBtn').classList.toggle('active', mod === 'yukle');
+    // Önizlemeyi temizle
+    gorselTemizle();
+}
+
+// ── Dosya seç / bırak ────────────────────────────────────────────────────
+function gorselDrop(e) {
+    e.preventDefault();
+    document.getElementById('yukleDrop').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) yukleIsle(file);
+}
+
+function gorselDosyaSec(input) {
+    if (input.files[0]) yukleIsle(input.files[0]);
+}
+
+function yukleIsle(file) {
+    if (file.size > 50 * 1024 * 1024) { toast('Dosya 50 MB\'ı geçemez.', 'error'); return; }
+    const isVideo = file.type.startsWith('video/');
+    const reader  = new FileReader();
+    reader.onload = (e) => {
+        if (isVideo) {
+            // Video önizleme — data URL olarak sakla
+            gorselData = e.target.result;
+            const vid  = document.getElementById('yukleVideoEl');
+            vid.src    = gorselData;
+            document.getElementById('yukleVideoWrap').style.display  = 'block';
+            document.getElementById('gorselPreviewWrap').style.display = 'none';
+            toast('Video yüklendi!');
+        } else {
+            // Görsel — logoyu üzerine bindir
+            bindirLogo(e.target.result, 'https://gruptalepleri.com/logo.png').then(result => {
+                gorselData = result;
+                const img  = document.getElementById('gorselPreviewImg');
+                img.src    = gorselData;
+                document.getElementById('gorselPreviewWrap').style.display = 'block';
+                document.getElementById('yukleVideoWrap').style.display    = 'none';
+                toast('Görsel yüklendi — logo eklendi!');
+            });
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// ── Görsel temizle ───────────────────────────────────────────────────────
+function gorselTemizle() {
+    gorselData = null;
+    document.getElementById('gorselPreviewWrap').style.display = 'none';
+    document.getElementById('yukleVideoWrap').style.display    = 'none';
+    document.getElementById('gorselPreviewImg').src = '';
+    const vid = document.getElementById('yukleVideoEl');
+    vid.src = '';
+    const input = document.getElementById('gorselDosya');
+    if (input) input.value = '';
 }
 
 // ── Prompt uyarısı ───────────────────────────────────────────────────────
