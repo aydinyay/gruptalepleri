@@ -61,11 +61,21 @@ class TuraiController extends Controller
         $whatsapp     = SistemAyar::get('sirket_whatsapp', '+90 535 415 47 99');
         $eposta       = SistemAyar::get('sirket_eposta', 'destek@gruptalepleri.com');
         $telefon      = SistemAyar::get('sirket_telefon', '+90 535 415 47 99');
-        $bankaAdi     = SistemAyar::get('banka_adi', '');
-        $bankaSube    = SistemAyar::get('banka_sube', '');
-        $hesapSahibi  = SistemAyar::get('banka_hesap_sahibi', $sirketUnvan);
-        $iban         = SistemAyar::get('banka_iban', '');
-        $bankaAciklama = SistemAyar::get('banka_aciklama', 'Açıklama kısmına GTPNR numaranızı yazınız.');
+
+        // Çoklu banka hesapları
+        $bankaHesaplari = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $iban = (string) SistemAyar::get("banka_iban_{$i}", $i === 1 ? SistemAyar::get('banka_iban', '') : '');
+            if (empty(trim($iban))) continue;
+            $bankaHesaplari[] = [
+                'doviz'   => SistemAyar::get("banka_doviz_{$i}", 'TRY'),
+                'adi'     => SistemAyar::get("banka_adi_{$i}", SistemAyar::get('banka_adi', '')),
+                'sube'    => SistemAyar::get("banka_sube_{$i}", SistemAyar::get('banka_sube', '')),
+                'sahip'   => SistemAyar::get("banka_hesap_sahibi_{$i}", SistemAyar::get('banka_hesap_sahibi', $sirketUnvan)),
+                'iban'    => "TR{$iban}",
+                'not'     => SistemAyar::get("banka_aciklama_{$i}", SistemAyar::get('banka_aciklama', 'Açıklama kısmına GTPNR numaranızı yazınız.')),
+            ];
+        }
 
         // ── Mevcut talep segmentleri ──
         $segmentStr = '';
@@ -194,8 +204,19 @@ class TuraiController extends Controller
         $waNumara = preg_replace('/[^0-9]/', '', $whatsapp);
         $waLink   = "https://wa.me/{$waNumara}?text=" . rawurlencode("{$talep->gtpnr} numaralı talebim hakkında görüşmek istiyorum.");
 
-        // ── IBAN tam formatlı ──
-        $ibanTam = $iban ? "TR{$iban}" : 'Henüz girilmemiş';
+        // ── Banka hesapları formatı ──
+        $bankaStr = '';
+        if (empty($bankaHesaplari)) {
+            $bankaStr = "Henüz banka hesabı girilmemiş. Lütfen operasyon ekibiyle iletişime geçin.\n";
+        } else {
+            foreach ($bankaHesaplari as $idx => $h) {
+                $bankaStr .= ($idx + 1) . ". Hesap ({$h['doviz']}):\n";
+                $bankaStr .= "   Banka    : {$h['adi']}" . ($h['sube'] ? " / {$h['sube']}" : '') . "\n";
+                $bankaStr .= "   Hesap Sah: {$h['sahip']}\n";
+                $bankaStr .= "   IBAN     : {$h['iban']}\n";
+                $bankaStr .= "   Not      : {$h['not']}\n\n";
+            }
+        }
 
         // ── System prompt ──
         return <<<PROMPT
@@ -227,10 +248,7 @@ FİNANSAL ÖZET:
 ━━━ HESABINIZIN DİĞER TALEPLERİ (Son 40) ━━━
 {$digerStr}
 ━━━ BANKA / HAVALE BİLGİLERİ ━━━
-Hesap Sahibi : {$hesapSahibi}
-Banka        : {$bankaAdi} {$bankaSube}
-IBAN         : {$ibanTam}
-Açıklama     : {$bankaAciklama}
+{$bankaStr}
 
 ━━━ İLETİŞİM VE ACİL ━━━
 WhatsApp : {$whatsapp}

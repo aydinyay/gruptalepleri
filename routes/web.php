@@ -116,7 +116,23 @@ Route::get('/', function () {
         ];
     });
 
-    return view('welcome', compact('stats'));
+    $s = fn(string $k, string $d = '') => (string) \App\Models\SistemAyar::get($k, $d);
+
+    $sirket = [
+        'unvan'          => $s('sirket_unvan',          'Grup Talepleri Turizm San. ve Tic. Ltd. Şti.'),
+        'vkn'            => $s('sirket_vkn',            '4110477529'),
+        'vergi_dairesi'  => $s('sirket_vergi_dairesi',  'Beyoğlu VD'),
+        'mersis_no'      => $s('sirket_mersis_no',      '0411047752900001'),
+        'adres'          => $s('sirket_adres',          'İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli / İstanbul'),
+        'telefon'        => $s('sirket_telefon',        '+90 535 415 47 99'),
+        'whatsapp'       => $s('sirket_whatsapp',       '+90 535 415 47 99'),
+        'eposta'         => $s('sirket_eposta',         'destek@gruptalepleri.com'),
+        'tursab_no'      => $s('sirket_tursab_no',      '12572'),
+        'tursab_grup'    => $s('sirket_tursab_grup',    'A'),
+        'instagram'      => $s('sirket_instagram',      'grup.talepleri'),
+    ];
+
+    return view('welcome', compact('stats', 'sirket'));
 });
 
 // SEO odakli landing sayfasi (public)

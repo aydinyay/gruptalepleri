@@ -728,6 +728,14 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fas fa-fingerprint me-1 text-muted"></i>Mersis No
+                        </label>
+                        <input type="text" name="sirket_mersis_no" class="form-control font-monospace"
+                               placeholder="0411047752900001"
+                               value="{{ $sirketBilgileri['sirket_mersis_no'] ?? '' }}">
+                    </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
                             <i class="fas fa-map-marker-alt me-1 text-muted"></i>Adres
@@ -779,6 +787,17 @@
                                placeholder="destek@gruptalepleri.com"
                                value="{{ $sirketBilgileri['sirket_eposta'] ?? '' }}">
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
+                            <i class="fab fa-instagram me-1" style="color:#e1306c;"></i>Instagram Kullanıcı Adı
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="font-size:0.8rem;background:#f8f9fa;">@</span>
+                            <input type="text" name="sirket_instagram" class="form-control"
+                                   placeholder="grup.talepleri"
+                                   value="{{ $sirketBilgileri['sirket_instagram'] ?? '' }}">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -791,79 +810,108 @@
                     <i class="fas fa-university" style="color:#28a745;font-size:0.9rem;"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-white" style="font-size:0.95rem;">Banka / Ödeme Bilgileri</div>
-                    <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;">EFT / Havale bilgileri — TURAi ve ödeme sayfalarında otomatik kullanılır</div>
+                    <div class="fw-bold text-white" style="font-size:0.95rem;">Banka / Ödeme Hesapları</div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;">TRY, USD, EUR ve farklı bankalar — TURAi ve ödeme sayfalarında otomatik kullanılır</div>
                 </div>
             </div>
             <div class="card-body p-4">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
-                            <i class="fas fa-university me-1 text-muted"></i>Banka Adı
-                        </label>
-                        <input type="text" name="banka_adi" class="form-control"
-                               placeholder="Ziraat Bankası"
-                               value="{{ $sirketBilgileri['banka_adi'] ?? '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
-                            <i class="fas fa-code-branch me-1 text-muted"></i>Şube
-                        </label>
-                        <input type="text" name="banka_sube" class="form-control"
-                               placeholder="Şişli Şubesi"
-                               value="{{ $sirketBilgileri['banka_sube'] ?? '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
-                            <i class="fas fa-user me-1 text-muted"></i>Hesap Sahibi
-                        </label>
-                        <input type="text" name="banka_hesap_sahibi" class="form-control"
-                               placeholder="Grup Talepleri Turizm San. ve Tic. Ltd. Şti."
-                               value="{{ $sirketBilgileri['banka_hesap_sahibi'] ?? '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
-                            <i class="fas fa-hashtag me-1 text-muted"></i>IBAN
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text fw-bold" style="font-size:0.8rem;background:#f8f9fa;">TR</span>
-                            <input type="text" name="banka_iban" class="form-control font-monospace"
-                                   placeholder="00 0000 0000 0000 0000 0000 00"
-                                   value="{{ $sirketBilgileri['banka_iban'] ?? '' }}"
-                                   oninput="this.value=this.value.replace(/[^0-9\s]/g,'')">
+
+                @php
+                $bankaSlotlar = [
+                    ['key'=>'1', 'label'=>'1. Hesap', 'color'=>'#1a3a1a', 'badge'=>'Ana Hesap'],
+                    ['key'=>'2', 'label'=>'2. Hesap', 'color'=>'#1a2a3a', 'badge'=>''],
+                    ['key'=>'3', 'label'=>'3. Hesap', 'color'=>'#2a1a3a', 'badge'=>''],
+                    ['key'=>'4', 'label'=>'4. Hesap', 'color'=>'#3a1a1a', 'badge'=>''],
+                ];
+                @endphp
+
+                <div class="accordion" id="bankaAccordion">
+                @foreach($bankaSlotlar as $slot)
+                    @php
+                    $sk = $slot['key'];
+                    $bAdi    = $sirketBilgileri['banka_adi_'.$sk]    ?? ($sk==='1' ? ($sirketBilgileri['banka_adi']    ?? '') : '');
+                    $bSube   = $sirketBilgileri['banka_sube_'.$sk]   ?? ($sk==='1' ? ($sirketBilgileri['banka_sube']   ?? '') : '');
+                    $bSahip  = $sirketBilgileri['banka_hesap_sahibi_'.$sk] ?? ($sk==='1' ? ($sirketBilgileri['banka_hesap_sahibi'] ?? '') : '');
+                    $bIban   = $sirketBilgileri['banka_iban_'.$sk]   ?? ($sk==='1' ? ($sirketBilgileri['banka_iban']   ?? '') : '');
+                    $bDoviz  = $sirketBilgileri['banka_doviz_'.$sk]  ?? 'TRY';
+                    $bNot    = $sirketBilgileri['banka_aciklama_'.$sk] ?? ($sk==='1' ? ($sirketBilgileri['banka_aciklama'] ?? '') : '');
+                    $dolu    = !empty($bIban);
+                    @endphp
+                    <div class="accordion-item mb-2" style="border:1.5px solid {{ $dolu ? '#b7dfb8' : '#e0e3e8' }};border-radius:12px !important;overflow:hidden;">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button {{ $sk !== '1' && !$dolu ? 'collapsed' : '' }} py-2 px-3"
+                                    type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#banka-collapse-{{ $sk }}"
+                                    style="font-size:0.85rem;font-weight:600;background:{{ $dolu ? '#f0fff0' : '#f8f9fa' }};">
+                                <span class="me-2">
+                                    @if($dolu)<i class="fas fa-check-circle text-success me-1"></i>@else<i class="fas fa-circle text-muted me-1" style="font-size:0.5rem;"></i>@endif
+                                </span>
+                                {{ $slot['label'] }}
+                                @if($dolu)
+                                    <span class="ms-2 badge" style="background:#1a3a1a;font-size:0.65rem;">{{ strtoupper($bDoviz) }} · {{ $bAdi }}</span>
+                                    <span class="ms-1 font-monospace text-muted" style="font-size:0.72rem;">TR{{ substr($bIban, -4) }}</span>
+                                @endif
+                                @if($slot['badge'])<span class="ms-auto badge bg-danger" style="font-size:0.65rem;">{{ $slot['badge'] }}</span>@endif
+                            </button>
+                        </h2>
+                        <div id="banka-collapse-{{ $sk }}" class="accordion-collapse collapse {{ ($sk === '1' || $dolu) ? 'show' : '' }}">
+                            <div class="accordion-body p-3">
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-semibold" style="font-size:0.78rem;color:#495057;">Para Birimi</label>
+                                        <select name="banka_doviz_{{ $sk }}" class="form-select form-select-sm">
+                                            @foreach(['TRY'=>'₺ TRY','USD'=>'$ USD','EUR'=>'€ EUR','GBP'=>'£ GBP'] as $kod=>$etiket)
+                                                <option value="{{ $kod }}" {{ $bDoviz === $kod ? 'selected' : '' }}>{{ $etiket }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-semibold" style="font-size:0.78rem;color:#495057;">Banka Adı</label>
+                                        <input type="text" name="banka_adi_{{ $sk }}" class="form-control form-control-sm"
+                                               placeholder="Ziraat Bankası" value="{{ $bAdi }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold" style="font-size:0.78rem;color:#495057;">Şube</label>
+                                        <input type="text" name="banka_sube_{{ $sk }}" class="form-control form-control-sm"
+                                               placeholder="Şişli Şubesi" value="{{ $bSube }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold" style="font-size:0.78rem;color:#495057;">Hesap Sahibi</label>
+                                        <input type="text" name="banka_hesap_sahibi_{{ $sk }}" class="form-control form-control-sm"
+                                               placeholder="Grup Talepleri Turizm..." value="{{ $bSahip }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold" style="font-size:0.78rem;color:#495057;">IBAN (TR hariç)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text fw-bold" style="font-size:0.78rem;">TR</span>
+                                            <input type="text" name="banka_iban_{{ $sk }}" class="form-control font-monospace"
+                                                   placeholder="00 0000 0000 0000 0000 0000 00"
+                                                   value="{{ $bIban }}"
+                                                   oninput="this.value=this.value.replace(/[^0-9\s]/g,'')">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold" style="font-size:0.78rem;color:#495057;">
+                                            Havale Açıklama Notu
+                                            <span class="badge bg-secondary ms-1" style="font-size:0.6rem;">TURAi aktarır</span>
+                                        </label>
+                                        <input type="text" name="banka_aciklama_{{ $sk }}" class="form-control form-control-sm"
+                                               placeholder="Açıklama kısmına GTPNR numaranızı yazınız."
+                                               value="{{ $bNot }}">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-text" style="font-size:0.72rem;">TR hariç rakamları girin — TURAi otomatik TR ekleyerek gösterir</div>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#495057;">
-                            <i class="fas fa-comment-alt me-1 text-muted"></i>Havale Açıklama Notu
-                            <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">TURAi bu metni aktarır</span>
-                        </label>
-                        <input type="text" name="banka_aciklama" class="form-control"
-                               placeholder="Lütfen açıklama kısmına GTPNR numaranızı yazınız."
-                               value="{{ $sirketBilgileri['banka_aciklama'] ?? '' }}">
-                    </div>
+                @endforeach
                 </div>
 
-                {{-- IBAN önizleme --}}
-                @if(!empty($sirketBilgileri['banka_iban']))
-                <div class="mt-4 p-3 rounded-3" style="background:linear-gradient(135deg,#f8fff8 0%,#edfaed 100%);border:1.5px solid #b7dfb8;">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <span class="fw-semibold text-success" style="font-size:0.85rem;">Mevcut Banka Kaydı</span>
-                    </div>
-                    <div style="font-size:0.88rem;line-height:1.8;color:#2d5a2d;">
-                        <div><strong>Banka:</strong> {{ $sirketBilgileri['banka_adi'] ?? '-' }} @if(!empty($sirketBilgileri['banka_sube'])) / {{ $sirketBilgileri['banka_sube'] }}@endif</div>
-                        <div><strong>Hesap Sahibi:</strong> {{ $sirketBilgileri['banka_hesap_sahibi'] ?? '-' }}</div>
-                        <div class="font-monospace fw-bold mt-1" style="font-size:1rem;color:#1a3a1a;letter-spacing:1px;">
-                            TR{{ $sirketBilgileri['banka_iban'] ?? '' }}
-                        </div>
-                        @if(!empty($sirketBilgileri['banka_aciklama']))
-                            <div class="mt-1 text-muted" style="font-size:0.8rem;"><i class="fas fa-info-circle me-1"></i>{{ $sirketBilgileri['banka_aciklama'] }}</div>
-                        @endif
-                    </div>
-                </div>
-                @endif
+                {{-- Eski key'lerden geçiş (geriye uyumluluk) --}}
+                <input type="hidden" name="banka_adi"          value="{{ $sirketBilgileri['banka_adi_1'] ?? ($sirketBilgileri['banka_adi'] ?? '') }}">
+                <input type="hidden" name="banka_sube"         value="{{ $sirketBilgileri['banka_sube_1'] ?? ($sirketBilgileri['banka_sube'] ?? '') }}">
+                <input type="hidden" name="banka_hesap_sahibi" value="{{ $sirketBilgileri['banka_hesap_sahibi_1'] ?? ($sirketBilgileri['banka_hesap_sahibi'] ?? '') }}">
+                <input type="hidden" name="banka_iban"         value="{{ $sirketBilgileri['banka_iban_1'] ?? ($sirketBilgileri['banka_iban'] ?? '') }}">
+                <input type="hidden" name="banka_aciklama"     value="{{ $sirketBilgileri['banka_aciklama_1'] ?? ($sirketBilgileri['banka_aciklama'] ?? '') }}">
             </div>
         </div>
 

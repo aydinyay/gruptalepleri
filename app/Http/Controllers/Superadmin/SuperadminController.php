@@ -319,10 +319,16 @@ class SuperadminController extends Controller
         if ($activeTab === 'sirket') {
             $sirketKeys = [
                 'sirket_unvan', 'sirket_vkn', 'sirket_vergi_dairesi',
-                'sirket_adres', 'sirket_telefon', 'sirket_whatsapp',
-                'sirket_eposta', 'sirket_tursab_no', 'sirket_tursab_grup',
-                'banka_adi', 'banka_hesap_sahibi', 'banka_iban',
-                'banka_sube', 'banka_aciklama',
+                'sirket_mersis_no', 'sirket_adres', 'sirket_telefon',
+                'sirket_whatsapp', 'sirket_eposta', 'sirket_tursab_no',
+                'sirket_tursab_grup', 'sirket_instagram',
+                // Eski tek-hesap keys (geriye uyumluluk)
+                'banka_adi', 'banka_hesap_sahibi', 'banka_iban', 'banka_sube', 'banka_aciklama',
+                // Çok hesap (1-4, TRY/USD/EUR)
+                'banka_adi_1','banka_sube_1','banka_hesap_sahibi_1','banka_iban_1','banka_doviz_1','banka_aciklama_1',
+                'banka_adi_2','banka_sube_2','banka_hesap_sahibi_2','banka_iban_2','banka_doviz_2','banka_aciklama_2',
+                'banka_adi_3','banka_sube_3','banka_hesap_sahibi_3','banka_iban_3','banka_doviz_3','banka_aciklama_3',
+                'banka_adi_4','banka_sube_4','banka_hesap_sahibi_4','banka_iban_4','banka_doviz_4','banka_aciklama_4',
             ];
             foreach ($sirketKeys as $key) {
                 $sirketBilgileri[$key] = SistemAyar::get($key, '');
@@ -358,10 +364,14 @@ class SuperadminController extends Controller
 
         $keys = [
             'sirket_unvan', 'sirket_vkn', 'sirket_vergi_dairesi',
-            'sirket_adres', 'sirket_telefon', 'sirket_whatsapp',
-            'sirket_eposta', 'sirket_tursab_no', 'sirket_tursab_grup',
-            'banka_adi', 'banka_hesap_sahibi', 'banka_iban',
-            'banka_sube', 'banka_aciklama',
+            'sirket_mersis_no', 'sirket_adres', 'sirket_telefon',
+            'sirket_whatsapp', 'sirket_eposta', 'sirket_tursab_no',
+            'sirket_tursab_grup', 'sirket_instagram',
+            'banka_adi', 'banka_hesap_sahibi', 'banka_iban', 'banka_sube', 'banka_aciklama',
+            'banka_adi_1','banka_sube_1','banka_hesap_sahibi_1','banka_iban_1','banka_doviz_1','banka_aciklama_1',
+            'banka_adi_2','banka_sube_2','banka_hesap_sahibi_2','banka_iban_2','banka_doviz_2','banka_aciklama_2',
+            'banka_adi_3','banka_sube_3','banka_hesap_sahibi_3','banka_iban_3','banka_doviz_3','banka_aciklama_3',
+            'banka_adi_4','banka_sube_4','banka_hesap_sahibi_4','banka_iban_4','banka_doviz_4','banka_aciklama_4',
         ];
 
         foreach ($keys as $key) {

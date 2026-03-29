@@ -33,34 +33,30 @@
 <meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
 
 {{-- JSON-LD Yapılandırılmış Veri (Google arama sonucu zengin snippet) --}}
-@verbatim
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "TravelAgency",
-  "name": "Grup Talepleri Turizm San. ve Tic. Ltd. Şti.",
+  "name": "{{ addslashes($sirket['unvan']) }}",
   "alternateName": "GrupTalepleri",
   "url": "https://gruptalepleri.com",
   "logo": "https://gruptalepleri.com/og-image.png",
   "description": "Turizm acenteleri ve kurumsal şirketler için grup uçuş ve charter talep platformu.",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "İnönü Mah. Cumhuriyet Cad. No:93/12",
-    "addressLocality": "Şişli",
-    "addressRegion": "İstanbul",
+    "streetAddress": "{{ addslashes($sirket['adres']) }}",
     "addressCountry": "TR"
   },
-  "telephone": "+905354154799",
-  "email": "destek@gruptalepleri.com",
+  "telephone": "{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}",
+  "email": "{{ $sirket['eposta'] }}",
   "sameAs": [
-    "https://www.instagram.com/grup.talepleri"
+    "https://www.instagram.com/{{ $sirket['instagram'] }}"
   ],
   "areaServed": "TR",
   "priceRange": "₺₺",
   "openingHours": "Mo-Fr 09:00-18:00"
 }
 </script>
-@endverbatim
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -799,19 +795,19 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <p style="margin-bottom:0.5rem;">Grup charter, tarifeli ve özel uçuş taleplerinizi tek platformda yönetin. Anlık teklif alın, operasyonunuzu hızlandırın.</p>
             <div class="footer-badge">
                 <i class="fas fa-certificate" style="color:#f5a623;"></i>
-                TÜRSAB A Grubu &nbsp;·&nbsp; Belge No: <strong>12572</strong>
+                TÜRSAB {{ $sirket['tursab_grup'] }} Grubu &nbsp;·&nbsp; Belge No: <strong>{{ $sirket['tursab_no'] }}</strong>
             </div>
         </div>
 
         {{-- Orta: İletişim --}}
         <div class="footer-col">
             <div class="footer-col-title">İletişim</div>
-            <p><i class="fas fa-map-marker-alt me-2" style="color:var(--red);width:14px;"></i>İnönü Mah. Cumhuriyet Cad.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No:93/12 Şişli / İstanbul</p>
-            <a href="tel:+{{ $_superadminTelefon }}"><i class="fas fa-phone me-2" style="color:var(--red);width:14px;"></i>{{ preg_replace('/^90/', '0', $_superadminTelefon) }}</a>
-            <a href="mailto:destek@gruptalepleri.com"><i class="fas fa-envelope me-2" style="color:var(--red);width:14px;"></i>destek@gruptalepleri.com</a>
+            <p><i class="fas fa-map-marker-alt me-2" style="color:var(--red);width:14px;"></i>{{ $sirket['adres'] }}</p>
+            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}"><i class="fas fa-phone me-2" style="color:var(--red);width:14px;"></i>{{ $sirket['telefon'] }}</a>
+            <a href="mailto:{{ $sirket['eposta'] }}"><i class="fas fa-envelope me-2" style="color:var(--red);width:14px;"></i>{{ $sirket['eposta'] }}</a>
             <div style="margin-top:0.8rem;">
-                <a href="https://www.instagram.com/grup.talepleri" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.78rem;color:rgba(255,255,255,0.6);transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(233,69,96,0.5)';this.style.color='#fff';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.6)';">
-                    <i class="fab fa-instagram" style="color:#e1306c;"></i> @grup.talepleri
+                <a href="https://www.instagram.com/{{ $sirket['instagram'] }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:0.78rem;color:rgba(255,255,255,0.6);transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(233,69,96,0.5)';this.style.color='#fff';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.6)';">
+                    <i class="fab fa-instagram" style="color:#e1306c;"></i> @{{ $sirket['instagram'] }}
                 </a>
             </div>
         </div>
@@ -819,17 +815,17 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
         {{-- Sağ: Yasal / Fatura --}}
         <div class="footer-col">
             <div class="footer-col-title">Fatura Bilgileri</div>
-            <p style="font-weight:600;color:rgba(255,255,255,0.75);">Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</p>
-            <p>Vergi Dairesi: Beyoğlu VD</p>
-            <p>Vergi No: 4110477529</p>
-            <p>Mersis No: 0411047752900001<br>Ünvan: Group Ticket Turizm Seyahat Acentası</p>
+            <p style="font-weight:600;color:rgba(255,255,255,0.75);">{{ $sirket['unvan'] }}</p>
+            <p>Vergi Dairesi: {{ $sirket['vergi_dairesi'] }}</p>
+            <p>Vergi No: {{ $sirket['vkn'] }}</p>
+            @if($sirket['mersis_no'])<p>Mersis No: {{ $sirket['mersis_no'] }}</p>@endif
         </div>
 
     </div>
 
     <div class="footer-bottom">
-        <div class="footer-text">© {{ date('Y') }} GrupTalepleri &nbsp;·&nbsp; Tüm hakları saklıdır &nbsp;·&nbsp; Grup Talepleri Turizm San. ve Tic. Ltd. Şti.</div>
-        <div class="footer-vergi">TÜRSAB A Grubu Belge No: 12572 &nbsp;·&nbsp; Vergi No: 4110477529</div>
+        <div class="footer-text">© {{ date('Y') }} GrupTalepleri &nbsp;·&nbsp; Tüm hakları saklıdır &nbsp;·&nbsp; {{ $sirket['unvan'] }}</div>
+        <div class="footer-vergi">TÜRSAB {{ $sirket['tursab_grup'] }} Grubu Belge No: {{ $sirket['tursab_no'] }} &nbsp;·&nbsp; Vergi No: {{ $sirket['vkn'] }}</div>
     </div>
 </footer>
 
