@@ -280,6 +280,23 @@
         .gorsel-mod-btn:not(.active):hover { border-color: var(--sm-accent); color: var(--sm-accent); }
         .gorsel-panel { margin-top: 10px; }
 
+        /* ── Ebat bilgi kartı ── */
+        .ebat-kart {
+            background: var(--sm-bg); border: 1.5px solid var(--sm-border);
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;
+        }
+        .ebat-platform { font-size: .78rem; font-weight: 700; color: var(--sm-muted); margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase; }
+        .ebat-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .ebat-item {
+            background: var(--sm-card); border: 1.5px solid var(--sm-border);
+            border-radius: 8px; padding: 7px 12px; font-size: .78rem; line-height: 1.5;
+        }
+        .ebat-item.aktif { border-color: var(--sm-accent); background: rgba(79,70,229,.07); }
+        .ebat-item .ebat-format { font-weight: 700; color: var(--sm-text); display: block; }
+        .ebat-item .ebat-px { color: var(--sm-accent); font-weight: 600; }
+        .ebat-item .ebat-oran { color: var(--sm-muted); font-size: .72rem; }
+        .ebat-ipucu { font-size: .75rem; color: var(--sm-muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--sm-border); }
+
         /* ── Yükle alanı ── */
         .yukle-alan {
             border: 2px dashed var(--sm-border); border-radius: 12px; padding: 32px 20px;
@@ -470,6 +487,14 @@
 
                 {{-- Yükle Paneli --}}
                 <div id="panelYukle" class="gorsel-panel" style="display:none;">
+
+                    {{-- Boyut Bilgi Kartı --}}
+                    <div class="ebat-kart" id="ebatKart">
+                        <div class="ebat-platform" id="ebatPlatform"></div>
+                        <div class="ebat-grid" id="ebatGrid"></div>
+                        <div class="ebat-ipucu" id="ebatIpucu"></div>
+                    </div>
+
                     <div class="yukle-alan" id="yukleDrop"
                         onclick="document.getElementById('gorselDosya').click()"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
@@ -779,6 +804,7 @@ function updateLimit() {
     curFormat = document.getElementById('formatSel').value;
     curLimit  = (LIMITLER[curPlatform] && LIMITLER[curPlatform][curFormat]) || 3000;
     updateMeter(sonIcerik ? sonIcerik.length : 0);
+    updateEbat(); // yükleme paneli açıksa boyutları güncelle
 }
 
 // ── Görsel toggle ─────────────────────────────────────────────────────────
@@ -891,6 +917,69 @@ function kopyala() {
     navigator.clipboard.writeText(txt).then(() => toast('İçerik kopyalandı!'));
 }
 
+// ── Platform görsel boyutları ─────────────────────────────────────────────
+const EBATLAR = {
+    facebook: {
+        renk: '#1877F2',
+        formatlar: {
+            durum:           { label: 'Durum / Gönderi', px: '1200 × 630', oran: '1.91:1', dosya: 'JPG/PNG', max: '8 MB', ipucu: 'Yatay dikdörtgen. Mobilde kırpılabilir, önemli alanı ortada tut.' },
+            gorsel_aciklama: { label: 'Görsel Açıklaması', px: '1200 × 630', oran: '1.91:1', dosya: 'JPG/PNG', max: '8 MB', ipucu: 'Paylaşımda bağlantı önizlemesi olarak görünür.' },
+            reels:           { label: 'Reels', px: '1080 × 1920', oran: '9:16', dosya: 'MP4/MOV', max: '4 GB', sure: 'Maks. 90 sn', ipucu: 'Dikey tam ekran video. Alt/üst ~15% güvenli alan bırak.' },
+            hikaye:          { label: 'Hikaye', px: '1080 × 1920', oran: '9:16', dosya: 'JPG/PNG/MP4', max: '4 GB', sure: 'Fotoğraf 5 sn / Video 60 sn', ipucu: 'Alt %20 ve üst %10 çıkartma/profil alanı — önemli içeriği ortada tut.' },
+        },
+        genel: 'Facebook görselleri JPEG veya PNG olmalı. Metin alanı görselin %20\'sini geçmemeli.'
+    },
+    instagram: {
+        renk: '#E1306C',
+        formatlar: {
+            akis:   { label: 'Akış (Feed) — Kare',    px: '1080 × 1080', oran: '1:1',   dosya: 'JPG/PNG', max: '8 MB', ipucu: 'En evrensel format. Profilde kare görünür.' },
+            reels:  { label: 'Reels',                  px: '1080 × 1920', oran: '9:16',  dosya: 'MP4/MOV', max: '4 GB', sure: 'Maks. 90 sn', ipucu: 'Dikey video. Üst %15 ve alt %20 güvenli alan bırak (profil/buton alanı).' },
+            hikaye: { label: 'Hikaye',                 px: '1080 × 1920', oran: '9:16',  dosya: 'JPG/PNG/MP4', max: '4 GB', sure: 'Fotoğraf 7 sn / Video 60 sn', ipucu: 'Feed\'den farklı: yatay (4:5) veya dikey (9:16) de paylaşılabilir.' },
+        },
+        genel: 'Instagram sRGB renk uzayını tercih eder. CMYK görseller soluk görünebilir.'
+    },
+    linkedin: {
+        renk: '#0A66C2',
+        formatlar: {
+            gonderi: { label: 'Gönderi',              px: '1200 × 627',  oran: '1.91:1', dosya: 'JPG/PNG/GIF', max: '5 MB', ipucu: 'Profesyonel yatay format. Logolu kurumsal görseller için ideal.' },
+            makale:  { label: 'Makale Kapak Görseli', px: '1920 × 1080', oran: '16:9',  dosya: 'JPG/PNG', max: '5 MB', ipucu: 'Makale başlık görseli. Geniş ve net bir kompozisyon seç.' },
+        },
+        genel: 'LinkedIn\'de görseller otomatik sıkıştırılır. Yüksek kaliteli PNG yükle.'
+    },
+    x: {
+        renk: '#14171A',
+        formatlar: {
+            tweet:  { label: 'Tweet Görseli', px: '1600 × 900', oran: '16:9', dosya: 'JPG/PNG/GIF/WEBP', max: '5 MB', ipucu: 'Zaman tünelinde 16:9 kırpılır. Önemli alan ortada olsun.' },
+            thread: { label: 'Thread Görseli', px: '1600 × 900', oran: '16:9', dosya: 'JPG/PNG/GIF/WEBP', max: '5 MB', ipucu: 'Her tweete ayrı görsel eklenebilir. Seri görseller için tutarlı stil kullan.' },
+        },
+        genel: 'X animasyonlu GIF destekler (max 5 MB). MP4 video: maks. 2 dakika 20 sn.'
+    },
+};
+
+function updateEbat() {
+    const kart = document.getElementById('ebatKart');
+    if (!kart) return;
+    const pData = EBATLAR[curPlatform];
+    if (!pData) return;
+
+    document.getElementById('ebatPlatform').innerHTML =
+        `<i class="${pfIcon(curPlatform)}" style="color:${pData.renk}"></i>&nbsp; ${pfLabel(curPlatform)} — Önerilen Görsel Boyutları`;
+
+    const grid = document.getElementById('ebatGrid');
+    grid.innerHTML = Object.entries(pData.formatlar).map(([key, f]) => {
+        const aktif = key === curFormat;
+        return `<div class="ebat-item${aktif ? ' aktif' : ''}">
+            <span class="ebat-format">${f.label}</span>
+            <span class="ebat-px">${f.px} px</span>
+            <span class="ebat-oran">${f.oran}${f.sure ? ' · ' + f.sure : ''} · ${f.dosya} · Max ${f.max}</span>
+        </div>`;
+    }).join('');
+
+    const aktifFormat = pData.formatlar[curFormat] || Object.values(pData.formatlar)[0];
+    document.getElementById('ebatIpucu').innerHTML =
+        `💡 <strong>Seçili format:</strong> ${aktifFormat.ipucu} &nbsp;|&nbsp; ${pData.genel}`;
+}
+
 // ── Görsel mod geçiş ─────────────────────────────────────────────────────
 let gorselMod = 'ai'; // 'ai' | 'yukle'
 
@@ -900,7 +989,7 @@ function switchGorselMod(mod) {
     document.getElementById('panelYukle').style.display = mod === 'yukle' ? 'block' : 'none';
     document.getElementById('modAiBtn').classList.toggle('active',    mod === 'ai');
     document.getElementById('modYukleBtn').classList.toggle('active', mod === 'yukle');
-    // Önizlemeyi temizle
+    if (mod === 'yukle') updateEbat();
     gorselTemizle();
 }
 
