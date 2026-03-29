@@ -59,7 +59,8 @@ class TuraiController extends Controller
     // ── Bağlam oluşturucu ──────────────────────────────────────────────────────
     private function buildContext(GrupTalep $talep, $digerTalepler): string
     {
-        $now = Carbon::now('Europe/Istanbul');
+        $user = auth()->user();
+        $now  = Carbon::now('Europe/Istanbul');
 
         // ── Şirket/iletişim/banka bilgileri ──
         $sirketUnvan  = SistemAyar::get('sirket_unvan', 'Grup Talepleri Turizm San. ve Tic. Ltd. Şti.');
