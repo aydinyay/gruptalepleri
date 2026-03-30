@@ -133,7 +133,7 @@ class TuraiController extends Controller
     // ── Bağlam oluşturucu ──────────────────────────────────────────────────────
     private function buildContext(GrupTalep $talep, $digerTalepler): string
     {
-        $user = auth()->user();
+        $user = $this->acenteActor();
         $now  = Carbon::now('Europe/Istanbul');
 
         // ── Şirket/iletişim/banka bilgileri ──
