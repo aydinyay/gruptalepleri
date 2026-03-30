@@ -193,7 +193,11 @@
                             <button type="submit" class="btn btn-primary">Güncelle</button>
                         </div>
                         <div class="mt-2 pt-2 border-top">
-                            <div class="small fw-semibold mb-1 text-muted">Bildirimler:</div>
+                            <div class="small fw-semibold mb-1 text-muted d-flex align-items-center gap-2">
+                                <span>Bildirimler:</span>
+                                <a href="#" class="text-primary fw-normal" id="status-notif-hepsini-sec" onclick="statusNotifHepsiniSec(event)">Hepsini Seç</a>
+                                <a href="#" class="text-secondary fw-normal d-none" id="status-notif-hepsini-kaldir" onclick="statusNotifHepsiniKaldir(event)">Seçimi Kaldır</a>
+                            </div>
                             <div class="d-flex flex-wrap gap-3 mb-1">
                                 <div class="form-check">
                                     <input class="form-check-input status-notif-check" type="checkbox" name="notify_email_acente" value="1" id="status-notif-email">
@@ -1395,7 +1399,7 @@ document.querySelectorAll('.status-notif-check').forEach(function(cb) {
     });
 });
 
-// ── Hepsini Seç / Seçimi Kaldır ──
+// ── Hepsini Seç / Seçimi Kaldır (teklif formu) ──
 function notifHepsiniSec(e) {
     e.preventDefault();
     document.querySelectorAll('.notif-check').forEach(function(cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); });
@@ -1407,6 +1411,20 @@ function notifHepsiniKaldir(e) {
     document.querySelectorAll('.notif-check').forEach(function(cb) { cb.checked = false; cb.dispatchEvent(new Event('change')); });
     document.getElementById('notif-hepsini-kaldir').classList.add('d-none');
     document.getElementById('notif-hepsini-sec').classList.remove('d-none');
+}
+
+// ── Hepsini Seç / Seçimi Kaldır (durum formu) ──
+function statusNotifHepsiniSec(e) {
+    e.preventDefault();
+    document.querySelectorAll('.status-notif-check').forEach(function(cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); });
+    document.getElementById('status-notif-hepsini-sec').classList.add('d-none');
+    document.getElementById('status-notif-hepsini-kaldir').classList.remove('d-none');
+}
+function statusNotifHepsiniKaldir(e) {
+    e.preventDefault();
+    document.querySelectorAll('.status-notif-check').forEach(function(cb) { cb.checked = false; cb.dispatchEvent(new Event('change')); });
+    document.getElementById('status-notif-hepsini-kaldir').classList.add('d-none');
+    document.getElementById('status-notif-hepsini-sec').classList.remove('d-none');
 }
 
 /* ── Depozito % ↔ Tutar Dinamik Hesaplama ───────────────────────────── */
