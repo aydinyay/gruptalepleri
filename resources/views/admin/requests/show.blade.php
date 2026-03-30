@@ -193,11 +193,22 @@
                             <button type="submit" class="btn btn-primary">Güncelle</button>
                         </div>
                         <div class="mt-2 pt-2 border-top">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="notify_email_acente" value="1" id="status-notif-email">
-                                <label class="form-check-label small" for="status-notif-email">E-posta gönder — Acente</label>
+                            <div class="small fw-semibold mb-1 text-muted">Bildirimler:</div>
+                            <div class="d-flex flex-wrap gap-3 mb-1">
+                                <div class="form-check">
+                                    <input class="form-check-input status-notif-check" type="checkbox" name="notify_email_acente" value="1" id="status-notif-email">
+                                    <label class="form-check-label small" for="status-notif-email">E-posta</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input status-notif-check" type="checkbox" name="notify_sms_acente" value="1" id="status-notif-sms">
+                                    <label class="form-check-label small" for="status-notif-sms">SMS</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input status-notif-check" type="checkbox" name="notify_push_acente" value="1" id="status-notif-push">
+                                    <label class="form-check-label small" for="status-notif-push">Push</label>
+                                </div>
                             </div>
-                            <div class="text-muted small mt-1" id="status-notif-info">
+                            <div class="text-muted small" id="status-notif-info">
                                 <i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek
                             </div>
                         </div>
@@ -233,27 +244,38 @@
                 </div>
             </div>
 
-            {{-- SMS Bildirimleri --}}
+            {{-- SMS & Email Bildirimleri --}}
             @if($talep->notifications->isNotEmpty())
             <div class="card">
                 <div class="card-header py-2 fw-semibold d-flex justify-content-between">
-                    <span>📲 SMS Bildirimleri</span>
+                    <span>📲 SMS & Email Bildirimleri</span>
                     <span class="badge bg-secondary">{{ $talep->notifications->count() }}</span>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-sm table-hover mb-0 small">
                         <thead class="table-light">
-                            <tr><th>Tarih</th><th>Alıcı</th><th>Durum</th><th>Mesaj</th></tr>
+                            <tr><th>Tarih</th><th>Kanal</th><th>Alıcı</th><th>Durum</th><th>Mesaj</th></tr>
                         </thead>
                         <tbody>
-                            @foreach($talep->notifications as $notif)
+                            @foreach($talep->notifications->sortByDesc('created_at') as $notif)
                             <tr>
                                 <td class="text-nowrap">{{ $notif->created_at->format('d.m H:i') }}</td>
                                 <td>
-                                    @if($notif->recipient === 'admin')
-                                        <span class="badge bg-dark" style="font-size:.65rem;">Admin</span>
+                                    @if($notif->channel === 'sms')
+                                        <span class="badge bg-warning text-dark" style="font-size:.65rem;">SMS</span>
+                                    @elseif($notif->channel === 'email')
+                                        <span class="badge bg-primary" style="font-size:.65rem;">Email</span>
+                                    @elseif($notif->channel === 'push')
+                                        <span class="badge bg-success" style="font-size:.65rem;">Push</span>
                                     @else
-                                        <span class="badge bg-info text-dark" style="font-size:.65rem;">{{ $notif->recipient_name }}</span>
+                                        <span class="badge bg-secondary" style="font-size:.65rem;">{{ $notif->channel }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($notif->recipient === 'admin')
+                                        <span class="text-muted small">Admin</span>
+                                    @else
+                                        <span class="small">{{ Str::limit($notif->recipient_name, 20) }}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -261,7 +283,9 @@
                                     @elseif($notif->status === 'failed')<span class="badge bg-danger" style="font-size:.65rem;">✗</span>
                                     @else<span class="badge bg-secondary" style="font-size:.65rem;">?</span>@endif
                                 </td>
-                                <td class="text-muted" style="max-width:160px;white-space:normal;font-size:.72rem;">{{ Str::limit($notif->message, 80) }}</td>
+                                <td class="text-muted" style="max-width:160px;white-space:normal;font-size:.72rem;">
+                                    {{ Str::limit(strip_tags($notif->message), 80) }}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -405,9 +429,10 @@
                                 <input type="hidden" name="p_type" id="f-p-type">
                                 <div class="col-12">
                                     <div class="border rounded p-2 bg-light">
-                                        <div class="small fw-semibold mb-2">
-                                            <i class="fas fa-bell me-1"></i>Bildirimler
-                                            <span class="text-muted fw-normal">(varsayılan: hiçbiri)</span>
+                                        <div class="small fw-semibold mb-2 d-flex align-items-center gap-3">
+                                            <span><i class="fas fa-bell me-1"></i>Bildirimler</span>
+                                            <a href="#" class="small text-primary fw-normal" id="notif-hepsini-sec" onclick="notifHepsiniSec(event)">Hepsini Seç</a>
+                                            <a href="#" class="small text-secondary fw-normal d-none" id="notif-hepsini-kaldir" onclick="notifHepsiniKaldir(event)">Seçimi Kaldır</a>
                                         </div>
                                         <div class="d-flex flex-wrap gap-3">
                                             <div class="form-check">
@@ -1356,15 +1381,32 @@ document.querySelectorAll('.notif-check').forEach(function(cb) {
 });
 
 // ── Bildirim checkbox özeti (durum formu) ──
-var statusNotifEmail = document.getElementById('status-notif-email');
-if (statusNotifEmail) {
-    statusNotifEmail.addEventListener('change', function() {
+document.querySelectorAll('.status-notif-check').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        var secililer = Array.from(document.querySelectorAll('.status-notif-check:checked'))
+            .map(function(c) { return c.nextElementSibling.textContent.trim(); });
         var info = document.getElementById('status-notif-info');
         if (!info) return;
-        info.innerHTML = this.checked
-            ? '<i class="fas fa-envelope me-1 text-primary"></i>E-posta gönderilecek'
-            : '<i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek';
+        if (secililer.length === 0) {
+            info.innerHTML = '<i class="fas fa-bell-slash me-1"></i>Bildirim gönderilmeyecek';
+        } else {
+            info.innerHTML = '<i class="fas fa-bell me-1 text-primary"></i>Gönderilecek: <strong>' + secililer.join(', ') + '</strong>';
+        }
     });
+});
+
+// ── Hepsini Seç / Seçimi Kaldır ──
+function notifHepsiniSec(e) {
+    e.preventDefault();
+    document.querySelectorAll('.notif-check').forEach(function(cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); });
+    document.getElementById('notif-hepsini-sec').classList.add('d-none');
+    document.getElementById('notif-hepsini-kaldir').classList.remove('d-none');
+}
+function notifHepsiniKaldir(e) {
+    e.preventDefault();
+    document.querySelectorAll('.notif-check').forEach(function(cb) { cb.checked = false; cb.dispatchEvent(new Event('change')); });
+    document.getElementById('notif-hepsini-kaldir').classList.add('d-none');
+    document.getElementById('notif-hepsini-sec').classList.remove('d-none');
 }
 
 /* ── Depozito % ↔ Tutar Dinamik Hesaplama ───────────────────────────── */

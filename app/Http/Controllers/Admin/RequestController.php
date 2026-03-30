@@ -231,8 +231,18 @@ class RequestController extends Controller
             'user_id'     => auth()->id(),
         ]);
 
+        $acenteUrl = route('acente.requests.show', $talep->gtpnr);
+
+        if ($request->boolean('notify_push_acente') && $talep->user_id) {
+            (new NotificationService())->durumDegisti($talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
+        }
+
+        if ($request->boolean('notify_sms_acente')) {
+            $smsMsg = $talep->gtpnr . ' numaralı talebinizin durumu güncellendi: ' . $yeniDurum . '. Detaylar için sisteme giriş yapınız.';
+            (new SmsService())->send($talep->id, 'acente', $talep->agency_name, $talep->phone, $smsMsg);
+        }
+
         if ($request->boolean('notify_email_acente') && $talep->user_id) {
-            $acenteUrl = route('acente.requests.show', $talep->gtpnr);
             (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
         }
 

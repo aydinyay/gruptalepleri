@@ -79,6 +79,17 @@ class NotificationService
         );
     }
 
+    public function durumDegisti(int $agencyUserId, string $gtpnr, string $eskiDurum, string $yeniDurum, string $url): void
+    {
+        $this->createForUser(
+            $agencyUserId,
+            'durum_degisti',
+            'Talep Durumu Güncellendi',
+            "{$gtpnr} talebinizin durumu güncellendi: {$yeniDurum}.",
+            $url
+        );
+    }
+
     public function teklifEklendi(int $agencyUserId, string $gtpnr, string $airline, string $url): void
     {
         $this->createForUser(
