@@ -219,14 +219,19 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             </button>
                         </div>
                         <div class="fw-bold small" id="secimSayaci">0 acente seçili</div>
+                        <div class="ms-auto d-flex gap-2">
                         @if($kalanHak > 0)
-                        <button type="submit" class="btn btn-sm ms-auto" style="background:#e94560;color:#fff;"
+                        <button type="submit" class="btn btn-sm" style="background:#e94560;color:#fff;"
                                 id="gonderBtn" onclick="return davetOnayla()">
-                            <i class="fas fa-paper-plane me-1"></i>Seçililere Davet Gönder
+                            <i class="fas fa-paper-plane me-1"></i>Davet Emaili Gönder
                         </button>
                         @else
-                        <span class="ms-auto text-danger small fw-bold">Günlük limit doldu</span>
+                        <span class="text-danger small fw-bold">Günlük limit doldu</span>
                         @endif
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="smsPanelAc()">
+                            <i class="fas fa-mobile-alt me-1"></i>SMS Gönder
+                        </button>
+                        </div>
                     </div>
                 </div>
 
@@ -257,7 +262,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                 <tr class="acente-row" id="row-{{ $a->id }}">
                                     <td>
                                         <input type="checkbox" name="secilen[]" class="acente-cb"
-                                               value="{{ $a->eposta }}||{{ $a->acente_unvani }}||{{ $a->belge_no }}||{{ $a->il }}"
+                                               value="{{ $a->eposta }}||{{ $a->acente_unvani }}||{{ $a->belge_no }}||{{ $a->il }}||{{ $a->telefon }}"
                                                onchange="secimGuncelle(this)">
                                     </td>
                                     <td>
@@ -952,6 +957,38 @@ function bkSifirla() {
 }
 </script>
 
+<!-- SMS MODAL -->
+<div class="modal fade" id="smsModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold mb-0"><i class="fas fa-mobile-alt me-2 text-success"></i>Toplu SMS Gönder</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info py-2 small mb-3" id="smsBilgi">
+          Seçilen <strong id="smsSecilenSayi">0</strong> acente içinde
+          <strong id="smsTelefonluSayi">0</strong> tanesinin telefon numarası var.
+        </div>
+        <label class="form-label small fw-bold">SMS Metni <span class="text-muted fw-normal">(maks. 160 karakter)</span></label>
+        <textarea name="sms_mesaj" id="smsMesaj" class="form-control" rows="4" maxlength="160"
+            form="davetForm">GrupTalepleri.com'a davetlisiniz! Grup uçuş, charter ve transfer taleplerini tek platformda yönetin. Ücretsiz kayıt: gruptalepleri.com</textarea>
+        <div class="d-flex justify-content-end mt-1">
+          <small id="smsSayac" class="text-muted">0/160</small>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">İptal</button>
+        <button type="submit" form="davetForm"
+                formaction="{{ route('superadmin.tursab.toplu-sms') }}"
+                class="btn btn-success btn-sm" onclick="return smsOnayla()">
+          <i class="fas fa-paper-plane me-1"></i>SMS Gönder
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- AI ÖNİZLEME MODAL -->
 <div class="modal fade" id="aiOnizleModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -1050,6 +1087,43 @@ function aiYukle() {
 }
 
 function aiYenidenUret() { aiYukle(); }
+
+/* ── SMS ──────────────────────────────────────────────────── */
+function smsPanelAc() {
+    const secili = document.querySelectorAll('.acente-cb:checked');
+    if (secili.length === 0) { alert('Lütfen en az bir acente seçin.'); return; }
+
+    let telefonlu = 0;
+    secili.forEach(cb => {
+        const parts = cb.value.split('||');
+        if (parts[4] && parts[4].trim()) telefonlu++;
+    });
+
+    document.getElementById('smsSecilenSayi').textContent  = secili.length;
+    document.getElementById('smsTelefonluSayi').textContent = telefonlu;
+
+    const ta = document.getElementById('smsMesaj');
+    document.getElementById('smsSayac').textContent = ta.value.length + '/160';
+
+    new bootstrap.Modal(document.getElementById('smsModal')).show();
+}
+
+function smsOnayla() {
+    const mesaj = document.getElementById('smsMesaj').value.trim();
+    if (!mesaj) { alert('SMS metni boş olamaz.'); return false; }
+    const telefonlu = parseInt(document.getElementById('smsTelefonluSayi').textContent, 10);
+    if (telefonlu === 0) { alert('Seçili acentelerin hiçbirinin telefon numarası yok.'); return false; }
+    return confirm(telefonlu + ' acenteye SMS gönderilecek. Devam edilsin mi?');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const ta = document.getElementById('smsMesaj');
+    if (ta) {
+        ta.addEventListener('input', function() {
+            document.getElementById('smsSayac').textContent = this.value.length + '/160';
+        });
+    }
+});
 
 function aiTekGonder() {
     if (!confirm(aiOnizleData.unvan + ' adresine (' + aiOnizleData.eposta + ') davet gönderilsin mi?')) return;

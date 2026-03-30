@@ -196,7 +196,7 @@ class TursabController extends Controller
         $basarisiz = 0;
 
         foreach ($secilen as $item) {
-            [$eposta, $acenteAdi, $belgeNo, $il] = array_pad(explode('||', $item, 4), 4, '');
+            [$eposta, $acenteAdi, $belgeNo, $il] = array_pad(explode('||', $item, 5), 4, '');
 
             if (!filter_var($eposta, FILTER_VALIDATE_EMAIL)) continue;
             // Non-ASCII local-part içeren adresler Laravel Mail tarafından reddedilir
@@ -236,6 +236,75 @@ class TursabController extends Controller
         if ($basarisiz) $msg .= " {$basarisiz} adet gönderilemedi.";
 
         return back()->with('success', $msg);
+    }
+
+    /**
+     * Superadmin — Toplu SMS gönder (kampanya sayfasından).
+     */
+    public function topluSms(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $secilen = $request->input('secilen', []);
+        $mesaj   = trim($request->input('sms_mesaj', ''));
+
+        if (empty($secilen)) {
+            return back()->with('error', 'Hiç acente seçilmedi.');
+        }
+        if (!$mesaj) {
+            return back()->with('error', 'SMS metni boş olamaz.');
+        }
+        if (mb_strlen($mesaj) > 160) {
+            return back()->with('error', 'SMS metni 160 karakteri geçemez.');
+        }
+
+        $smsService = app(\App\Services\SmsService::class);
+        $basarili   = 0;
+        $atlandi    = 0;
+
+        foreach ($secilen as $item) {
+            [$eposta, $acenteAdi, $belgeNo, $il, $telefon] = array_pad(explode('||', $item, 5), 5, '');
+
+            $telefon = $this->normalizeTelefon($telefon);
+            if (!$telefon) { $atlandi++; continue; }
+
+            try {
+                $smsService->send(null, 'acente', $acenteAdi, $telefon, $mesaj);
+                $basarili++;
+            } catch (\Throwable) {
+                $atlandi++;
+            }
+        }
+
+        $msg = "{$basarili} acenteye SMS gönderildi.";
+        if ($atlandi) $msg .= " {$atlandi} adet atlandı (telefon yok veya geçersiz format).";
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Türk cep numarasını normalize eder. Geçersizse '' döner.
+     * Çıktı: 11 haneli 0XXXXXXXXXX formatı (toplusmsyolla için).
+     */
+    private function normalizeTelefon(string $telefon): string
+    {
+        $digits = preg_replace('/[^0-9]/', '', $telefon);
+        if (!$digits) return '';
+
+        // +905XXXXXXXXX (12 hane, +90 ile başlayan)
+        if (strlen($digits) === 12 && str_starts_with($digits, '90')) {
+            return '0' . substr($digits, 2); // 0XXXXXXXXXX
+        }
+        // 05XXXXXXXXX (11 hane, 0 ile başlayan)
+        if (strlen($digits) === 11 && str_starts_with($digits, '05')) {
+            return $digits;
+        }
+        // 5XXXXXXXXX (10 hane)
+        if (strlen($digits) === 10 && str_starts_with($digits, '5')) {
+            return '0' . $digits;
+        }
+
+        return '';
     }
 
     /**

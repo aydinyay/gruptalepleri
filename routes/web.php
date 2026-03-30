@@ -472,6 +472,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/tursab-davet', [\App\Http\Controllers\TursabController::class, 'davetGonder'])->name('tursab.davet');
     Route::get('/tursab-kampanya', [\App\Http\Controllers\TursabController::class, 'kampanya'])->name('tursab.kampanya');
     Route::post('/tursab-toplu-davet', [\App\Http\Controllers\TursabController::class, 'topluDavet'])->name('tursab.toplu-davet');
+    Route::post('/tursab-toplu-sms',   [\App\Http\Controllers\TursabController::class, 'topluSms'])->name('tursab.toplu-sms');
     Route::post('/tursab-scrape-start', [\App\Http\Controllers\TursabController::class, 'scrapeStart'])->name('tursab.scrape.start');
     Route::get('/tursab-scrape-status', [\App\Http\Controllers\TursabController::class, 'scrapeStatus'])->name('tursab.scrape.status');
     Route::post('/tursab-manuel-ekle', [\App\Http\Controllers\TursabController::class, 'manuelEkle'])->name('tursab.manuel-ekle');
