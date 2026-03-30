@@ -30,7 +30,7 @@ class AcenelerSyncCommand extends Command
     private const BASE_URL  = 'https://yatirimisletmeleruygulama.kultur.gov.tr';
     private const SORGU_URL = self::BASE_URL . '/acente.web.sorgu/sorgu/acentesorgu';
     private const JSON_URL  = self::BASE_URL . '/Acente.Web.Sorgu/Sorgu/AcentelerSearchJson';
-    private const END_NO    = 18821;
+    private const END_NO    = 20000;
 
     // SistemAyar keys
     private const SK_STATUS  = 'acente_sync_status';
