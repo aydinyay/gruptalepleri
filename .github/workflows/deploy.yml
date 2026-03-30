@@ -30,11 +30,13 @@ jobs:
 
           for FILE in $FILES; do
             if [ -f "$FILE" ]; then
-              CONTENT=$(base64 -w 0 "$FILE")
+              TMPFILE=$(mktemp)
+              base64 -w 0 "$FILE" > "$TMPFILE"
               RESP=$(curl -sf --max-time 60 --connect-timeout 15 -X POST "$HOOK" \
                 -F "t=$TOKEN" \
                 -F "p=$FILE" \
-                -F "c=$CONTENT")
+                -F "c=<$TMPFILE")
+              rm -f "$TMPFILE"
               echo "$FILE: $RESP"
             fi
           done
