@@ -12,9 +12,14 @@ use Illuminate\Support\Facades\Route;
 // ── Migration Runner (GEÇİCİ — kullandıktan sonra sil) ──
 Route::get('/run-migrate-grt2026', function () {
     if (request('t') !== 'grtmigrate2026') abort(403);
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return response(\Illuminate\Support\Facades\Artisan::output())
-        ->header('Content-Type', 'text/plain');
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response("OK\n\n" . $output)->header('Content-Type', 'text/plain');
+    } catch (\Throwable $e) {
+        return response("HATA: " . $e->getMessage() . "\n\n" . $e->getTraceAsString())
+            ->header('Content-Type', 'text/plain');
+    }
 });
 
 // ── Git Pull (deploy, token korumalı) ──
