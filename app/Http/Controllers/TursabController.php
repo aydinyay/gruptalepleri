@@ -199,6 +199,9 @@ class TursabController extends Controller
             [$eposta, $acenteAdi, $belgeNo, $il] = array_pad(explode('||', $item, 4), 4, '');
 
             if (!filter_var($eposta, FILTER_VALIDATE_EMAIL)) continue;
+            // Non-ASCII local-part içeren adresler Laravel Mail tarafından reddedilir
+            $localPart = explode('@', $eposta)[0] ?? '';
+            if (!preg_match('/^[\x20-\x7E]+$/', $localPart)) continue;
 
             // Daha önce gönderildi mi?
             if ($tableExists && TursabDavet::whereRaw('LOWER(eposta) = ?', [strtolower($eposta)])->exists()) continue;
@@ -334,6 +337,12 @@ class TursabController extends Controller
      */
     private function gonder(string $email, string $acenteAdi, string $belgeNo = '', string $sablon = 'emails.tursab_davet', string $aiParagraf = ''): void
     {
+        // Non-ASCII karakter içeren email adresleri reddedilir (local-part kısmı)
+        $localPart = explode('@', $email)[0] ?? '';
+        if (!preg_match('/^[\x20-\x7E]+$/', $localPart)) {
+            throw new \InvalidArgumentException("Geçersiz email adresi (ASCII dışı karakter): {$email}");
+        }
+
         $konu = $sablon === 'emails.tursab_davet_yeni_acente'
             ? 'Hayırlı Olsun! GrupTalepleri\'nden tebrikler 🎉'
             : 'GrupTalepleri.com — Platforma Davet';
