@@ -215,6 +215,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
     });
 
+    Route::post('/davet-ai-onizle', [\App\Http\Controllers\TursabController::class, 'davetAiOnizle'])->name('davet.ai.onizle');
+
     Route::get('/davet-onizleme-yeni', function () {
         return view('emails.tursab_davet_yeni_acente', [
             'acenteUnvani' => 'MAYA GLOBAL DMC TRAVEL AGENCY',

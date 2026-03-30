@@ -40,13 +40,19 @@
         Sayın {{ $acenteUnvani }},
       </div>
 
-      <!-- Açılış -->
+      <!-- Açılış — AI kişisel paragraf veya varsayılan -->
+      @if(!empty($aiParagraf))
+      <p style="font-size:15px;color:#495057;line-height:1.75;margin:0 0 24px;">
+        {!! nl2br(e($aiParagraf)) !!}
+      </p>
+      @else
       <p style="font-size:15px;color:#495057;line-height:1.75;margin:0 0 16px;">
         Yeni belge no'nuzla <strong>TÜRSAB & T.C. Kültür ve Turizm Bakanlığı</strong> kaydınızı tamamladığınızı görüyoruz.
       </p>
       <p style="font-size:15px;color:#0f2544;font-weight:700;line-height:1.75;margin:0 0 24px;">
         Bu, sektördeki en önemli adımdır.
       </p>
+      @endif
 
       <!-- Soru kutusu -->
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">

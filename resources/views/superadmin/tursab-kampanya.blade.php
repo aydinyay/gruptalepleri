@@ -249,6 +249,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                     <th>Grup</th>
                                     <th>İl / İlçe</th>
                                     <th>E-posta</th>
+                                    <th width="60"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -269,9 +270,22 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                     <td><span class="badge bg-primary">{{ $a->grup }}</span></td>
                                     <td><span class="badge-il">{{ $a->il_ilce ?: $a->il }}</span></td>
                                     <td style="font-size:0.8rem;">{{ $a->eposta }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 onizle-btn"
+                                                data-unvan="{{ $a->acente_unvani }}"
+                                                data-ticari="{{ $a->ticari_unvan }}"
+                                                data-il="{{ $a->il }}"
+                                                data-ilce="{{ $a->il_ilce }}"
+                                                data-eposta="{{ $a->eposta }}"
+                                                data-belge="{{ $a->belge_no }}"
+                                                data-grup="{{ $a->grup }}"
+                                                title="AI önizle">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="6" class="text-center text-muted py-4">Sonuç bulunamadı.</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted py-4">Sonuç bulunamadı.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -935,6 +949,135 @@ function bkSifirla() {
         method: 'POST',
         body: new URLSearchParams({ _token: CSRF_TOKEN, reset: '1', start: startVal, batch: '1' })
     }).then(r => r.json()).then(d => { bkGoster(d); bkLog('Sıfırlandı — ' + startVal + "'den başlayacak.", 'text-warning'); });
+}
+</script>
+
+<!-- AI ÖNİZLEME MODAL -->
+<div class="modal fade" id="aiOnizleModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold mb-0" id="aiOnizleBaslik">Email Önizleme</h6>
+        <div class="ms-auto d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="aiYenidenUretBtn" onclick="aiYenidenUret()">
+                <i class="fas fa-sync-alt me-1"></i>Yeniden Üret
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" id="aiGonderBtn" onclick="aiTekGonder()">
+                <i class="fas fa-paper-plane me-1"></i>Bu İçerikle Gönder
+            </button>
+            <button type="button" class="btn-close ms-2" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0">
+        <div id="aiOnizleLoading" class="text-center py-5">
+            <div class="spinner-border text-primary mb-3"></div>
+            <div class="text-muted small">AI kişiselleştirme üretiliyor…</div>
+        </div>
+        <div id="aiOnizleIcerik" style="display:none;">
+            <div class="p-2 border-bottom bg-light d-flex align-items-center gap-3">
+                <span class="small text-muted">Konu:</span>
+                <span class="small fw-bold" id="aiOnizleKonu"></span>
+                <span class="ms-auto small text-muted">AI paragrafı:</span>
+                <span class="small fst-italic text-primary" id="aiOnizleParagraf" style="max-width:400px;"></span>
+            </div>
+            <iframe id="aiOnizleFrame" style="width:100%;height:600px;border:none;"></iframe>
+        </div>
+        <div id="aiOnizleHata" class="text-center py-5 text-danger" style="display:none;">
+            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+            <div id="aiOnizleHataMesaj"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AI_ONIZLE_URL = '{{ route("superadmin.davet.ai.onizle") }}';
+const DAVET_GONDER_URL = '{{ route("superadmin.tursab.davet") }}';
+let aiOnizleData = {};
+let aiOnizleSablon = 'emails.tursab_davet';
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.onizle-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            aiOnizleData = {
+                unvan  : this.dataset.unvan,
+                ticari : this.dataset.ticari,
+                il     : this.dataset.il,
+                ilce   : this.dataset.ilce,
+                eposta : this.dataset.eposta,
+                belge  : this.dataset.belge,
+                grup   : this.dataset.grup,
+            };
+            const radios = document.querySelectorAll('input[name="sablon"]');
+            radios.forEach(r => { if (r.checked) aiOnizleSablon = r.value; });
+            document.getElementById('aiOnizleBaslik').textContent = aiOnizleData.unvan;
+            aiYukle();
+            new bootstrap.Modal(document.getElementById('aiOnizleModal')).show();
+        });
+    });
+});
+
+function aiYukle() {
+    document.getElementById('aiOnizleLoading').style.display = '';
+    document.getElementById('aiOnizleIcerik').style.display  = 'none';
+    document.getElementById('aiOnizleHata').style.display    = 'none';
+    document.getElementById('aiGonderBtn').disabled = true;
+
+    fetch(AI_ONIZLE_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN': CSRF_TOKEN},
+        body: JSON.stringify({ ...aiOnizleData, sablon: aiOnizleSablon })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (!d.success) throw new Error(d.message || 'Hata');
+        document.getElementById('aiOnizleKonu').textContent     = d.konu;
+        document.getElementById('aiOnizleParagraf').textContent = d.paragraf;
+        const frame = document.getElementById('aiOnizleFrame');
+        frame.srcdoc = d.html;
+        document.getElementById('aiOnizleLoading').style.display = 'none';
+        document.getElementById('aiOnizleIcerik').style.display  = '';
+        document.getElementById('aiGonderBtn').disabled = false;
+        aiOnizleData._paragraf = d.paragraf;
+        aiOnizleData._konu     = d.konu;
+    })
+    .catch(e => {
+        document.getElementById('aiOnizleLoading').style.display  = 'none';
+        document.getElementById('aiOnizleHata').style.display     = '';
+        document.getElementById('aiOnizleHataMesaj').textContent  = e.message;
+    });
+}
+
+function aiYenidenUret() { aiYukle(); }
+
+function aiTekGonder() {
+    if (!confirm(aiOnizleData.unvan + ' adresine (' + aiOnizleData.eposta + ') davet gönderilsin mi?')) return;
+    document.getElementById('aiGonderBtn').disabled = true;
+    document.getElementById('aiGonderBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Gönderiliyor…';
+
+    fetch(DAVET_GONDER_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN': CSRF_TOKEN},
+        body: JSON.stringify({
+            eposta        : aiOnizleData.eposta,
+            acente_unvani : aiOnizleData.unvan,
+            belge_no      : aiOnizleData.belge,
+            sablon        : aiOnizleSablon,
+            ai_paragraf   : aiOnizleData._paragraf || '',
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            bootstrap.Modal.getInstance(document.getElementById('aiOnizleModal')).hide();
+            alert('✅ ' + d.message);
+        } else {
+            alert('❌ ' + d.message);
+            document.getElementById('aiGonderBtn').disabled = false;
+            document.getElementById('aiGonderBtn').innerHTML = '<i class="fas fa-paper-plane me-1"></i>Bu İçerikle Gönder';
+        }
+    });
 }
 </script>
 </body>

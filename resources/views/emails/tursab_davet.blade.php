@@ -41,6 +41,11 @@
       </div>
 
       <!-- Açılış -->
+      @if(!empty($aiParagraf))
+      <p style="font-size:15px;color:#495057;line-height:1.75;margin:0 0 16px;">
+        {!! nl2br(e($aiParagraf)) !!}
+      </p>
+      @endif
       <p style="font-size:15px;color:#495057;line-height:1.75;margin:0 0 28px;">
         TÜRSAB üyesi seyahat acentesi olarak <strong>GrupTalepleri.com</strong>'a özel davetlisiniz.<br>
         Grup uçuş taleplerini oluşturmak, teklifleri karşılaştırmak, ödeme ve operasyon sürecini

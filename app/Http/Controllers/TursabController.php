@@ -88,12 +88,17 @@ class TursabController extends Controller
             'acente_unvani' => 'required|string',
         ]);
 
-        $email     = $request->input('eposta');
-        $acenteAdi = $request->input('acente_unvani');
-        $belgeNo   = $request->input('belge_no', '');
+        $email      = $request->input('eposta');
+        $acenteAdi  = $request->input('acente_unvani');
+        $belgeNo    = $request->input('belge_no', '');
+        $aiParagraf = trim($request->input('ai_paragraf', ''));
+        $sablonlar  = ['emails.tursab_davet', 'emails.tursab_davet_yeni_acente'];
+        $sablon     = in_array($request->input('sablon'), $sablonlar)
+            ? $request->input('sablon')
+            : 'emails.tursab_davet';
 
         try {
-            $this->gonder($email, $acenteAdi, $belgeNo);
+            $this->gonder($email, $acenteAdi, $belgeNo, $sablon, $aiParagraf);
             return response()->json(['success' => true, 'message' => "{$acenteAdi} adresine davet gönderildi."]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Email gönderilemedi: ' . $e->getMessage()], 500);
@@ -231,18 +236,114 @@ class TursabController extends Controller
     }
 
     /**
+     * Superadmin — AI kişiselleştirme + email önizleme (JSON).
+     */
+    public function davetAiOnizle(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $unvan  = trim($request->input('unvan', ''));
+        $ticari = trim($request->input('ticari', ''));
+        $il     = trim($request->input('il', ''));
+        $ilce   = trim($request->input('ilce', ''));
+        $eposta = trim($request->input('eposta', ''));
+        $belge  = trim($request->input('belge', ''));
+        $grup   = trim($request->input('grup', ''));
+        $sablonlar = ['emails.tursab_davet', 'emails.tursab_davet_yeni_acente'];
+        $sablon = in_array($request->input('sablon'), $sablonlar)
+            ? $request->input('sablon')
+            : 'emails.tursab_davet';
+
+        // E-posta domain'inden marka ipucu
+        $domain = '';
+        if ($eposta && str_contains($eposta, '@')) {
+            $domain = explode('@', $eposta)[1] ?? '';
+            $domain = preg_replace('/\.(com|net|org|com\.tr|net\.tr|org\.tr|tr)$/i', '', $domain);
+        }
+
+        $paragraf = $this->aiKisiselParagraf($unvan, $ticari, $il, $ilce, $domain, $grup);
+
+        $konu = $sablon === 'emails.tursab_davet_yeni_acente'
+            ? 'Hayırlı Olsun! GrupTalepleri\'nden tebrikler 🎉'
+            : 'GrupTalepleri.com — Platforma Davet';
+
+        $html = \View::make($sablon, [
+            'acenteUnvani'   => $unvan,
+            'belgeNo'        => $belge,
+            'kayitUrl'       => route('register'),
+            'aiParagraf'     => $paragraf,
+        ])->render();
+
+        return response()->json([
+            'success'  => true,
+            'paragraf' => $paragraf,
+            'konu'     => $konu,
+            'html'     => $html,
+        ]);
+    }
+
+    /**
+     * Gemini ile acente için kişisel 2 cümle üretir. Hata varsa boş döner.
+     */
+    private function aiKisiselParagraf(string $unvan, string $ticari, string $il, string $ilce, string $domain, string $grup): string
+    {
+        $apiKey = (string) config('services.gemini.key', '');
+        if (!$apiKey) return '';
+
+        $model = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
+
+        $prompt = implode("\n", [
+            'Sen bir B2B email uzmanısın. Aşağıdaki seyahat acentesi verisine bakarak TAM OLARAK 2 cümle yaz.',
+            '',
+            'Veri:',
+            '- Acenta adı: ' . $unvan,
+            '- Ticari unvan: ' . ($ticari ?: '-'),
+            '- Şehir: ' . $il . ($ilce ? ' / ' . $ilce : ''),
+            '- Email domain: ' . ($domain ?: '-'),
+            '- TÜRSAB grubu: ' . ($grup ?: '-'),
+            '',
+            'KURALLAR (ihlal etme):',
+            '1. TAM OLARAK 2 cümle yaz. Ne fazla ne eksik.',
+            '2. Cümle 1: Acentanın adından, bulunduğu lokasyondan veya email domain\'inden somut bir gözlem.',
+            '   Eğer addan anlam çıkaramıyorsan şehri kullan.',
+            '3. Cümle 2: "GrupTalepleri bu alanda size doğrudan iş fırsatı sunar." ile bitir. Bu cümleyi değiştirme.',
+            '4. ASLA "düşünüyorum", "sanırım", "belki", "muhtemelen", "tahmin ediyorum" yazma.',
+            '5. ASLA spekülatif veya yanlış bilgi üretme.',
+            '6. Çıktı: Sadece düz metin. HTML yok, tırnak yok, madde işareti yok, açıklama yok.',
+            '7. Eğer anlamlı kişiselleştirme yapamıyorsan sadece şunu yaz: DEFAULT',
+        ]);
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(15)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                [
+                    'contents' => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => ['thinkingConfig' => ['thinkingBudget' => 0]],
+                ]
+            );
+            $text = trim((string) data_get($response->json(), 'candidates.0.content.parts.0.text', ''));
+            if (!$text || strtoupper($text) === 'DEFAULT') return '';
+            return $text;
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    /**
      * Private — email gönderim ortak metod.
      */
-    private function gonder(string $email, string $acenteAdi, string $belgeNo = '', string $sablon = 'emails.tursab_davet'): void
+    private function gonder(string $email, string $acenteAdi, string $belgeNo = '', string $sablon = 'emails.tursab_davet', string $aiParagraf = ''): void
     {
         $konu = $sablon === 'emails.tursab_davet_yeni_acente'
             ? 'Hayırlı Olsun! GrupTalepleri\'nden tebrikler 🎉'
             : 'GrupTalepleri.com — Platforma Davet';
 
+        $vars = ['acenteUnvani' => $acenteAdi, 'belgeNo' => $belgeNo, 'kayitUrl' => route('register'), 'aiParagraf' => $aiParagraf];
+
         Mail::send(
             $sablon,
-            ['acenteUnvani' => $acenteAdi, 'belgeNo' => $belgeNo, 'kayitUrl' => route('register')],
-            fn($mail) => $mail->to($email, $acenteAdi)->subject($konu)
+            $vars,
+            fn($mail) => $mail->to($email, $acenteAdi)->bcc('aydinyay@gmail.com')->subject($konu)
         );
     }
 
