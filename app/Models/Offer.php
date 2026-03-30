@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Offer extends Model
 {
+    // Teklif durum sabitleri
+    public const DURUM_BEKLEMEDE    = 'beklemede';
+    public const DURUM_KABUL        = 'kabul_edildi';
+    public const DURUM_REDDEDILDI   = 'reddedildi';
+    public const DURUM_GIZLENDI     = 'gizlendi';
+
     protected $fillable = [
         'request_id',
         'airline',
@@ -31,9 +37,7 @@ class Offer extends Model
         'admin_raw_note',
         'ai_raw_output',
         'created_by',
-        'is_visible',
-        'is_accepted',
-        'accepted_at',
+        'durum',
     ];
 
     protected $casts = [

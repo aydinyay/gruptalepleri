@@ -31,7 +31,10 @@ class RequestController extends Controller
 
     public function index(Request $request)
     {
-        $query = TalepModel::with(['user', 'segments', 'offers', 'payments'])
+        $query = TalepModel::with([
+                'user', 'segments', 'offers',
+                'payments' => fn($q) => $q->where('is_active', true),
+            ])
             ->orderBy('id', 'desc');
 
         if ($request->filled('q')) {
@@ -275,9 +278,11 @@ class RequestController extends Controller
             'admin_raw_note'        => $request->admin_raw_note,
             'ai_raw_output'         => $request->ai_raw_output ? json_decode($request->ai_raw_output, true) : null,
             'created_by'            => auth()->user()->name,
+            'durum'                 => \App\Models\Offer::DURUM_BEKLEMEDE,
         ]);
 
         $talep->update(['status' => RequestModel::STATUS_FIYATLANDIRILDI]);
+        $talep->refreshAktifAdim();
 
         RequestLog::create([
             'request_id'  => $talep->id,
@@ -318,6 +323,13 @@ class RequestController extends Controller
                 ->exists();
 
             if (!$odemeVar) {
+                // due_date varsa aktif, yoksa taslak
+                $pDueDate  = $request->p_due_date ?: null;
+                $pStatus   = $pDueDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK;
+                // Bu request altında başka aktif payment yoksa is_active=true
+                $isActive  = $pStatus === \App\Models\RequestPayment::STATUS_AKTIF
+                    && ! $talep->payments()->where('is_active', true)->exists();
+
                 $talep->payments()->create([
                     'offer_id'       => $yeniTeklif->id,
                     'sequence'       => $request->p_sequence ?? 1,
@@ -329,7 +341,9 @@ class RequestController extends Controller
                     'amount'         => $pAmount,
                     'currency'       => $request->p_currency ?? 'TRY',
                     'payment_date'   => $request->p_date ?: null,
-                    'status'         => 'bekleniyor',
+                    'due_date'       => $pDueDate,
+                    'status'         => $pStatus,
+                    'is_active'      => $isActive,
                     'created_by'     => auth()->user()->name,
                 ]);
 
@@ -523,7 +537,23 @@ Ham veri:
             return back()->with('error', 'Bu tutar, tarih ve yöntemde ödeme zaten kayıtlı. Mükerrer kayıt engellendi.');
         }
 
-        $odemeStatus = $request->status ?? 'alindi';
+        // Status çözümleme: admin 'alindi' seçtiyse alindi, aksi halde due_date varsa aktif, yoksa taslak
+        $adminStatus = $request->status;
+        $dueDate     = $request->due_date ?: null;
+
+        if ($adminStatus === 'alindi') {
+            $odemeStatus = \App\Models\RequestPayment::STATUS_ALINDI;
+            $isActive    = false;
+        } elseif ($adminStatus === 'iade') {
+            $odemeStatus = \App\Models\RequestPayment::STATUS_IADE;
+            $isActive    = false;
+        } elseif ($dueDate) {
+            $odemeStatus = \App\Models\RequestPayment::STATUS_AKTIF;
+            $isActive    = ! $talep->payments()->where('is_active', true)->exists();
+        } else {
+            $odemeStatus = \App\Models\RequestPayment::STATUS_TASLAK;
+            $isActive    = false;
+        }
 
         $yeniOdeme = $talep->payments()->create([
             'sequence'       => $request->sequence ?? 1,
@@ -535,17 +565,18 @@ Ham veri:
             'amount'         => $request->amount,
             'currency'       => $request->currency ?? 'TRY',
             'payment_date'   => $request->payment_date,
-            'due_date'       => $request->due_date ?: null,
+            'due_date'       => $dueDate,
             'status'         => $odemeStatus,
+            'is_active'      => $isActive,
             'created_by'     => auth()->user()->name,
         ]);
 
         app(FinanceSyncService::class)->syncRequestPayment($yeniOdeme, auth()->id());
 
-        $seq = $request->sequence ?? 1;
-        $odemeLabel = $seq == 1 ? '1. Depozito' : $seq . '. Depozito (Bakiye Tamamlama)';
-        $logDesc = $odemeStatus === 'bekleniyor'
-            ? $odemeLabel . ' planlandı (bekleniyor): ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY') . ($request->due_date ? ' — son tarih: ' . $request->due_date : '')
+        $seq        = $request->sequence ?? 1;
+        $odemeLabel = $seq == 1 ? '1. Ödeme' : $seq . '. Ödeme';
+        $logDesc    = in_array($odemeStatus, [\App\Models\RequestPayment::STATUS_TASLAK, \App\Models\RequestPayment::STATUS_AKTIF])
+            ? $odemeLabel . ' planlandı: ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY') . ($dueDate ? ' — son tarih: ' . $dueDate : '')
             : $odemeLabel . ' kaydedildi: ' . number_format($request->amount, 0) . ' ' . ($request->currency ?? 'TRY');
 
         RequestLog::create([
@@ -555,18 +586,7 @@ Ham veri:
             'user_id'     => auth()->id(),
         ]);
 
-        // Depozito alındıysa ve talep onaylandıysa → otomatik 'depozitoda'
-        if ($odemeStatus === 'alindi'
-            && $request->payment_type === 'depozito'
-            && $talep->status === RequestModel::STATUS_ONAYLANDI) {
-            $talep->update(['status' => RequestModel::STATUS_DEPOZITODA]);
-            RequestLog::create([
-                'request_id'  => $talep->id,
-                'action'      => 'depozito_alindi',
-                'description' => 'Depozito alındı, talep depozitoda statüsüne geçti.',
-                'user_id'     => auth()->id(),
-            ]);
-        }
+        $talep->refreshAktifAdim();
 
         return back()->with('success', 'Ödeme kaydedildi.');
     }
@@ -614,8 +634,13 @@ Ham veri:
 
     public function deleteOffer(Request $request, $gtpnr, $offer)
     {
-        $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+        $talep  = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $teklif = Offer::where('request_id', $talep->id)->findOrFail($offer);
+
+        if ($teklif->durum === \App\Models\Offer::DURUM_KABUL) {
+            return back()->with('error', 'Kabul edilmiş teklif silinemez.');
+        }
+
         $desc = ($teklif->airline ?? '—') . ' PNR:' . ($teklif->airline_pnr ?? '-') . ' teklifi silindi';
         $teklif->delete();
 
@@ -626,33 +651,63 @@ Ham veri:
             'user_id'     => auth()->id(),
         ]);
 
+        $talep->refreshAktifAdim();
+
         return back()->with('success', 'Teklif silindi.');
     }
 
     public function toggleOffer(Request $request, $gtpnr, $offer)
     {
-        $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+        $talep  = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $teklif = Offer::where('request_id', $talep->id)->findOrFail($offer);
-        $teklif->update(['is_visible' => !$teklif->is_visible]);
 
-        $durum = $teklif->is_visible ? 'acenteye gosterildi' : 'acenteden gizlendi';
+        if ($teklif->durum === \App\Models\Offer::DURUM_KABUL) {
+            return back()->with('error', 'Kabul edilmiş teklif gizlenemez.');
+        }
+
+        $yeniDurum = $teklif->durum === \App\Models\Offer::DURUM_GIZLENDI
+            ? \App\Models\Offer::DURUM_BEKLEMEDE
+            : \App\Models\Offer::DURUM_GIZLENDI;
+
+        $teklif->update(['durum' => $yeniDurum]);
+
+        $logDurum = $yeniDurum === \App\Models\Offer::DURUM_BEKLEMEDE ? 'acenteye gosterildi' : 'acenteden gizlendi';
 
         RequestLog::create([
             'request_id'  => $talep->id,
             'action'      => 'teklif_gorunurluk',
-            'description' => ($teklif->airline ?? '—') . ' PNR:' . ($teklif->airline_pnr ?? '-') . ' ' . $durum,
+            'description' => ($teklif->airline ?? '—') . ' PNR:' . ($teklif->airline_pnr ?? '-') . ' ' . $logDurum,
             'user_id'     => auth()->id(),
         ]);
 
-        return back()->with('success', 'Teklif ' . $durum . '.');
+        $talep->refreshAktifAdim();
+
+        return back()->with('success', 'Teklif ' . $logDurum . '.');
     }
 
     public function deletePayment(Request $request, $gtpnr, $payment)
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
         $odeme = RequestPayment::where('request_id', $talep->id)->findOrFail($payment);
+
+        $wasActive = $odeme->is_active;
+
         app(FinanceSyncService::class)->deleteBySource('request_payment', (int) $odeme->id);
         $odeme->delete();
+
+        // Silinen payment aktif idiyse → sıradakini aktif et
+        if ($wasActive) {
+            $sonraki = $talep->payments()
+                ->whereIn('status', [\App\Models\RequestPayment::STATUS_TASLAK, \App\Models\RequestPayment::STATUS_AKTIF])
+                ->orderBy('sequence')
+                ->first();
+            if ($sonraki) {
+                $sonrakiStatus = $sonraki->due_date
+                    ? \App\Models\RequestPayment::STATUS_AKTIF
+                    : \App\Models\RequestPayment::STATUS_TASLAK;
+                $sonraki->update(['is_active' => true, 'status' => $sonrakiStatus]);
+            }
+        }
 
         RequestLog::create([
             'request_id'  => $talep->id,
@@ -660,6 +715,8 @@ Ham veri:
             'description' => $odeme->sequence . '. ödeme silindi: ' . number_format($odeme->amount, 0) . ' ' . $odeme->currency,
             'user_id'     => auth()->id(),
         ]);
+
+        $talep->refreshAktifAdim();
 
         return back()->with('success', 'Ödeme silindi.');
     }
@@ -672,6 +729,33 @@ Ham veri:
         $eskiStatus = $odeme->status;
         $yeniStatus = $request->status ?? $odeme->status;
 
+        // Status çözümleme
+        $dueDate = $request->due_date ?: null;
+        if ($yeniStatus === 'alindi' || $yeniStatus === 'iade') {
+            $yeniIsActive = false;
+        } elseif ($dueDate) {
+            $yeniStatus   = \App\Models\RequestPayment::STATUS_AKTIF;
+            $yeniIsActive = $odeme->is_active; // mevcut is_active korunur
+        } else {
+            $yeniStatus   = \App\Models\RequestPayment::STATUS_TASLAK;
+            $yeniIsActive = false;
+        }
+
+        // Eğer ödeme alindi yapılıyorsa ve is_active=true idiyse → sıradakini aktif et
+        if ($yeniStatus === \App\Models\RequestPayment::STATUS_ALINDI && $odeme->is_active) {
+            $sonraki = $talep->payments()
+                ->where('id', '!=', $odeme->id)
+                ->whereIn('status', [\App\Models\RequestPayment::STATUS_TASLAK, \App\Models\RequestPayment::STATUS_AKTIF])
+                ->orderBy('sequence')
+                ->first();
+            if ($sonraki) {
+                $sonrakiStatus = $sonraki->due_date
+                    ? \App\Models\RequestPayment::STATUS_AKTIF
+                    : \App\Models\RequestPayment::STATUS_TASLAK;
+                $sonraki->update(['is_active' => true, 'status' => $sonrakiStatus]);
+            }
+        }
+
         $odeme->update([
             'sequence'       => $request->sequence ?? $odeme->sequence,
             'payment_type'   => $request->payment_type,
@@ -682,29 +766,18 @@ Ham veri:
             'amount'         => $request->amount,
             'currency'       => $request->currency ?? 'TRY',
             'payment_date'   => $request->payment_date,
-            'due_date'       => $request->due_date ?: null,
+            'due_date'       => $dueDate,
             'status'         => $yeniStatus,
+            'is_active'      => $yeniIsActive,
         ]);
 
         app(FinanceSyncService::class)->syncRequestPayment($odeme->fresh(), auth()->id());
 
-        // Depozito alındıysa ve talep onaylandıysa → otomatik 'depozitoda'
-        if ($yeniStatus === 'alindi'
-            && $odeme->payment_type === 'depozito'
-            && $talep->status === RequestModel::STATUS_ONAYLANDI) {
-            $talep->update(['status' => RequestModel::STATUS_DEPOZITODA]);
-            RequestLog::create([
-                'request_id'  => $talep->id,
-                'action'      => 'depozito_alindi',
-                'description' => 'Depozito alındı, talep depozitoda statüsüne geçti.',
-                'user_id'     => auth()->id(),
-            ]);
-        }
-
-        $odemeSeq = $odeme->sequence;
-        $updateLabel = $odemeSeq == 1 ? '1. Depozito' : $odemeSeq . '. Depozito (Bakiye Tamamlama)';
+        $odemeSeq    = $odeme->sequence;
+        $updateLabel = $odemeSeq == 1 ? '1. Ödeme' : $odemeSeq . '. Ödeme';
         $freshAmount = $odeme->fresh()->amount;
-        $updateDesc = ($eskiStatus === 'bekleniyor' && $yeniStatus === 'alindi')
+        $updateDesc  = (in_array($eskiStatus, [\App\Models\RequestPayment::STATUS_AKTIF, \App\Models\RequestPayment::STATUS_TASLAK])
+                        && $yeniStatus === \App\Models\RequestPayment::STATUS_ALINDI)
             ? $updateLabel . ' ödendi: ' . number_format($freshAmount, 0) . ' ' . $odeme->currency
             : $updateLabel . ' güncellendi: ' . number_format($freshAmount, 0) . ' ' . $odeme->currency;
 
@@ -714,6 +787,8 @@ Ham veri:
             'description' => $updateDesc,
             'user_id'     => auth()->id(),
         ]);
+
+        $talep->refreshAktifAdim();
 
         return back()->with('success', 'Ödeme güncellendi.');
     }

@@ -21,7 +21,7 @@ class TuraiController extends Controller
 
             $talep = GrupTalep::where('gtpnr', $gtpnr)
                 ->where('user_id', $user->id)
-                ->with(['segments', 'offers' => fn ($q) => $q->where(fn ($q2) => $q2->where('is_visible', true)->orWhere('is_accepted', true)), 'payments'])
+                ->with(['segments', 'offers' => fn ($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi']), 'payments'])
                 ->first();
 
             if (! $talep) {
@@ -30,7 +30,7 @@ class TuraiController extends Controller
 
             $digerTalepler = GrupTalep::where('user_id', $user->id)
                 ->where('gtpnr', '!=', $gtpnr)
-                ->with(['segments', 'offers' => fn ($q) => $q->where(fn ($q2) => $q2->where('is_visible', true)->orWhere('is_accepted', true))])
+                ->with(['segments', 'offers' => fn ($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi'])])
                 ->latest()
                 ->limit(40)
                 ->get();
@@ -200,39 +200,25 @@ class TuraiController extends Controller
         }
 
         // ── Teklifler — kabul edilmiş varsa sadece onu göster ──
-        $kabulTeklif  = $talep->offers->where('is_accepted', true)->first();
+        $kabulTeklif  = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
         $gosterOffers = $kabulTeklif
-            ? $talep->offers->where('is_accepted', true)          // sadece kabul edilen
-            : $talep->offers->where('is_visible', true);          // henüz kabul yok → görünenler
+            ? $talep->offers->where('durum', \App\Models\Offer::DURUM_KABUL)
+            : $talep->offers->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE);
 
         $teklifStr = '';
         foreach ($gosterOffers as $i => $o) {
-            $durum = $o->is_accepted ? '✅ Kabul Edildi' : 'Bekliyor';
-            $opsiyon = ($o->option_date ? $o->option_date : '-') . ($o->option_time ? " {$o->option_time}" : '');
-
-            // Opsiyon geri sayım
-            $geriSayim = '';
-            if ($o->option_date) {
-                try {
-                    $opsDate = Carbon::parse($o->option_date . ($o->option_time ? " {$o->option_time}" : ' 23:59'), 'Europe/Istanbul');
-                    $diff = $now->diffInMinutes($opsDate, false);
-                    if ($diff < 0) {
-                        $geriSayim = ' ⚠️ SÜRESI DOLDU';
-                    } elseif ($diff < 60) {
-                        $geriSayim = " ⚠️ {$diff} DAKİKA KALDI";
-                    } elseif ($diff < 1440) {
-                        $geriSayim = ' ⚠️ ' . round($diff / 60) . ' SAAT KALDI';
-                    } else {
-                        $geriSayim = ' (' . round($diff / 1440) . ' gün kaldı)';
-                    }
-                } catch (\Exception $e) {}
-            }
+            $durumLabel = match ($o->durum) {
+                \App\Models\Offer::DURUM_KABUL      => '✅ Kabul Edildi',
+                \App\Models\Offer::DURUM_REDDEDILDI => '❌ Reddedildi',
+                \App\Models\Offer::DURUM_GIZLENDI   => '🙈 Gizlendi',
+                default                              => '⏳ Bekliyor',
+            };
 
             $teklifStr .= ($i + 1) . ". {$o->airline} | {$o->price_per_pax} {$o->currency}/kişi | Toplam: {$o->total_price} {$o->currency}";
             if ($o->deposit_amount) {
                 $teklifStr .= " | Depozito: {$o->deposit_amount} {$o->currency} (%{$o->deposit_rate})";
             }
-            $teklifStr .= " | Opsiyon: {$opsiyon}{$geriSayim} | {$durum}\n";
+            $teklifStr .= " | {$durumLabel}\n";
             if ($o->offer_text) {
                 $teklifStr .= "   Not: " . mb_substr(strip_tags($o->offer_text), 0, 200) . "\n";
             }
@@ -250,15 +236,18 @@ class TuraiController extends Controller
         }
 
         foreach ($talep->payments as $i => $p) {
-            $durum = match ($p->status) {
-                'alindi'    => '✅ Alındı',
-                'bekleniyor'=> '⏳ Bekleniyor',
-                'iade'      => '↩️ İade',
-                default     => $p->status,
+            $durumLabel = match ($p->status) {
+                \App\Models\RequestPayment::STATUS_ALINDI  => '✅ Alındı',
+                \App\Models\RequestPayment::STATUS_AKTIF   => '⏳ Bekliyor',
+                \App\Models\RequestPayment::STATUS_TASLAK  => '📋 Taslak',
+                \App\Models\RequestPayment::STATUS_GECIKTI => '⚠️ GECİKTİ',
+                \App\Models\RequestPayment::STATUS_IADE    => '↩️ İade',
+                default                                    => $p->status,
             };
 
-            if ($p->status === 'alindi') $odenenTutar += (float) $p->amount;
+            if ($p->status === \App\Models\RequestPayment::STATUS_ALINDI) $odenenTutar += (float) $p->amount;
 
+            $aktifIsareti = $p->is_active ? ' ← AKTİF' : '';
             $satirlar = ($i + 1) . ". ";
             $satirlar .= match ($p->payment_type ?? '') {
                 'depozito' => 'Depozito',
@@ -266,10 +255,10 @@ class TuraiController extends Controller
                 'full'     => 'Tam Ödeme',
                 default    => ($p->payment_type ?? 'Ödeme'),
             };
-            $satirlar .= " | {$p->amount} {$p->currency} | {$durum}";
+            $satirlar .= " | {$p->amount} {$p->currency} | {$durumLabel}{$aktifIsareti}";
             if ($p->due_date) {
                 $dueDate = Carbon::parse($p->due_date, 'Europe/Istanbul');
-                $gecti   = $dueDate->isPast() && $p->status === 'bekleniyor' ? ' ⚠️ TARİH GEÇTİ!' : '';
+                $gecti   = $dueDate->isPast() && in_array($p->status, [\App\Models\RequestPayment::STATUS_AKTIF, \App\Models\RequestPayment::STATUS_GECIKTI]) ? ' ⚠️ TARİH GEÇTİ!' : '';
                 $satirlar .= " | Son: {$p->due_date}{$gecti}";
             }
             if ($p->payment_date) $satirlar .= " | Ödeme: {$p->payment_date}";
@@ -280,26 +269,31 @@ class TuraiController extends Controller
         $kalanTutar = max(0, $toplamTutar - $odenenTutar);
         $tahsilatYuzde = $toplamTutar > 0 ? round(($odenenTutar / $toplamTutar) * 100) : 0;
 
-        // ── Aktif vade / deadline (ödeme vadesi öncelikli) ──
-        $aktifVade = '';
-        $bekleyenOdeme = $talep->payments
-            ->where('status', 'bekleniyor')
-            ->filter(fn($p) => $p->due_date && Carbon::parse($p->due_date)->endOfDay('Europe/Istanbul')->isFuture())
-            ->sortBy('due_date')->first();
-        if ($bekleyenOdeme) {
-            $dueDt = Carbon::parse($bekleyenOdeme->due_date)->endOfDay('Europe/Istanbul');
-            $gunKaldi = (int) $now->diffInDays($dueDt, false);
-            $aktifVade = "⚠️ BEKLEYEN ÖDEME VADESİ: {$bekleyenOdeme->due_date} ({$gunKaldi} gün kaldı) | Tutar: {$bekleyenOdeme->amount} {$bekleyenOdeme->currency}";
-        } else {
-            $futureOffer = $talep->offers
-                ->filter(fn($o) => $o->option_date && Carbon::parse($o->option_date . ' ' . ($o->option_time ?? '23:59'), 'Europe/Istanbul')->isFuture())
-                ->sortBy('option_date')->first();
-            if ($futureOffer) {
-                $opsDate = Carbon::parse($futureOffer->option_date . ' ' . ($futureOffer->option_time ?? '23:59'), 'Europe/Istanbul');
-                $gunKaldi = (int) $now->diffInDays($opsDate, false);
-                $aktifVade = "⚠️ AKTİF TEKLİF OPSİYONU: {$futureOffer->option_date} ({$gunKaldi} gün kaldı)";
-            } else {
-                $aktifVade = "Aktif opsiyon veya bekleyen ödeme vadesi bulunmuyor.";
+        // ── Aktif adım ve ödeme durumu ──
+        $aktifAdim    = $talep->aktif_adim ?? 'teklif_bekleniyor';
+        $odemeDurumu  = $talep->odeme_durumu ?? 'yok';
+        $aktifPayment = $talep->payments->firstWhere('is_active', true);
+
+        $aktifAdimLabel = match ($aktifAdim) {
+            'teklif_bekleniyor'      => 'Teklif bekleniyor',
+            'karar_bekleniyor'       => 'Karar bekleniyor (teklif sunuldu)',
+            'odeme_plani_bekleniyor' => 'Ödeme planı bekleniyor (teklif kabul edildi)',
+            'odeme_bekleniyor'       => 'Ödeme bekleniyor',
+            'odeme_gecikti'          => '⚠️ ÖDEME GECİKTİ',
+            'odeme_alindi_devam'     => 'Kısmi ödeme alındı, devam ediyor',
+            'biletleme_bekleniyor'   => 'Tüm ödemeler alındı — biletleme bekleniyor',
+            'tamamlandi'             => 'Tamamlandı',
+            default                  => $aktifAdim,
+        };
+
+        $aktifVade = "Aktif Adım: {$aktifAdimLabel}\nÖdeme Durumu: {$odemeDurumu}";
+        if ($aktifPayment) {
+            $aktifVade .= "\nAktif Ödeme: {$aktifPayment->amount} {$aktifPayment->currency}";
+            if ($aktifPayment->due_date) {
+                $dueDt = Carbon::parse($aktifPayment->due_date)->endOfDay('Europe/Istanbul');
+                $gunKaldi = (int) $now->diffInDays($dueDt, false);
+                $gectiMi  = $dueDt->isPast() ? ' ⚠️ GEÇTİ' : " ({$gunKaldi} gün kaldı)";
+                $aktifVade .= " | Son Tarih: {$aktifPayment->due_date}{$gectiMi}";
             }
         }
 
@@ -318,22 +312,21 @@ class TuraiController extends Controller
                 $rota = $dt->segments->map(fn ($s) => "🛫 {$s->from_iata} → {$s->to_iata}")->implode(' / ');
             }
             $teklifSayisi = $dt->offers->count();
-            $enIyiTeklif = $dt->offers->where('is_accepted', true)->first()
+            $enIyiTeklif = $dt->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL)
                 ?? $dt->offers->sortBy('total_price')->first();
             $fiyat = $enIyiTeklif ? " | {$enIyiTeklif->total_price} {$enIyiTeklif->currency}" : '';
 
-            // Opsiyon
-            $opsiyonStr = '';
-            $kabulOffer = $dt->offers->where('is_accepted', true)->first();
-            if ($kabulOffer?->option_date) {
-                try {
-                    $opsDate = Carbon::parse($kabulOffer->option_date . ($kabulOffer->option_time ? " {$kabulOffer->option_time}" : ' 23:59'), 'Europe/Istanbul');
-                    $diff = $now->diffInMinutes($opsDate, false);
-                    if ($diff < 0) $opsiyonStr = ' | ⚠️ Opsiyon doldu';
-                    elseif ($diff < 1440) $opsiyonStr = ' | ⚠️ Opsiyon: ' . round($diff / 60) . ' saat';
-                    else $opsiyonStr = ' | Opsiyon: ' . $kabulOffer->option_date;
-                } catch (\Exception $e) {}
-            }
+            // Aktif adım
+            $opsiyonStr = $dt->aktif_adim ? ' | ' . match ($dt->aktif_adim) {
+                'odeme_bekleniyor'       => '💳 Ödeme bekliyor',
+                'odeme_gecikti'          => '⚠️ Ödeme gecikti',
+                'odeme_alindi_devam'     => '✅ Kısmi ödeme',
+                'biletleme_bekleniyor'   => '✅ Biletleme bekliyor',
+                'tamamlandi'             => '✅ Tamamlandı',
+                'karar_bekleniyor'       => '⏳ Karar bekliyor',
+                'odeme_plani_bekleniyor' => '📋 Plan bekliyor',
+                default                  => '',
+            } : '';
 
             $statusLabel = match ($dt->status) {
                 'beklemede'       => '⏳ Beklemede',
@@ -394,7 +387,7 @@ TEKLİFLER:
 {$teklifStr}
 ÖDEME PLANI:
 {$odemePlanStr}
-AKTİF VADE / YAKLAŞAN SON TARİH:
+AKTİF ADIM / ÖDEME DURUMU:
 {$aktifVade}
 
 FİNANSAL ÖZET:
@@ -431,7 +424,7 @@ E-posta : {$eposta}
 7. Emoji kullanabilirsin, ama abartma.
 8. İLETİŞİM KURALI: Telefon/WhatsApp bilgisi verirken URL'yi ham metin yazma — mutlaka [tıklanabilir metin](url) formatında yaz. Çalışma saatinden bahsetme — 7/24 ulaşılabilirler.
 9. ACİL DURUM KURALI: Acil sorusunda yukarıdaki İLETİŞİM VE ACİL bölümündeki numaraları ver. Hepsini listele. Çalışma saatinden ASLA bahsetme.
-11. OPSİYON / VADE SORUSU: "Opsiyonum", "vade", "son tarih", "ne zaman ödemeliyim", "sürem" gibi sorularda önce AKTİF VADE bölümünü sun. Teklif opsiyonu süresi dolmuş olsa bile bekleyen ödeme vadesi varsa bunu açıkça belirt — "Teklif opsiyonunuz dolmuştur, ancak [tarih] tarihine kadar bekleyen ödemeniz var" gibi.
+11. VADE / DURUM SORUSU: "Ne zaman ödemeliyim", "sürem", "son tarih", "adım ne" gibi sorularda AKTİF ADIM ve AKTİF ÖDEME bölümünü kullan. Teklif option_date'ini asla deadline olarak sunma — sistem artık aktif_adim ve is_active payment üzerinden çalışıyor. Aktif ödeme varsa tutarı ve son tarihi ver; yoksa aktif adımı açıkla.
 10. GÖRSEL FORMAT KURALI (ÇOK ÖNEMLİ): Talep veya rota listelerken her zaman şu formatı kullan:
     - Her talep ayrı satırda, başında 🎫
     - Gidiş-dönüş: `🎫 **GTPNR** 🛫 KAL → VAR · Tarih / 🛬 VAR ← KAL · DönüşTarihi | Durum`

@@ -88,20 +88,15 @@
         $bugunTalep       = \App\Models\Request::whereDate('created_at', today())->count();
         $bugunTeklif      = \App\Models\Offer::whereDate('created_at', today())->count();
 
-        // Opsiyon uyarıları — 48 saat içinde dolanlar
-        $opsiyonUyarilari = \App\Models\Offer::whereNotNull('option_date')
-            ->whereRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') > NOW()")
-            ->whereRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') < DATE_ADD(NOW(), INTERVAL 48 HOUR)")
-            ->with('request')
-            ->orderByRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') ASC")
-            ->get();
+        // Ödeme uyarıları — gecikmiş veya 48 saat içinde dolacak aktif paymentlar
+        $opsiyonUyarilari = collect(); // artık kullanılmıyor
 
-        // Bekleyen ödeme vadeleri — 48 saat içinde dolanlar
-        $odemeUyarilari = \App\Models\RequestPayment::where('status', 'bekleniyor')
+        $odemeUyarilari = \App\Models\RequestPayment::where('is_active', true)
+            ->whereIn('status', ['aktif', 'gecikti'])
             ->whereNotNull('due_date')
-            ->whereRaw("due_date > CURDATE()")
             ->whereRaw("due_date <= DATE(DATE_ADD(NOW(), INTERVAL 48 HOUR))")
             ->with('request')
+            ->orderByRaw("FIELD(status,'gecikti','aktif')")
             ->orderBy('due_date')
             ->get();
 
@@ -189,62 +184,25 @@
         <div class="col-12 col-xl-8">
 
             {{-- OPSİYON UYARILARI --}}
-            @if($opsiyonUyarilari->count() > 0 || $odemeUyarilari->count() > 0)
+            @if($odemeUyarilari->count() > 0)
             <div class="card shadow-sm mb-4" style="border-top: 3px solid #ffc107;">
                 <div class="card-header d-flex align-items-center gap-2" style="background:#fffbf0;">
                     <span class="notif-dot"></span>
-                    <span class="fw-bold">⏰ Opsiyon & Ödeme Uyarıları</span>
-                    <span class="badge bg-warning text-dark">{{ $opsiyonUyarilari->count() + $odemeUyarilari->count() }} aktif</span>
+                    <span class="fw-bold">💳 Ödeme Uyarıları</span>
+                    <span class="badge bg-warning text-dark">{{ $odemeUyarilari->count() }} aktif</span>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>GTPNR</th>
-                                <th>Tür / Havayolu</th>
+                                <th>Tür</th>
                                 <th>Son Tarih</th>
                                 <th>Kalan Süre</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($opsiyonUyarilari as $teklif)
-                            @php
-                                $opsTs = \Carbon\Carbon::parse($teklif->option_date . ' ' . ($teklif->option_time ?? '23:59'));
-                                $kalanSaniye = \Carbon\Carbon::now()->diffInSeconds($opsTs, false);
-                                $kalanSaat = $kalanSaniye / 3600;
-                                $renk = $kalanSaat <= 6 ? 'danger' : ($kalanSaat <= 24 ? 'warning' : 'success');
-                                $airlineLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline);
-                            @endphp
-                            <tr>
-                                <td><strong>{{ $teklif->request?->gtpnr ?? '—' }}</strong></td>
-                                <td>
-                                    <span class="d-inline-flex align-items-center gap-2">
-                                        @if($airlineLogo['has_logo'])
-                                            <img src="{{ $airlineLogo['path'] }}" alt="{{ $airlineLogo['display_name'] }}" style="width:24px;height:24px;object-fit:contain;">
-                                        @endif
-                                        <span>{{ $teklif->airline ?? '—' }}</span>
-                                    </span>
-                                </td>
-                                <td class="text-muted">{{ $opsTs->format('d.m.Y H:i') }}</td>
-                                <td>
-                                    <span class="countdown text-{{ $renk }}" data-ts="{{ $opsTs->timestamp }}">
-                                        @if($kalanSaat < 24)
-                                            {{ round($kalanSaat) }}s
-                                        @else
-                                            {{ floor($kalanSaat/24) }}g {{ round($kalanSaat%24) }}s
-                                        @endif
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($teklif->request)
-                                    <a href="{{ route('admin.requests.show', $teklif->request->gtpnr) }}" class="btn-sm-red">
-                                        <i class="fas fa-eye me-1"></i>Detay
-                                    </a>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
                             @foreach($odemeUyarilari as $odeme)
                             @php
                                 $dueTs = \Carbon\Carbon::parse($odeme->due_date)->endOfDay();
@@ -439,8 +397,8 @@
                             <span class="fw-bold text-primary">{{ $bugunTeklif }}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <span style="font-size:0.85rem;">Aktif opsiyon uyarısı</span>
-                            <span class="fw-bold {{ $opsiyonUyarilari->count() > 0 ? 'text-warning' : 'text-muted' }}">{{ $opsiyonUyarilari->count() }}</span>
+                            <span style="font-size:0.85rem;">Ödeme uyarısı</span>
+                            <span class="fw-bold {{ $odemeUyarilari->count() > 0 ? 'text-warning' : 'text-muted' }}">{{ $odemeUyarilari->count() }}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center p-3">
                             <span style="font-size:0.85rem;">Toplam bekleyen</span>

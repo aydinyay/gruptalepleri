@@ -90,37 +90,17 @@
         $bugunTalep = \App\Models\Request::whereDate('created_at', today())->count();
         $bekleyenTalep = \App\Models\Request::where('status', 'beklemede')->count();
         $biletlendi = \App\Models\Request::where('status', 'biletlendi')->count();
-        $simdiSaat = now()->format('H:i:s');
-        $opsiyonluTeklif = \App\Models\Offer::whereNotNull('option_date')
-            ->where(function ($query) use ($simdiSaat) {
-                $query->whereDate('option_date', '>', today())
-                    ->orWhere(function ($todayQuery) use ($simdiSaat) {
-                        $todayQuery->whereDate('option_date', today())
-                            ->where(function ($timeQuery) use ($simdiSaat) {
-                                // option_time bos ise varsayilan olarak gun sonuna kadar aktif sayilir
-                                $timeQuery->whereNull('option_time')
-                                    ->orWhere('option_time', '>=', $simdiSaat);
-                            });
-                    });
-            })
-            ->count();
         $depozito = \App\Models\Request::where('status', \App\Models\Request::STATUS_DEPOZITODA)->count();
 
-        // Opsiyon kritik olanlar
-        $kritikOpsiyonlar = \App\Models\Offer::whereNotNull('option_date')
-            ->whereRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') > NOW()")
-            ->whereRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') < DATE_ADD(NOW(), INTERVAL 48 HOUR)")
-            ->with('request')
-            ->orderByRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') ASC")
-            ->limit(5)
-            ->get();
+        // Kritik ödeme uyarıları — gecikmiş veya 48 saat içinde dolacak aktif paymentlar
+        $kritikOpsiyonlar = collect(); // artık kullanılmıyor
 
-        // Bekleyen ödeme vadeleri — 48 saat içinde dolanlar
-        $odemeUyarilari = \App\Models\RequestPayment::where('status', 'bekleniyor')
+        $odemeUyarilari = \App\Models\RequestPayment::where('is_active', true)
+            ->whereIn('status', ['aktif', 'gecikti'])
             ->whereNotNull('due_date')
-            ->whereRaw("due_date > CURDATE()")
             ->whereRaw("due_date <= DATE(DATE_ADD(NOW(), INTERVAL 48 HOUR))")
             ->with('request')
+            ->orderByRaw("FIELD(status,'gecikti','aktif')")
             ->orderBy('due_date')
             ->limit(5)
             ->get();
@@ -216,13 +196,13 @@
             </a>
         </div>
         <div class="col-6 col-md-3 col-xl">
-            <a href="{{ route('admin.requests.index', ['durum' => 'tumu', 'opsiyon' => 1]) }}" class="stat-card-link">
+            <a href="{{ route('admin.requests.index', ['durum' => 'tumu']) }}" class="stat-card-link">
                 <div class="card stat-card shadow-sm p-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="stat-icon" style="background:#fff3cd;color:#856404;"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="stat-icon" style="background:#fff3cd;color:#856404;"><i class="fas fa-credit-card"></i></div>
                         <div>
-                            <div style="font-size:1.6rem;font-weight:700;">{{ $opsiyonluTeklif }}</div>
-                            <div class="text-muted" style="font-size:0.78rem;">Opsiyonlar</div>
+                            <div style="font-size:1.6rem;font-weight:700;">{{ $odemeUyarilari->count() }}</div>
+                            <div class="text-muted" style="font-size:0.78rem;">Ödeme Uyarısı</div>
                         </div>
                     </div>
                 </div>
@@ -247,44 +227,15 @@
         {{-- SOL KOLON --}}
         <div class="col-12 col-xl-8">
 
-            {{-- KRİTİK OPSİYONLAR --}}
-            @if($kritikOpsiyonlar->count() > 0 || $odemeUyarilari->count() > 0)
+            {{-- ÖDEME UYARILARI --}}
+            @if($odemeUyarilari->count() > 0)
             <div class="card shadow-sm mb-4">
                 <div class="card-header d-flex align-items-center gap-2" style="background:#fff3cd;border-bottom:1px solid #ffc107;">
-                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                    <span class="fw-bold">Kritik Opsiyon & Ödeme Uyarıları</span>
-                    <span class="badge bg-warning text-dark ms-1">{{ $kritikOpsiyonlar->count() + $odemeUyarilari->count() }}</span>
+                    <i class="fas fa-credit-card text-warning"></i>
+                    <span class="fw-bold">Ödeme Uyarıları</span>
+                    <span class="badge bg-warning text-dark ms-1">{{ $odemeUyarilari->count() }}</span>
                 </div>
                 <div class="card-body p-3">
-                    @foreach($kritikOpsiyonlar as $teklif)
-                    @php
-                        $opsTs = \Carbon\Carbon::parse($teklif->option_date . ' ' . ($teklif->option_time ?? '23:59'));
-                        $kalanSaat = \Carbon\Carbon::now()->diffInHours($opsTs, false);
-                        $renk = $kalanSaat <= 6 ? 'danger' : 'warning';
-                        $airlineLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline);
-                    @endphp
-                    <div class="opsiyon-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="fw-bold">{{ $teklif->request?->gtpnr ?? '—' }}</span>
-                            <span class="text-muted ms-2 d-inline-flex align-items-center gap-2">
-                                @if($airlineLogo['has_logo'])
-                                    <img src="{{ $airlineLogo['path'] }}" alt="{{ $airlineLogo['display_name'] }}" style="width:24px;height:24px;object-fit:contain;">
-                                @endif
-                                <span>{{ $teklif->airline }}</span>
-                            </span>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge bg-{{ $renk }}">
-                                @if($kalanSaat <= 0) DOLDU
-                                @elseif($kalanSaat < 24) {{ round($kalanSaat) }} saat kaldı
-                                @else {{ floor($kalanSaat/24) }}g {{ $kalanSaat%24 }}s kaldı
-                                @endif
-                            </span>
-                            <div class="small text-muted">{{ $opsTs->format('d.m.Y H:i') }}</div>
-                        </div>
-                    </div>
-                    @if(!$loop->last || $odemeUyarilari->count() > 0)<hr class="my-1">@endif
-                    @endforeach
                     @foreach($odemeUyarilari as $odeme)
                     @php
                         $dueTs = \Carbon\Carbon::parse($odeme->due_date)->endOfDay();

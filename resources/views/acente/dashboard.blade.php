@@ -95,51 +95,30 @@
                         $segs = $talep->segments->sortBy('order');
                         $ilkSeg = $segs->first();
 
-                        // Opsiyon: kabul edilmiş veya ilk teklif
-                        $aktifTeklif = $talep->offers->firstWhere('is_accepted', true) ?? $talep->offers->first();
-                        $opsiyonHtml = '';
-                        if ($aktifTeklif?->option_date) {
-                            try {
-                                $rawSaat = trim($aktifTeklif->option_time ?? '');
-                                if (preg_match('/^(\d{1,2}):(\d{2})/', $rawSaat, $m)) {
-                                    $rawSaat = sprintf('%02d:%02d', $m[1], $m[2]);
-                                } elseif (preg_match('/^\d{1,2}$/', $rawSaat)) {
-                                    $rawSaat = sprintf('%02d:00', (int)$rawSaat);
-                                } else {
-                                    $rawSaat = '23:59';
-                                }
-                                $optDt = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $aktifTeklif->option_date . ' ' . $rawSaat);
-                                if ($optDt->isFuture()) {
-                                    $diff = now()->diff($optDt);
-                                    $parts = [];
-                                    if ($diff->d) $parts[] = $diff->d.'g';
-                                    if ($diff->h) $parts[] = $diff->h.'s';
-                                    if (!$diff->d) $parts[] = $diff->i.'d';
-                                    $opsiyonHtml = '<span class="text-warning fw-bold" id="op-'.$talep->id.'" data-ts="'.$optDt->timestamp.'">'.(implode(' ',$parts) ?: '<1s').' kaldı</span>';
-                                } else {
-                                    $opsiyonHtml = '<span class="text-danger fw-bold">OPSİYON BİTTİ</span>';
-                                }
-                            } catch(\Throwable $e) {}
-                        } elseif ($talep->status === 'beklemede') {
-                            $opsiyonHtml = '<span class="text-muted">—</span>';
-                        } elseif ($talep->status === 'biletlendi') {
-                            $opsiyonHtml = '<span class="text-success">BİLETLENDİ</span>';
-                        }
-                        // Offer option bittiyse veya yoksa → bekleyen ödeme vadesi
-                        if (!$opsiyonHtml || str_contains($opsiyonHtml, 'OPSİYON BİTTİ')) {
-                            $bekleyenOdeme = $talep->payments
-                                ->filter(fn($p) => $p->due_date && \Carbon\Carbon::parse($p->due_date)->endOfDay()->isFuture())
-                                ->sortBy('due_date')->first();
-                            if ($bekleyenOdeme) {
-                                $dueDt = \Carbon\Carbon::parse($bekleyenOdeme->due_date)->endOfDay();
+                        // Aktif adım bazlı gösterim
+                        $aktifAdim    = $talep->aktif_adim;
+                        $aktifPayment = $talep->payments->first(); // is_active=true olan geldi (eager load)
+
+                        $opsiyonHtml = match($aktifAdim) {
+                            'teklif_bekleniyor'      => '<span class="text-muted">Teklif bekleniyor</span>',
+                            'karar_bekleniyor'       => '<span class="text-info">Karar bekleniyor</span>',
+                            'odeme_plani_bekleniyor' => '<span class="text-warning">⏳ Ödeme planı bekleniyor</span>',
+                            'odeme_bekleniyor'       => (function() use ($aktifPayment) {
+                                if (!$aktifPayment?->due_date) return '<span class="text-warning fw-bold">💳 Ödeme bekleniyor</span>';
+                                $dueDt = \Carbon\Carbon::parse($aktifPayment->due_date)->endOfDay();
                                 $diff = now()->diff($dueDt);
                                 $parts = [];
                                 if ($diff->d) $parts[] = $diff->d.'g';
                                 if ($diff->h) $parts[] = $diff->h.'s';
-                                $opsiyonHtml = '<span class="fw-bold" style="color:#FF9900;">💳 '.(implode(' ', $parts) ?: '<1s').' kaldı</span><br>'
-                                    .'<small class="text-muted">'.$dueDt->format('d.m.Y').'</small>';
-                            }
-                        }
+                                return '<span class="fw-bold" style="color:#FF9900;">💳 '.(implode(' ', $parts) ?: '<1s').' kaldı</span>'
+                                    .'<br><small class="text-muted">'.$dueDt->format('d.m.Y').'</small>';
+                            })(),
+                            'odeme_gecikti'          => '<span class="text-danger fw-bold">⚠️ Ödeme gecikti</span>',
+                            'odeme_alindi_devam'     => '<span class="text-info">✅ Kısmi ödeme</span>',
+                            'biletleme_bekleniyor'   => '<span class="text-success">✅ Biletleme bekleniyor</span>',
+                            'tamamlandi'             => '<span class="text-success">✅ Tamamlandı</span>',
+                            default                  => '<span class="text-muted">—</span>',
+                        };
                     @endphp
                     <tr data-status="{{ $talep->status }}"
                         style="cursor:pointer; border-left: 3px solid {{ $sc['bg'] }};"
@@ -297,20 +276,6 @@ function filtreTabloyu() {
     });
 }
 
-// ── Opsiyon geri sayım ──
-document.querySelectorAll('[id^="op-"][data-ts]').forEach(el => {
-    const hedef = parseInt(el.dataset.ts) * 1000;
-    function guncelle() {
-        const kalan = hedef - Date.now();
-        if (kalan <= 0) { el.textContent = 'OPSİYON BİTTİ'; el.className = 'text-danger fw-bold'; return; }
-        const g = Math.floor(kalan / 86400000);
-        const s = Math.floor((kalan % 86400000) / 3600000);
-        const d = Math.floor((kalan % 3600000) / 60000);
-        el.textContent = g > 0 ? g+'g '+s+'s' : (s > 0 ? s+'s '+d+'d' : d+'d kaldı');
-        setTimeout(guncelle, 30000);
-    }
-    guncelle();
-});
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>

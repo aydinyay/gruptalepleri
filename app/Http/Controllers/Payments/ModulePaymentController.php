@@ -8,6 +8,7 @@ use App\Models\CharterPayment;
 use App\Models\LeisureBooking;
 use App\Models\LeisurePayment;
 use App\Models\LeisureRequest;
+use App\Models\Offer;
 use App\Models\Request as LegacyRequest;
 use App\Models\RequestPayment;
 use App\Services\Finance\FinanceSyncService;
@@ -684,7 +685,7 @@ class ModulePaymentController extends Controller
      */
     private function legacyRemainingAmount(LegacyRequest $request): array
     {
-        $selectedOffer = $request->offers->firstWhere('is_accepted', true)
+        $selectedOffer = $request->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL)
             ?: $request->offers->sortByDesc('id')->first();
         $total = (float) ($selectedOffer?->total_price ?? 0);
         $currency = strtoupper((string) ($selectedOffer?->currency ?: 'TRY'));

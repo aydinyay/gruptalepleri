@@ -32,16 +32,16 @@
         $acenteNotu = null;
     }
 
-    $kabulEdilenTeklif = $talep->offers->firstWhere('is_accepted', true);
+    $kabulEdilenTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
     $ilkTeklif      = $kabulEdilenTeklif ?? $talep->offers->first();
     $toplamTutar    = $ilkTeklif?->total_price ?? 0;
     $toplamOdenen   = $talep->payments->where('status', 'alindi')->sum('amount');
     $kalanTutar     = max(0, $toplamTutar - $toplamOdenen);
     $yuzde          = $toplamTutar > 0 ? min(100, round(($toplamOdenen / $toplamTutar) * 100)) : 0;
     $odenenCurrency   = $ilkTeklif?->currency ?? 'TRY';
-    $toplamBekleniyor = $talep->payments->where('status', 'bekleniyor')->sum('amount');
+    $toplamBekleniyor = $talep->payments->whereIn('status', ['taslak','aktif','gecikti'])->sum('amount');
     $planlanmamisKalan = max(0, $toplamTutar - $toplamOdenen - $toplamBekleniyor);
-    $hicBekleniyor    = $talep->payments->where('status', 'bekleniyor')->count() === 0;
+    $hicBekleniyor    = $talep->payments->whereIn('status', ['taslak','aktif','gecikti'])->count() === 0;
     $maxSequence      = $talep->payments->max('sequence') ?? 0;
 @endphp
 
@@ -54,16 +54,13 @@
         <div class="alert alert-danger alert-dismissible fade show py-2 mb-3">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
-    @if($kabulEdilenTeklif && $kabulEdilenTeklif->accepted_at)
+    @if($kabulEdilenTeklif)
     <div class="alert alert-success py-2 px-3 mb-3 d-flex align-items-center gap-2">
         <i class="fas fa-check-circle fs-5"></i>
         <div>
             <strong>Acenta teklifi kabul etti:</strong>
             {{ $kabulEdilenTeklif->airline ?? '—' }} —
             {{ number_format($kabulEdilenTeklif->price_per_pax, 0) }} {{ $kabulEdilenTeklif->currency }}/kişi
-            <span class="text-muted ms-2 small">
-                {{ \Carbon\Carbon::parse($kabulEdilenTeklif->accepted_at)->format('d.m.Y H:i') }}
-            </span>
         </div>
     </div>
     @endif
@@ -453,9 +450,9 @@
                 @if($talep->offers->count() > 0)
                 <div class="card-body py-3">
                     @php $digerTeklifSayisi = $kabulEdilenTeklif ? $talep->offers->where('id', '!=', $kabulEdilenTeklif->id)->count() : 0; @endphp
-                    @foreach($talep->offers->sortByDesc('is_accepted') as $teklif)
+                    @foreach($talep->offers->sortByDesc(fn($o) => $o->durum === \App\Models\Offer::DURUM_KABUL) as $teklif)
                     @php $offerLogo = app(\App\Services\AirlineLogoService::class)->resolve($teklif->airline); @endphp
-                    @if($kabulEdilenTeklif && !$teklif->is_accepted && $loop->index === 1 && $digerTeklifSayisi > 0)
+                    @if($kabulEdilenTeklif && $teklif->durum !== \App\Models\Offer::DURUM_KABUL && $loop->index === 1 && $digerTeklifSayisi > 0)
                     <details class="mt-1 mb-1">
                         <summary class="py-1" style="cursor:pointer;user-select:none;list-style:none;">
                             <span class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.75rem;">
@@ -464,7 +461,7 @@
                         </summary>
                         <div class="mt-2" style="opacity:.82;">
                     @endif
-                    <div class="offer-card p-3 mb-3 {{ !$teklif->is_visible ? 'offer-hidden' : '' }} {{ $teklif->is_accepted ? 'offer-accepted border-start border-success border-3' : '' }}"
+                    <div class="offer-card p-3 mb-3 {{ $teklif->durum === \App\Models\Offer::DURUM_GIZLENDI ? 'offer-hidden' : '' }} {{ $teklif->durum === \App\Models\Offer::DURUM_KABUL ? 'offer-accepted border-start border-success border-3' : '' }}"
                          style="background:rgba(0,0,0,.02);">
 
                         {{-- Başlık --}}
@@ -476,8 +473,9 @@
                                 <strong>{{ $teklif->airline ?? '—' }}</strong>
                                 @if($teklif->airline_pnr)<span class="badge bg-primary" style="font-size:.7rem;">{{ $teklif->airline_pnr }}</span>@endif
                                 @if($teklif->flight_number)<span class="badge bg-secondary" style="font-size:.7rem;">{{ $teklif->flight_number }}</span>@endif
-                                @if(!$teklif->is_visible)<span class="badge bg-warning text-dark" style="font-size:.7rem;"><i class="fas fa-eye-slash me-1"></i>Gizli</span>@endif
-                                @if($teklif->is_accepted)<span class="badge bg-success" style="font-size:.7rem;"><i class="fas fa-check me-1"></i>Kabul Edildi</span>@endif
+                                @if($teklif->durum === \App\Models\Offer::DURUM_GIZLENDI)<span class="badge bg-warning text-dark" style="font-size:.7rem;"><i class="fas fa-eye-slash me-1"></i>Gizli</span>@endif
+                                @if($teklif->durum === \App\Models\Offer::DURUM_KABUL)<span class="badge bg-success" style="font-size:.7rem;"><i class="fas fa-check me-1"></i>Kabul Edildi</span>@endif
+                                @if($teklif->durum === \App\Models\Offer::DURUM_REDDEDILDI)<span class="badge bg-secondary" style="font-size:.7rem;">Reddedildi</span>@endif
                             </div>
                             <div class="d-flex gap-1 flex-shrink-0">
                                 <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:.72rem;"
@@ -501,14 +499,16 @@
                                     ]) }})">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
+                                @if($teklif->durum !== \App\Models\Offer::DURUM_KABUL)
                                 <form method="POST" action="{{ route('admin.requests.offer.toggle', [$talep->gtpnr, $teklif->id]) }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm py-0 px-2 {{ $teklif->is_visible ? 'btn-outline-secondary' : 'btn-outline-success' }}" style="font-size:.72rem;"
-                                        title="{{ $teklif->is_visible ? 'Acenteden gizle' : 'Acenteye göster' }}">
-                                        <i class="fas {{ $teklif->is_visible ? 'fa-eye-slash' : 'fa-eye' }}"></i>
-                                        {{ $teklif->is_visible ? 'Gizle' : 'Göster' }}
+                                    <button type="submit" class="btn btn-sm py-0 px-2 {{ $teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE ? 'btn-outline-secondary' : 'btn-outline-success' }}" style="font-size:.72rem;"
+                                        title="{{ $teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE ? 'Acenteden gizle' : 'Acenteye göster' }}">
+                                        <i class="fas {{ $teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE ? 'fa-eye-slash' : 'fa-eye' }}"></i>
+                                        {{ $teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE ? 'Gizle' : 'Göster' }}
                                     </button>
                                 </form>
+                                @endif
                                 <form method="POST" action="{{ route('admin.requests.offer.delete', [$talep->gtpnr, $teklif->id]) }}" class="sil-form">
                                     @csrf @method('DELETE')
                                     <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size:.72rem;"
@@ -729,7 +729,10 @@
                                 <div class="col-md-3">
                                     <label class="form-label small">Durum</label>
                                     <select name="status" class="form-select form-select-sm">
-                                        <option value="alindi">Alındı</option><option value="bekleniyor">Bekleniyor</option><option value="iade">İade</option>
+                                        <option value="aktif">Aktif (due_date ile)</option>
+                                        <option value="taslak">Taslak (due_date yok)</option>
+                                        <option value="alindi">Alındı</option>
+                                        <option value="iade">İade</option>
                                     </select>
                                 </div>
                                 <div class="col-12">
@@ -748,16 +751,26 @@
                     @php $odemeLabel = $odeme->sequence == 1 ? '1. Depozito' : $odeme->sequence . '. Depozito (Bakiye Tamamlama)'; @endphp
                     <div class="border rounded p-2 mb-2 small
                         {{ $odeme->status === 'iade' ? 'border-danger' : '' }}
-                        {{ $odeme->status === 'bekleniyor' ? 'border-warning' : '' }}
+                        {{ in_array($odeme->status, ['taslak','aktif','gecikti']) ? 'border-warning' : '' }}
                         {{ $odeme->status === 'alindi' ? 'border-success border-opacity-50' : '' }}">
                         <div class="d-flex justify-content-between align-items-start gap-1">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
                                     <strong>{{ $odemeLabel }}</strong>
+                                    @if($odeme->is_active)
+                                        <span class="badge bg-primary" style="font-size:.65rem;">→ Aktif Adım</span>
+                                    @endif
                                     @if($odeme->status === 'alindi')
                                         <span class="badge bg-success" style="font-size:.68rem;">✓ Alındı</span>
-                                    @elseif($odeme->status === 'bekleniyor')
-                                        <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekleniyor</span>
+                                    @elseif($odeme->status === 'aktif')
+                                        <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekliyor</span>
+                                        @if($odeme->due_date)
+                                            <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}</span>
+                                        @endif
+                                    @elseif($odeme->status === 'taslak')
+                                        <span class="badge bg-secondary" style="font-size:.68rem;">Taslak</span>
+                                    @elseif($odeme->status === 'gecikti')
+                                        <span class="badge bg-danger" style="font-size:.68rem;">⚠ Gecikti</span>
                                         @if($odeme->due_date)
                                             <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}</span>
                                         @endif
@@ -775,7 +788,7 @@
                                 @if($odeme->created_by)<div class="text-muted" style="font-size:.68rem;">Kaydeden: {{ $odeme->created_by }}</div>@endif
                             </div>
                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                @if($odeme->status === 'bekleniyor')
+                                @if(in_array($odeme->status, ['aktif','gecikti','taslak']))
                                 <button type="button" class="btn btn-success btn-sm py-0 px-1" style="font-size:.7rem;" title="Ödendi İşaretle"
                                     onclick="odemePaidAc(
                                         {{ $odeme->id }},

@@ -11,11 +11,28 @@ class Request extends Model
     public const STATUS_ISLEMDE = 'islemde';
     public const STATUS_FIYATLANDIRILDI = 'fiyatlandirildi';
     public const STATUS_ONAYLANDI = 'onaylandi';
-    public const STATUS_DEPOZITODA = 'depozitoda';
+    public const STATUS_DEPOZITODA = 'depozitoda'; // Geriye dönük uyumluluk için korundu
     public const STATUS_BILETLENDI = 'biletlendi';
     public const STATUS_IADE = 'iade';
     public const STATUS_OLUMSUZ = 'olumsuz';
     public const STATUS_IPTAL = 'iptal';
+
+    // Aktif adım sabitleri
+    public const ADIM_TEKLIF_BEKLENIYOR      = 'teklif_bekleniyor';
+    public const ADIM_KARAR_BEKLENIYOR       = 'karar_bekleniyor';
+    public const ADIM_ODEME_PLANI_BEKLENIYOR = 'odeme_plani_bekleniyor';
+    public const ADIM_ODEME_BEKLENIYOR       = 'odeme_bekleniyor';
+    public const ADIM_ODEME_GECIKTI          = 'odeme_gecikti';
+    public const ADIM_ODEME_ALINDI_DEVAM     = 'odeme_alindi_devam';
+    public const ADIM_BILETLEME_BEKLENIYOR   = 'biletleme_bekleniyor';
+    public const ADIM_TAMAMLANDI             = 'tamamlandi';
+
+    // Ödeme durumu sabitleri
+    public const ODEME_YOK          = 'yok';
+    public const ODEME_PLANLI       = 'planli';
+    public const ODEME_KISMI        = 'kismi_odendi';
+    public const ODEME_GECIKTI      = 'gecikti';
+    public const ODEME_TAMAMLANDI   = 'tamamlandi';
 
     public const TRIP_TYPE_ONE_WAY = 'one_way';
     public const TRIP_TYPE_ROUND_TRIP = 'round_trip';
@@ -55,6 +72,8 @@ class Request extends Model
         'user_id',
         'type',
         'status',
+        'aktif_adim',
+        'odeme_durumu',
         'agency_name',
         'phone',
         'email',
@@ -178,6 +197,88 @@ class Request extends Model
         return $this->hasMany(RequestPayment::class)->orderBy('sequence');
     }
 
+    /**
+     * Şu an aktif (beklenen) ödeme adımı.
+     */
+    public function aktifPayment(): ?RequestPayment
+    {
+        return $this->payments->firstWhere('is_active', true);
+    }
+
+    /**
+     * aktif_adim ve odeme_durumu alanlarını mevcut state'e göre hesaplayıp DB'ye yazar.
+     * Her state geçişinden sonra çağrılmalı.
+     */
+    public function refreshAktifAdim(): void
+    {
+        // Güncel veriyi yükle
+        $this->load(['offers', 'payments']);
+
+        // — odeme_durumu —
+        $payments = $this->payments;
+        $bekleyenCount = $payments->whereIn('status', [
+            RequestPayment::STATUS_TASLAK,
+            RequestPayment::STATUS_AKTIF,
+            RequestPayment::STATUS_GECIKTI,
+        ])->count();
+        $alinanCount = $payments->where('status', RequestPayment::STATUS_ALINDI)->count();
+
+        $aktifPmt = $payments->firstWhere('is_active', true);
+        $odemeGecikti = $aktifPmt
+            && $aktifPmt->due_date
+            && $aktifPmt->due_date->isPast()
+            && in_array($aktifPmt->status, [RequestPayment::STATUS_AKTIF, RequestPayment::STATUS_GECIKTI]);
+
+        if ($odemeGecikti) {
+            $odemeDurumu = self::ODEME_GECIKTI;
+        } elseif ($bekleyenCount === 0 && $alinanCount > 0) {
+            $odemeDurumu = self::ODEME_TAMAMLANDI;
+        } elseif ($bekleyenCount > 0 && $alinanCount > 0) {
+            $odemeDurumu = self::ODEME_KISMI;
+        } elseif ($bekleyenCount > 0) {
+            $odemeDurumu = self::ODEME_PLANLI;
+        } else {
+            $odemeDurumu = self::ODEME_YOK;
+        }
+
+        // — aktif_adim —
+        $status = $this->status;
+
+        if (in_array($status, ['biletlendi', 'iptal', 'olumsuz', 'iade'])) {
+            $aktifAdim = self::ADIM_TAMAMLANDI;
+        } elseif ($odemeDurumu === self::ODEME_TAMAMLANDI) {
+            $aktifAdim = self::ADIM_BILETLEME_BEKLENIYOR;
+        } elseif ($odemeDurumu === self::ODEME_GECIKTI) {
+            $aktifAdim = self::ADIM_ODEME_GECIKTI;
+        } elseif ($odemeDurumu === self::ODEME_KISMI) {
+            // Aktif payment var mı? Varsa ödeme bekleniyor, yoksa plan bekleniyor
+            $sonrakiAktif = $payments->firstWhere('is_active', true);
+            $aktifAdim = $sonrakiAktif
+                ? self::ADIM_ODEME_BEKLENIYOR
+                : self::ADIM_ODEME_ALINDI_DEVAM;
+        } elseif ($odemeDurumu === self::ODEME_PLANLI) {
+            // is_active payment var mı?
+            $aktifAdim = $aktifPmt ? self::ADIM_ODEME_BEKLENIYOR : self::ADIM_ODEME_PLANI_BEKLENIYOR;
+        } elseif ($odemeDurumu === self::ODEME_YOK) {
+            $kabulVar = $this->offers->firstWhere('durum', Offer::DURUM_KABUL);
+            if ($kabulVar) {
+                $aktifAdim = self::ADIM_ODEME_PLANI_BEKLENIYOR;
+            } else {
+                $offerVar = $this->offers->whereIn('durum', [Offer::DURUM_BEKLEMEDE, Offer::DURUM_KABUL])->count();
+                $aktifAdim = $offerVar > 0
+                    ? self::ADIM_KARAR_BEKLENIYOR
+                    : self::ADIM_TEKLIF_BEKLENIYOR;
+            }
+        } else {
+            $aktifAdim = self::ADIM_TEKLIF_BEKLENIYOR;
+        }
+
+        $this->update([
+            'aktif_adim'    => $aktifAdim,
+            'odeme_durumu'  => $odemeDurumu,
+        ]);
+    }
+
     public function notifications()
     {
         return $this->hasMany(RequestNotification::class)->orderBy('created_at', 'desc');
@@ -204,7 +305,7 @@ class Request extends Model
         }
 
         // 2. Opsiyon tarihi 2026 öncesinde bitmiş mi?
-        $acceptedOffer = $this->offers->firstWhere('is_accepted', true);
+        $acceptedOffer = $this->offers->firstWhere('durum', Offer::DURUM_KABUL);
         if ($acceptedOffer && $acceptedOffer->option_date) {
             $optionDate = Carbon::parse($acceptedOffer->option_date);
             if ($optionDate->isPast() && $optionDate->year < 2026) {

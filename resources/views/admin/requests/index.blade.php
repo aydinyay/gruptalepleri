@@ -152,43 +152,35 @@
                     $hasIatas = $allSegIatas->isNotEmpty();
                     $isIchat  = $hasIatas && $allSegIatas->every(fn($ii) => isset($turkishIatas[$ii]));
 
-                    // Opsiyon geri sayım
-                    $opsOffer = $talep->offers->firstWhere('is_accepted', true)
-                        ?? $talep->offers->whereNotNull('option_date')->sortBy('option_date')->first();
-                    $opsiyonHtml = '';
-                    if ($opsOffer?->option_date) {
-                        $optDt = \Carbon\Carbon::parse($opsOffer->option_date . ' ' . ($opsOffer->option_time ?? '23:59'));
-                        if ($optDt->isFuture()) {
-                            $diff  = now()->diff($optDt);
-                            $parts = [];
-                            if ($diff->m) $parts[] = $diff->m . ' ay';
-                            if ($diff->d) $parts[] = $diff->d . ' gün';
-                            if ($diff->h) $parts[] = $diff->h . ' sa';
-                            $opsiyonHtml = '<span class="opsiyon-var">' . (implode(' ', $parts) ?: '<1 sa') . ' kaldı</span><br>'
-                                . '<small class="text-muted">' . $optDt->format('d.m.Y H:i') . '</small>';
-                        } else {
-                            $opsiyonHtml = '<span class="opsiyon-bitti">OPSİYON BİTTİ</span><br>'
-                                . '<small class="text-muted">' . $optDt->format('d.m.Y H:i') . '</small>';
-                        }
-                    }
-                    // Offer option bittiyse veya yoksa → bekleyen ödeme vadesi varsa göster
-                    if (!$opsiyonHtml || str_contains($opsiyonHtml, 'opsiyon-bitti')) {
-                        $bekleyenOdeme = $talep->payments
-                            ->where('status', 'bekleniyor')
-                            ->filter(fn($p) => $p->due_date && \Carbon\Carbon::parse($p->due_date)->endOfDay()->isFuture())
-                            ->sortBy('due_date')
-                            ->first();
-                        if ($bekleyenOdeme) {
-                            $dueDt = \Carbon\Carbon::parse($bekleyenOdeme->due_date)->endOfDay();
-                            $diff  = now()->diff($dueDt);
-                            $parts = [];
-                            if ($diff->m) $parts[] = $diff->m . ' ay';
-                            if ($diff->d) $parts[] = $diff->d . ' gün';
-                            if ($diff->h) $parts[] = $diff->h . ' sa';
-                            $opsiyonHtml = '<span class="opsiyon-odeme">' . (implode(' ', $parts) ?: '<1 sa') . ' kaldı</span><br>'
-                                . '<small class="text-muted">Ödeme: ' . $dueDt->format('d.m.Y') . '</small>';
-                        }
-                    }
+                    // Aktif adım bazlı gösterim
+                    $aktifAdim    = $talep->aktif_adim;
+                    $aktifPayment = $talep->payments->firstWhere('is_active', true);
+                    $opsiyonHtml  = match(true) {
+                        $aktifAdim === 'odeme_gecikti' =>
+                            '<span class="opsiyon-bitti">⚠️ Ödeme gecikti</span>',
+                        $aktifAdim === 'odeme_bekleniyor' && $aktifPayment?->due_date !== null =>
+                            (function() use ($aktifPayment) {
+                                $dueDt = \Carbon\Carbon::parse($aktifPayment->due_date)->endOfDay();
+                                $diff  = now()->diff($dueDt);
+                                $parts = [];
+                                if ($diff->m) $parts[] = $diff->m.' ay';
+                                if ($diff->d) $parts[] = $diff->d.' gün';
+                                if ($diff->h) $parts[] = $diff->h.' sa';
+                                return '<span class="opsiyon-odeme">💳 '.(implode(' ', $parts) ?: '<1 sa').' kaldı</span>'
+                                    .'<br><small class="text-muted">Ödeme: '.$dueDt->format('d.m.Y').'</small>';
+                            })(),
+                        $aktifAdim === 'odeme_bekleniyor' =>
+                            '<span class="opsiyon-odeme">💳 Ödeme bekleniyor</span>',
+                        $aktifAdim === 'odeme_plani_bekleniyor' =>
+                            '<span class="opsiyon-var">📋 Plan bekleniyor</span>',
+                        $aktifAdim === 'biletleme_bekleniyor' =>
+                            '<span class="text-success">✅ Biletleme</span>',
+                        $aktifAdim === 'tamamlandi' =>
+                            '<span class="text-success">✅</span>',
+                        $aktifAdim === 'karar_bekleniyor' =>
+                            '<span class="text-info">⏳ Karar</span>',
+                        default => '',
+                    };
 
                     // Durum
                     $durumEtiket = $durumlar[$talep->status]['etiket'] ?? $talep->status;

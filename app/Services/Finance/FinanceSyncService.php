@@ -566,7 +566,7 @@ class FinanceSyncService
 
     private function estimateRequestGrossAmount(LegacyRequest $request): float
     {
-        $acceptedOffer = $request->offers->firstWhere('is_accepted', true);
+        $acceptedOffer = $request->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
         $latestOffer = $acceptedOffer ?: $request->offers->sortByDesc('id')->first();
         $offerTotal = (float) ($latestOffer?->total_price ?? 0);
         if ($offerTotal > 0) {
@@ -574,7 +574,7 @@ class FinanceSyncService
         }
 
         $paidOrPending = (float) $request->payments()
-            ->whereIn('status', ['bekleniyor', 'alindi'])
+            ->whereIn('status', ['taslak', 'aktif', 'gecikti', 'alindi'])
             ->sum('amount');
 
         return round(max(0, $paidOrPending), 2);

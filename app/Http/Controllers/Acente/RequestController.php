@@ -195,15 +195,15 @@ class RequestController extends Controller
             ->with('offers')
             ->firstOrFail();
 
-        $teklif = $talep->offers()->where('is_visible', true)->findOrFail($offer);
+        $teklif = $talep->offers()->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)->findOrFail($offer);
 
-        // Diğer tekliflerin kabulünü kaldır
-        $talep->offers()->update(['is_accepted' => false, 'accepted_at' => null]);
+        // Beklemedeki diğer teklifleri reddet (gizlendi olanlar gizlendi kalır)
+        $talep->offers()->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)->update(['durum' => \App\Models\Offer::DURUM_REDDEDILDI]);
 
         // Bu teklifi kabul et
-        $teklif->update(['is_accepted' => true, 'accepted_at' => now()]);
+        $teklif->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
 
-        // Talep durumunu güncelle — depozito alınana kadar 'onaylandi' kalır
+        // Talep durumunu güncelle
         $talep->update(['status' => 'onaylandi']);
 
         RequestLog::create([
@@ -225,7 +225,7 @@ class RequestController extends Controller
         // Email
         (new EmailService())->teklifKabul($talep->id, $talep->gtpnr, $talep->agency_name, $teklif->airline ?? '—', $url);
 
-        // Reddedilen tekliflerin depozito kayıtlarını finans sistemiyle birlikte sil
+        // Reddedilen tekliflere ait ödeme kayıtlarını finans sistemiyle birlikte sil
         $reddedilenOdemeler = $talep->payments()
             ->whereNotNull('offer_id')
             ->where('offer_id', '!=', $teklif->id)
@@ -236,6 +236,9 @@ class RequestController extends Controller
                 ->deleteBySource('request_payment', (int) $odeme->id);
             $odeme->delete();
         }
+
+        // aktif_adim ve odeme_durumu'nu güncelle
+        $talep->refreshAktifAdim();
 
         return back()->with('success', 'Teklif kabul edildi. Ödeme planınız aşağıda görüntülenmektedir.');
     }
@@ -256,7 +259,7 @@ class RequestController extends Controller
 
         // Yeni sistemde görünür teklif yoksa eski sistemden opsiyon tarihini çek
         $eskiOpsiyon = null;
-        $hasVisibleOffer = $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0)->first()?->option_date;
+        $hasVisibleOffer = $talep->offers->whereIn('durum', ['beklemede', 'kabul_edildi'])->where('price_per_pax', '>', 0)->first()?->option_date;
         if (!$hasVisibleOffer) {
             try {
                 $legacy = \DB::connection('legacy')->table('grupmesajlari')->where('gtpnr', $gtpnr)->first();

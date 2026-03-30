@@ -63,11 +63,11 @@
     $statusEtiket = $statusMeta['label'];
     $statusStyle = 'background:' . $statusMeta['bg'] . ';color:' . $statusMeta['text'] . ';';
 
-    // Kabul edilen teklif varsa sadece onu göster, yoksa tüm görünür ve fiyatlı teklifleri göster
-    $kabulEdilenTeklif = $talep->offers->firstWhere('is_accepted', true);
+    // Kabul edilen teklif varsa sadece onu göster, yoksa tüm beklemedeki ve fiyatlı teklifleri göster
+    $kabulEdilenTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
     $gosterilecekTeklifler = $kabulEdilenTeklif
         ? $talep->offers->where('id', $kabulEdilenTeklif->id)
-        : $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
+        : $talep->offers->whereIn('durum', [\App\Models\Offer::DURUM_BEKLEMEDE, \App\Models\Offer::DURUM_KABUL])->where('price_per_pax', '>', 0);
     $ilkTeklif = $kabulEdilenTeklif ?? $gosterilecekTeklifler->first();
 
     // Acentenin ilk talep notu (admin teklif metniyle aynıysa tekrar göstermeyelim)
@@ -77,58 +77,26 @@
         $acenteNotu = null;
     }
 
-    // Opsiyon geri sayım (header için)
-    // Kabul edilen teklif varsa onun opsiyonunu, yoksa tüm teklifler içinde en yakın opsiyonu göster
-    $opsiyonKalan      = null;
-    $opsiyonRenk       = 'secondary';
-    $opsiyonTs         = null;
-    $opsiyonEtiketi    = 'Opsiyon';
-    $opsiyonKaynakDate = null;
+    // Aktif adım ve ödeme durumu — tek kaynak, inference yok
+    $aktifAdim    = $talep->aktif_adim ?? 'teklif_bekleniyor';
+    $odemeDurumu  = $talep->odeme_durumu ?? 'yok';
+    $aktifPayment = $talep->payments->firstWhere('is_active', true);
 
-    // İlk bekleniyor ödemenin due_date'i → opsiyon kaynağı
-    $ilkBekleniyor = $talep->payments
-        ->where('status', 'bekleniyor')
-        ->sortBy('sequence')
-        ->first();
+    // Header deadline kutusu — aktif_adim'a göre
+    [$deadlineEtiket, $deadlineRenk, $deadlineIcerik] = match($aktifAdim) {
+        'teklif_bekleniyor'       => ['Durum', 'secondary', 'Teklif bekleniyor'],
+        'karar_bekleniyor'        => ['Durum', 'info', 'Karar bekleniyor'],
+        'odeme_plani_bekleniyor'  => ['Durum', 'warning', 'Ödeme planı bekleniyor'],
+        'odeme_bekleniyor'        => ['Ödeme Son Tarihi', 'warning', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
+        'odeme_gecikti'           => ['Ödeme GECİKTİ', 'danger', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
+        'odeme_alindi_devam'      => ['Sonraki Ödeme', 'info', 'Plan bekleniyor'],
+        'biletleme_bekleniyor'    => ['Durum', 'success', 'Biletleme bekleniyor'],
+        'tamamlandi'              => ['Durum', 'success', 'Tamamlandı'],
+        default                   => ['Durum', 'secondary', '—'],
+    };
 
-    if ($ilkBekleniyor?->due_date) {
-        $opsiyonKaynakDate = $ilkBekleniyor->due_date->format('Y-m-d') . ' 23:59';
-        $opsiyonEtiketi    = 'Ödeme Son Tarihi';
-    } elseif ($kabulEdilenTeklif?->option_date) {
-        $opsiyonKaynakDate = $kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59');
-        $opsiyonEtiketi    = 'Seçilen opsiyon';
-    } else {
-        // Tüm görünür fiyatlı teklifler içinde en erken option_date'i bul
-        $enErkenTeklif = $talep->offers
-            ->where('is_visible', true)
-            ->where('price_per_pax', '>', 0)
-            ->filter(fn($o) => !empty($o->option_date))
-            ->sortBy(fn($o) => $o->option_date . ' ' . ($o->option_time ?? '23:59'))
-            ->first();
-        if ($enErkenTeklif) {
-            $opsiyonKaynakDate = $enErkenTeklif->option_date . ' ' . ($enErkenTeklif->option_time ?? '23:59');
-            $opsiyonEtiketi    = 'En erken opsiyon';
-        }
-    }
-
-    if ($opsiyonKaynakDate) {
-        $opsiyonTs    = \Carbon\Carbon::parse($opsiyonKaynakDate);
-        $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
-        $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
-    } elseif (!empty($eskiOpsiyon)) {
-        $opsiyonTs    = $eskiOpsiyon;
-        $opsiyonKalan = \Carbon\Carbon::now()->diffInHours($opsiyonTs, false);
-        $opsiyonRenk  = $opsiyonKalan <= 0 ? 'danger' : ($opsiyonKalan <= 24 ? 'danger' : ($opsiyonKalan <= 72 ? 'warning' : 'success'));
-    }
-
-    // Opsiyon "Doldu" iken statü zaten opsiyon aşamasını geçmişse (depozito ödendi, biletlendi vb.)
-    // kırmızı "Doldu" yanıltıcıdır; nötr olarak göster.
-    $opsiyonKullanildi = $opsiyonKalan !== null
-        && $opsiyonKalan <= 0
-        && in_array($talep->status, ['depozitoda', 'biletlendi', 'iade', 'olumsuz', 'iptal']);
-    if ($opsiyonKullanildi) {
-        $opsiyonRenk = 'secondary';
-    }
+    // Aktif ödeme (ilkBekleniyor yerine is_active pointer kullan)
+    $ilkBekleniyor = $aktifPayment;
 
     // Header fiyat hesaplamaları
     if ($kabulEdilenTeklif) {
@@ -139,7 +107,7 @@
         $headerToplam       = $kabulEdilenTeklif->total_price;
         $headerToplamCur    = $kabulEdilenTeklif->currency;
     } else {
-        $fiyatliTeklifler   = $talep->offers->where('is_visible', true)->where('price_per_pax', '>', 0);
+        $fiyatliTeklifler   = $talep->offers->whereIn('durum', [\App\Models\Offer::DURUM_BEKLEMEDE, \App\Models\Offer::DURUM_KABUL])->where('price_per_pax', '>', 0);
         $minFiyatTeklif     = $fiyatliTeklifler->sortBy('price_per_pax')->first();
         $headerKisiEtiketi  = 'En düşük fiyat';
         $headerKisiFiyat    = $minFiyatTeklif?->price_per_pax;
@@ -267,23 +235,9 @@
                     </div>
                 </div>
                 <div class="col-12 col-md">
-                    <div class="ozet-kutu bg-{{ $opsiyonRenk }} bg-opacity-10" style="border:1px solid;">
-                        <div class="etiket">{{ $opsiyonEtiketi }}</div>
-                        <div class="deger text-{{ $opsiyonRenk }}">
-                            @if($opsiyonKalan === null)
-                                <span class="text-muted">—</span>
-                            @elseif($opsiyonKullanildi)
-                                <i class="fas fa-check-circle me-1"></i>Kullanıldı
-                            @elseif($opsiyonKalan <= 0)
-                                <i class="fas fa-ban me-1"></i>Doldu
-                            @else
-                                @php $g = floor($opsiyonKalan/24); $s = $opsiyonKalan%24; @endphp
-                                @if($g > 0) {{ $g }}g @endif{{ $s }}sa kaldı
-                            @endif
-                        </div>
-                        @if($opsiyonTs && $opsiyonKalan > 0)
-                        <div style="font-size:0.65rem;color:#6c757d;">{{ $opsiyonTs->format('d.m.Y H:i') }}</div>
-                        @endif
+                    <div class="ozet-kutu bg-{{ $deadlineRenk }} bg-opacity-10" style="border:1px solid;">
+                        <div class="etiket">{{ $deadlineEtiket }}</div>
+                        <div class="deger text-{{ $deadlineRenk }}">{{ $deadlineIcerik }}</div>
                     </div>
                 </div>
             </div>
@@ -452,7 +406,7 @@
                 @php
                     $tklLogo = $airlineLogoService->resolve($teklif->airline);
                 @endphp
-                <div class="teklif-card card p-0 {{ $teklif->is_accepted ? 'kabul-edildi' : '' }}">
+                <div class="teklif-card card p-0 {{ $teklif->durum === \App\Models\Offer::DURUM_KABUL ? 'kabul-edildi' : '' }}">
                     <div class="card-body p-3">
 
                         {{-- Havayolu + kabul rozeti --}}
@@ -467,7 +421,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-secondary">{{ $teklif->currency }}</span>
-                                @if($teklif->is_accepted)
+                                @if($teklif->durum === \App\Models\Offer::DURUM_KABUL)
                                     <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Kabul Edildi</span>
                                 @endif
                             </div>
@@ -537,47 +491,6 @@
                             @endif
                         </div>
 
-                        {{-- Opsiyon sayacı --}}
-                        @if($teklif->option_date)
-                        @php
-                            $opsStr = $teklif->option_date . ' ' . ($teklif->option_time ?? '23:59');
-                            $opsDt  = \Carbon\Carbon::parse($opsStr);
-                            $opsKalanSn   = \Carbon\Carbon::now()->diffInSeconds($opsDt, false);
-                            $opsKalanSaat = $opsKalanSn / 3600;
-                        @endphp
-                        <div class="mb-3">
-                        @if($opsKalanSn <= 0 && in_array($talep->status, ['depozitoda', 'biletlendi', 'iade', 'olumsuz', 'iptal']))
-                            <div class="alert alert-secondary text-center fw-bold py-2 mb-0">
-                                <i class="fas fa-check-circle me-1"></i>Opsiyon kullanıldı
-                                <div class="small fw-normal text-muted">{{ $opsDt->format('d.m.Y H:i') }}</div>
-                            </div>
-                        @elseif($opsKalanSn <= 0)
-                            <div class="alert alert-danger text-center fw-bold py-2 mb-0">
-                                <i class="fas fa-ban me-1"></i>OPSİYON SÜRESİ DOLDU
-                                <div class="small fw-normal">{{ $opsDt->format('d.m.Y H:i') }}</div>
-                            </div>
-                        @elseif($opsKalanSaat <= 6)
-                            <div class="alert alert-danger border-2 mb-0 py-2" id="sayac-kutu-{{ $teklif->id }}">
-                                <div class="fw-bold text-danger"><i class="fas fa-exclamation-triangle me-1"></i>KRİTİK — OPSİYON BİTİYOR!</div>
-                                <div class="fs-3 fw-bold font-monospace text-danger" id="sayac-{{ $teklif->id }}">--:--:--</div>
-                                <small>Son: {{ $opsDt->format('d.m.Y H:i') }}</small>
-                            </div>
-                        @elseif($opsKalanSaat <= 24)
-                            <div class="alert alert-warning border-2 mb-0 py-2" id="sayac-kutu-{{ $teklif->id }}">
-                                <div class="fw-bold"><i class="fas fa-clock me-1"></i>Opsiyon Bitiyor</div>
-                                <div class="fs-4 fw-bold font-monospace text-warning" id="sayac-{{ $teklif->id }}">--:--:--</div>
-                                <small>Son: {{ $opsDt->format('d.m.Y H:i') }}</small>
-                            </div>
-                        @else
-                            <div class="bg-success bg-opacity-10 rounded p-2 border border-success border-opacity-25" id="sayac-kutu-{{ $teklif->id }}">
-                                <div class="small text-muted"><i class="fas fa-hourglass-half me-1 text-success"></i>Opsiyona Kalan</div>
-                                <div class="fw-bold font-monospace text-success" id="sayac-{{ $teklif->id }}">--g --:--:--</div>
-                                <small class="text-muted">Son: {{ $opsDt->format('d.m.Y H:i') }}</small>
-                            </div>
-                        @endif
-                        <input type="hidden" id="opsiyon-ts-{{ $teklif->id }}" value="{{ $opsDt->timestamp }}">
-                        </div>
-                        @endif
 
                         {{-- Adminin acenteye notu --}}
                         @if($teklif->offer_text)
@@ -595,7 +508,7 @@
 
                         {{-- Butonlar --}}
                         <div class="d-grid d-md-flex gap-2">
-                            @if(!$teklif->is_accepted)
+                            @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE)
                             <button type="button" class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill"
                                 onclick="kabulOnayGoster(
                                     {{ $teklif->id }},
@@ -663,21 +576,17 @@
                     @if($kabulEdilenTeklif && in_array($talep->status, ['onaylandi','depozitoda']))
                     <div class="alert alert-info alert-dismissible fade show py-2 small mb-3" role="alert">
                         <i class="fas fa-info-circle me-1"></i>
-                        @if($talep->status === 'onaylandi')
-                            <strong>Teklifiniz onaylandı, ödeme bekleniyor.</strong>
+                        @if($aktifAdim === 'odeme_bekleniyor' && $aktifPayment?->due_date)
+                            <strong>{{ number_format($aktifPayment->amount, 0) }} {{ $aktifPayment->currency }}</strong>
+                            ödemesinin son tarihi: <strong>{{ $aktifPayment->due_date->format('d.m.Y') }}</strong>.
+                        @elseif($aktifAdim === 'odeme_gecikti')
+                            <strong>Ödeme gecikti!</strong> Lütfen operasyon ekibimizle iletişime geçin.
+                        @elseif($aktifAdim === 'odeme_plani_bekleniyor')
+                            <strong>Teklifiniz onaylandı.</strong> Ödeme planınız hazırlanıyor — yakında bildirim alacaksınız.
+                        @elseif($aktifAdim === 'odeme_alindi_devam')
+                            Depozitonuz alındı, teşekkürler. Kalan tutar için ödeme planı hazırlanıyor.
                         @else
-                            <strong>İşleminiz başlatıldı.</strong>
-                        @endif
-                        @if($ilkBekleniyor?->due_date && $opsiyonKalan > 0)
-                            <strong>{{ number_format($ilkBekleniyor->amount, 0) }} {{ $ilkBekleniyor->currency }}</strong>
-                            depozitonun son ödeme tarihi: <strong>{{ $ilkBekleniyor->due_date->format('d.m.Y') }}</strong>.
-                        @elseif($talep->status === 'depozitoda' && !$ilkBekleniyor && $kalanTutar > 0)
-                            Depozitonuz alındı, teşekkürler. Kalan <strong>{{ number_format($kalanTutar,0) }} {{ $muhCurrency }}</strong>
-                            için ödeme planı hazırlanıyor — yakında bildirim alacaksınız.
-                        @elseif($kabulEdilenTeklif->option_date && !$opsiyonKullanildi && $opsiyonKalan > 0)
-                            Opsiyon bitiş tarihi: <strong>{{ \Carbon\Carbon::parse($kabulEdilenTeklif->option_date . ' ' . ($kabulEdilenTeklif->option_time ?? '23:59'))->format('d.m.Y H:i') }}</strong>.
-                        @elseif($kabulEdilenTeklif->deposit_amount && $talep->status !== 'depozitoda')
-                            Lütfen <strong>{{ number_format($kabulEdilenTeklif->deposit_amount, 0) }} {{ $kabulEdilenTeklif->currency }}</strong> depozito ödemesini opsiyon tarihinden önce yapınız.
+                            <strong>İşleminiz devam ediyor.</strong>
                         @endif
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -731,7 +640,7 @@
                     @foreach($talep->payments->sortBy('sequence') as $odeme)
                     @php
                         $odemeLabel = $odeme->sequence == 1 ? '1. Depozito' : $odeme->sequence . '. Depozito (Bakiye Tamamlama)';
-                        $buOdemeBekliyor = $ilkBekleniyor && $odeme->id === $ilkBekleniyor->id;
+                        $buOdemeBekliyor = $odeme->is_active;
                         $gosterecedekTarih = null;
                         $tarihEtiket = '';
                         if ($odeme->status === 'alindi' && $odeme->payment_date) {
@@ -743,7 +652,7 @@
                         }
                     @endphp
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom small
-                        {{ $odeme->status==='alindi' ? 'bg-success bg-opacity-10' : ($odeme->status==='iade' ? 'bg-danger bg-opacity-10' : ($buOdemeBekliyor ? 'bg-warning bg-opacity-10 border-warning' : '')) }}"
+                        {{ $odeme->status==='alindi' ? 'bg-success bg-opacity-10' : ($odeme->status==='iade' ? 'bg-danger bg-opacity-10' : ($odeme->status==='gecikti' ? 'bg-danger bg-opacity-10' : ($buOdemeBekliyor ? 'bg-warning bg-opacity-10 border-warning' : ''))) }}"
                         style="border-radius:4px;padding:4px 6px;{{ $buOdemeBekliyor ? 'border-left:3px solid #ffc107;' : '' }}">
                         <div>
                             <span class="fw-bold">{{ $odemeLabel }}</span>
@@ -753,18 +662,20 @@
                             @if($gosterecedekTarih)
                             <div class="text-muted" style="font-size:0.72rem;">
                                 {{ $tarihEtiket }}: {{ $gosterecedekTarih }}
-                                @if($odeme->status === 'bekleniyor' && $odeme->due_date && $odeme->due_date->isPast())
+                                @if($odeme->status === 'gecikti')
                                     <span class="text-danger fw-bold ms-1">⚠ Geçti!</span>
                                 @endif
                             </div>
                             @endif
                         </div>
                         <div class="text-end">
-                            <div class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger fw-bold' : 'text-warning fw-bold') }}">
+                            <div class="{{ $odeme->status==='alindi' ? 'text-success fw-bold' : ($odeme->status==='iade' ? 'text-danger fw-bold' : ($odeme->status==='gecikti' ? 'text-danger fw-bold' : 'text-warning fw-bold')) }}">
                                 {{ number_format($odeme->amount,0) }} {{ $odeme->currency }}
                             </div>
-                            @if($odeme->status==='bekleniyor')
+                            @if(in_array($odeme->status,['aktif','taslak']))
                                 <span class="badge bg-warning text-dark" style="font-size:0.6rem;">Bekliyor</span>
+                            @elseif($odeme->status==='gecikti')
+                                <span class="badge bg-danger" style="font-size:0.6rem;">⚠ Gecikti</span>
                             @elseif($odeme->status==='iade')
                                 <span class="badge bg-danger" style="font-size:0.6rem;">İade</span>
                             @else
@@ -912,31 +823,6 @@ function kabulOnayGoster(id, airline, price, total, option) {
     document.getElementById('kabul-form').action     = KABUL_BASE + '/' + id + '/kabul';
     kabulModal.show();
 }
-
-// ── Opsiyon Sayaçları ──
-document.querySelectorAll('[id^="opsiyon-ts-"]').forEach(input => {
-    const tId   = input.id.replace('opsiyon-ts-', '');
-    const hedef = parseInt(input.value) * 1000;
-    const el    = document.getElementById('sayac-' + tId);
-    const kutu  = document.getElementById('sayac-kutu-' + tId);
-    if (!el) return;
-    function guncelle() {
-        const kalan = hedef - Date.now();
-        if (kalan <= 0) {
-            if (kutu) kutu.innerHTML = '<div class="fw-bold text-danger"><i class="fas fa-ban me-1"></i>OPSİYON SÜRESİ DOLDU</div>';
-            return;
-        }
-        const gun  = Math.floor(kalan / 86400000);
-        const saat = Math.floor((kalan % 86400000) / 3600000);
-        const dk   = Math.floor((kalan % 3600000) / 60000);
-        const sn   = Math.floor((kalan % 60000) / 1000);
-        el.textContent = gun > 0
-            ? gun + 'g ' + String(saat).padStart(2,'0') + ':' + String(dk).padStart(2,'0') + ':' + String(sn).padStart(2,'0')
-            : String(saat).padStart(2,'0') + ':' + String(dk).padStart(2,'0') + ':' + String(sn).padStart(2,'0');
-        setTimeout(guncelle, 1000);
-    }
-    guncelle();
-});
 
 // ── Harita (Google Maps) ──
 @php

@@ -24,7 +24,7 @@ class OfferPriceBenchmarkService
         $departureMonth = (int) Carbon::parse($ilkSegment->departure_date)->format('n');
 
         $guncelTeklifler = $talep->offers
-            ->where('is_visible', true)
+            ->whereIn('durum', [\App\Models\Offer::DURUM_BEKLEMEDE, \App\Models\Offer::DURUM_KABUL])
             ->where('price_per_pax', '>', 0);
 
         if ($guncelTeklifler->isEmpty()) {
@@ -132,7 +132,7 @@ class OfferPriceBenchmarkService
         return Offer::query()
             ->select(['offers.price_per_pax', 'offers.created_at'])
             ->where('offers.request_id', '!=', $requestId)
-            ->where('offers.is_visible', true)
+            ->where('offers.durum', '!=', \App\Models\Offer::DURUM_GIZLENDI)
             ->where('offers.currency', $currency)
             ->where('offers.price_per_pax', '>', 0)
             ->whereDate('offers.created_at', '>=', $since->toDateString())
@@ -162,7 +162,7 @@ class OfferPriceBenchmarkService
     {
         $rows = Offer::query()
             ->select(['price_per_pax', 'created_at'])
-            ->where('is_visible', true)
+            ->where('durum', '!=', \App\Models\Offer::DURUM_GIZLENDI)
             ->where('currency', $currency)
             ->where('price_per_pax', '>', 0)
             ->whereDate('created_at', '>=', now()->subYears(2)->startOfDay()->toDateString())

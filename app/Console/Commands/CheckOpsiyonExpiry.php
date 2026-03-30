@@ -2,9 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Offer;
 use App\Models\OpsiyonUyariAyar;
-use App\Models\OpsiyonUyariGonderim;
 use App\Models\RequestPayment;
 use App\Models\SistemAyar;
 use App\Services\EmailService;
@@ -39,70 +37,13 @@ class CheckOpsiyonExpiry extends Command
             return;
         }
 
-        // option_date + option_time olan, henüz dolmamış teklifler
-        $teklifler = Offer::whereNotNull('option_date')
-            ->with('request')
-            ->get();
-
         $smsService   = new SmsService();
         $notifService = new NotificationService();
         $emailService = new EmailService();
 
-        foreach ($ayarlar as $ayar) {
-            $hedefZaman = $simdi->copy()->addHours($ayar->saat_oncesi);
-            // Bu saat_oncesi penceresinde olan teklifler: şu an ile hedefZaman arasında dolan
-            $pencereBaslangic = $simdi->copy();
-            $pencereBitis     = $hedefZaman;
-
-            foreach ($teklifler as $teklif) {
-                $opsTs = Carbon::parse(
-                    $teklif->option_date . ' ' . ($teklif->option_time ?? '23:59')
-                );
-
-                if (! $opsTs->isFuture()) {
-                    continue;
-                }
-
-                // Bu teklif bu pencerede mi?
-                if ($opsTs->between($pencereBaslangic, $pencereBitis)) {
-                    // Daha önce bu kural için gönderildi mi?
-                    if (OpsiyonUyariGonderim::gonderildiMi($teklif->id, $ayar->saat_oncesi)) {
-                        continue;
-                    }
-
-                    $saatKaldi = (int) $simdi->diffInHours($opsTs, false);
-                    $gtpnr     = $teklif->request?->gtpnr ?? '—';
-                    $airline   = $teklif->airline ?? '—';
-                    $url       = route('requests.short', $gtpnr);
-
-                    // Push bildirimi
-                    if ($ayar->push_aktif) {
-                        $notifService->opsiyonUyarisi($gtpnr, $airline, $saatKaldi, $url);
-                    }
-
-                    // SMS
-                    if ($ayar->sms_aktif) {
-                        $msg = "OPSİYON UYARISI: {$gtpnr} / {$airline} — {$saatKaldi} saat sonra opsiyon doluyor! {$opsTs->format('d.m.Y H:i')}" . PHP_EOL . $url;
-                        $smsService->sendByEvent('opsiyon_uyarisi', $teklif->request_id, $msg);
-                    }
-
-                    // Email
-                    $emailService->opsiyonUyarisi($teklif->request_id, $gtpnr, $airline, $saatKaldi, $opsTs->format('d.m.Y H:i'), $url);
-
-                    // Gönderildi olarak kaydet
-                    OpsiyonUyariGonderim::create([
-                        'offer_id'    => $teklif->id,
-                        'saat_oncesi' => $ayar->saat_oncesi,
-                        'sent_at'     => now(),
-                    ]);
-
-                    $this->line("Uyarı gönderildi: {$gtpnr} / {$airline} ({$ayar->saat_oncesi}s önce)");
-                }
-            }
-        }
-
-        // ── Bekleyen ödeme vadeleri için bildirim ────────────────────────────
-        $odemeUyarilari = RequestPayment::where('status', 'bekleniyor')
+        // ── Aktif ödeme vadeleri için bildirim (is_active=true olan payment'lar) ──
+        $odemeUyarilari = RequestPayment::where('is_active', true)
+            ->whereIn('status', ['aktif', 'gecikti'])
             ->whereNotNull('due_date')
             ->with('request')
             ->get();
