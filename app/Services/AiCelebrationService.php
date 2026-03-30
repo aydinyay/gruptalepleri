@@ -112,10 +112,12 @@ class AiCelebrationService
                 }
             }
 
+            $imageSource = data_get($campaign->ai_payload, 'image_generation.source');
             $needsGeneration = $campaign->wasRecentlyCreated
                 || blank($campaign->title)
                 || blank($campaign->message)
                 || blank($campaign->image_path)
+                || $imageSource === 'fallback'
                 || $sourceFieldsChanged;
 
             if ($needsGeneration) {
