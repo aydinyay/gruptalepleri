@@ -67,10 +67,10 @@ class AcenelerSyncCommand extends Command
 
         $this->info("[acenteler:sync] Geçiş {$gecis}/2 ({$durum}) | {$currentNo}–" . self::END_NO . " | Batch: {$batch}");
 
-        [$jar, $token] = $this->initSession();
+        [$jar, $token] = $this->initSessionWithRetry();
         if (!$token) {
             SistemAyar::set(self::SK_STATUS, 'error');
-            $this->error('Bakanlık oturumu açılamadı.');
+            $this->error('Bakanlık oturumu açılamadı (3 deneme başarısız).');
             return 1;
         }
 
@@ -82,8 +82,16 @@ class AcenelerSyncCommand extends Command
                 $rows = $this->fetchBelgeNo($jar, $token, $no, $durum);
 
                 if ($rows === null) {
-                    // Token süresi dolmuş — yenile
-                    [$jar, $token] = $this->initSession();
+                    // Token süresi dolmuş veya bağlantı koptu — yenile ve tekrar dene
+                    usleep(2000 * 1000); // 2 sn bekle
+                    [$jar, $token] = $this->initSessionWithRetry();
+                    if (!$token) {
+                        $this->warn("  [{$no}] Oturum yenilenemedi, bu kayıt atlanıyor.");
+                        SistemAyar::set(self::SK_CURRENT, (string) ($no + 1));
+                        SistemAyar::set(self::SK_AT, now()->toDateTimeString());
+                        $processed++;
+                        continue;
+                    }
                     $rows = $this->fetchBelgeNo($jar, $token, $no, $durum);
                 }
 
@@ -230,11 +238,22 @@ class AcenelerSyncCommand extends Command
         }
     }
 
+    private function initSessionWithRetry(int $maxTry = 3): array
+    {
+        for ($i = 1; $i <= $maxTry; $i++) {
+            $result = $this->initSession();
+            if ($result[1]) return $result; // token var, başarılı
+            $this->warn("  Oturum denemesi {$i}/{$maxTry} başarısız, {$i}0 sn bekleniyor...");
+            sleep($i * 10); // 10s, 20s, 30s
+        }
+        return [new CookieJar(), ''];
+    }
+
     private function initSession(): array
     {
         try {
             $resp = Http::withUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36')
-                ->timeout(20)
+                ->timeout(30)
                 ->get(self::SORGU_URL);
 
             if (!$resp->successful()) return [new CookieJar(), ''];
