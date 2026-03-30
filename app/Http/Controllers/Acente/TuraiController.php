@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\Http;
 
 class TuraiController extends Controller
 {
+    use \App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
+
     public function chat(Request $request, string $gtpnr): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = $this->acenteActor();
 
             $talep = GrupTalep::where('gtpnr', $gtpnr)
                 ->where('user_id', $user->id)
@@ -60,7 +62,7 @@ class TuraiController extends Controller
     public function acilSms(Request $request, string $gtpnr): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = $this->acenteActor();
 
             $talep = GrupTalep::where('gtpnr', $gtpnr)
                 ->where('user_id', $user->id)
