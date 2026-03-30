@@ -9,19 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Route;
 
-// ── Migration Runner (GEÇİCİ — kullandıktan sonra sil) ──
-Route::get('/run-migrate-grt2026', function () {
-    if (request('t') !== 'grtmigrate2026') abort(403);
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        $output = \Illuminate\Support\Facades\Artisan::output();
-        return response("OK\n\n" . $output)->header('Content-Type', 'text/plain');
-    } catch (\Throwable $e) {
-        return response("HATA: " . $e->getMessage() . "\n\n" . $e->getTraceAsString())
-            ->header('Content-Type', 'text/plain');
-    }
-});
-
 // ── Git Pull (deploy, token korumalı) ──
 Route::get('/git-pull-2026', function () {
     if (request('t') !== 'grtdeploy2026') abort(403);
