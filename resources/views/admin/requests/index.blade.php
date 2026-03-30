@@ -17,7 +17,9 @@
         .dishat-badge { background: #198754; color: #fff; font-size: 0.63rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
         .opsiyon-var  { color: #FFFF00; font-weight: 700; }
         .opsiyon-bitti { color: #FF0000; font-weight: 700; }
+        .opsiyon-odeme { color: #FF9900; font-weight: 700; }
         [data-theme="light"] .opsiyon-var { color: #d4a000; }
+        [data-theme="light"] .opsiyon-odeme { color: #c47a00; }
         .badge-beklemede       { background: #6c757d; color: #fff; }
         .badge-islemde         { background: #0d6efd; color: #fff; }
         .badge-fiyatlandirildi { background: #ffc107; color: #000; }
@@ -167,6 +169,24 @@
                         } else {
                             $opsiyonHtml = '<span class="opsiyon-bitti">OPSİYON BİTTİ</span><br>'
                                 . '<small class="text-muted">' . $optDt->format('d.m.Y H:i') . '</small>';
+                        }
+                    }
+                    // Offer option bittiyse veya yoksa → bekleyen ödeme vadesi varsa göster
+                    if (!$opsiyonHtml || str_contains($opsiyonHtml, 'opsiyon-bitti')) {
+                        $bekleyenOdeme = $talep->payments
+                            ->where('status', 'bekleniyor')
+                            ->filter(fn($p) => $p->due_date && \Carbon\Carbon::parse($p->due_date)->endOfDay()->isFuture())
+                            ->sortBy('due_date')
+                            ->first();
+                        if ($bekleyenOdeme) {
+                            $dueDt = \Carbon\Carbon::parse($bekleyenOdeme->due_date)->endOfDay();
+                            $diff  = now()->diff($dueDt);
+                            $parts = [];
+                            if ($diff->m) $parts[] = $diff->m . ' ay';
+                            if ($diff->d) $parts[] = $diff->d . ' gün';
+                            if ($diff->h) $parts[] = $diff->h . ' sa';
+                            $opsiyonHtml = '<span class="opsiyon-odeme">' . (implode(' ', $parts) ?: '<1 sa') . ' kaldı</span><br>'
+                                . '<small class="text-muted">Ödeme: ' . $dueDt->format('d.m.Y') . '</small>';
                         }
                     }
 

@@ -31,7 +31,7 @@ class RequestController extends Controller
 
     public function index(Request $request)
     {
-        $query = TalepModel::with(['user', 'segments', 'offers'])
+        $query = TalepModel::with(['user', 'segments', 'offers', 'payments'])
             ->orderBy('id', 'desc');
 
         if ($request->filled('q')) {
