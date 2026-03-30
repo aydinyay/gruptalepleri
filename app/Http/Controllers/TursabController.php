@@ -306,7 +306,7 @@ class TursabController extends Controller
             '1. TAM OLARAK 2 cümle yaz. Ne fazla ne eksik.',
             '2. Cümle 1: Acentanın adından, bulunduğu lokasyondan veya email domain\'inden somut bir gözlem.',
             '   Eğer addan anlam çıkaramıyorsan şehri kullan.',
-            '3. Cümle 2: "GrupTalepleri bu alanda size doğrudan iş fırsatı sunar." ile bitir. Bu cümleyi değiştirme.',
+            '3. Cümle 2: "GrupTalepleri\'nde talebinizi oluşturun, en iyi teklifler size gelsin." ile bitir. Bu cümleyi değiştirme.',
             '4. ASLA "düşünüyorum", "sanırım", "belki", "muhtemelen", "tahmin ediyorum" yazma.',
             '5. ASLA spekülatif veya yanlış bilgi üretme.',
             '6. Çıktı: Sadece düz metin. HTML yok, tırnak yok, madde işareti yok, açıklama yok.',

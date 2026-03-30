@@ -54,16 +54,16 @@
       </p>
       @endif
 
-      <!-- Soru kutusu -->
+      <!-- Sorun kutusu -->
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
         <tr>
           <td style="background:#f8f9fa;border-left:4px solid #0f2544;border-radius:0 8px 8px 0;padding:18px 20px;">
             <div style="font-size:14px;color:#495057;line-height:1.8;margin-bottom:8px;">
-              Yeni kurulan her acentanın karşılaştığı ilk gerçek soru ise aynıdır…
+              Grup operasyonlarında her acentenin yaşadığı ortak soru:
             </div>
             <div style="font-size:15px;font-weight:700;color:#0f2544;line-height:1.7;">
-              İlk müşteriyi nereden bulacağım?<br>
-              İlk grup rezervasyonunu nasıl alacağım?
+              Müşterim var, uçuş / charter / transfer lazım —<br>
+              en iyi fiyatı nasıl bulacağım?
             </div>
           </td>
         </tr>
@@ -71,35 +71,35 @@
 
       <!-- Cevap -->
       <p style="font-size:15px;color:#495057;line-height:1.75;margin:0 0 8px;">
-        <strong style="color:#0f2544;">GrupTalepleri</strong> tam olarak bu noktada devreye girer.
+        <strong style="color:#0f2544;">GrupTalepleri</strong> tam bu noktada devreye girer.
       </p>
 
-      <!-- Madde listesi -->
+      <!-- Madde listesi (doğru sıra) -->
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
         <tr>
           <td style="padding:6px 0;">
             <span style="font-size:16px;margin-right:10px;">📋</span>
-            <span style="font-size:14px;color:#212529;">Sistemdeki <strong>hazır grup taleplerini</strong> görürsünüz</span>
+            <span style="font-size:14px;color:#212529;"><strong>Grup talebinizi sisteme girersiniz</strong> (uçuş, charter, transfer, leisure)</span>
           </td>
         </tr>
         <tr>
           <td style="padding:6px 0;">
-            <span style="font-size:16px;margin-right:10px;">✍️</span>
-            <span style="font-size:14px;color:#212529;"><strong>Teklif verirsiniz</strong></span>
+            <span style="font-size:16px;margin-right:10px;">💬</span>
+            <span style="font-size:14px;color:#212529;"><strong>En iyi teklifler size gelir</strong>, karşılaştırırsınız</span>
           </td>
         </tr>
         <tr>
           <td style="padding:6px 0;">
             <span style="font-size:16px;margin-right:10px;">🏆</span>
-            <span style="font-size:14px;color:#212529;"><strong>Operasyonu kazanırsınız</strong></span>
+            <span style="font-size:14px;color:#212529;"><strong>Müşterinize en uygun fiyatı sunarak operasyonu tamamlarsınız</strong></span>
           </td>
         </tr>
       </table>
 
       <!-- Vurgu -->
       <p style="font-size:15px;color:#495057;line-height:1.75;margin:0 0 24px;">
-        Yani müşteri aramazsınız…<br>
-        <strong style="color:#0f2544;">Müşteri sizi bulur.</strong>
+        Saatlerce tedarikçi aramak yerine…<br>
+        <strong style="color:#0f2544;">Teklifler size gelsin.</strong>
       </p>
 
       <!-- 3 Fayda kutusu -->
@@ -113,7 +113,7 @@
               <tr>
                 <td style="background:#f4f6f9;border-radius:8px;border-top:3px solid #e8a020;padding:14px 14px;text-align:center;">
                   <div style="font-size:22px;margin-bottom:8px;">⏱️</div>
-                  <div style="font-size:12px;font-weight:700;color:#0f2544;">Zaman<br>kazandırır</div>
+                  <div style="font-size:12px;font-weight:700;color:#0f2544;">Saatlerce arama<br>yerine dakikalar</div>
                 </td>
               </tr>
             </table>
@@ -123,7 +123,7 @@
               <tr>
                 <td style="background:#f4f6f9;border-radius:8px;border-top:3px solid #e8a020;padding:14px 14px;text-align:center;">
                   <div style="font-size:22px;margin-bottom:8px;">💼</div>
-                  <div style="font-size:12px;font-weight:700;color:#0f2544;">Doğrudan iş<br>fırsatı sunar</div>
+                  <div style="font-size:12px;font-weight:700;color:#0f2544;">En iyi teklifler<br>size gelir</div>
                 </td>
               </tr>
             </table>
@@ -133,7 +133,7 @@
               <tr>
                 <td style="background:#f4f6f9;border-radius:8px;border-top:3px solid #e8a020;padding:14px 14px;text-align:center;">
                   <div style="font-size:22px;margin-bottom:8px;">🚀</div>
-                  <div style="font-size:12px;font-weight:700;color:#0f2544;">Hızlı<br>başlangıç sağlar</div>
+                  <div style="font-size:12px;font-weight:700;color:#0f2544;">İlk talebinizi<br>bugün oluşturun</div>
                 </td>
               </tr>
             </table>
