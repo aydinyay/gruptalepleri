@@ -13,12 +13,16 @@ try {
     if (!$talep) { echo "TALEP YOK: $gtpnr\n"; exit; }
     echo "ID: {$talep['id']} | Status: {$talep['status']} | User: {$talep['user_id']} | Oluşturuldu: {$talep['created_at']}\n\n";
 
-    $stmt2 = $pdo->prepare("SELECT type, channel, status, created_at FROM request_notifications WHERE request_id = ? ORDER BY created_at DESC");
+    // Kolon isimlerini öğren
+    $cols = $pdo->query("SHOW COLUMNS FROM request_notifications")->fetchAll(PDO::FETCH_COLUMN);
+    echo "Kolonlar: " . implode(', ', $cols) . "\n\n";
+
+    $stmt2 = $pdo->prepare("SELECT * FROM request_notifications WHERE request_id = ? ORDER BY created_at DESC");
     $stmt2->execute([$talep['id']]);
     $notifler = $stmt2->fetchAll(PDO::FETCH_ASSOC);
     echo "Bildirim sayısı: " . count($notifler) . "\n";
     foreach ($notifler as $n) {
-        echo "  [{$n['created_at']}] type:{$n['type']} | ch:{$n['channel']} | st:{$n['status']}\n";
+        echo "  " . json_encode($n, JSON_UNESCAPED_UNICODE) . "\n";
     }
 } catch (Exception $e) {
     echo "HATA: " . $e->getMessage();
