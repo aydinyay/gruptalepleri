@@ -280,6 +280,29 @@ class TuraiController extends Controller
         $kalanTutar = max(0, $toplamTutar - $odenenTutar);
         $tahsilatYuzde = $toplamTutar > 0 ? round(($odenenTutar / $toplamTutar) * 100) : 0;
 
+        // ── Aktif vade / deadline (ödeme vadesi öncelikli) ──
+        $aktifVade = '';
+        $bekleyenOdeme = $talep->payments
+            ->where('status', 'bekleniyor')
+            ->filter(fn($p) => $p->due_date && Carbon::parse($p->due_date)->endOfDay('Europe/Istanbul')->isFuture())
+            ->sortBy('due_date')->first();
+        if ($bekleyenOdeme) {
+            $dueDt = Carbon::parse($bekleyenOdeme->due_date)->endOfDay('Europe/Istanbul');
+            $gunKaldi = (int) $now->diffInDays($dueDt, false);
+            $aktifVade = "⚠️ BEKLEYEN ÖDEME VADESİ: {$bekleyenOdeme->due_date} ({$gunKaldi} gün kaldı) | Tutar: {$bekleyenOdeme->amount} {$bekleyenOdeme->currency}";
+        } else {
+            $futureOffer = $talep->offers
+                ->filter(fn($o) => $o->option_date && Carbon::parse($o->option_date . ' ' . ($o->option_time ?? '23:59'), 'Europe/Istanbul')->isFuture())
+                ->sortBy('option_date')->first();
+            if ($futureOffer) {
+                $opsDate = Carbon::parse($futureOffer->option_date . ' ' . ($futureOffer->option_time ?? '23:59'), 'Europe/Istanbul');
+                $gunKaldi = (int) $now->diffInDays($opsDate, false);
+                $aktifVade = "⚠️ AKTİF TEKLİF OPSİYONU: {$futureOffer->option_date} ({$gunKaldi} gün kaldı)";
+            } else {
+                $aktifVade = "Aktif opsiyon veya bekleyen ödeme vadesi bulunmuyor.";
+            }
+        }
+
         // ── Diğer talepler ──
         $digerStr = '';
         foreach ($digerTalepler as $dt) {
@@ -371,6 +394,9 @@ TEKLİFLER:
 {$teklifStr}
 ÖDEME PLANI:
 {$odemePlanStr}
+AKTİF VADE / YAKLAŞAN SON TARİH:
+{$aktifVade}
+
 FİNANSAL ÖZET:
 • Toplam Tutar  : {$toplamTutar} {$currency}
 • Ödenen        : {$odenenTutar} {$currency}
@@ -405,6 +431,7 @@ E-posta : {$eposta}
 7. Emoji kullanabilirsin, ama abartma.
 8. İLETİŞİM KURALI: Telefon/WhatsApp bilgisi verirken URL'yi ham metin yazma — mutlaka [tıklanabilir metin](url) formatında yaz. Çalışma saatinden bahsetme — 7/24 ulaşılabilirler.
 9. ACİL DURUM KURALI: Acil sorusunda yukarıdaki İLETİŞİM VE ACİL bölümündeki numaraları ver. Hepsini listele. Çalışma saatinden ASLA bahsetme.
+11. OPSİYON / VADE SORUSU: "Opsiyonum", "vade", "son tarih", "ne zaman ödemeliyim", "sürem" gibi sorularda önce AKTİF VADE bölümünü sun. Teklif opsiyonu süresi dolmuş olsa bile bekleyen ödeme vadesi varsa bunu açıkça belirt — "Teklif opsiyonunuz dolmuştur, ancak [tarih] tarihine kadar bekleyen ödemeniz var" gibi.
 10. GÖRSEL FORMAT KURALI (ÇOK ÖNEMLİ): Talep veya rota listelerken her zaman şu formatı kullan:
     - Her talep ayrı satırda, başında 🎫
     - Gidiş-dönüş: `🎫 **GTPNR** 🛫 KAL → VAR · Tarih / 🛬 VAR ← KAL · DönüşTarihi | Durum`
