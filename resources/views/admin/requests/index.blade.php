@@ -152,7 +152,7 @@
 
                     // Opsiyon geri sayım
                     $opsOffer = $talep->offers->firstWhere('is_accepted', true)
-                        ?? $talep->offers->whereNotNull('option_date')->sortByDesc('option_date')->first();
+                        ?? $talep->offers->whereNotNull('option_date')->sortBy('option_date')->first();
                     $opsiyonHtml = '';
                     if ($opsOffer?->option_date) {
                         $optDt = \Carbon\Carbon::parse($opsOffer->option_date . ' ' . ($opsOffer->option_time ?? '23:59'));
