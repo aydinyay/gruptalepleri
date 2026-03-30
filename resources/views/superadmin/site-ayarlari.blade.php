@@ -74,7 +74,7 @@
         <li class="nav-item">
             <a class="nav-link tab-btn {{ $activeTab === 'sms' ? 'active' : 'btn btn-outline-secondary' }}"
                href="{{ route('superadmin.site.ayarlar', ['sekme' => 'sms']) }}">
-                <i class="fas fa-sms me-1"></i>SMS ve Opsiyon
+                <i class="fas fa-sms me-1"></i>SMS ve Ödeme Vadesi
             </a>
         </li>
         <li class="nav-item">
@@ -165,7 +165,7 @@
                         <div class="kpi-icon" style="background:#fff3cd;color:#856404;"><i class="fas fa-clock"></i></div>
                         <div>
                             <div class="fw-bold">{{ $stats['opsiyon_kural'] }}</div>
-                            <div class="text-muted small">Opsiyon Kurali</div>
+                            <div class="text-muted small">Ödeme Vadesi Kuralı</div>
                         </div>
                     </div>
                 </div>
@@ -218,7 +218,7 @@
             </div>
             <div class="col-12 col-lg-6">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header fw-bold">Opsiyon Kontrol Araligi</div>
+                    <div class="card-header fw-bold">Ödeme Vadesi Kontrol Aralığı</div>
                     <div class="card-body">
                         <form method="POST" action="{{ route('superadmin.scheduler.aralik') }}" class="d-flex align-items-end gap-2 flex-wrap">
                             @csrf
@@ -275,7 +275,7 @@
         </div>
 
         <div class="card shadow-sm">
-            <div class="card-header fw-bold">Aktif Opsiyon Uyari Kurallari</div>
+            <div class="card-header fw-bold">Aktif Ödeme Vadesi Uyarı Kuralları</div>
             <div class="card-body">
                 @forelse($opsiyonAyarlar as $item)
                     <span class="badge bg-light text-dark border me-1 mb-1">
@@ -284,7 +284,7 @@
                         @if($item->push_aktif) · Push @endif
                     </span>
                 @empty
-                    <div class="text-muted small">Opsiyon uyarisi tanimli degil.</div>
+                    <div class="text-muted small">Ödeme vadesi uyarısı tanımlı değil.</div>
                 @endforelse
             </div>
         </div>

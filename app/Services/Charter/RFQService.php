@@ -209,7 +209,7 @@ class RFQService
         $lines[] = '- Toplam fiyat + para birimi';
         $lines[] = '- Fiyata dahil/haric kalemler';
         $lines[] = '- Slot/permit/handling durumu (dahil/haric aciklayin)';
-        $lines[] = '- Opsiyon suresi (teklif gecerlilik, TSI saatine gore)';
+        $lines[] = '- Teklif gecerlilik suresi (TSI saatine gore)';
         $lines[] = '- Iptal/degisiklik sartlari';
         $lines[] = '- Musaitlik teyidi';
         $lines[] = '- Odeme kosullari (on odeme orani / vade / fatura para birimi)';

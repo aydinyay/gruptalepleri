@@ -453,11 +453,11 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                             <input type="text" class="form-control" name="offer[currency]" value="{{ $payload['currency'] ?? 'TRY' }}">
                         </div>
                         <div class="col-12 col-lg-2">
-                            <label class="form-label">Opsiyon Tarihi</label>
+                            <label class="form-label">Teklif Geçerlilik Tarihi</label>
                             <input type="date" class="form-control" name="offer[option_date]" value="{{ $payload['option_date'] ?? '' }}">
                         </div>
                         <div class="col-12 col-lg-2">
-                            <label class="form-label">Opsiyon Saati</label>
+                            <label class="form-label">Teklif Geçerlilik Saati</label>
                             <input type="time" class="form-control" name="offer[option_time]" value="{{ $payload['option_time'] ?? '' }}">
                         </div>
                         <div class="col-12 col-lg-3">

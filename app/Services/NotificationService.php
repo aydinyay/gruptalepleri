@@ -106,8 +106,8 @@ class NotificationService
         $this->createForRole(
             'admin_and_superadmin',
             'opsiyon_uyarisi',
-            "⚠️ Opsiyon: {$gtpnr}",
-            "{$airline} — {$saatKaldi} saat sonra opsiyon doluyor!",
+            "⚠️ Ödeme Vadesi: {$gtpnr}",
+            "{$airline} — {$saatKaldi} saat sonra ödeme süresi doluyor!",
             $url
         );
     }

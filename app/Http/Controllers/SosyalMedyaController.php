@@ -74,7 +74,7 @@ Acenteler:
   ✔ Fiyat tekliflerini e-posta + SMS + panel bildirimiyle anında alır
   ✔ Teklifleri yan yana karşılaştırır, tek tıkla onaylar
   ✔ Depozito & bakiye ödemelerini dijital takip eder, dekont yükler
-  ✔ Opsiyon ve son tarihlerini kaçırmaz — sistem otomatik hatırlatır
+  ✔ Ödeme vadelerini kaçırmaz — sistem otomatik hatırlatır
   ✔ Charter uçuş, dinner cruise, yat kiralama talebi aynı hesaptan yönetir
   ✔ Kurulum yok, teknik bilgi gerekmez — 5 dakikada aktif
 
@@ -92,7 +92,7 @@ HİZMETLER — TAM DETAY
    • Kalkış zaman aralığı seçimi: Sabah / Öğle / Akşam / Esnek
    • Güzergah, tarih, yolcu sayısı, otel/vize ihtiyacı girişi
    • GTPNR kodu ile anlık takip
-   • Teklif gelince: uçuş saatleri, PNR, bagaj, fiyat, opsiyon tarihi tam görünür
+   • Teklif gelince: uçuş saatleri, PNR, bagaj, fiyat tam görünür
    • Okul turları, kurumsal gruplar, hac/umre, kültür turları, tatil paketleri
 
 2. AIR CHARTER (Özel Uçak Kiralama)
@@ -122,7 +122,7 @@ PLATFORMUN AYIRT EDİCİ ÖZELLİKLERİ (İçeriklerde kullan)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • Anlık Durum Takibi: Beklemede → İşlemde → Fiyatlandırıldı → Onaylandı →
   Depozitoda → Biletlendi — her adım etiketli, anlık görünür
-• Opsiyon & Vade Yönetimi: Son tarih otomatik görünür, vadesi geçenler öne çıkar
+• Ödeme Vadesi Yönetimi: Son tarih otomatik görünür, vadesi geçenler öne çıkar
 • Depozito & Bakiye Takibi: İleri tarihli seyahatlerde ayrı adımlar, şeffaf takip
 • Çok Kanallı Bildirim: E-posta + SMS + platform içi — üçü aynı anda
 • Tam İşlem Geçmişi: Kim ne yaptı, hangi tarihte? Zaman damgalı kayıt
@@ -145,9 +145,9 @@ Bu sorunları bilen biri gibi yaz — çünkü hedef kitleni tanıyorsun:
      → Not defteri, tablo, kağıt — güncellenmeyenler kayboluyor
      → Çözüm: Otomatik durum güncellemesi, her şey dijital
 
-  ⏰ Opsiyon ve son tarih kaçırma
-     → Rezervasyon opsiyonu gözden kaçıyor, fırsat son anda elden çıkıyor
-     → Çözüm: Opsiyon tarihleri panelde öne çıkar, sistem hatırlatır
+  ⏰ Ödeme vadesi kaçırma
+     → Ödeme son tarihleri gözden kaçıyor, fırsat son anda elden çıkıyor
+     → Çözüm: Ödeme vadeleri panelde öne çıkar, sistem hatırlatır
 
   💸 Ödeme & bakiye karmaşası
      → Depozito alındı mı? Bakiye ne zaman? Cevaplar hep farklı kişilerde

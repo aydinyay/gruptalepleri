@@ -450,7 +450,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @include('admin.partials.theme-script')
 <script>
-// Canlı opsiyon sayaçları
+// Canlı vade sayaçları
 document.querySelectorAll('.countdown[data-ts]').forEach(el => {
     const hedef = parseInt(el.dataset.ts) * 1000;
     function guncelle() {

@@ -84,7 +84,7 @@
                         <th style="color:#fff;">Rota</th>
                         <th style="color:#fff;">PAX</th>
                         <th style="color:#fff;">Gidiş</th>
-                        <th style="color:#fff;">Opsiyon</th>
+                        <th style="color:#fff;">Adım</th>
                         <th style="color:#fff;" class="text-center">Durum</th>
                     </tr>
                 </thead>

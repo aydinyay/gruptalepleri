@@ -48,7 +48,7 @@
         .beklemede-pulse { animation: pulse 2s infinite; }
         @@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
-        /* Opsiyon alarm */
+        /* Vade alarm */
         @@keyframes blink-alarm { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .alert-danger [id^="sayac-"] { animation: blink-alarm 1s infinite; }
     </style>
@@ -515,7 +515,7 @@
                                     '{{ addslashes($teklif->airline ?? '—') }}',
                                     '{{ number_format($teklif->price_per_pax,0) }} {{ $teklif->currency }}',
                                     '{{ number_format($teklif->total_price,0) }} {{ $teklif->currency }}',
-                                    '{{ $teklif->option_date ? \Carbon\Carbon::parse($teklif->option_date)->format("d.m.Y")." ".substr($teklif->option_time ?? "23:59",0,5) : "—" }}'
+                                    '—'
                                 )">
                                 <i class="fas fa-check me-1"></i>Kabul Et
                             </button>
@@ -784,8 +784,8 @@
                             <div class="fw-bold" id="k-total"></div>
                         </div>
                         <div class="col-6">
-                            <div class="small text-muted">Opsiyon Bitiş</div>
-                            <div class="fw-bold text-danger" id="k-option"></div>
+                            <div class="small text-muted">Teklif</div>
+                            <div class="fw-bold" id="k-option"></div>
                         </div>
                     </div>
                 </div>
@@ -1185,7 +1185,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
 
         {{-- Hızlı aksiyonlar --}}
         <div id="turai-chips">
-            <span class="turai-chip" onclick="turaiSend('📅 Opsiyonum ne zaman bitiyor?')">📅 Opsiyonum?</span>
+            <span class="turai-chip" onclick="turaiSend('💳 Ödeme vadem ne zaman?')">💳 Ödeme vadesi</span>
             <span class="turai-chip" onclick="turaiSend('💳 Havale için hangi hesaba yollayacağım? IBAN lazım.')">💳 Havale hesabı</span>
             <span class="turai-chip" onclick="turaiSend('💰 Ne kadar ödedim, ne kadar borcum kaldı?')">💰 Kalan ödeme</span>
             <span class="turai-chip" onclick="turaiSend('📋 Diğer taleplerimde durum nedir? Hangileri beklemede?')">📋 Taleplerim</span>
@@ -1200,7 +1200,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
                 <div class="bubble">
                     Merhaba! Ben <strong>TURAi</strong>, talep asistanınızım. 👋<br><br>
                     <strong>{{ $talep->gtpnr }}</strong> numaralı talebiniz hakkında veya diğer taleplerinizle ilgili soru sorabilirsiniz.<br><br>
-                    Opsiyon tarihi, ödeme durumu, havale bilgisi, destinasyon rehberi — hepsinde yardımcı olurum.
+                    Ödeme durumu, havale bilgisi, destinasyon rehberi — hepsinde yardımcı olurum.
                 </div>
             </div>
         </div>

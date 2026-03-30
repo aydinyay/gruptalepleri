@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Cache;
 class CheckOpsiyonExpiry extends Command
 {
     protected $signature   = 'opsiyon:check';
-    protected $description = 'Süresi yaklaşan opsiyonlar için SMS ve push bildirimi gönder';
+    protected $description = 'Süresi yaklaşan ödeme vadeleri için SMS ve push bildirimi gönder';
 
     public function handle(): void
     {

@@ -259,8 +259,8 @@
             <div class="card shadow-sm border-warning">
                 <div class="card-header d-flex justify-content-between align-items-center" style="background:#fff3cd;border-bottom:1px solid #ffc107;">
                     <div>
-                        <i class="fas fa-clock text-warning me-1"></i> <span class="fw-bold">Opsiyon Yaklaşma Uyarıları</span>
-                        <span class="text-muted fw-normal" style="font-size:0.8rem;"> — Opsiyonu dolmak üzere olan teklifler için otomatik SMS + Push bildirimi</span>
+                        <i class="fas fa-clock text-warning me-1"></i> <span class="fw-bold">Ödeme Vadesi Uyarıları</span>
+                        <span class="text-muted fw-normal" style="font-size:0.8rem;"> — Ödeme vadesi yaklaşan talepler için otomatik SMS + Push bildirimi</span>
                     </div>
                     {{-- Scheduler aralığı --}}
                     <form method="POST" action="{{ route('superadmin.scheduler.aralik') }}" class="d-flex align-items-center gap-2">
@@ -294,7 +294,7 @@
                                         <input type="number" name="saat_oncesi" class="form-control" min="1" max="168" placeholder="48" required>
                                         <span class="input-group-text">saat</span>
                                     </div>
-                                    <div class="form-text">Ör: 48 → opsiyon dolmadan 2 gün önce</div>
+                                    <div class="form-text">Ör: 48 → ödeme vadesinden 2 gün önce</div>
                                 </div>
                                 <div class="mb-3 d-flex gap-3">
                                     <div class="form-check">
@@ -311,7 +311,7 @@
                                 </button>
                             </form>
                             <div class="alert alert-light border mt-3 p-2" style="font-size:0.78rem;">
-                                <strong>Öneri:</strong> 48s + 24s + 4s + 1s kurallarını ekleyerek opsiyona yaklaştıkça birden fazla uyarı alabilirsiniz.
+                                <strong>Öneri:</strong> 48s + 24s + 4s + 1s kurallarını ekleyerek ödeme vadesine yaklaştıkça birden fazla uyarı alabilirsiniz.
                             </div>
                         </div>
 
@@ -373,7 +373,7 @@
                                     @empty
                                     <tr>
                                         <td colspan="5" class="text-center text-muted py-3">
-                                            Henüz opsiyon uyarısı eklenmemiş.
+                                            Henüz ödeme vadesi uyarısı eklenmemiş.
                                         </td>
                                     </tr>
                                     @endforelse

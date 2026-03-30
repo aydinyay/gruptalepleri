@@ -304,7 +304,7 @@ class OfferPriceBenchmarkService
             'result_code' => 'yetersiz_veri',
             'result_label' => 'yetersiz veri',
             'confidence' => 'düşük',
-            'prompt_summary' => "Endeksli geçmiş kıyas: yetersiz veri ({$reason}). Kesin fiyat hükmü verme; yalnızca teklifler arası fark ve opsiyon süresini yorumla.",
+            'prompt_summary' => "Endeksli geçmiş kıyas: yetersiz veri ({$reason}). Kesin fiyat hükmü verme; yalnızca teklifler arası fark ve fiyat geçerliliğini yorumla.",
             'hash_context' => 'insufficient:' . $sampleSize . ':' . md5($reason),
         ];
     }

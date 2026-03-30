@@ -257,26 +257,6 @@ class RequestController extends Controller
 
         $talep = $query->firstOrFail();
 
-        // Yeni sistemde görünür teklif yoksa eski sistemden opsiyon tarihini çek
-        $eskiOpsiyon = null;
-        $hasVisibleOffer = $talep->offers->whereIn('durum', ['beklemede', 'kabul_edildi'])->where('price_per_pax', '>', 0)->first()?->option_date;
-        if (!$hasVisibleOffer) {
-            try {
-                $legacy = \DB::connection('legacy')->table('grupmesajlari')->where('gtpnr', $gtpnr)->first();
-                if ($legacy && !empty($legacy->opsiyontarihi)) {
-                    $rawSaat = trim($legacy->opsiyonsaati ?? '');
-                    if (preg_match('/^(\d{1,2}):(\d{2})/', $rawSaat, $m)) {
-                        $rawSaat = sprintf('%02d:%02d', $m[1], $m[2]);
-                    } elseif (preg_match('/^\d{1,2}$/', $rawSaat)) {
-                        $rawSaat = sprintf('%02d:00', (int)$rawSaat);
-                    } else {
-                        $rawSaat = '23:59';
-                    }
-                    $eskiOpsiyon = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $legacy->opsiyontarihi . ' ' . $rawSaat);
-                }
-            } catch (\Throwable $e) {}
-        }
-
         $fiyatKiyas = app(OfferPriceBenchmarkService::class)->forRequest($talep);
 
         $adminTelefonlar = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
@@ -284,6 +264,6 @@ class RequestController extends Controller
             ->orderByRaw("role = 'superadmin' DESC")
             ->get(['name', 'phone', 'role']);
 
-        return view('acente.request.show', compact('talep', 'eskiOpsiyon', 'fiyatKiyas', 'adminTelefonlar'));
+        return view('acente.request.show', compact('talep', 'fiyatKiyas', 'adminTelefonlar'));
     }
 }

@@ -57,11 +57,11 @@ class EmailService
     }
 
     /**
-     * Opsiyon süresi yaklaşıyor — admin + superadmin'e email.
+     * Ödeme vadesi yaklaşıyor — admin + superadmin'e email.
      */
     public function opsiyonUyarisi(int $requestId, string $gtpnr, string $airline, int $saatKaldi, string $opsiyonBitis, string $adminUrl): void
     {
-        $subject = "⚠️ Opsiyon Uyarısı: {$gtpnr} — {$saatKaldi} saat kaldı";
+        $subject = "⚠️ Ödeme Vadesi Uyarısı: {$gtpnr} — {$saatKaldi} saat kaldı";
         $data    = compact('gtpnr', 'airline', 'saatKaldi', 'opsiyonBitis', 'adminUrl');
 
         $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
