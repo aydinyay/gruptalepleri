@@ -17,6 +17,15 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
+        <div style="background:#1a1a2e;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <a href="/" style="color:#fff;font-weight:700;font-size:15px;text-decoration:none;letter-spacing:-0.2px;">
+                ✈ Grup<span style="color:#e8a020;">Talepleri</span>.com
+            </a>
+            <a href="/acente-tanitim.html"
+               style="color:rgba(255,255,255,0.75);font-size:13px;border:1px solid rgba(255,255,255,0.25);padding:5px 14px;border-radius:4px;text-decoration:none;white-space:nowrap;">
+                Platform Tanıtımı →
+            </a>
+        </div>
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
             <div>
                 <a href="/">

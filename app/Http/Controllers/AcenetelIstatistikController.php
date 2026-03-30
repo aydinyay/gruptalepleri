@@ -28,6 +28,21 @@ class AcenetelIstatistikController extends Controller
         'Bursa','Ankara','Mersin','Adana','Edirne','Samsun',
     ];
 
+    // 81 il canonical kontrolü — mb_strtolower ile Turkish-safe eşleşme
+    private static function canonicalIl(string $ilRaw): ?string
+    {
+        static $tum = null;
+        if ($tum === null) {
+            $tum = array_merge(...array_values(self::BOLGELER));
+            $tum = array_merge($tum, ['Bilecik', 'Karaman']);
+        }
+        $aranan = mb_strtolower(trim($ilRaw), 'UTF-8');
+        foreach ($tum as $il) {
+            if (mb_strtolower($il, 'UTF-8') === $aranan) return $il;
+        }
+        return null;
+    }
+
     // İlçe adını normalize et: "IL - ILCE" → "ILCE", "ILCE / IL" → "ILCE"
     private static function normalizeIlce(string $ilce): string
     {
@@ -154,39 +169,68 @@ class AcenetelIstatistikController extends Controller
         $subeCount   = DB::table('acenteler')->where('is_sube', 1)->count();
         $anaMerkez   = $toplam - $subeCount;
 
-        // ── İL DAĞILIMI (tüm iller) ──────────────────────────────────────────
-        $ilDagilimTumu = DB::table('acenteler')
+        // ── İL DAĞILIMI — PHP'de normalize + re-aggregate ───────────────────
+        $ilHam = DB::table('acenteler')
             ->selectRaw('il, COUNT(*) as toplam')
             ->whereNotNull('il')->where('il', '!=', '')
             ->groupBy('il')
-            ->orderByDesc('toplam')
             ->get();
+
+        $ilMap = [];
+        $ilVeriSorunu = 0; // canonical olmayan il değeri olan kayıt sayısı
+        foreach ($ilHam as $row) {
+            $canonical = self::canonicalIl($row->il);
+            if ($canonical !== null) {
+                $ilMap[$canonical] = ($ilMap[$canonical] ?? 0) + (int) $row->toplam;
+            } else {
+                $ilVeriSorunu += (int) $row->toplam;
+            }
+        }
+        arsort($ilMap);
+
+        $ilDagilimTumu = collect(array_map(
+            fn ($il, $sayi) => (object) ['il' => $il, 'toplam' => $sayi],
+            array_keys($ilMap),
+            array_values($ilMap)
+        ));
 
         $ilDagilim = $ilDagilimTumu->take(20);
 
-        // En az acenteli iller (minimum 1 acente olan)
-        $enAzIller = $ilDagilimTumu->sortBy('toplam')->take(15)->values();
+        // En az acenteli iller — artık sadece gerçek iller (BODRUM / FATİH gibi değerler hariç)
+        $enAzIller = $ilDagilimTumu->sortBy('toplam')->values()->take(15);
 
-        // ── BÖLGE DAĞILIMI ────────────────────────────────────────────────────
+        // ── BÖLGE DAĞILIMI — normalize edilmiş $ilMap kullan ─────────────────
         $bolgeVerisi = [];
         foreach (self::BOLGELER as $bolge => $iller) {
-            $sayi = DB::table('acenteler')->whereIn('il', $iller)->count();
+            $sayi = array_sum(array_map(fn ($il) => $ilMap[$il] ?? 0, $iller));
             $bolgeVerisi[] = ['bolge' => $bolge, 'toplam' => $sayi, 'il_sayisi' => count($iller)];
         }
-        usort($bolgeVerisi, fn($a, $b) => $b['toplam'] - $a['toplam']);
+        usort($bolgeVerisi, fn ($a, $b) => $b['toplam'] - $a['toplam']);
 
-        // ── DESTİNASYON ANALİZİ ──────────────────────────────────────────────
-        $destinasyonlar = DB::table('acenteler')
-            ->selectRaw('il, COUNT(*) as toplam')
-            ->whereIn('il', self::DESTINASYONLAR)
-            ->groupBy('il')
+        // ── DESTİNASYON ANALİZİ — normalize edilmiş $ilMap kullan ──────────
+        $destinasyonlar = collect(self::DESTINASYONLAR)
+            ->map(fn ($il) => (object) ['il' => $il, 'toplam' => $ilMap[$il] ?? 0])
+            ->filter(fn ($r) => $r->toplam > 0)
+            ->sortByDesc('toplam')
+            ->values();
+
+        // ── BÜYÜK 3 vs DİĞER — normalize edilmiş $ilMap kullan ──────────────
+        $buyuk3Iller  = ['İstanbul', 'Ankara', 'İzmir'];
+        $buyuk3Toplam = array_sum(array_map(fn ($il) => $ilMap[$il] ?? 0, $buyuk3Iller));
+        $digerIlToplam = $toplam - $buyuk3Toplam;
+
+        // ── BAKANLIK KAYIT DURUMU ─────────────────────────────────────────────
+        $durumDagilim = DB::table('acenteler')
+            ->selectRaw("COALESCE(NULLIF(durum,''),'BELİRTİLMEMİŞ') as durum, COUNT(*) as toplam")
+            ->groupBy('durum')
             ->orderByDesc('toplam')
             ->get();
 
-        // ── BÜYÜK 3 vs DİĞER ─────────────────────────────────────────────────
-        $buyuk3Iller  = ['İstanbul', 'Ankara', 'İzmir'];
-        $buyuk3Toplam = DB::table('acenteler')->whereIn('il', $buyuk3Iller)->count();
-        $digerIlToplam = $toplam - $buyuk3Toplam;
+        // ── CEP TELEFONU SAYISI ───────────────────────────────────────────────
+        $cepVar = DB::table('acenteler')
+            ->whereNotNull('telefon')->where('telefon', '!=', '')
+            ->whereRaw("telefon REGEXP '^[[:space:]]*(\\\\+?90)?0?5[0-9]'")
+            ->count();
 
         // ── GRUP DAĞILIMI (TÜRSAB) ───────────────────────────────────────────
         $grupDagilim = DB::table('acenteler')
@@ -315,7 +359,7 @@ class AcenetelIstatistikController extends Controller
         return view('superadmin.acenteler-istatistik', compact(
             'toplam', 'epostaVar', 'telefonVar', 'subeCount', 'anaMerkez',
             'kaynaklar', 'veriKalitesi', 'ilEpostaOran',
-            'ilDagilim', 'ilDagilimTumu', 'enAzIller',
+            'ilDagilim', 'ilDagilimTumu', 'enAzIller', 'ilVeriSorunu',
             'buyuk3Toplam', 'digerIlToplam',
             'bolgeVerisi',
             'destinasyonlar',
@@ -324,7 +368,8 @@ class AcenetelIstatistikController extends Controller
             'belgeNoHistogram', 'subeDagilim',
             'enCokSubeliAcenteler', 'ilSubeYogunluk', 'ilceSubeYogunluk',
             'davetBasarili',
-            'nufusBasinaAcente'
+            'nufusBasinaAcente',
+            'durumDagilim', 'cepVar'
         ));
     }
 

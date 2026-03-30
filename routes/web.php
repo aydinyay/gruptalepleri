@@ -778,6 +778,7 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::post('/talep/{gtpnr}/ai-analiz', [\App\Http\Controllers\Acente\RequestController::class, 'aiAnaliz'])->name('requests.ai-analiz');
     Route::post('/talep/{gtpnr}/turai', [\App\Http\Controllers\Acente\TuraiController::class, 'chat'])->name('requests.turai');
     Route::post('/talep/{gtpnr}/acil-sms', [\App\Http\Controllers\Acente\TuraiController::class, 'acilSms'])->name('requests.acil-sms');
+    Route::post('/talep/{gtpnr}/self-sms', [\App\Http\Controllers\Acente\TuraiController::class, 'selfSms'])->name('requests.self-sms');
     Route::post('/talep/{gtpnr}/ai-kaydet', [\App\Http\Controllers\Acente\RequestController::class, 'aiKaydet'])->name('requests.ai-kaydet');
     Route::post('/talep/{gtpnr}/teklif/{offer}/kabul', [\App\Http\Controllers\Acente\RequestController::class, 'acceptOffer'])->name('requests.accept');
     Route::post('/talep/{gtpnr}/odeme/gateway-start', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'startLegacy'])->name('requests.gateway-payment.start');

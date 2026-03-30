@@ -19,16 +19,20 @@ class TuraiController extends Controller
         try {
             $user = $this->acenteActor();
 
-            $talep = GrupTalep::where('gtpnr', $gtpnr)
-                ->where('user_id', $user->id)
-                ->with(['segments', 'offers' => fn ($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi']), 'payments'])
+            $talepQuery = GrupTalep::where('gtpnr', $gtpnr);
+            if ($this->isAcentePreviewMode()) {
+                $talepQuery->where('user_id', $user->id);
+            } elseif (! in_array(auth()->user()->role, ['admin', 'superadmin'], true)) {
+                $talepQuery->where('user_id', $user->id);
+            }
+            $talep = $talepQuery->with(['segments', 'offers' => fn ($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi']), 'payments'])
                 ->first();
 
             if (! $talep) {
                 return response()->json(['hata' => 'Talep bulunamadı.'], 404);
             }
 
-            $digerTalepler = GrupTalep::where('user_id', $user->id)
+            $digerTalepler = GrupTalep::where('user_id', $talep->user_id)
                 ->where('gtpnr', '!=', $gtpnr)
                 ->with(['segments', 'offers' => fn ($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi'])])
                 ->latest()
@@ -64,10 +68,13 @@ class TuraiController extends Controller
         try {
             $user = $this->acenteActor();
 
-            $talep = GrupTalep::where('gtpnr', $gtpnr)
-                ->where('user_id', $user->id)
-                ->with('segments')
-                ->first();
+            $acilQuery = GrupTalep::where('gtpnr', $gtpnr);
+            if ($this->isAcentePreviewMode()) {
+                $acilQuery->where('user_id', $user->id);
+            } elseif (! in_array(auth()->user()->role, ['admin', 'superadmin'], true)) {
+                $acilQuery->where('user_id', $user->id);
+            }
+            $talep = $acilQuery->with('segments')->first();
 
             if (! $talep) {
                 return response()->json(['hata' => 'Talep bulunamadı.'], 404);
@@ -124,6 +131,69 @@ class TuraiController extends Controller
 
             $acilNo = SistemAyar::get('sirket_cep', SistemAyar::get('sirket_telefon', ''));
             return response()->json(['mesaj' => "⚠️ SMS gönderilemedi. Lütfen doğrudan arayın: {$acilNo}"]);
+
+        } catch (\Exception $e) {
+            return response()->json(['hata' => 'SMS gönderilemedi: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // ── Talebi kendi telefonuma SMS olarak gönder ──────────────────────────────
+    public function selfSms(Request $request, string $gtpnr): JsonResponse
+    {
+        try {
+            $user = $this->acenteActor();
+
+            $phone = preg_replace('/[^0-9]/', '', (string) ($user->phone ?? ''));
+            if (strlen($phone) === 11 && str_starts_with($phone, '0')) {
+                $phone = '90' . substr($phone, 1);
+            } elseif (strlen($phone) === 10 && str_starts_with($phone, '5')) {
+                $phone = '90' . $phone;
+            }
+
+            if (strlen($phone) < 11) {
+                return response()->json(['mesaj' => '⚠️ Hesabınızda kayıtlı cep numarası yok. Profilinizden telefon ekleyin.']);
+            }
+
+            $smsQuery = GrupTalep::where('gtpnr', $gtpnr);
+            if ($this->isAcentePreviewMode()) {
+                $smsQuery->where('user_id', $user->id);
+            } elseif (! in_array(auth()->user()->role, ['admin', 'superadmin'], true)) {
+                $smsQuery->where('user_id', $user->id);
+            }
+            $talep = $smsQuery->with(['segments', 'payments'])->first();
+
+            if (! $talep) {
+                return response()->json(['hata' => 'Talep bulunamadı.'], 404);
+            }
+
+            $rota  = $talep->segments->map(fn ($s) => "{$s->from_iata}→{$s->to_iata}")->implode(' / ');
+            $tarih = $talep->segments->first()?->departure_date ?? '-';
+            $pax   = $talep->pax_total ?? '-';
+
+            // Aktif ödeme
+            $aktifOdeme = $talep->payments->firstWhere('is_active', true);
+            $odemeStr   = '';
+            if ($aktifOdeme) {
+                $odemeStr = "\nOdeme  : {$aktifOdeme->amount} {$aktifOdeme->currency}";
+                if ($aktifOdeme->due_date) {
+                    $odemeStr .= " | Son: {$aktifOdeme->due_date}";
+                }
+            }
+
+            $mesaj = "GrupTalepleri.com\n"
+                . "Talep: {$gtpnr}\n"
+                . "Rota : {$rota}\n"
+                . "Tarih: {$tarih} | {$pax} kisi\n"
+                . "Durum: {$talep->status}"
+                . $odemeStr
+                . "\ngruptalepleri.com/login";
+
+            $sms = new \App\Services\SmsService();
+            if ($sms->send($talep->id, 'acente', $user->name, $phone, $mesaj)) {
+                return response()->json(['mesaj' => '✅ Talep bilgileri telefonunuza gönderildi.']);
+            }
+
+            return response()->json(['mesaj' => '⚠️ SMS gönderilemedi, lütfen tekrar deneyin.']);
 
         } catch (\Exception $e) {
             return response()->json(['hata' => 'SMS gönderilemedi: ' . $e->getMessage()], 500);
@@ -424,6 +494,7 @@ E-posta : {$eposta}
 7. Emoji kullanabilirsin, ama abartma.
 8. İLETİŞİM KURALI: Telefon/WhatsApp bilgisi verirken URL'yi ham metin yazma — mutlaka [tıklanabilir metin](url) formatında yaz. Çalışma saatinden bahsetme — 7/24 ulaşılabilirler.
 9. ACİL DURUM KURALI: Acil sorusunda yukarıdaki İLETİŞİM VE ACİL bölümündeki numaraları ver. Hepsini listele. Çalışma saatinden ASLA bahsetme.
+12. SMS KURALI: Kullanıcı "SMS at", "SMS gönder", "telefonuma yaz", "opsiyonumu sms ile al" gibi bir şey istediğinde, sohbet arayüzündeki "📱 Bana SMS at" chipini kullanmasını söyle. Bu chip tıklandığında talep bilgileri otomatik olarak kayıtlı telefonuna gönderilir. "SMS gönderme yeteneğim yok" asla DEME.
 11. VADE / DURUM SORUSU: "Ne zaman ödemeliyim", "sürem", "son tarih", "adım ne" gibi sorularda AKTİF ADIM ve AKTİF ÖDEME bölümünü kullan. Teklif option_date'ini asla deadline olarak sunma — sistem artık aktif_adim ve is_active payment üzerinden çalışıyor. Aktif ödeme varsa tutarı ve son tarihi ver; yoksa aktif adımı açıkla.
 10. GÖRSEL FORMAT KURALI (ÇOK ÖNEMLİ): Talep veya rota listelerken her zaman şu formatı kullan:
     - Her talep ayrı satırda, başında 🎫

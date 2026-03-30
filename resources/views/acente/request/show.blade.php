@@ -1190,6 +1190,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             <span class="turai-chip" onclick="turaiSend('💰 Ne kadar ödedim, ne kadar borcum kaldı?')">💰 Kalan ödeme</span>
             <span class="turai-chip" onclick="turaiSend('📋 Diğer taleplerimde durum nedir? Hangileri beklemede?')">📋 Taleplerim</span>
             <span class="turai-chip" onclick="turaiSend('✈️ ' + '{{ $talep->segments->last()?->to_iata }}' + ' havalimanı ve şehri hakkında bilgi ver, gezilecek yerler, ulaşım.')">✈️ Destinasyon</span>
+            <span class="turai-chip" onclick="turaiSelfSmsGonder(this)" id="turai-self-sms-btn" style="border-color:#198754;color:#198754;" title="Talep bilgilerini kendi telefonunuza SMS olarak gönderin">📱 Bana SMS at</span>
             <span class="turai-chip turai-chip-acil" onclick="turaiAcilGoster()" id="turai-acil-btn">🆘 Acil</span>
         </div>
 
@@ -1227,6 +1228,7 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     const CSRF          = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const ENDPOINT      = '/acente/talep/' + GTPNR + '/turai';
     const ACIL_ENDPOINT = '/acente/talep/' + GTPNR + '/acil-sms';
+    const SELF_SMS_ENDPOINT = '/acente/talep/' + GTPNR + '/self-sms';
     const ADMIN_PHONES  = @json($adminTelefonlar ?? []);
     const WA_LINK       = '{{ "https://wa.me/" . preg_replace("/[^0-9]/", "", \App\Models\SistemAyar::get("sirket_whatsapp", "905354154799")) . "?text=" . rawurlencode($talep->gtpnr . " numaralı talebim hakkında görüşmek istiyorum.") }}';
 
@@ -1334,6 +1336,42 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
             btn.disabled = false;
             btn.textContent = '📨 Acil SMS Gönder';
             turaiMesajEkle('ai', '⚠️ SMS gönderilemedi: ' + (err.message || 'Lütfen doğrudan arayın.'), true);
+        });
+    };
+
+    window.turaiSelfSmsGonder = function (btn) {
+        if (btn.dataset.loading) return;
+        btn.dataset.loading = '1';
+        const orijinal = btn.textContent;
+        btn.textContent = '⏳ Gönderiliyor...';
+        btn.disabled = true;
+
+        fetch(SELF_SMS_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({}),
+        })
+        .then(async r => { const t = await r.text(); try { return JSON.parse(t); } catch(e) { throw new Error(t.substring(0,200)); } })
+        .then(data => {
+            btn.textContent = '✅ SMS Gönderildi';
+            btn.style.background = '#198754';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#198754';
+            turaiMesajEkle('ai', data.mesaj || '✅ Talep bilgileri telefonunuza gönderildi.');
+            setTimeout(() => {
+                btn.textContent = orijinal;
+                btn.style.background = '';
+                btn.style.color = '#198754';
+                btn.style.borderColor = '#198754';
+                delete btn.dataset.loading;
+                btn.disabled = false;
+            }, 4000);
+        })
+        .catch(err => {
+            delete btn.dataset.loading;
+            btn.disabled = false;
+            btn.textContent = orijinal;
+            turaiMesajEkle('ai', '⚠️ SMS gönderilemedi: ' + (err.message || 'Lütfen tekrar deneyin.'), true);
         });
     };
 

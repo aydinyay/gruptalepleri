@@ -48,8 +48,9 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
 {{-- SEKMELER --}}
 <ul class="nav nav-tabs" id="mainTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-turizm"><i class="fas fa-globe me-1"></i>Turizm İstatistikleri</a></li>
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-turizm"><i class="fas fa-chart-bar me-1"></i>Veritabanı İstatistikleri</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-veri"><i class="fas fa-database me-1"></i>Veri & Kaynak Analizi</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-harici"><i class="fas fa-globe me-1"></i>Turizm Analizi</a></li>
 </ul>
 
 <div class="tab-content">
@@ -99,9 +100,9 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     </div>
     <div class="col-6 col-md-3 col-xl-2">
         <div class="kpi-card" style="border-color:#fd7e14;">
-            <div class="kpi-val" style="color:#fd7e14;">+{{ round((15678-4077)/4077*100) }}%</div>
-            <div class="kpi-label">23 Yıllık Büyüme</div>
-            <div class="kpi-sub">2000→2023</div>
+            <div class="kpi-val" style="color:#fd7e14;">{{ number_format($cepVar) }}</div>
+            <div class="kpi-label">Cep Telefonu</div>
+            <div class="kpi-sub">{{ $toplam ? round($cepVar/$toplam*100,1) : 0 }}% oranında</div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl-2">
@@ -113,78 +114,48 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     </div>
 </div>
 
-{{-- 1. TARİHİ BÜYÜME --}}
-<div class="section-card">
-    <div class="card-hdr"><i class="fas fa-chart-line me-2" style="color:#0d6efd;"></i>Türkiye Seyahat Acentası Sayısı — Yıllara Göre Büyüme (2000–2023)</div>
+{{-- 1. BAKANLIK KAYIT DURUMU --}}
+@if($durumDagilim->count() > 0)
+<div class="section-card mb-4">
+    <div class="card-hdr"><i class="fas fa-landmark me-2" style="color:#198754;"></i>Bakanlık Kayıt Durumu</div>
     <div class="card-bdy">
-        <div style="height:260px;"><canvas id="chartTarihiBuyume"></canvas></div>
-        <div class="row g-2 mt-3">
-            <div class="col-md-4"><div class="insight-box" style="border-color:#198754;">
-                <strong>23 yılda 3.8 kat büyüme</strong> — 4.077'den 15.678'e. Artış oranı %284. Yıllık ortalama ~490 yeni acente.
-            </div></div>
-            <div class="col-md-4"><div class="insight-box" style="border-color:#ffc107;">
-                <strong>Rekor yıl 2022:</strong> Tek yılda +1.856 yeni acente (12.649→14.505). Pandemi sonrası turizm patlamasının yansıması.
-            </div></div>
-            <div class="col-md-4"><div class="insight-box" style="border-color:#e94560;">
-                <strong>Avrupa'nın tersi:</strong> Aynı dönemde 26 Avrupa ülkesinde toplam −28.465 acente. Türkiye tek büyüyen ülke.
-            </div></div>
-        </div>
-    </div>
-</div>
-
-{{-- 2. AVRUPA KARŞILAŞTIRMASI --}}
-<div class="row g-3 mb-4">
-    <div class="col-md-7">
-        <div class="section-card h-100">
-            <div class="card-hdr"><i class="fas fa-globe-europe me-2" style="color:#0d6efd;"></i>Türkiye vs Avrupa — Acente Sayısı (2005 → 2021)</div>
-            <div class="card-bdy">
-                <div style="height:380px;"><canvas id="chartAvrupa"></canvas></div>
-                <div class="insight-box mt-3" style="border-color:#198754;">
-                    <strong>Türkiye tek büyüyen:</strong> 26 ülkede toplam 107.208 → 78.743 (−%26). Türkiye 4.825 → 12.649 (+%162). Kaynak: ECTAA / turizmgazetesi.com 2024
+        <div class="row g-3">
+            @foreach($durumDagilim as $d)
+            @php
+                $dRenk = match($d->durum) {
+                    'GEÇERLİ' => '#198754',
+                    'İPTAL'   => '#dc3545',
+                    default   => '#6c757d',
+                };
+                $dIkon = match($d->durum) {
+                    'GEÇERLİ' => 'fa-check-circle',
+                    'İPTAL'   => 'fa-times-circle',
+                    default   => 'fa-question-circle',
+                };
+            @endphp
+            <div class="col-6 col-md-3">
+                <div class="kpi-card" style="border-color:{{ $dRenk }};">
+                    <div class="kpi-val" style="color:{{ $dRenk }};font-size:1.6rem;">
+                        <i class="fas {{ $dIkon }} me-1" style="font-size:1.2rem;"></i>{{ number_format($d->toplam) }}
+                    </div>
+                    <div class="kpi-label">{{ $d->durum }}</div>
+                    <div class="kpi-sub">{{ $toplam ? round($d->toplam/$toplam*100,1) : 0 }}% kayıt</div>
                 </div>
             </div>
+            @endforeach
         </div>
-    </div>
-    <div class="col-md-5">
-        <div class="section-card h-100">
-            <div class="card-hdr"><i class="fas fa-table me-2"></i>Ülke Sıralaması (Değişime Göre)</div>
-            <div class="card-bdy p-0" style="max-height:500px;overflow-y:auto;">
-                <table class="table table-sm table-hover mb-0">
-                    <thead class="table-light sticky-top"><tr><th>Ülke</th><th class="text-end">2005</th><th class="text-end">2021</th><th class="text-end">Değişim</th></tr></thead>
-                    <tbody>
-                        @php
-                        $avrupaVerisi = [
-                            ['İtalya',13981,11124],['İspanya',13757,8373],['Almanya',10181,8829],
-                            ['İngiltere',9212,7819],['Fransa',8840,5020],['Polonya',7451,5373],
-                            ['Hollanda',6482,2579],['Çek Cum.',5728,6515],['Portekiz',4116,2210],
-                            ['Yunanistan',3783,3277],['İsveç',3212,2798],['Romanya',3114,1990],
-                            ['Macaristan',2523,1813],['Finlandiya',2321,1040],['Avusturya',2263,1515],
-                            ['Belçika',1820,1553],['Bulgaristan',1685,1367],['Slovakya',1357,426],
-                            ['İrlanda',1180,346],['Litvanya',1032,635],['Slovenya',917,404],
-                            ['Letonya',715,358],['Danimarka',571,633],['K.Kıbrıs',443,508],
-                            ['Estonya',439,310],['Lüksemburg',85,99],
-                            ['🇹🇷 TÜRKİYE',4825,12649],
-                        ];
-                        usort($avrupaVerisi, fn($a,$b) => ($b[2]-$b[1]) <=> ($a[2]-$a[1]));
-                        @endphp
-                        @foreach($avrupaVerisi as $r)
-                        @php $d = $r[2]-$r[1]; $p = $r[1]>0 ? round($d/$r[1]*100,1) : 0; $isTR = str_contains($r[0],'TÜRKİYE'); @endphp
-                        <tr @if($isTR) style="background:#19875415;font-weight:700;" @endif>
-                            <td>{{ $r[0] }}</td>
-                            <td class="text-end">{{ number_format($r[1]) }}</td>
-                            <td class="text-end">{{ number_format($r[2]) }}</td>
-                            <td class="text-end" style="color:{{ $d>=0?'#198754':'#dc3545' }};">{{ $d>=0?'+':'' }}{{ number_format($d) }} <small>({{ $p>=0?'+':'' }}{{ $p }}%)</small></td>
-                        </tr>
-                        @endforeach
-                        <tr class="table-dark fw-bold"><td>26 Ülke Toplam</td><td class="text-end">107.208</td><td class="text-end">78.743</td><td class="text-end text-danger">−28.465</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        @if($ilVeriSorunu > 0)
+        <div class="insight-box mt-3" style="border-color:#ffc107;">
+            <i class="fas fa-exclamation-triangle me-1 text-warning"></i>
+            <strong>{{ number_format($ilVeriSorunu) }} kayıtta</strong> il alanı geçersiz değer içeriyor (ilçe/semt adı girilmiş — ör. BODRUM, FATİH).
+            İl dağılım grafiği bu kayıtları hariç tutar; gerçek il sayısı: <strong>{{ $ilDagilimTumu->count() }}</strong>.
         </div>
+        @endif
     </div>
 </div>
+@endif
 
-{{-- 3. BÖLGE DAĞILIMI --}}
+{{-- 2. BÖLGE DAĞILIMI --}}
 <div class="row g-3 mb-4">
     <div class="col-md-5">
         <div class="section-card h-100">
@@ -549,6 +520,95 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
 </div>
 </div>
+
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+{{-- SEKME 3: TURİZM ANALİZİ (HARİCİ VERİ) --}}
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+<div class="tab-pane fade" id="tab-harici">
+<div class="container-fluid px-4 py-4">
+
+<div class="alert alert-warning d-flex align-items-start mb-4" role="alert">
+    <i class="fas fa-info-circle me-2 mt-1"></i>
+    <div>
+        <strong>Harici Veri — Bu sekmedeki veriler sabit/hardcoded sayılar içermektedir.</strong>
+        Kaynak: ECTAA / TÜİK / turizmgazetesi.com 2024. Veritabanımızı yansıtmaz, araştırma amaçlıdır.
+    </div>
+</div>
+
+{{-- TARİHİ BÜYÜME --}}
+<div class="section-card mb-4">
+    <div class="card-hdr"><i class="fas fa-chart-line me-2" style="color:#0d6efd;"></i>Türkiye Seyahat Acentası Sayısı — Yıllara Göre Büyüme (2000–2023)</div>
+    <div class="card-bdy">
+        <div style="height:260px;"><canvas id="chartTarihiBuyume"></canvas></div>
+        <div class="row g-2 mt-3">
+            <div class="col-md-4"><div class="insight-box" style="border-color:#198754;">
+                <strong>23 yılda 3.8 kat büyüme</strong> — 4.077'den 15.678'e. Artış oranı %284. Yıllık ortalama ~490 yeni acente.
+            </div></div>
+            <div class="col-md-4"><div class="insight-box" style="border-color:#ffc107;">
+                <strong>Rekor yıl 2022:</strong> Tek yılda +1.856 yeni acente (12.649→14.505). Pandemi sonrası turizm patlamasının yansıması.
+            </div></div>
+            <div class="col-md-4"><div class="insight-box" style="border-color:#e94560;">
+                <strong>Avrupa'nın tersi:</strong> Aynı dönemde 26 Avrupa ülkesinde toplam −28.465 acente. Türkiye tek büyüyen ülke.
+            </div></div>
+        </div>
+    </div>
+</div>
+
+{{-- AVRUPA KARŞILAŞTIRMASI --}}
+<div class="row g-3 mb-4">
+    <div class="col-md-7">
+        <div class="section-card h-100">
+            <div class="card-hdr"><i class="fas fa-globe-europe me-2" style="color:#0d6efd;"></i>Türkiye vs Avrupa — Acente Sayısı (2005 → 2021)</div>
+            <div class="card-bdy">
+                <div style="height:380px;"><canvas id="chartAvrupa"></canvas></div>
+                <div class="insight-box mt-3" style="border-color:#198754;">
+                    <strong>Türkiye tek büyüyen:</strong> 26 ülkede toplam 107.208 → 78.743 (−%26). Türkiye 4.825 → 12.649 (+%162). Kaynak: ECTAA / turizmgazetesi.com 2024
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="section-card h-100">
+            <div class="card-hdr"><i class="fas fa-table me-2"></i>Ülke Sıralaması (Değişime Göre)</div>
+            <div class="card-bdy p-0" style="max-height:500px;overflow-y:auto;">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light sticky-top"><tr><th>Ülke</th><th class="text-end">2005</th><th class="text-end">2021</th><th class="text-end">Değişim</th></tr></thead>
+                    <tbody>
+                        @php
+                        $avrupaVerisi = [
+                            ['İtalya',13981,11124],['İspanya',13757,8373],['Almanya',10181,8829],
+                            ['İngiltere',9212,7819],['Fransa',8840,5020],['Polonya',7451,5373],
+                            ['Hollanda',6482,2579],['Çek Cum.',5728,6515],['Portekiz',4116,2210],
+                            ['Yunanistan',3783,3277],['İsveç',3212,2798],['Romanya',3114,1990],
+                            ['Macaristan',2523,1813],['Finlandiya',2321,1040],['Avusturya',2263,1515],
+                            ['Belçika',1820,1553],['Bulgaristan',1685,1367],['Slovakya',1357,426],
+                            ['İrlanda',1180,346],['Litvanya',1032,635],['Slovenya',917,404],
+                            ['Letonya',715,358],['Danimarka',571,633],['K.Kıbrıs',443,508],
+                            ['Estonya',439,310],['Lüksemburg',85,99],
+                            ['🇹🇷 TÜRKİYE',4825,12649],
+                        ];
+                        usort($avrupaVerisi, fn($a,$b) => ($b[2]-$b[1]) <=> ($a[2]-$a[1]));
+                        @endphp
+                        @foreach($avrupaVerisi as $r)
+                        @php $d = $r[2]-$r[1]; $p = $r[1]>0 ? round($d/$r[1]*100,1) : 0; $isTR = str_contains($r[0],'TÜRKİYE'); @endphp
+                        <tr @if($isTR) style="background:#19875415;font-weight:700;" @endif>
+                            <td>{{ $r[0] }}</td>
+                            <td class="text-end">{{ number_format($r[1]) }}</td>
+                            <td class="text-end">{{ number_format($r[2]) }}</td>
+                            <td class="text-end" style="color:{{ $d>=0?'#198754':'#dc3545' }};">{{ $d>=0?'+':'' }}{{ number_format($d) }} <small>({{ $p>=0?'+':'' }}{{ $p }}%)</small></td>
+                        </tr>
+                        @endforeach
+                        <tr class="table-dark fw-bold"><td>26 Ülke Toplam</td><td class="text-end">107.208</td><td class="text-end">78.743</td><td class="text-end text-danger">−28.465</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+
 </div>{{-- /tab-content --}}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
