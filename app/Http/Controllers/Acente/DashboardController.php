@@ -17,7 +17,11 @@ class DashboardController extends Controller
         $agency = $user->agency;
 
         $talepler = TalepModel::where('user_id', $user->id)
-            ->with(['segments', 'offers' => fn($q) => $q->where('is_visible', true)->where('price_per_pax', '>', 0)])
+            ->with([
+                'segments',
+                'offers'    => fn($q) => $q->where('is_visible', true)->where('price_per_pax', '>', 0),
+                'payments'  => fn($q) => $q->where('status', 'bekleniyor')->whereNotNull('due_date'),
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 

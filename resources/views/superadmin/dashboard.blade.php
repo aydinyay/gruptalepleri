@@ -115,6 +115,16 @@
             ->limit(5)
             ->get();
 
+        // Bekleyen ödeme vadeleri — 48 saat içinde dolanlar
+        $odemeUyarilari = \App\Models\RequestPayment::where('status', 'bekleniyor')
+            ->whereNotNull('due_date')
+            ->whereRaw("due_date > CURDATE()")
+            ->whereRaw("due_date <= DATE(DATE_ADD(NOW(), INTERVAL 48 HOUR))")
+            ->with('request')
+            ->orderBy('due_date')
+            ->limit(5)
+            ->get();
+
         // Son talepler — aktif durumlar (biletlendi/olumsuz/iade hariç)
         $sonTalepler = \App\Models\Request::with(['segments'])
             ->whereNotIn('status', ['biletlendi', 'olumsuz', 'iade', 'iptal'])
@@ -238,12 +248,12 @@
         <div class="col-12 col-xl-8">
 
             {{-- KRİTİK OPSİYONLAR --}}
-            @if($kritikOpsiyonlar->count() > 0)
+            @if($kritikOpsiyonlar->count() > 0 || $odemeUyarilari->count() > 0)
             <div class="card shadow-sm mb-4">
                 <div class="card-header d-flex align-items-center gap-2" style="background:#fff3cd;border-bottom:1px solid #ffc107;">
                     <i class="fas fa-exclamation-triangle text-warning"></i>
-                    <span class="fw-bold">Kritik Opsiyon Uyarıları</span>
-                    <span class="badge bg-warning text-dark ms-1">{{ $kritikOpsiyonlar->count() }}</span>
+                    <span class="fw-bold">Kritik Opsiyon & Ödeme Uyarıları</span>
+                    <span class="badge bg-warning text-dark ms-1">{{ $kritikOpsiyonlar->count() + $odemeUyarilari->count() }}</span>
                 </div>
                 <div class="card-body p-3">
                     @foreach($kritikOpsiyonlar as $teklif)
@@ -273,6 +283,29 @@
                             <div class="small text-muted">{{ $opsTs->format('d.m.Y H:i') }}</div>
                         </div>
                     </div>
+                    @if(!$loop->last || $odemeUyarilari->count() > 0)<hr class="my-1">@endif
+                    @endforeach
+                    @foreach($odemeUyarilari as $odeme)
+                    @php
+                        $dueTs = \Carbon\Carbon::parse($odeme->due_date)->endOfDay();
+                        $kalanSaatO = \Carbon\Carbon::now()->diffInHours($dueTs, false);
+                        $renkO = $kalanSaatO <= 6 ? 'danger' : 'warning';
+                    @endphp
+                    <div class="opsiyon-item d-flex justify-content-between align-items-center" style="background:rgba(255,153,0,0.06);border-radius:6px;padding:4px 8px;">
+                        <div>
+                            <span class="fw-bold">{{ $odeme->request?->gtpnr ?? '—' }}</span>
+                            <span class="ms-2" style="font-size:.75rem;background:#FF9900;color:#fff;padding:1px 6px;border-radius:4px;">💳 Ödeme Vadesi</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-{{ $renkO }}">
+                                @if($kalanSaatO < 24) {{ round($kalanSaatO) }} saat kaldı
+                                @else {{ floor($kalanSaatO/24) }}g {{ round(fmod($kalanSaatO,24)) }}s kaldı
+                                @endif
+                            </span>
+                            <div class="small text-muted">{{ $dueTs->format('d.m.Y') }}</div>
+                        </div>
+                    </div>
+                    @if(!$loop->last)<hr class="my-1">@endif
                     @endforeach
                 </div>
             </div>

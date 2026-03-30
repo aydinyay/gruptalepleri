@@ -96,6 +96,15 @@
             ->orderByRaw("STR_TO_DATE(CONCAT(option_date, ' ', COALESCE(option_time, '23:59')), '%Y-%m-%d %H:%i') ASC")
             ->get();
 
+        // Bekleyen ödeme vadeleri — 48 saat içinde dolanlar
+        $odemeUyarilari = \App\Models\RequestPayment::where('status', 'bekleniyor')
+            ->whereNotNull('due_date')
+            ->whereRaw("due_date > CURDATE()")
+            ->whereRaw("due_date <= DATE(DATE_ADD(NOW(), INTERVAL 48 HOUR))")
+            ->with('request')
+            ->orderBy('due_date')
+            ->get();
+
         // Son talepler — aktif durumlar (biletlendi/olumsuz/iade hariç)
         $sonTalepler = \App\Models\Request::with('segments')
             ->whereNotIn('status', ['biletlendi', 'olumsuz', 'iade', 'iptal'])
@@ -180,20 +189,20 @@
         <div class="col-12 col-xl-8">
 
             {{-- OPSİYON UYARILARI --}}
-            @if($opsiyonUyarilari->count() > 0)
+            @if($opsiyonUyarilari->count() > 0 || $odemeUyarilari->count() > 0)
             <div class="card shadow-sm mb-4" style="border-top: 3px solid #ffc107;">
                 <div class="card-header d-flex align-items-center gap-2" style="background:#fffbf0;">
                     <span class="notif-dot"></span>
-                    <span class="fw-bold">⏰ Opsiyon Uyarıları</span>
-                    <span class="badge bg-warning text-dark">{{ $opsiyonUyarilari->count() }} aktif</span>
+                    <span class="fw-bold">⏰ Opsiyon & Ödeme Uyarıları</span>
+                    <span class="badge bg-warning text-dark">{{ $opsiyonUyarilari->count() + $odemeUyarilari->count() }} aktif</span>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>GTPNR</th>
-                                <th>Havayolu</th>
-                                <th>Opsiyon Sonu</th>
+                                <th>Tür / Havayolu</th>
+                                <th>Son Tarih</th>
                                 <th>Kalan Süre</th>
                                 <th></th>
                             </tr>
@@ -230,6 +239,35 @@
                                 <td>
                                     @if($teklif->request)
                                     <a href="{{ route('admin.requests.show', $teklif->request->gtpnr) }}" class="btn-sm-red">
+                                        <i class="fas fa-eye me-1"></i>Detay
+                                    </a>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                            @foreach($odemeUyarilari as $odeme)
+                            @php
+                                $dueTs = \Carbon\Carbon::parse($odeme->due_date)->endOfDay();
+                                $kalanSaniyeO = \Carbon\Carbon::now()->diffInSeconds($dueTs, false);
+                                $kalanSaatO = $kalanSaniyeO / 3600;
+                                $renkO = $kalanSaatO <= 6 ? 'danger' : ($kalanSaatO <= 24 ? 'warning' : 'success');
+                            @endphp
+                            <tr style="background:rgba(255,153,0,0.05);">
+                                <td><strong>{{ $odeme->request?->gtpnr ?? '—' }}</strong></td>
+                                <td><span class="badge" style="background:#FF9900;color:#fff;font-size:.7rem;">💳 Ödeme Vadesi</span></td>
+                                <td class="text-muted">{{ $dueTs->format('d.m.Y') }}</td>
+                                <td>
+                                    <span class="countdown text-{{ $renkO }}" data-ts="{{ $dueTs->timestamp }}">
+                                        @if($kalanSaatO < 24)
+                                            {{ round($kalanSaatO) }}s
+                                        @else
+                                            {{ floor($kalanSaatO/24) }}g {{ round(fmod($kalanSaatO,24)) }}s
+                                        @endif
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($odeme->request)
+                                    <a href="{{ route('admin.requests.show', $odeme->request->gtpnr) }}" class="btn-sm-red">
                                         <i class="fas fa-eye me-1"></i>Detay
                                     </a>
                                     @endif

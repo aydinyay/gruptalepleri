@@ -125,6 +125,21 @@
                         } elseif ($talep->status === 'biletlendi') {
                             $opsiyonHtml = '<span class="text-success">BİLETLENDİ</span>';
                         }
+                        // Offer option bittiyse veya yoksa → bekleyen ödeme vadesi
+                        if (!$opsiyonHtml || str_contains($opsiyonHtml, 'OPSİYON BİTTİ')) {
+                            $bekleyenOdeme = $talep->payments
+                                ->filter(fn($p) => $p->due_date && \Carbon\Carbon::parse($p->due_date)->endOfDay()->isFuture())
+                                ->sortBy('due_date')->first();
+                            if ($bekleyenOdeme) {
+                                $dueDt = \Carbon\Carbon::parse($bekleyenOdeme->due_date)->endOfDay();
+                                $diff = now()->diff($dueDt);
+                                $parts = [];
+                                if ($diff->d) $parts[] = $diff->d.'g';
+                                if ($diff->h) $parts[] = $diff->h.'s';
+                                $opsiyonHtml = '<span class="fw-bold" style="color:#FF9900;">💳 '.(implode(' ', $parts) ?: '<1s').' kaldı</span><br>'
+                                    .'<small class="text-muted">'.$dueDt->format('d.m.Y').'</small>';
+                            }
+                        }
                     @endphp
                     <tr data-status="{{ $talep->status }}"
                         style="cursor:pointer; border-left: 3px solid {{ $sc['bg'] }};"

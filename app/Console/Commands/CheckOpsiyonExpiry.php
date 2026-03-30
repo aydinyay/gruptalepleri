@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Offer;
 use App\Models\OpsiyonUyariAyar;
 use App\Models\OpsiyonUyariGonderim;
+use App\Models\RequestPayment;
 use App\Models\SistemAyar;
 use App\Services\EmailService;
 use App\Services\NotificationService;
@@ -97,6 +98,43 @@ class CheckOpsiyonExpiry extends Command
 
                     $this->line("Uyarı gönderildi: {$gtpnr} / {$airline} ({$ayar->saat_oncesi}s önce)");
                 }
+            }
+        }
+
+        // ── Bekleyen ödeme vadeleri için bildirim ────────────────────────────
+        $odemeUyarilari = RequestPayment::where('status', 'bekleniyor')
+            ->whereNotNull('due_date')
+            ->with('request')
+            ->get();
+
+        foreach ($ayarlar as $ayar) {
+            $hedefZaman       = $simdi->copy()->addHours($ayar->saat_oncesi);
+            $pencereBaslangic = $simdi->copy();
+            $pencereBitis     = $hedefZaman;
+
+            foreach ($odemeUyarilari as $odeme) {
+                $dueDt = Carbon::parse($odeme->due_date)->endOfDay();
+                if (! $dueDt->isFuture()) continue;
+                if (! $dueDt->between($pencereBaslangic, $pencereBitis)) continue;
+
+                $cacheKey = "odeme_uyari_{$odeme->id}_{$ayar->saat_oncesi}";
+                if (Cache::has($cacheKey)) continue;
+
+                $saatKaldi = (int) $simdi->diffInHours($dueDt, false);
+                $gtpnr     = $odeme->request?->gtpnr ?? '—';
+                $url       = route('requests.short', $gtpnr);
+                $msg       = "ÖDEME UYARISI: {$gtpnr} — {$saatKaldi} saat içinde ödeme vadesi doluyor! {$dueDt->format('d.m.Y')}" . PHP_EOL . $url;
+
+                if ($ayar->push_aktif) {
+                    $notifService->opsiyonUyarisi($gtpnr, '💳 Ödeme Vadesi', $saatKaldi, $url);
+                }
+                if ($ayar->sms_aktif) {
+                    $smsService->sendByEvent('opsiyon_uyarisi', $odeme->request_id, $msg);
+                }
+                $emailService->opsiyonUyarisi($odeme->request_id, $gtpnr, '💳 Ödeme Vadesi', $saatKaldi, $dueDt->format('d.m.Y H:i'), $url);
+
+                Cache::put($cacheKey, true, 60 * 48);
+                $this->line("Ödeme uyarısı gönderildi: {$gtpnr} ({$ayar->saat_oncesi}s önce)");
             }
         }
     }
