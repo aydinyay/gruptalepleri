@@ -215,6 +215,14 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
     });
 
+    Route::get('/davet-onizleme', function () {
+        return view('emails.tursab_davet', [
+            'acenteUnvani' => 'ÖRNEK SEYAHAT ACENTASI',
+            'belgeNo'      => '12345',
+            'kayitUrl'     => url('/register'),
+        ]);
+    });
+
     Route::get('/run-migrate-once', function () {
         \Artisan::call('migrate', ['--force' => true]);
         return response('<pre>' . \Artisan::output() . '</pre>');
