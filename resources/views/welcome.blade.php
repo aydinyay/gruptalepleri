@@ -443,6 +443,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
         <a href="#nasil" class="nav-item">Nasıl Çalışır</a>
         <a href="#neden" class="nav-item">Neden Biz</a>
         <a href="#kimler" class="nav-item">Kimler İçin</a>
+        <a href="/acente-tanitim.html" class="nav-item">Platform Tanıtımı</a>
         <a href="{{ route('login') }}" class="btn-nav-login">Giriş Yap</a>
         <a href="{{ route('register') }}" class="btn-nav-register">Üye Ol</a>
     </div>
