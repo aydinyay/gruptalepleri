@@ -35,6 +35,15 @@ Route::get('/acente-sync-run', function () {
         ->header('Content-Type', 'text/plain');
 });
 
+// ── aktif_adim refresh — tek seferlik stale state düzeltme ──
+Route::get('/aktif-adim-refresh-2026', function () {
+    if (request('t') !== 'grtadim2026') abort(403);
+    $args = request('dry') === '1' ? ['--dry-run' => true] : [];
+    \Illuminate\Support\Facades\Artisan::call('aktif-adim:refresh', $args);
+    return response(\Illuminate\Support\Facades\Artisan::output())
+        ->header('Content-Type', 'text/plain');
+});
+
 // ── Migration runner (durum + synced_at kolonları) ──
 Route::get('/mig-acesync-2026', function () {
     if (request('t') !== 'grtmigace2026') abort(403);
