@@ -141,15 +141,15 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
         <div class="tab-pane fade show active" id="tab-gonder">
 
             {{-- FİLTRE --}}
-            <form method="GET" action="{{ route('superadmin.tursab.kampanya') }}" class="card shadow-sm mb-3">
+            <form method="GET" action="{{ route('superadmin.tursab.kampanya') }}" class="card shadow-sm mb-3" id="filtreForm">
                 <div class="card-body py-2">
                     <div class="row g-2 align-items-end">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label small mb-1">Ara</label>
                             <input type="text" name="q" class="form-control form-control-sm"
                                    value="{{ $q }}" placeholder="Acente adı veya belge no...">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label small mb-1">İl</label>
                             <select name="il" class="form-select form-select-sm">
                                 <option value="">Tüm İller</option>
@@ -158,22 +158,43 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <label class="form-label small mb-1">Grup</label>
                             <select name="grup" class="form-select form-select-sm">
                                 <option value="">Tümü</option>
-                                <option value="A" {{ $grup==='A'?'selected':'' }}>A Grubu</option>
-                                <option value="B" {{ $grup==='B'?'selected':'' }}>B Grubu</option>
+                                <option value="A" {{ $grup==='A'?'selected':'' }}>A</option>
+                                <option value="B" {{ $grup==='B'?'selected':'' }}>B</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" name="sadece_yeni" value="1" id="sadece_yeni"
-                                       {{ $sadeceDavetEdilmemis ? 'checked' : '' }}>
-                                <label class="form-check-label small" for="sadece_yeni">Davet edilmemişler</label>
+                        <div class="col-md-1">
+                            <label class="form-label small mb-1">Sayfa</label>
+                            <select name="per_page" class="form-select form-select-sm">
+                                <option value="25"  {{ $perPage===25  ? 'selected':'' }}>25</option>
+                                <option value="50"  {{ $perPage===50  ? 'selected':'' }}>50</option>
+                                <option value="100" {{ $perPage===100 ? 'selected':'' }}>100</option>
+                                <option value="200" {{ $perPage===200 ? 'selected':'' }}>200</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex flex-column gap-1 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="sadece_yeni" value="1" id="sadece_yeni"
+                                           {{ $sadeceDavetEdilmemis ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="sadece_yeni">Davet edilmemişler</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="sadece_cep" value="1" id="sadece_cep"
+                                           {{ $sadeceCep ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="sadece_cep">
+                                        📱 Sadece cep numaralı
+                                        @if($sadeceCep)
+                                            <span class="badge bg-success ms-1">aktif</span>
+                                        @endif
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <button type="submit" class="btn btn-sm btn-dark w-100">Filtrele</button>
                         </div>
                     </div>
@@ -228,8 +249,10 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                         @else
                         <span class="text-danger small fw-bold">Günlük limit doldu</span>
                         @endif
-                        <button type="button" class="btn btn-sm btn-outline-success" onclick="smsPanelAc()">
+                        <button type="button" class="btn btn-sm {{ $sadeceCep ? 'btn-success' : 'btn-outline-success' }}" onclick="smsPanelAc()"
+                                title="{{ $sadeceCep ? 'Cep filtresi aktif — modal açılır' : 'Önce cep numarası filtresi uygulanır' }}">
                             <i class="fas fa-mobile-alt me-1"></i>SMS Gönder
+                            @if(!$sadeceCep)<i class="fas fa-filter ms-1" style="font-size:0.7rem;opacity:0.6;"></i>@endif
                         </button>
                         </div>
                     </div>
@@ -1089,7 +1112,20 @@ function aiYukle() {
 function aiYenidenUret() { aiYukle(); }
 
 /* ── SMS ──────────────────────────────────────────────────── */
+const SADECE_CEP_AKTIF = {{ $sadeceCep ? 'true' : 'false' }};
+
 function smsPanelAc() {
+    // Cep filtresi aktif değilse önce sayfayı filtrele
+    if (!SADECE_CEP_AKTIF) {
+        const form = document.getElementById('filtreForm');
+        // Sadece cep checkbox'ını işaretle
+        const cepCb = form.querySelector('[name="sadece_cep"]');
+        if (cepCb) cepCb.checked = true;
+        // Mevcut filtre değerlerini koru ve gönder
+        form.submit();
+        return;
+    }
+
     const secili = document.querySelectorAll('.acente-cb:checked');
     if (secili.length === 0) { alert('Lütfen en az bir acente seçin.'); return; }
 

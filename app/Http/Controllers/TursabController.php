@@ -113,10 +113,14 @@ class TursabController extends Controller
         $this->assertSuperadmin();
 
         // Filtreler
-        $il   = trim($request->input('il', ''));
-        $grup = trim($request->input('grup', ''));
-        $q    = trim($request->input('q', ''));
+        $il       = trim($request->input('il', ''));
+        $grup     = trim($request->input('grup', ''));
+        $q        = trim($request->input('q', ''));
         $sadeceDavetEdilmemis = $request->boolean('sadece_yeni', true);
+        $sadeceCep = $request->boolean('sadece_cep', false);
+        $perPage  = in_array((int) $request->input('per_page', 50), [25, 50, 100, 200])
+                    ? (int) $request->input('per_page', 50)
+                    : 50;
 
         // Migrate edilmemiş olabilir — tablo yoksa varsayılan değerler kullan
         $tableExists = \Illuminate\Support\Facades\Schema::hasTable('tursab_davetler');
@@ -147,9 +151,15 @@ class TursabController extends Controller
             $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $davetEdilenler);
         }
 
-        $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta')
+        // Sadece cep numarası olanlar (alan kodu 5 ile başlayanlar)
+        if ($sadeceCep) {
+            $query->whereNotNull('telefon')->where('telefon', '!=', '')
+                  ->whereRaw("telefon REGEXP '^[[:space:]]*(\\\\+?90)?0?5[0-9]'");
+        }
+
+        $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta','telefon')
                            ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')
-                           ->paginate(100)->withQueryString();
+                           ->paginate($perPage)->withQueryString();
 
         // Davet geçmişi (son 200)
         $gecmis = $tableExists
@@ -158,7 +168,7 @@ class TursabController extends Controller
 
         return view('superadmin.tursab-kampanya', compact(
             'acenteler', 'iller', 'bugunGonderilen', 'kalanHak',
-            'gecmis', 'il', 'grup', 'q', 'sadeceDavetEdilmemis'
+            'gecmis', 'il', 'grup', 'q', 'sadeceDavetEdilmemis', 'sadeceCep', 'perPage'
         ));
     }
 
