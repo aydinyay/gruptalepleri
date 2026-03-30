@@ -245,7 +245,7 @@ class TursabController extends Controller
         $this->assertSuperadmin();
 
         $start  = $request->input('start');   // null = kaldığı yerden
-        $end    = (int) ($request->input('end', 18804));
+        $end    = (int) ($request->input('end', 20000));
         $batch  = max(1, (int) ($request->input('batch', 50)));
         $beyond = $request->boolean('beyond');
         $reset  = $request->boolean('reset');
@@ -338,7 +338,7 @@ class TursabController extends Controller
         $found     = (int)    \App\Models\SistemAyar::get('acente_sync_found',      '0');
         $at        = (string) \App\Models\SistemAyar::get('acente_sync_at',         '');
         $startedAt = (string) \App\Models\SistemAyar::get('acente_sync_started_at', '');
-        $endNo     = 18804;
+        $endNo     = 20000;
 
         // Genel ilerleme: Geçiş 1 = 0-50%, Geçiş 2 = 50-100%
         $gecisPercent = $endNo > 0 ? min(100, round(($currentNo - 1) / $endNo * 100, 1)) : 0;
