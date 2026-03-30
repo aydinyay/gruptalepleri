@@ -215,6 +215,14 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return response('<pre style="font-size:11px;padding:10px;">' . htmlspecialchars(implode('', $lastLines)) . '</pre>');
     });
 
+    Route::get('/davet-onizleme-yeni', function () {
+        return view('emails.tursab_davet_yeni_acente', [
+            'acenteUnvani' => 'MAYA GLOBAL DMC TRAVEL AGENCY',
+            'belgeNo'      => '18805',
+            'kayitUrl'     => url('/register'),
+        ]);
+    });
+
     Route::get('/davet-onizleme', function () {
         return view('emails.tursab_davet', [
             'acenteUnvani' => 'ÖRNEK SEYAHAT ACENTASI',

@@ -184,6 +184,29 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
             <form method="POST" action="{{ route('superadmin.tursab.toplu-davet') }}" id="davetForm">
                 @csrf
 
+                {{-- ŞABLON SEÇİCİ --}}
+                <div class="card shadow-sm mb-3 px-3 py-2">
+                    <div class="d-flex align-items-center gap-4 flex-wrap">
+                        <span class="small fw-bold text-muted">Şablon:</span>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="sablon" id="sablonStandart"
+                                   value="emails.tursab_davet" checked>
+                            <label class="form-check-label small" for="sablonStandart">Standart Davet</label>
+                        </div>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="sablon" id="sablonYeni"
+                                   value="emails.tursab_davet_yeni_acente">
+                            <label class="form-check-label small" for="sablonYeni">🎉 Yeni Acenta Tebrik</label>
+                        </div>
+                        <a href="{{ url('/superadmin/davet-onizleme') }}" target="_blank" class="small text-muted ms-auto">
+                            <i class="fas fa-eye me-1"></i>Standart önizle
+                        </a>
+                        <a href="{{ url('/superadmin/davet-onizleme-yeni') }}" target="_blank" class="small text-muted">
+                            <i class="fas fa-eye me-1"></i>Tebrik önizle
+                        </a>
+                    </div>
+                </div>
+
                 {{-- STICKY ACTION BAR --}}
                 <div class="sticky-action mb-3 px-2">
                     <div class="d-flex align-items-center gap-3 flex-wrap">

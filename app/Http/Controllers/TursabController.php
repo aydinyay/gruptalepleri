@@ -182,6 +182,11 @@ class TursabController extends Controller
         // Limit kadar kes
         $secilen = array_slice($secilen, 0, $kalanHak);
 
+        $sablonlar = ['emails.tursab_davet', 'emails.tursab_davet_yeni_acente'];
+        $sablon = in_array($request->input('sablon'), $sablonlar)
+            ? $request->input('sablon')
+            : 'emails.tursab_davet';
+
         $basarili = 0;
         $basarisiz = 0;
 
@@ -194,7 +199,7 @@ class TursabController extends Controller
             if ($tableExists && TursabDavet::whereRaw('LOWER(eposta) = ?', [strtolower($eposta)])->exists()) continue;
 
             try {
-                $this->gonder($eposta, $acenteAdi, $belgeNo);
+                $this->gonder($eposta, $acenteAdi, $belgeNo, $sablon);
 
                 TursabDavet::create([
                     'belge_no'        => $belgeNo ?: null,
@@ -228,12 +233,16 @@ class TursabController extends Controller
     /**
      * Private — email gönderim ortak metod.
      */
-    private function gonder(string $email, string $acenteAdi, string $belgeNo = ''): void
+    private function gonder(string $email, string $acenteAdi, string $belgeNo = '', string $sablon = 'emails.tursab_davet'): void
     {
+        $konu = $sablon === 'emails.tursab_davet_yeni_acente'
+            ? 'Hayırlı Olsun! GrupTalepleri\'nden tebrikler 🎉'
+            : 'GrupTalepleri.com — Platforma Davet';
+
         Mail::send(
-            'emails.tursab_davet',
+            $sablon,
             ['acenteUnvani' => $acenteAdi, 'belgeNo' => $belgeNo, 'kayitUrl' => route('register')],
-            fn($mail) => $mail->to($email, $acenteAdi)->subject('GrupTalepleri.com — Platforma Davet')
+            fn($mail) => $mail->to($email, $acenteAdi)->subject($konu)
         );
     }
 
