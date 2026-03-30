@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tursab_davetler', function (Blueprint $table) {
-            $table->string('tip', 10)->default('email')->after('status');  // 'email' | 'sms'
-            $table->text('icerik')->nullable()->after('tip');               // SMS içeriği (email için null)
+            if (!Schema::hasColumn('tursab_davetler', 'tip')) {
+                $table->string('tip', 10)->default('email')->after('status');
+            }
+            if (!Schema::hasColumn('tursab_davetler', 'icerik')) {
+                $table->text('icerik')->nullable()->after('tip');
+            }
         });
     }
 
