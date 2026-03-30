@@ -15,6 +15,7 @@ class SosyalMedyaController extends Controller
         'instagram' => ['akis' => 2200, 'reels' => 2200, 'hikaye' => 150],
         'linkedin'  => ['gonderi' => 3000, 'makale' => 125000],
         'x'         => ['tweet' => 280, 'thread' => 280],
+        'whatsapp'  => ['yayin' => 1000, 'durum' => 700, 'kanal' => 1600],
     ];
 
     // ── Format Türkçe etiketleri ────────────────────────────────────────────
@@ -23,6 +24,7 @@ class SosyalMedyaController extends Controller
         'instagram' => ['akis' => 'Akış (Feed)', 'reels' => 'Reels', 'hikaye' => 'Hikaye'],
         'linkedin'  => ['gonderi' => 'Gönderi', 'makale' => 'Makale (Uzun Form)'],
         'x'         => ['tweet' => 'Tweet', 'thread' => 'Thread'],
+        'whatsapp'  => ['yayin' => 'Yayın Mesajı', 'durum' => 'Durum (Status)', 'kanal' => 'Kanal Paylaşımı'],
     ];
 
     // ── Platform hakkında derin bilgi (tüm prompt'lara enjekte edilir) ─────
@@ -242,7 +244,7 @@ MARKA;
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
 
         $validated = $request->validate([
-            'platform'  => 'required|in:facebook,instagram,linkedin,x',
+            'platform'  => 'required|in:facebook,instagram,linkedin,x,whatsapp',
             'format'    => 'required|string|max:40',
             'konu'      => 'required|string|max:300',
             'ton'       => 'required|in:profesyonel,samimi,ilham_verici,bilgilendirici,eglenceli',
@@ -317,6 +319,7 @@ MARKA;
             'facebook'  => 'Landscape format (1.91:1 ratio), professional and eye-catching.',
             'linkedin'  => 'Professional corporate visual, clean background, blue-white tones.',
             'x'         => 'Landscape banner format, clean and clear.',
+            'whatsapp'  => 'Square format (1:1 ratio), bold text, high contrast, mobile-friendly.',
             default     => 'Clean corporate visual.',
         };
 
@@ -587,6 +590,10 @@ MARKA;
             ? "\n- Thread: Her tweet 1-{N} şeklinde numaralandırılmış olsun, her biri maksimum 280 karakter"
             : '';
 
+        $whatsappKural = ($v['platform'] === 'whatsapp')
+            ? "\n- WhatsApp formatını kullan: *kalın* için yıldız, _italik_ için alt çizgi, ~üstü çizili~ için tilde\n- Emoji bol kullan, B2B iş ortağına yazıyormuş gibi samimi ama profesyonel\n- Paragraflar kısa (2-3 satır max), boş satırlarla ayır\n- CTA net olsun: 'www.gruptalepleri.com' linkiyle bitir\n- Resmi imza ekle: *GrupTalepleri.com Ekibi* 🚀"
+            : '';
+
         $yaklasanStr = $yaklasanGun->isEmpty() ? '' : "\n━━━ YAKLAŞAN ÖZEL GÜNLER ━━━\n"
             . $yaklasanGun->map(fn($g) => "- {$g->ad} ({$g->tarih}) — {$g->aciklama}")->implode("\n");
 
@@ -622,10 +629,11 @@ MARKA;
             '- Platform adını "GrupTalepleri.com" yaz — T-A-L-E-P (yanlış: grupcalepleri, grupltalepleri).',
             '- Sloganı gerekirse kullan: "Güveniniz hariç her şeyi uçururuz"',
             '- Hashtag\'ler platforma uygun olsun (#GrupTalepleri #TurAcentesi #TÜRSAB vb.).',
-            '- LinkedIn\'de emoji kullanma. Facebook/Instagram\'da sınırlı emoji.',
+            '- LinkedIn\'de emoji kullanma. Facebook/Instagram\'da sınırlı emoji. WhatsApp\'ta emoji bolca kullanılabilir.',
             '- CTA ekle: "www.gruptalepleri.com" veya "Hemen üye ol" gibi.',
             "- Maksimum {$limit} karakter geçme.",
             $threadKural,
+            $whatsappKural,
             '',
             '━━━ ÇIKTI FORMAT (JSON) ━━━',
             'Sadece şu JSON\'u döndür, başka hiçbir şey yazma:',

@@ -75,6 +75,7 @@
         .platform-btn.active[data-p="instagram"] { background: var(--ig); color: #fff; border-color: var(--ig); }
         .platform-btn.active[data-p="linkedin"]  { background: var(--li); color: #fff; border-color: var(--li); }
         .platform-btn.active[data-p="x"]         { background: var(--x); color: #fff; border-color: var(--x); }
+        .platform-btn.active[data-p="whatsapp"]  { background: #25D366; color: #fff; border-color: #25D366; }
 
         /* ── Toolbar ── */
         .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -109,6 +110,7 @@
         .badge-instagram { background: var(--ig); }
         .badge-linkedin  { background: var(--li); }
         .badge-x         { background: var(--x); }
+        .badge-whatsapp  { background: #25D366; }
         .ai-stars { color: #f59e0b; font-size: 0.95rem; }
         .char-meter { flex: 1; min-width: 120px; }
         .char-meter .meter-bar { height: 6px; background: var(--sm-border); border-radius: 3px; overflow: hidden; }
@@ -411,6 +413,9 @@
                     <button class="platform-btn" data-p="x" onclick="setPlatform('x', this)" title="X (Twitter)">
                         <i class="fab fa-x-twitter"></i>
                     </button>
+                    <button class="platform-btn" data-p="whatsapp" onclick="setPlatform('whatsapp', this)" title="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
                 </div>
 
                 {{-- Format --}}
@@ -605,6 +610,7 @@
                 <button onclick="filterKanban('instagram', this)"><i class="fab fa-instagram me-1" style="color:var(--ig)"></i> Instagram</button>
                 <button onclick="filterKanban('linkedin', this)"><i class="fab fa-linkedin-in me-1" style="color:var(--li)"></i> LinkedIn</button>
                 <button onclick="filterKanban('x', this)"><i class="fab fa-x-twitter me-1"></i> X</button>
+                <button onclick="filterKanban('whatsapp', this)"><i class="fab fa-whatsapp me-1" style="color:#25D366"></i> WhatsApp</button>
             </div>
         </div>
 
@@ -803,13 +809,13 @@ function toast(msg, type = 'success') {
 }
 
 function pfIcon(p) {
-    return { facebook:'fab fa-facebook-f', instagram:'fab fa-instagram', linkedin:'fab fa-linkedin-in', x:'fab fa-x-twitter' }[p] || 'fas fa-share-nodes';
+    return { facebook:'fab fa-facebook-f', instagram:'fab fa-instagram', linkedin:'fab fa-linkedin-in', x:'fab fa-x-twitter', whatsapp:'fab fa-whatsapp' }[p] || 'fas fa-share-nodes';
 }
 function pfLabel(p) {
-    return { facebook:'Facebook', instagram:'Instagram', linkedin:'LinkedIn', x:'X (Twitter)' }[p] || p;
+    return { facebook:'Facebook', instagram:'Instagram', linkedin:'LinkedIn', x:'X (Twitter)', whatsapp:'WhatsApp' }[p] || p;
 }
 function pfColor(p) {
-    return { facebook:'#1877F2', instagram:'#E1306C', linkedin:'#0A66C2', x:'#14171A' }[p] || '#4f46e5';
+    return { facebook:'#1877F2', instagram:'#E1306C', linkedin:'#0A66C2', x:'#14171A', whatsapp:'#25D366' }[p] || '#4f46e5';
 }
 
 // ── Tab geçiş ─────────────────────────────────────────────────────────────
@@ -1069,6 +1075,15 @@ const EBATLAR = {
             thread: { label: 'Thread Görseli', px: '1600 × 900', oran: '16:9', dosya: 'JPG/PNG/GIF/WEBP', max: '5 MB', ipucu: 'Her tweete ayrı görsel eklenebilir. Seri görseller için tutarlı stil kullan.' },
         },
         genel: 'X animasyonlu GIF destekler (max 5 MB). MP4 video: maks. 2 dakika 20 sn.'
+    },
+    whatsapp: {
+        renk: '#25D366',
+        formatlar: {
+            yayin:  { label: 'Yayın Mesajı', px: '800 × 800', oran: '1:1', dosya: 'JPG/PNG', max: '16 MB', ipucu: 'Kare görsel önerilir. Metin görselde değil, mesaj gövdesinde olmalı.' },
+            durum:  { label: 'Durum (Status)', px: '1080 × 1920', oran: '9:16', dosya: 'JPG/PNG/MP4', max: '16 MB', sure: 'Fotoğraf 7 sn / Video 30 sn', ipucu: 'Dikey tam ekran. Metin merkezde, kenarlardan uzak.' },
+            kanal:  { label: 'Kanal Paylaşımı', px: '800 × 800', oran: '1:1', dosya: 'JPG/PNG', max: '16 MB', ipucu: 'Kanal takipçilerine tek yönlü yayın. Yüksek kontrastlı görsel tercih et.' },
+        },
+        genel: 'WhatsApp görselleri mobil ekran için optimize edilmeli. Metin okunabilirliğine dikkat.'
     },
 };
 
