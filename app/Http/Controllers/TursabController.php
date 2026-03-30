@@ -271,9 +271,12 @@ class TursabController extends Controller
         $this->assertSuperadmin();
 
         $batch = max(1, (int) ($request->input('batch', 20)));
+        $start = $request->input('start');
+        $end   = (int) ($request->input('end', 20000));
         $reset = $request->boolean('reset');
 
-        $args = ['--batch' => (string) $batch];
+        $args = ['--batch' => (string) $batch, '--end' => (string) $end];
+        if ($start) $args['--start'] = (string) $start;
         if ($reset) $args['--reset'] = true;
 
         \Artisan::call('bakanlik:scrape', $args);
@@ -292,7 +295,7 @@ class TursabController extends Controller
         $found     = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_found',      '0');
         $status    = (string) \App\Models\SistemAyar::get('bakanlik_scrape_status',     'idle');
         $at        = (string) \App\Models\SistemAyar::get('bakanlik_scrape_at',         '');
-        $endNo     = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_end',        '18804');
+        $endNo     = (int)    \App\Models\SistemAyar::get('bakanlik_scrape_end',        '20000');
 
         $total = \App\Models\Acenteler::where('kaynak', 'bakanlik')->count();
         $done  = ($currentNo > $endNo);

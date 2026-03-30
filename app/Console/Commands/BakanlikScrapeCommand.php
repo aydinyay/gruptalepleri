@@ -15,7 +15,7 @@ class BakanlikScrapeCommand extends Command
                             {--batch=20   : Bu çalışmada kaç belge no işlensin}
                             {--delay=400  : İstekler arası bekleme (ms)}
                             {--start=     : Başlangıç belge no (boş = kaldığı yer)}
-                            {--end=18804  : Bitiş belge no}
+                            {--end=20000  : Bitiş belge no}
                             {--reset      : İlerlemeyi sıfırla, baştan başla}';
 
     protected $description = 'Turizm Bakanlığı JSON API\'sinden GEÇERLİ acenteleri belge no bazlı çeker ve kaydeder.';
