@@ -750,9 +750,7 @@
                     @foreach($siraliOdemeler_a as $siraNo_a => $odeme)
                     @php
                         $pos_a = $siraNo_a + 1;
-                        if ($toplamOdemeSayisi_a === 1)              $odemeLabel = 'Depozito Bakiye Ödemesi';
-                        elseif ($pos_a === $toplamOdemeSayisi_a)     $odemeLabel = 'Bakiye Ödemesi';
-                        else                                         $odemeLabel = $pos_a . '. Depozito';
+                        $odemeLabel = $pos_a === 3 ? '3. Bakiye Ödemesi' : $pos_a . '. Depozito';
                         $kumuBeklenen_a += $odeme->amount;
                         $satırKalan_a = $toplamTutar > 0 ? max(0, $toplamTutar - $kumuBeklenen_a) : null;
                         $buOdemeBekliyor = $odeme->is_active;

@@ -791,9 +791,7 @@
                     @forelse($siraliOdemeler as $siraNo => $odeme)
                     @php
                         $pos = $siraNo + 1;
-                        if ($toplamOdemeSayisi === 1)              $odemeLabel = 'Depozito Bakiye Ödemesi';
-                        elseif ($pos === $toplamOdemeSayisi)       $odemeLabel = 'Bakiye Ödemesi';
-                        else                                       $odemeLabel = $pos . '. Depozito';
+                        $odemeLabel = $pos === 3 ? '3. Bakiye Ödemesi' : $pos . '. Depozito';
                         $kumuBeklenen += $odeme->amount;
                         $satırKalan = $toplamTutar > 0 ? max(0, $toplamTutar - $kumuBeklenen) : null;
                     @endphp
@@ -1504,6 +1502,23 @@ document.getElementById('offer-form')?.addEventListener('submit', function() {
     var d = document.getElementById('f-option-date').value;
     if (!d) document.getElementById('option-date-hint').style.display = 'block';
 });
+
+// Tarih inputları: bu yılın başından itibaren min, yeni formlarda bugün varsayılan
+(function() {
+    var today = new Date();
+    var yyyy  = today.getFullYear();
+    var mm    = String(today.getMonth() + 1).padStart(2, '0');
+    var dd    = String(today.getDate()).padStart(2, '0');
+    var todayStr    = yyyy + '-' + mm + '-' + dd;
+    var yearStartStr = yyyy + '-01-01';
+    document.querySelectorAll('input[type="date"]').forEach(function(el) {
+        el.min = yearStartStr;
+    });
+    ['f-option-date', 'p-date', 'p-due-date'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && !el.value) el.value = todayStr;
+    });
+})();
 </script>
 </body>
 </html>
