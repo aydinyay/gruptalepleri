@@ -118,6 +118,24 @@
         } catch (\Throwable $e) {
             // istatistik veritabanına erişilemezse sıfır göster
         }
+
+        // Admin/superadmin oturum durumu — sessions tablosundan
+        $onlineEsikSaniye = 300; // 5 dakika
+        $adminKullanicilar = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
+            ->get(['id', 'name', 'role']);
+        $adminIdler = $adminKullanicilar->pluck('id')->toArray();
+        $adminSessions = \Illuminate\Support\Facades\DB::table('sessions')
+            ->whereIn('user_id', $adminIdler)
+            ->get(['user_id', 'last_activity'])
+            ->groupBy('user_id')
+            ->map(fn($rows) => $rows->max('last_activity')); // her user'ın en son aktivitesi
+        $bugunBaslangic = today()->timestamp;
+        $adminDurumlar = $adminKullanicilar->map(function($u) use ($adminSessions, $onlineEsikSaniye, $bugunBaslangic) {
+            $lastActivity = $adminSessions->get($u->id);
+            $online  = $lastActivity && $lastActivity >= (time() - $onlineEsikSaniye);
+            $bugunGirdi = $lastActivity && $lastActivity >= $bugunBaslangic;
+            return ['name' => $u->name, 'role' => $u->role, 'online' => $online, 'bugunGirdi' => $bugunGirdi];
+        });
     @endphp
 
     {{-- İSTATİSTİK KARTLARI --}}
@@ -420,9 +438,26 @@
                             <span style="font-size:0.85rem;"><i class="fas fa-users me-1 text-muted"></i>Bugün siteye girenler</span>
                             <span class="fw-bold text-info">{{ $bugunZiyaretci }}</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center p-3">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
                             <span style="font-size:0.85rem;"><i class="fas fa-circle me-1" style="color:#22c55e;font-size:0.55rem;"></i>Şu an online</span>
                             <span class="fw-bold {{ $onlineZiyaretci > 0 ? 'text-success' : 'text-muted' }}">{{ $onlineZiyaretci }}</span>
+                        </div>
+                        <div class="p-3">
+                            <div style="font-size:0.8rem;color:#6c757d;margin-bottom:6px;"><i class="fas fa-user-shield me-1"></i>Yönetici Durumu</div>
+                            @foreach($adminDurumlar as $a)
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span style="font-size:0.82rem;">{{ $a['name'] }}</span>
+                                <span style="font-size:0.72rem;">
+                                    @if($a['online'])
+                                        <span style="color:#22c55e;font-weight:600;"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Online</span>
+                                    @elseif($a['bugunGirdi'])
+                                        <span class="text-muted">Bugün girdi</span>
+                                    @else
+                                        <span style="color:#adb5bd;">Girmedi</span>
+                                    @endif
+                                </span>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
