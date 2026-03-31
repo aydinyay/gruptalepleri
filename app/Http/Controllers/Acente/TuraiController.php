@@ -52,7 +52,9 @@ class TuraiController extends Controller
             }
 
             $model   = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
-            $context = $this->buildContext($talep, $digerTalepler);
+            $konum   = trim((string) $request->input('konum', ''));
+            $hava    = trim((string) $request->input('hava', ''));
+            $context = $this->buildContext($talep, $digerTalepler, $konum, $hava);
             $yanit   = $this->geminiChat($context, $gecmis, $mesaj, $apiKey, $model);
 
             return response()->json(['yanit' => $yanit]);
@@ -229,7 +231,9 @@ class TuraiController extends Controller
             }
 
             $model   = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
-            $context = $this->buildDashboardContext($user, $talepler);
+            $konum   = trim((string) $request->input('konum', ''));
+            $hava    = trim((string) $request->input('hava', ''));
+            $context = $this->buildDashboardContext($user, $talepler, $konum, $hava);
             $yanit   = $this->geminiChat($context, $gecmis, $mesaj, $apiKey, $model);
 
             return response()->json(['yanit' => $yanit]);
@@ -240,7 +244,7 @@ class TuraiController extends Controller
     }
 
     // ── Dashboard genel bağlam (belirli bir talep yok) ─────────────────────────
-    private function buildDashboardContext($user, $talepler): string
+    private function buildDashboardContext($user, $talepler, string $konum = '', string $hava = ''): string
     {
         $now = Carbon::now('Europe/Istanbul');
 
@@ -351,11 +355,13 @@ class TuraiController extends Controller
 
         $acilStr = empty($acilOzetler) ? '' : "━━━ ACİL UYARILAR ━━━\n" . implode("\n", $acilOzetler) . "\n\n";
 
+        $konumStr = $konum ? "Kullanıcının fiziksel konumu: {$konum}" . ($hava ? " | Hava: {$hava}" : '') . "\n" : '';
+
         return <<<PROMPT
 Sen TURAi'sin. GrupTalepleri.com'un acente portalı yapay zeka asistanısın.
 Şu an {$user->name} kullanıcısının hesabına hizmet veriyorsun.
 Bugünün tarihi ve saati: {$now->format('d.m.Y H:i')} (Türkiye saati)
-
+{$konumStr}
 Kullanıcı şu an dashboard (genel panel) sayfasında — belirli bir talep görüntülenmiyor.
 Tüm talepler aşağıda listelenmiştir.
 
@@ -389,7 +395,7 @@ PROMPT;
     }
 
     // ── Bağlam oluşturucu ──────────────────────────────────────────────────────
-    private function buildContext(GrupTalep $talep, $digerTalepler): string
+    private function buildContext(GrupTalep $talep, $digerTalepler, string $konum = '', string $hava = ''): string
     {
         $user = $this->acenteActor();
         $now  = Carbon::now('Europe/Istanbul');
@@ -620,11 +626,13 @@ PROMPT;
         }
 
         // ── System prompt ──
+        $konumStr = $konum ? "Kullanıcının fiziksel konumu: {$konum}" . ($hava ? " | Hava: {$hava}" : '') . "\n" : '';
+
         return <<<PROMPT
 Sen TURAi'sin. GrupTalepleri.com'un acente portalı yapay zeka asistanısın.
 Şu an {$user->name} kullanıcısının hesabına hizmet veriyorsun.
 Bugünün tarihi ve saati: {$now->format('d.m.Y H:i')} (Türkiye saati)
-
+{$konumStr}
 ━━━ MEVCUT TALEP — {$talep->gtpnr} ━━━
 GTPNR       : {$talep->gtpnr}
 Durum       : {$talep->status}

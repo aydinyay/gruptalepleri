@@ -596,7 +596,7 @@
         fetch(ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
-            body: JSON.stringify({ mesaj: metin, gecmis: gecmis.slice(-12) }),
+            body: JSON.stringify({ mesaj: metin, gecmis: gecmis.slice(-12), konum: turaiCity || null, hava: turaiCityWeather || null }),
         })
         .then(async r => {
             const text = await r.text();
