@@ -51,6 +51,24 @@
         /* Vade alarm */
         @@keyframes blink-alarm { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .alert-danger [id^="sayac-"] { animation: blink-alarm 1s infinite; }
+
+        /* Opsiyon deadline bar */
+        .opsiyon-bar { display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;
+                       border-left:3px solid;margin:8px 0;font-size:.85rem;flex-wrap:wrap; }
+        .opsiyon-gecti    { background:rgba(220,53,69,.08);  border-color:#dc3545; color:#dc3545; }
+        .opsiyon-kritik   { background:rgba(220,53,69,.1);   border-color:#dc3545; }
+        .opsiyon-acil     { background:rgba(253,126,20,.1);  border-color:#fd7e14; }
+        .opsiyon-dikkat   { background:rgba(255,193,7,.12);  border-color:#ffc107; }
+        .opsiyon-normal   { background:rgba(13,110,253,.05); border-color:#0d6efd; }
+        .opsiyon-belirsiz { background:rgba(108,117,125,.07);border-color:#6c757d; color:#6c757d; }
+        .opsiyon-garanti-uyari { display:none; font-size:.78rem; color:#fd7e14; margin:-4px 0 6px 4px; }
+        .opsiyon-garanti-uyari.show { display:block; }
+        .opsiyon-kalan { font-size:.78rem; color:#6c757d; }
+        @@keyframes pulse-border {
+          0%,100% { box-shadow:0 0 0 0 rgba(220,53,69,.4); }
+          50%     { box-shadow:0 0 0 6px rgba(220,53,69,0); }
+        }
+        .deadline-pulse { animation:pulse-border 2s infinite; }
     </style>
 </head>
 <body>
@@ -85,7 +103,23 @@
     // Header deadline kutusu — aktif_adim'a göre
     [$deadlineEtiket, $deadlineRenk, $deadlineIcerik] = match($aktifAdim) {
         'teklif_bekleniyor'       => ['Durum', 'secondary', 'Teklif bekleniyor'],
-        'karar_bekleniyor'        => ['Durum', 'info', 'Karar bekleniyor'],
+        'karar_bekleniyor'        => (function() use ($talep) {
+            $opsiyonTeklif = $talep->offers
+                ->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)
+                ->filter(fn($o) => $o->option_date)
+                ->sortBy('option_date')->first();
+            if (!$opsiyonTeklif) {
+                return ['Karar Bekleniyor', 'secondary', 'Opsiyon süresi henüz belirlenmedi'];
+            }
+            $dl   = \Carbon\Carbon::parse($opsiyonTeklif->option_date
+                    . ($opsiyonTeklif->option_time ? ' '.$opsiyonTeklif->option_time : ' 23:59:59'));
+            $diff = now()->diffInMinutes($dl, false);
+            if ($diff <= 0)    return ['⚠️ Opsiyon Süresi Doldu', 'danger',   $dl->format('d.m.Y H:i').' — Yeni fiyat talep edin'];
+            if ($diff <= 60)   return ['🚨 '.ceil($diff).' Dakika Kaldı', 'danger',  'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
+            if ($diff <= 360)  return ['⏰ '.floor($diff/60).' Saat Kaldı',  'warning', 'Son karar tarihi: '.$dl->format('d.m.Y H:i')];
+            if ($diff <= 1440) return ['⚠️ '.floor($diff/60).' Saat Kaldı', 'warning', 'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
+            return              ['📅 Karar Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
+        })(),
         'odeme_plani_bekleniyor'  => ['Durum', 'warning', 'Ödeme planı bekleniyor'],
         'odeme_bekleniyor'        => ['Ödeme Son Tarihi', 'warning', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
         'odeme_gecikti'           => ['Ödeme GECİKTİ', 'danger', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
@@ -235,7 +269,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-md">
-                    <div class="ozet-kutu bg-{{ $deadlineRenk }} bg-opacity-10" style="border:1px solid;">
+                    <div class="ozet-kutu bg-{{ $deadlineRenk }} bg-opacity-10 {{ $deadlineRenk === 'danger' ? 'deadline-pulse' : '' }}" style="border:1px solid;">
                         <div class="etiket">{{ $deadlineEtiket }}</div>
                         <div class="deger text-{{ $deadlineRenk }}">{{ $deadlineIcerik }}</div>
                     </div>
@@ -427,6 +461,31 @@
                             </div>
                         </div>
 
+                        {{-- Opsiyon deadline bar (sadece beklemede teklifler için) --}}
+                        @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE)
+                        @php
+                            $hasDl  = (bool) $teklif->option_date;
+                            $dlTs   = $hasDl ? \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 23:59:59')) : null;
+                            $dlDiff = $dlTs ? now()->diffInMinutes($dlTs, false) : null;
+                            $dlClass = !$hasDl ? 'belirsiz' : ($dlDiff <= 0 ? 'gecti' : ($dlDiff <= 60 ? 'kritik' : ($dlDiff <= 360 ? 'acil' : ($dlDiff <= 1440 ? 'dikkat' : 'normal'))));
+                        @endphp
+                        <div class="opsiyon-bar opsiyon-{{ $dlClass }}"
+                             @if($dlTs) data-deadline="{{ $dlTs->toISOString() }}" data-teklif-id="{{ $teklif->id }}" @endif>
+                            @if(!$hasDl)
+                                <span>📋 Opsiyon süresi henüz belirlenmedi</span>
+                            @elseif($dlDiff <= 0)
+                                <span>⚠️ Opsiyon süresi doldu — {{ $dlTs->format('d.m.Y H:i') }}</span>
+                            @else
+                                <span>{{ $dlClass === 'kritik' ? '🚨' : ($dlClass === 'acil' ? '⏰' : ($dlClass === 'dikkat' ? '⚠️' : '📅')) }}
+                                Son karar tarihi: <strong>{{ $dlTs->format('d.m.Y H:i') }}</strong></span>
+                                <span class="opsiyon-kalan ms-auto" id="opsiyon-kalan-{{ $teklif->id }}"></span>
+                            @endif
+                        </div>
+                        <div class="opsiyon-garanti-uyari @if(in_array($dlClass, ['kritik','acil','dikkat'])) show @endif">
+                            Bu süre geçerse fiyat ve koltuk garantisi kaybolur.
+                        </div>
+                        @endif
+
                         {{-- Uçuş detayları (PNR, sefer no, saat, bagaj) --}}
                         @if($teklif->airline_pnr || $teklif->flight_number || $teklif->flight_departure_time || $teklif->baggage_kg || $teklif->pax_confirmed)
                         <div class="rounded p-2 mb-3" style="background:#f0f4ff;border:1px solid #c5d3f0;">
@@ -509,16 +568,33 @@
                         {{-- Butonlar --}}
                         <div class="d-grid d-md-flex gap-2">
                             @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE)
+                            @php
+                                $btnMetin    = 'Kabul Et';
+                                $btnDisabled = false;
+                                $btnDlStr    = '—';
+                                if ($teklif->option_date) {
+                                    $btnDl    = \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 23:59:59'));
+                                    $btnDiff  = now()->diffInMinutes($btnDl, false);
+                                    $btnDlStr = $btnDl->format('d.m.Y H:i');
+                                    if ($btnDiff <= 0)   { $btnDisabled = true; $btnMetin = 'Opsiyon Süresi Doldu'; }
+                                    elseif ($btnDiff <= 60)  { $btnMetin = '🚨 Hemen Kabul Et'; }
+                                    elseif ($btnDiff <= 360) { $btnMetin = '⚡ Kabul Et — Süre Kısıtlı'; }
+                                }
+                            @endphp
                             <button type="button" class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill"
+                                @if($btnDisabled) disabled title="Opsiyon süresi doldu, yeni fiyat talep edin" @endif
                                 onclick="kabulOnayGoster(
                                     {{ $teklif->id }},
                                     '{{ addslashes($teklif->airline ?? '—') }}',
                                     '{{ number_format($teklif->price_per_pax,0) }} {{ $teklif->currency }}',
                                     '{{ number_format($teklif->total_price,0) }} {{ $teklif->currency }}',
-                                    '—'
+                                    '{{ $btnDlStr }}'
                                 )">
-                                <i class="fas fa-check me-1"></i>Kabul Et
+                                <i class="fas fa-check me-1"></i>{{ $btnMetin }}
                             </button>
+                            @if($btnDisabled)
+                            <div class="text-danger small mt-1 w-100">Opsiyon süresi doldu, yeni fiyat talep edin.</div>
+                            @endif
                             @else
                             <span class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill disabled">
                                 <i class="fas fa-check-circle me-1"></i>Kabul Edildi
@@ -784,7 +860,7 @@
                             <div class="fw-bold" id="k-total"></div>
                         </div>
                         <div class="col-6">
-                            <div class="small text-muted">Teklif</div>
+                            <div class="small text-danger fw-semibold">Son Karar Tarihi</div>
                             <div class="fw-bold" id="k-option"></div>
                         </div>
                     </div>
@@ -905,6 +981,23 @@ document.getElementById('harita-collapse')?.addEventListener('hide.bs.collapse',
 document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse', () => {
     document.getElementById('harita-chevron').style.transform = 'rotate(0deg)';
 });
+
+// ── Opsiyon Countdown ──
+function opsiyonCountdown() {
+    document.querySelectorAll('[data-deadline][data-teklif-id]').forEach(function(el) {
+        var dl   = new Date(el.dataset.deadline);
+        var diff = dl - new Date(); // ms
+        var kalanEl = document.getElementById('opsiyon-kalan-' + el.dataset.teklifId);
+        if (!kalanEl) return;
+        if (diff <= 0) { kalanEl.textContent = '— Süresi doldu'; return; }
+        var g = Math.floor(diff / 86400000);
+        var s = Math.floor((diff % 86400000) / 3600000);
+        var d = Math.floor((diff % 3600000) / 60000);
+        kalanEl.textContent = (g > 0 ? g + 'g ' : '') + (s > 0 ? s + 's ' : '') + d + 'dk kaldı';
+    });
+}
+opsiyonCountdown();
+setInterval(opsiyonCountdown, 60000);
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>

@@ -101,7 +101,26 @@
 
                         $opsiyonHtml = match($aktifAdim) {
                             'teklif_bekleniyor'      => '<span class="text-muted">Teklif bekleniyor</span>',
-                            'karar_bekleniyor'       => '<span class="text-info">Karar bekleniyor</span>',
+                            'karar_bekleniyor'       => (function() use ($talep) {
+                                $opsOffer = $talep->offers
+                                    ->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)
+                                    ->filter(fn($o) => $o->option_date)
+                                    ->sortBy('option_date')->first();
+                                if (!$opsOffer) {
+                                    return '<span class="text-secondary small">Karar bekleniyor</span>';
+                                }
+                                $dl   = \Carbon\Carbon::parse($opsOffer->option_date.($opsOffer->option_time ? ' '.$opsOffer->option_time : ' 23:59:59'));
+                                $diff = now()->diffInMinutes($dl, false);
+                                if ($diff <= 0)
+                                    return '<span class="text-danger fw-bold">⚠️ Opsiyon doldu</span>';
+                                if ($diff <= 60)
+                                    return '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 360)
+                                    return '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 1440)
+                                    return '<span class="text-warning">⚠️ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
+                                return '<span class="text-info">📅 '.$dl->format('d.m').'</span><br><small class="text-muted">'.$dl->format('H:i').'</small>';
+                            })(),
                             'odeme_plani_bekleniyor' => '<span class="text-warning">⏳ Ödeme planı bekleniyor</span>',
                             'odeme_bekleniyor'       => (function() use ($aktifPayment) {
                                 if (!$aktifPayment?->due_date) return '<span class="text-warning fw-bold">💳 Ödeme bekleniyor</span>';

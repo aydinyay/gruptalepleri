@@ -397,8 +397,13 @@
                                     <input type="number" name="deposit_amount" id="f-deposit-amount" class="form-control form-control-sm" step="0.01" oninput="depHesapla('f', true)">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small">Teklif Geçerlilik Tarihi</label>
+                                    <label class="form-label small">Teklif Geçerlilik Tarihi
+                                        <span class="text-danger ms-1" title="Girilmezse acente tarafında süre bilgisi gösterilmez">*önerilir</span>
+                                    </label>
                                     <input type="date" name="option_date" id="f-option-date" class="form-control form-control-sm">
+                                    <div class="form-text text-warning" id="option-date-hint" style="display:none;">
+                                        ⚠️ Girilmezse acente "Opsiyon süresi henüz belirlenmedi" görür.
+                                    </div>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small">Teklif Geçerlilik Saati</label>
@@ -896,7 +901,7 @@
                         <div class="col-md-4"><label class="form-label small">Maliyet</label><input type="number" name="cost_price" id="e-cost" class="form-control form-control-sm" step="0.01"></div>
                         <div class="col-md-4"><label class="form-label small">Dep. % <span class="text-muted fw-normal" id="e-dep-pct-hint"></span></label><input type="number" name="deposit_rate" id="e-deposit-rate" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e')"></div>
                         <div class="col-md-4"><label class="form-label small">Dep. Tutarı <span class="text-muted fw-normal" id="e-dep-amt-hint"></span></label><input type="number" name="deposit_amount" id="e-deposit-amount" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e', true)"></div>
-                        <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Tarihi</label><input type="date" name="option_date" id="e-option-date" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Tarihi <span class="text-danger" title="Girilmezse acente tarafında süre bilgisi gösterilmez">*önerilir</span></label><input type="date" name="option_date" id="e-option-date" class="form-control form-control-sm"></div>
                         <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Saati</label><input type="time" name="option_time" id="e-option-time" class="form-control form-control-sm"></div>
                         <div class="col-12"><label class="form-label small">Teklif Notu (acenteye görünür)</label><textarea name="offer_text" id="e-offer-text" class="form-control form-control-sm" rows="2"></textarea></div>
                         <div class="col-12"><label class="form-label small text-muted">Tedarikçi / İç Referans (gizli)</label><input type="text" name="supplier_reference" id="e-supplier-ref" class="form-control form-control-sm"></div>
@@ -1472,6 +1477,12 @@ function depHesaplaFiyatDegisti(prefix) {
         depHesapla(prefix, false);
     }
 }
+
+// Yeni teklif formunda option_date boşsa uyarı göster
+document.getElementById('offer-form')?.addEventListener('submit', function() {
+    var d = document.getElementById('f-option-date').value;
+    if (!d) document.getElementById('option-date-hint').style.display = 'block';
+});
 </script>
 </body>
 </html>
