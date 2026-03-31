@@ -64,8 +64,8 @@
 }
 /* ── Karşılama baloncuğu ── */
 #turai-hello {
-    position: absolute;
-    bottom: 70px; right: 0;
+    position: fixed;
+    bottom: 90px; right: 24px;
     background: #e8ff00;
     border-radius: 14px 14px 4px 14px;
     padding: 10px 14px;
@@ -99,16 +99,16 @@
 }
 /* ── Panel ── */
 #turai-panel {
-    position: absolute;
-    bottom: 70px; right: 0;
-    width: 380px;
+    position: fixed;
+    bottom: 90px; right: 24px;
+    width: 360px;
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 20px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
     display: none;
     flex-direction: column;
     overflow: hidden;
-    max-height: 600px;
+    max-height: min(560px, calc(100vh - 110px));
     animation: turai-slide-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
 @keyframes turai-slide-in {
@@ -116,7 +116,7 @@
     to   { opacity:1; transform: translateY(0) scale(1); }
 }
 @media(max-width:480px) {
-    #turai-panel { width: calc(100vw - 32px); right: 0; bottom: 70px; }
+    #turai-panel { width: calc(100vw - 32px); right: 16px; }
 }
 /* ── Header ── */
 #turai-header {
