@@ -116,7 +116,7 @@
             $diff = now()->diffInMinutes($dl, false);
             if ($diff <= 0)    return ['⚠️ Opsiyon Süresi Doldu', 'danger',   $dl->format('d.m.Y H:i').' — Yeni fiyat talep edin'];
             if ($diff <= 60)   return ['🚨 '.ceil($diff).' Dakika Kaldı', 'danger',  'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
-            if ($diff <= 360)  return ['⏰ '.floor($diff/60).' Saat Kaldı',  'warning', 'Son karar tarihi: '.$dl->format('d.m.Y H:i')];
+            if ($diff <= 360)  return ['⏰ '.floor($diff/60).' Saat Kaldı',  'warning', 'Opsiyon bitiş tarihi: '.$dl->format('d.m.Y H:i')];
             if ($diff <= 1440) return ['⚠️ '.floor($diff/60).' Saat Kaldı', 'warning', 'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
             return              ['📅 Opsiyon Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
         })(),
