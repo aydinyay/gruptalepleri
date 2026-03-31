@@ -248,10 +248,8 @@ class RequestController extends Controller
         $query = TalepModel::where('gtpnr', $gtpnr)
             ->with(['segments', 'offers', 'logs.user', 'payments', 'notifications']);
 
-        // Admin/superadmin tüm talepleri görebilir; acente sadece kendi talebini
-        if ($this->isAcentePreviewMode()) {
-            $query->where('user_id', $this->acenteActor()->id);
-        } elseif (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+        // Admin/superadmin tüm talepleri görebilir (preview modda da kısıtlama yok); acente sadece kendi talebini
+        if (!in_array(auth()->user()->role, ['admin', 'superadmin']) && !$this->isAcentePreviewMode()) {
             $query->where('user_id', auth()->id());
         }
 
