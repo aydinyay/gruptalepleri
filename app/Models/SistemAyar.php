@@ -12,6 +12,8 @@ class SistemAyar extends Model
     public const KEY_PUSH_ENABLED = 'push_enabled';
     public const KEY_BROADCAST_ENABLED = 'broadcast_enabled';
     public const KEY_AI_CELEBRATION_ENABLED = 'ai_celebration_enabled';
+    public const KEY_ADMIN_SMS_COPY = 'admin_sms_copy_enabled';
+    public const KEY_ADMIN_EMAIL_COPY = 'admin_email_copy_enabled';
     public const KEY_CHARTER_RFQ_MAX_SUPPLIERS = 'charter_rfq_max_suppliers';
     public const KEY_TRANSFER_SUPPLIER_TERMS_TEXT = 'transfer_supplier_terms_text';
     public const KEY_TRANSFER_SUPPLIER_TERMS_VERSION = 'transfer_supplier_terms_version';
@@ -80,6 +82,16 @@ class SistemAyar extends Model
     public static function aiCelebrationEnabled(): bool
     {
         return static::bool(static::KEY_AI_CELEBRATION_ENABLED, true);
+    }
+
+    public static function adminSmsCopyEnabled(): bool
+    {
+        return static::bool(static::KEY_ADMIN_SMS_COPY, false);
+    }
+
+    public static function adminEmailCopyEnabled(): bool
+    {
+        return static::bool(static::KEY_ADMIN_EMAIL_COPY, false);
     }
 
     public static function charterRfqMaxSuppliers(int $default = 10): int

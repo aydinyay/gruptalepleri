@@ -138,11 +138,43 @@
                             </div>
                         </div>
                     </div>
+                    <hr class="my-3">
+                    <p class="text-muted small mb-2">Acente'ye giden bildirimlerin bir kopyası admin'e de iletilsin:</p>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="admin_sms_copy_enabled" name="admin_sms_copy_enabled" value="1" {{ ($notificationSystems['admin_sms_copy'] ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-semibold" for="admin_sms_copy_enabled">SMS Kopyası (+905354154799)</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="admin_email_copy_enabled" name="admin_email_copy_enabled" value="1" {{ ($notificationSystems['admin_email_copy'] ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-semibold" for="admin_email_copy_enabled">E-posta BCC (destek@gruptalepleri.com)</label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="mt-3">
                         <button type="submit" class="btn btn-sm btn-primary fw-bold">
                             <i class="fas fa-save me-1"></i>Sistem Durumlarini Kaydet
                         </button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4 border-warning">
+            <div class="card-header fw-bold d-flex align-items-center gap-2" style="background:#fffbea;border-bottom:1px solid #ffeeba;">
+                <i class="fas fa-sync-alt text-warning"></i>
+                <span>Veri Onarımı</span>
+            </div>
+            <div class="card-body py-3">
+                <p class="text-muted small mb-2">Tüm taleplerin <code>aktif_adim</code> değerini teklif ve ödeme durumuna göre yeniden hesaplar. Tutarsız kayıtları düzeltir.</p>
+                <form method="POST" action="{{ route('superadmin.aktif.adim.yenile') }}" onsubmit="return confirm('Tüm kayıtlar yeniden hesaplanacak. Devam edilsin mi?')">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning fw-bold">
+                        <i class="fas fa-sync-alt me-1"></i>Aktif Adımları Yenile
+                    </button>
                 </form>
             </div>
         </div>

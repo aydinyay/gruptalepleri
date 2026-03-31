@@ -247,6 +247,8 @@ class SuperadminController extends Controller
             'email' => SistemAyar::emailEnabled(),
             'push' => SistemAyar::pushEnabled(),
             'broadcast' => SistemAyar::broadcastEnabled(),
+            'admin_sms_copy' => SistemAyar::adminSmsCopyEnabled(),
+            'admin_email_copy' => SistemAyar::adminEmailCopyEnabled(),
         ];
 
         $stats = [
@@ -631,12 +633,27 @@ class SuperadminController extends Controller
         }
     }
 
+    public function aktifAdimYenile()
+    {
+        $count = 0;
+        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count) {
+            foreach ($batch as $talep) {
+                $talep->refreshAktifAdim();
+                $count++;
+            }
+        });
+
+        return back()->with('success', "Tüm aktif adımlar yenilendi. ({$count} kayıt güncellendi)");
+    }
+
     public function bildirimSistemleriGuncelle(Request $request)
     {
         SistemAyar::set(SistemAyar::KEY_SMS_ENABLED, $request->boolean('sms_enabled'));
         SistemAyar::set(SistemAyar::KEY_EMAIL_ENABLED, $request->boolean('email_enabled'));
         SistemAyar::set(SistemAyar::KEY_PUSH_ENABLED, $request->boolean('push_enabled'));
         SistemAyar::set(SistemAyar::KEY_BROADCAST_ENABLED, $request->boolean('broadcast_enabled'));
+        SistemAyar::set(SistemAyar::KEY_ADMIN_SMS_COPY, $request->boolean('admin_sms_copy_enabled'));
+        SistemAyar::set(SistemAyar::KEY_ADMIN_EMAIL_COPY, $request->boolean('admin_email_copy_enabled'));
 
         return back()->with('success', 'Bildirim sistemleri güncellendi.');
     }

@@ -56,7 +56,27 @@ class SmsService
             return true;
         }
 
-        return $this->gonder($notification);
+        $result = $this->gonder($notification);
+
+        // Admin SMS kopyası: acente'ye giden SMS'lerin kopyasını admin'e gönder.
+        if ($recipient === 'acente' && SistemAyar::adminSmsCopyEnabled()) {
+            $adminPhone = (string) config('services.sms.admin_phone');
+            if ($adminPhone && $adminPhone !== $phone) {
+                $kopya = RequestNotification::create([
+                    'request_id'   => $requestId,
+                    'channel'      => 'sms',
+                    'recipient'    => 'admin',
+                    'recipient_name' => 'Admin (Kopya)',
+                    'phone'        => $adminPhone,
+                    'message'      => $message,
+                    'status'       => 'pending',
+                    'scheduled_for' => null,
+                ]);
+                $this->gonder($kopya);
+            }
+        }
+
+        return $result;
     }
 
     /**

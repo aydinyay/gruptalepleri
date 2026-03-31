@@ -174,10 +174,16 @@ class EmailService
             return;
         }
 
+        $adminEmailCopy = $user->role === 'acente' && SistemAyar::adminEmailCopyEnabled();
+        $adminEmail = 'destek@gruptalepleri.com';
+
         $status = 'sent';
         try {
-            Mail::send($view, $data, function ($m) use ($user, $subject) {
+            Mail::send($view, $data, function ($m) use ($user, $subject, $adminEmailCopy, $adminEmail) {
                 $m->to($user->email, $user->name)->subject($subject);
+                if ($adminEmailCopy) {
+                    $m->bcc($adminEmail, 'GrupTalepleri Admin');
+                }
             });
         } catch (\Throwable $e) {
             $status = 'failed';

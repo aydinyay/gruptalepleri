@@ -567,7 +567,7 @@
 
                         {{-- Butonlar --}}
                         <div class="d-grid d-md-flex gap-2">
-                            @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE)
+                            @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE && $aktifAdim === 'karar_bekleniyor')
                             @php
                                 $btnMetin    = 'Kabul Et';
                                 $btnDisabled = false;

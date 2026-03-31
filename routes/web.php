@@ -443,6 +443,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/talepler/{gtpnr}/odeme/gateway-start', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'startLegacy'])->name('requests.gateway-payment.start');
 
     Route::get('/site-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'siteAyarlari'])->name('site.ayarlar');
+    Route::post('/site-ayarlari/aktif-adim-yenile', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aktifAdimYenile'])->name('aktif.adim.yenile');
     Route::post('/site-ayarlari/sirket', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'sirketBilgileriGuncelle'])->name('sirket.guncelle');
     Route::get('/leisure-ayarlar', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'index'])->name('leisure.settings.index');
     Route::post('/leisure-ayarlar/paketler', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'storePackage'])->name('leisure.settings.packages.store');
