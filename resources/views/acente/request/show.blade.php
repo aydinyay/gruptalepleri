@@ -608,9 +608,13 @@
                             @if($btnDisabled)
                             <div class="text-danger small mt-1 w-100">Opsiyon süresi doldu, yeni fiyat talep edin.</div>
                             @endif
-                            @else
+                            @elseif($teklif->durum === \App\Models\Offer::DURUM_KABUL)
                             <span class="btn btn-success btn-sm w-100 w-md-auto flex-md-fill disabled">
                                 <i class="fas fa-check-circle me-1"></i>Kabul Edildi
+                            </span>
+                            @else
+                            <span class="btn btn-outline-secondary btn-sm w-100 w-md-auto flex-md-fill disabled">
+                                <i class="fas fa-clock me-1"></i>İşlemde
                             </span>
                             @endif
                             <a href="https://wa.me/905354154799?text={{ urlencode($talep->gtpnr . ' - ' . ($teklif->airline ?? '') . ' teklifi hakkında sorum var') }}"
@@ -662,7 +666,7 @@
                     <i class="fas fa-wallet me-2 text-success"></i>Ödeme Durumu
                 </div>
                 <div class="card-body">
-                    @if($kabulEdilenTeklif && $talep->status === 'depozitoda')
+                    @if($talep->status === 'depozitoda' && ($kabulEdilenTeklif || $aktifPayment))
                     <div class="alert alert-info alert-dismissible fade show py-2 small mb-3" role="alert">
                         <i class="fas fa-info-circle me-1"></i>
                         @if($aktifAdim === 'odeme_bekleniyor' && $aktifPayment?->due_date)
@@ -693,7 +697,7 @@
                     </div>
                     @endif
 
-                    @if($kabulEdilenTeklif)
+                    @if($kabulEdilenTeklif || $talep->payments->count() > 0)
                     {{-- Özet satırları --}}
                     <div class="d-flex justify-content-between flex-wrap gap-1 small mb-1">
                         <span class="text-muted">Tahsilat</span>
