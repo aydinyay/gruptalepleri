@@ -121,8 +121,21 @@
             return              ['📅 Opsiyon Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
         })(),
         'odeme_plani_bekleniyor'  => ['Durum', 'warning', 'Ödeme planı bekleniyor'],
-        'odeme_bekleniyor'        => ['Ödeme Son Tarihi', 'warning', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
-        'odeme_gecikti'           => ['Ödeme GECİKTİ', 'danger', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
+        'odeme_bekleniyor'        => (function() use ($aktifPayment) {
+            if (!$aktifPayment?->due_date) return ['Son Ödeme / Opsiyon Tarihi', 'warning', '—'];
+            $dl   = $aktifPayment->due_date;
+            $diff = now()->diffInMinutes($dl, false);
+            if ($diff <= 0)    return ['⚠️ Ödeme Süresi Doldu', 'danger',   $dl->format('d.m.Y H:i').' — Lütfen operasyon ekibimizle iletişime geçin'];
+            if ($diff <= 60)   return ['🚨 '.ceil($diff).' Dakika Kaldı', 'danger',  'Bu süre geçerse işlem geçersiz olur.'];
+            if ($diff <= 360)  return ['⏰ '.floor($diff/60).' Saat Kaldı',  'warning', 'Son ödeme / opsiyon tarihi: '.$dl->format('d.m.Y H:i')];
+            if ($diff <= 1440) return ['⚠️ '.floor($diff/60).' Saat Kaldı', 'warning', 'Bu süre geçerse işlem geçersiz olur.'];
+            return              ['💳 Son Ödeme / Opsiyon Tarihi', 'warning', $dl->format('d.m.Y H:i').' tarihine kadar'];
+        })(),
+        'odeme_gecikti'           => (function() use ($aktifPayment) {
+            $dl = $aktifPayment?->due_date;
+            return ['⚠️ Ödeme GECİKTİ', 'danger',
+                ($dl ? $dl->format('d.m.Y H:i').' tarihinde geçti — ' : '').'Lütfen operasyon ekibimizle iletişime geçin.'];
+        })(),
         'odeme_alindi_devam'      => ['Sonraki Ödeme', 'info', 'Plan bekleniyor'],
         'biletleme_bekleniyor'    => ['Durum', 'success', 'Biletleme bekleniyor'],
         'tamamlandi'              => ['Durum', 'success', 'Tamamlandı'],
@@ -461,8 +474,8 @@
                             </div>
                         </div>
 
-                        {{-- Opsiyon deadline bar (sadece beklemede teklifler için) --}}
-                        @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE)
+                        {{-- Opsiyon deadline bar (beklemede ve kabul_edildi teklifler için) --}}
+                        @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE && $teklif->option_date)
                         @php
                             $hasDl  = (bool) $teklif->option_date;
                             $dlTs   = $hasDl ? \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 23:59:59')) : null;
@@ -653,8 +666,20 @@
                     <div class="alert alert-info alert-dismissible fade show py-2 small mb-3" role="alert">
                         <i class="fas fa-info-circle me-1"></i>
                         @if($aktifAdim === 'odeme_bekleniyor' && $aktifPayment?->due_date)
+                        @php $alertDiff = now()->diffInMinutes($aktifPayment->due_date, false); @endphp
                             <strong>{{ number_format($aktifPayment->amount, 0) }} {{ $aktifPayment->currency }}</strong>
-                            ödemesinin son tarihi: <strong>{{ $aktifPayment->due_date->format('d.m.Y') }}</strong>.
+                            ödemesinin son tarihi: <strong>{{ $aktifPayment->due_date->format('d.m.Y H:i') }}</strong>.
+                            @if($alertDiff > 0)
+                                —
+                                @if($alertDiff <= 1440)
+                                    <strong class="text-danger">{{ floor($alertDiff/60) > 0 ? floor($alertDiff/60).' saat ' : '' }}{{ $alertDiff % 60 }} dakika kaldı.</strong>
+                                @else
+                                    <strong>{{ floor($alertDiff/1440) }} gün kaldı.</strong>
+                                @endif
+                            @else
+                                — <strong class="text-danger">Süre doldu!</strong>
+                            @endif
+                            Bu süre geçerse işlem geçersiz olur.
                         @elseif($aktifAdim === 'odeme_gecikti')
                             <strong>Ödeme gecikti!</strong> Lütfen operasyon ekibimizle iletişime geçin.
                         @elseif($aktifAdim === 'odeme_plani_bekleniyor')
@@ -759,6 +784,26 @@
                             @endif
                         </div>
                     </div>
+                    @if($buOdemeBekliyor && $odeme->due_date)
+                    @php
+                        $payDiff  = now()->diffInMinutes($odeme->due_date, false);
+                        $payClass = $payDiff <= 0 ? 'gecti' : ($payDiff <= 60 ? 'kritik' : ($payDiff <= 360 ? 'acil' : ($payDiff <= 1440 ? 'dikkat' : 'normal')));
+                    @endphp
+                    <div class="opsiyon-bar opsiyon-{{ $payClass }} mt-1"
+                         data-payment-deadline="{{ $odeme->due_date->toISOString() }}"
+                         data-payment-id="{{ $odeme->id }}">
+                        @if($payDiff <= 0)
+                            <span>⚠️ Ödeme süresi doldu — {{ $odeme->due_date->format('d.m.Y H:i') }}</span>
+                        @else
+                            <span>{{ $payClass === 'kritik' ? '🚨' : ($payClass === 'acil' ? '⏰' : ($payClass === 'dikkat' ? '⚠️' : '💳')) }}
+                            Son ödeme / opsiyon tarihi: <strong>{{ $odeme->due_date->format('d.m.Y H:i') }}</strong></span>
+                            <span class="opsiyon-kalan ms-auto" id="payment-kalan-{{ $odeme->id }}"></span>
+                        @endif
+                    </div>
+                    <div class="opsiyon-garanti-uyari @if(in_array($payClass, ['kritik','acil','dikkat'])) show @endif">
+                        Bu süre geçerse işlem geçersiz olur.
+                    </div>
+                    @endif
                     @endforeach
                     @endif
 
@@ -987,18 +1032,29 @@ document.getElementById('harita-collapse')?.addEventListener('show.bs.collapse',
     document.getElementById('harita-chevron').style.transform = 'rotate(0deg)';
 });
 
-// ── Opsiyon Countdown ──
+// ── Opsiyon + Ödeme Countdown ──
+function formatKalan(diff) {
+    var g = Math.floor(diff / 86400000);
+    var s = Math.floor((diff % 86400000) / 3600000);
+    var d = Math.floor((diff % 3600000) / 60000);
+    return (g > 0 ? g + 'g ' : '') + (s > 0 ? s + 's ' : '') + d + 'dk kaldı';
+}
 function opsiyonCountdown() {
     document.querySelectorAll('[data-deadline][data-teklif-id]').forEach(function(el) {
         var dl   = new Date(el.dataset.deadline);
-        var diff = dl - new Date(); // ms
+        var diff = dl - new Date();
         var kalanEl = document.getElementById('opsiyon-kalan-' + el.dataset.teklifId);
         if (!kalanEl) return;
         if (diff <= 0) { kalanEl.textContent = '— Süresi doldu'; return; }
-        var g = Math.floor(diff / 86400000);
-        var s = Math.floor((diff % 86400000) / 3600000);
-        var d = Math.floor((diff % 3600000) / 60000);
-        kalanEl.textContent = (g > 0 ? g + 'g ' : '') + (s > 0 ? s + 's ' : '') + d + 'dk kaldı';
+        kalanEl.textContent = formatKalan(diff);
+    });
+    document.querySelectorAll('[data-payment-deadline][data-payment-id]').forEach(function(el) {
+        var dl   = new Date(el.dataset.paymentDeadline);
+        var diff = dl - new Date();
+        var kalanEl = document.getElementById('payment-kalan-' + el.dataset.paymentId);
+        if (!kalanEl) return;
+        if (diff <= 0) { kalanEl.textContent = '— Süresi doldu'; return; }
+        kalanEl.textContent = formatKalan(diff);
     });
 }
 opsiyonCountdown();

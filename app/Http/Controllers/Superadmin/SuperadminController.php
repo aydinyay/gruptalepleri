@@ -655,6 +655,11 @@ class SuperadminController extends Controller
                     $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
                     $depozitoVar = $kabulTeklif && $talep->payments->where('offer_id', $kabulTeklif->id)->where('payment_type', 'depozito')->isNotEmpty();
 
+                    $hasOptDate = $kabulTeklif && !empty($kabulTeklif->option_date);
+                    $dueDate = $hasOptDate
+                        ? \Carbon\Carbon::parse($kabulTeklif->option_date . ($kabulTeklif->option_time ? ' ' . $kabulTeklif->option_time : ' 23:59:59'))
+                        : null;
+
                     if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {
                         \App\Models\RequestPayment::create([
                             'request_id'   => $talep->id,
@@ -663,11 +668,28 @@ class SuperadminController extends Controller
                             'payment_type' => 'depozito',
                             'amount'       => $kabulTeklif->deposit_amount,
                             'currency'     => $kabulTeklif->currency,
-                            'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
-                            'is_active'    => false,
+                            'due_date'     => $dueDate,
+                            'status'       => $hasOptDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK,
+                            'is_active'    => $hasOptDate,
                             'created_by'   => auth()->id(),
                         ]);
                         $depozito++;
+                    }
+
+                    // Mevcut taslak depozito + offer option_date varsa → aktif yap
+                    if ($hasOptDate) {
+                        $taslakDepozito = $talep->payments
+                            ->where('offer_id', $kabulTeklif->id)
+                            ->where('payment_type', 'depozito')
+                            ->where('status', \App\Models\RequestPayment::STATUS_TASLAK)
+                            ->first();
+                        if ($taslakDepozito) {
+                            $taslakDepozito->update([
+                                'due_date'  => $dueDate,
+                                'status'    => \App\Models\RequestPayment::STATUS_AKTIF,
+                                'is_active' => true,
+                            ]);
+                        }
                     }
 
                     $talep->refreshAktifAdim();

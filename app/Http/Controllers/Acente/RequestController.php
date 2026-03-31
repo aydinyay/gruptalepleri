@@ -237,8 +237,13 @@ class RequestController extends Controller
             $odeme->delete();
         }
 
-        // Depozito ödeme kaydını otomatik oluştur (due_date admin tarafından ayarlanacak)
+        // Depozito ödeme kaydını otomatik oluştur
+        // option_date varsa due_date olarak kullan ve aktif yap; yoksa taslak bırak
         if ($teklif->deposit_amount && $teklif->deposit_amount > 0) {
+            $hasOptionDate = !empty($teklif->option_date);
+            $dueDate = $hasOptionDate
+                ? \Carbon\Carbon::parse($teklif->option_date . ($teklif->option_time ? ' ' . $teklif->option_time : ' 23:59:59'))
+                : null;
             \App\Models\RequestPayment::create([
                 'request_id'   => $talep->id,
                 'offer_id'     => $teklif->id,
@@ -246,8 +251,9 @@ class RequestController extends Controller
                 'payment_type' => 'depozito',
                 'amount'       => $teklif->deposit_amount,
                 'currency'     => $teklif->currency,
-                'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
-                'is_active'    => false,
+                'due_date'     => $dueDate,
+                'status'       => $hasOptionDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK,
+                'is_active'    => $hasOptionDate,
                 'created_by'   => null,
             ]);
         }
