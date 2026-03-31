@@ -239,21 +239,8 @@
                         }
                         $airlineCode = $airlineCode ? strtoupper(trim($airlineCode)) : null;
 
-                        // BAGAJ — teklif varsa kullan, yoksa havayoluna göre varsayılan
-                        $defaultBagajKg = [
-                            'TK' => 20, 'PC' => 20, 'XQ' => 20, 'VF' => 20,
-                            'AJ' => 15, 'A3' => 23, 'EK' => 30, 'QR' => 30,
-                            'LH' => 23, 'AF' => 23, 'KL' => 23, 'BA' => 23,
-                            'EY' => 30, 'W6' => 0,  'FR' => 0,  'U2' => 0,
-                            'OS' => 23, 'LX' => 23, 'IB' => 23, 'UX' => 23,
-                        ];
+                        // BAGAJ — sadece teklifteki değeri kullan
                         $bagajKg = $kabulTeklif?->baggage_kg ?? null;
-                        if ($bagajKg === null && $airlineCode) {
-                            $bagajKg = $defaultBagajKg[$airlineCode] ?? null;
-                            $bagajDefault = true;
-                        } else {
-                            $bagajDefault = false;
-                        }
 
                         // Opsiyon deadline hesabı
                         $deadlineDt  = null;
@@ -361,14 +348,9 @@
                         {{-- BAGAJ --}}
                         <td class="text-center">
                             @if($bagajKg !== null)
-                                <span class="{{ $bagajDefault ? 'text-muted' : 'fw-bold' }}">
-                                    🧳 {{ $bagajKg }} KG
-                                </span>
-                                @if($bagajDefault)
-                                    <br><span style="font-size:0.6rem; color:#aaa;">varsayılan</span>
-                                @endif
+                                <span class="fw-bold">🧳 {{ $bagajKg }} KG</span>
                             @else
-                                <span class="text-muted">—</span>
+                                <span>🧳</span>
                             @endif
                         </td>
 
