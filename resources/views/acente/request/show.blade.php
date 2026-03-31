@@ -721,7 +721,7 @@
                     </div>
 
                     {{-- KK ile ödeme — sadece admin açtıysa görünür --}}
-                    @if($kalanTutar > 0 && $kabulEdilenTeklif->kk_enabled)
+                    @if($kalanTutar > 0 && $kabulEdilenTeklif?->kk_enabled)
                         <form method="POST" action="{{ route('acente.requests.gateway-payment.start', $talep->gtpnr) }}" class="mt-2">
                             @csrf
                             <button type="submit" class="btn btn-primary w-100">
