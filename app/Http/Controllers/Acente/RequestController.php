@@ -248,7 +248,7 @@ class RequestController extends Controller
                 'currency'     => $teklif->currency,
                 'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
                 'is_active'    => false,
-                'created_by'   => 'system',
+                'created_by'   => null,
             ]);
         }
 

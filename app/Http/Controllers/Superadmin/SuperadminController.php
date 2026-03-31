@@ -665,7 +665,7 @@ class SuperadminController extends Controller
                         'currency'     => $kabulTeklif->currency,
                         'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
                         'is_active'    => false,
-                        'created_by'   => 'system',
+                        'created_by'   => auth()->id(),
                     ]);
                     $depozito++;
                 }
