@@ -634,10 +634,17 @@
                             <i class="fas fa-calendar-plus me-1"></i>Ödeme Planla
                         </button>
                         @endif
+                        @if($talep->payments->count() < 3)
                         <button class="btn btn-primary btn-sm py-0 px-2" type="button"
                             data-bs-toggle="collapse" data-bs-target="#odemeEklePanel">
                             <i class="fas fa-plus me-1"></i>Ödeme Ekle
                         </button>
+                        @else
+                        <button class="btn btn-secondary btn-sm py-0 px-2" type="button" disabled
+                            title="Maksimum 3 ödeme kaydedilebilir">
+                            <i class="fas fa-lock me-1"></i>Maks. 3 Ödeme
+                        </button>
+                        @endif
                     </div>
                 </div>
 
@@ -710,10 +717,6 @@
                         <form method="POST" action="{{ route('admin.requests.payment', $talep->gtpnr) }}" id="payment-form">
                             @csrf
                             <div class="row g-2">
-                                <div class="col-md-2">
-                                    <label class="form-label small">Sıra</label>
-                                    <input type="number" name="sequence" id="p-sequence" class="form-control form-control-sm" value="1" min="1">
-                                </div>
                                 <div class="col-md-3">
                                     <label class="form-label small">Tip</label>
                                     <select name="payment_type" class="form-select form-select-sm">
@@ -780,8 +783,20 @@
 
                 {{-- Ödeme Listesi --}}
                 <div class="card-body {{ $talep->payments->count() === 0 ? 'py-3 text-center text-muted small' : 'py-2' }}">
-                    @forelse($talep->payments->sortBy('sequence') as $odeme)
-                    @php $odemeLabel = $odeme->sequence == 1 ? '1. Depozito' : $odeme->sequence . '. Depozito (Bakiye Tamamlama)'; @endphp
+                    @php
+                        $siraliOdemeler    = $talep->payments->sortBy(fn($p) => [$p->sequence, $p->id])->values();
+                        $toplamOdemeSayisi = $siraliOdemeler->count();
+                        $kumuBeklenen      = 0;
+                    @endphp
+                    @forelse($siraliOdemeler as $siraNo => $odeme)
+                    @php
+                        $pos = $siraNo + 1;
+                        if ($toplamOdemeSayisi === 1)              $odemeLabel = 'Depozito Bakiye Ödemesi';
+                        elseif ($pos === $toplamOdemeSayisi)       $odemeLabel = 'Bakiye Ödemesi';
+                        else                                       $odemeLabel = $pos . '. Depozito';
+                        $kumuBeklenen += $odeme->amount;
+                        $satırKalan = $toplamTutar > 0 ? max(0, $toplamTutar - $kumuBeklenen) : null;
+                    @endphp
                     <div class="border rounded p-2 mb-2 small
                         {{ $odeme->status === 'iade' ? 'border-danger' : '' }}
                         {{ in_array($odeme->status, ['taslak','aktif','gecikti']) ? 'border-warning' : '' }}
@@ -819,6 +834,14 @@
                                     @if($odeme->sender_masked) · {{ $odeme->sender_masked }}@if($odeme->account_masked) / {{ $odeme->account_masked }}@endif @endif
                                 </div>
                                 @if($odeme->created_by)<div class="text-muted" style="font-size:.68rem;">Kaydeden: {{ $odeme->created_by }}</div>@endif
+                                @if($satırKalan !== null)
+                                <div style="font-size:.68rem;color:#888;margin-top:2px;">
+                                    Bu ödeme sonrası kalan:
+                                    <strong class="{{ $satırKalan == 0 ? 'text-success' : 'text-danger' }}">
+                                        {{ number_format($satırKalan, 0) }} {{ $odeme->currency }}
+                                    </strong>
+                                </div>
+                                @endif
                             </div>
                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
                                 @if(in_array($odeme->status, ['aktif','gecikti','taslak']))

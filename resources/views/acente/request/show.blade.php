@@ -742,9 +742,19 @@
                     @if($talep->payments->count() > 0)
                     <hr class="my-2">
                     <div class="small fw-semibold mb-1 text-muted">Ödeme Planı</div>
-                    @foreach($talep->payments->sortBy('sequence') as $odeme)
                     @php
-                        $odemeLabel = $odeme->sequence == 1 ? '1. Depozito' : $odeme->sequence . '. Depozito (Bakiye Tamamlama)';
+                        $siraliOdemeler_a    = $talep->payments->sortBy(fn($p) => [$p->sequence, $p->id])->values();
+                        $toplamOdemeSayisi_a = $siraliOdemeler_a->count();
+                        $kumuBeklenen_a      = 0;
+                    @endphp
+                    @foreach($siraliOdemeler_a as $siraNo_a => $odeme)
+                    @php
+                        $pos_a = $siraNo_a + 1;
+                        if ($toplamOdemeSayisi_a === 1)              $odemeLabel = 'Depozito Bakiye Ödemesi';
+                        elseif ($pos_a === $toplamOdemeSayisi_a)     $odemeLabel = 'Bakiye Ödemesi';
+                        else                                         $odemeLabel = $pos_a . '. Depozito';
+                        $kumuBeklenen_a += $odeme->amount;
+                        $satırKalan_a = $toplamTutar > 0 ? max(0, $toplamTutar - $kumuBeklenen_a) : null;
                         $buOdemeBekliyor = $odeme->is_active;
                         $gosterecedekTarih = null;
                         $tarihEtiket = '';
@@ -785,6 +795,11 @@
                                 <span class="badge bg-danger" style="font-size:0.6rem;">İade</span>
                             @else
                                 <span class="badge bg-success" style="font-size:0.6rem;">✓ Alındı</span>
+                            @endif
+                            @if($satırKalan_a !== null)
+                            <div style="font-size:0.65rem;color:#888;margin-top:2px;">
+                                Kalan: <strong class="{{ $satırKalan_a == 0 ? 'text-success' : '' }}">{{ number_format($satırKalan_a,0) }} {{ $odeme->currency }}</strong>
+                            </div>
                             @endif
                         </div>
                     </div>

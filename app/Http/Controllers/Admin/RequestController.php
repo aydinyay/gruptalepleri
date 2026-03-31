@@ -587,7 +587,7 @@ Ham veri:
         }
 
         $yeniOdeme = $talep->payments()->create([
-            'sequence'       => $request->sequence ?? 1,
+            'sequence'       => $talep->payments()->count() + 1,
             'payment_type'   => $request->payment_type,
             'payment_method' => $request->payment_method,
             'bank_name'      => $request->bank_name,
