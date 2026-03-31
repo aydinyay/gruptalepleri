@@ -215,6 +215,7 @@
                         $opsSortVal  = 9999999999;
 
                         if ($aktifAdim === 'karar_bekleniyor') {
+                            // Beklemedeki en yakın opsiyon tarihi
                             $opsOffer = $talep->offers
                                 ->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)
                                 ->filter(fn($o) => $o->option_date)
@@ -226,9 +227,16 @@
                                 );
                             }
                         } elseif (in_array($aktifAdim, ['odeme_bekleniyor', 'odeme_gecikti'])) {
+                            // Aktif ödemenin son tarihi
                             $deadlineDt = $aktifPayment?->due_date instanceof \Carbon\Carbon
                                 ? $aktifPayment->due_date
                                 : ($aktifPayment?->due_date ? \Carbon\Carbon::parse($aktifPayment->due_date) : null);
+                        } elseif ($kabulTeklif?->option_date) {
+                            // Kabul edilmiş teklifin opsiyon tarihi (odeme_plani_bekleniyor, biletleme_bekleniyor vb.)
+                            $deadlineDt = \Carbon\Carbon::parse(
+                                $kabulTeklif->option_date .
+                                ($kabulTeklif->option_time ?? null ? ' '.$kabulTeklif->option_time : ' 23:59:59')
+                            );
                         }
 
                         if ($deadlineDt) {
