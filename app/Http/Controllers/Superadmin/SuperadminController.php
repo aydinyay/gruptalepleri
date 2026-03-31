@@ -637,12 +637,20 @@ class SuperadminController extends Controller
     {
         $count = 0;
         $depozito = 0;
+        $debug = [];
 
-        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito) {
+        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito, &$debug) {
             foreach ($batch as $talep) {
-                // Kabul edilmiş teklifi olan ama hiç ödemesi olmayan kayıtlara depozito ekle
                 $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
                 $depozitoVar = $kabulTeklif && $talep->payments->where('offer_id', $kabulTeklif->id)->where('payment_type', 'depozito')->isNotEmpty();
+
+                if ($talep->gtpnr === 'UG-KSK3AG') {
+                    $debug[] = 'offers: ' . $talep->offers->pluck('durum', 'id')->toJson();
+                    $debug[] = 'payments: ' . $talep->payments->count();
+                    $debug[] = 'kabulTeklif: ' . ($kabulTeklif ? "id={$kabulTeklif->id} deposit={$kabulTeklif->deposit_amount} durum={$kabulTeklif->durum}" : 'YOK');
+                    $debug[] = 'depozitoVar: ' . ($depozitoVar ? 'EVET' : 'HAYIR');
+                }
+
                 if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {
                     \App\Models\RequestPayment::create([
                         'request_id'   => $talep->id,
@@ -663,7 +671,9 @@ class SuperadminController extends Controller
             }
         });
 
-        return back()->with('success', "Tüm aktif adımlar yenilendi. ({$count} kayıt, {$depozito} depozito oluşturuldu)");
+        $msg = "Tüm aktif adımlar yenilendi. ({$count} kayıt, {$depozito} depozito oluşturuldu)";
+        if ($debug) $msg .= ' | DEBUG: ' . implode(' | ', $debug);
+        return back()->with('success', $msg);
     }
 
     public function bildirimSistemleriGuncelle(Request $request)
