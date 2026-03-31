@@ -106,6 +106,18 @@
             ->orderBy('created_at','desc')
             ->limit(10)
             ->get();
+
+        // Ziyaretçi istatistikleri
+        $bugunZiyaretci = 0;
+        $onlineZiyaretci = 0;
+        try {
+            $bugunZiyaretci  = (int) \Illuminate\Support\Facades\DB::connection('ziyaretci')
+                ->selectOne("SELECT COUNT(DISTINCT ip) AS c FROM gt_visits WHERE DATE(created_at) = CURDATE()")->c;
+            $onlineZiyaretci = (int) \Illuminate\Support\Facades\DB::connection('ziyaretci')
+                ->selectOne("SELECT COUNT(*) AS c FROM gt_online WHERE last_seen > NOW() - INTERVAL 5 MINUTE")->c;
+        } catch (\Throwable $e) {
+            // istatistik veritabanına erişilemezse sıfır göster
+        }
     @endphp
 
     {{-- İSTATİSTİK KARTLARI --}}
@@ -400,9 +412,17 @@
                             <span style="font-size:0.85rem;">Ödeme uyarısı</span>
                             <span class="fw-bold {{ $odemeUyarilari->count() > 0 ? 'text-warning' : 'text-muted' }}">{{ $odemeUyarilari->count() }}</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center p-3">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
                             <span style="font-size:0.85rem;">Toplam bekleyen</span>
                             <span class="fw-bold {{ $bekleyenler->count() > 0 ? 'text-danger' : 'text-success' }}">{{ $bekleyenler->count() }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <span style="font-size:0.85rem;"><i class="fas fa-users me-1 text-muted"></i>Bugün siteye girenler</span>
+                            <span class="fw-bold text-info">{{ $bugunZiyaretci }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3">
+                            <span style="font-size:0.85rem;"><i class="fas fa-circle me-1" style="color:#22c55e;font-size:0.55rem;"></i>Şu an online</span>
+                            <span class="fw-bold {{ $onlineZiyaretci > 0 ? 'text-success' : 'text-muted' }}">{{ $onlineZiyaretci }}</span>
                         </div>
                     </div>
                 </div>
