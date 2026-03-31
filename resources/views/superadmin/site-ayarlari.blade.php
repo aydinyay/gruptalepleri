@@ -170,10 +170,16 @@
             </div>
             <div class="card-body py-3">
                 <p class="text-muted small mb-2">Tüm taleplerin <code>aktif_adim</code> değerini teklif ve ödeme durumuna göre yeniden hesaplar. Tutarsız kayıtları düzeltir.</p>
-                <form method="POST" action="{{ route('superadmin.aktif.adim.yenile') }}" onsubmit="return confirm('Tüm kayıtlar yeniden hesaplanacak. Devam edilsin mi?')">
+                <form method="POST" action="{{ route('superadmin.aktif.adim.yenile') }}" onsubmit="return confirm('Tüm kayıtlar yeniden hesaplanacak. Devam edilsin mi?')" class="d-inline">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-warning fw-bold">
                         <i class="fas fa-sync-alt me-1"></i>Aktif Adımları Yenile
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('superadmin.airline.senkronize') }}" onsubmit="return confirm('Airline boş olan tüm teklifler flight_number ve AI ile doldurulacak. Devam?')" class="d-inline ms-2">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-info fw-bold text-white">
+                        <i class="fas fa-plane me-1"></i>Airline Senkronize Et
                     </button>
                 </form>
             </div>

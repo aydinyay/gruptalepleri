@@ -703,6 +703,67 @@ class SuperadminController extends Controller
         }
     }
 
+    public function airlineSenkronize()
+    {
+        set_time_limit(300);
+        $fixed   = 0;
+        $aiFixed = 0;
+        $skipped = 0;
+
+        $offers = \App\Models\Offer::where(function($q) {
+            $q->whereNull('airline')->orWhere('airline', '');
+        })->get();
+
+        foreach ($offers as $offer) {
+            $airline = null;
+
+            // 1. flight_number regex: "VF3002" → "VF"
+            if (!empty($offer->flight_number) && preg_match('/^([A-Z0-9]{2})\d+/i', strtoupper(trim($offer->flight_number)), $m)) {
+                $airline = strtoupper($m[1]);
+            }
+
+            // 2. airline_pnr regex
+            if (!$airline && !empty($offer->airline_pnr) && preg_match('/^([A-Z]{2})\d+/i', strtoupper(trim($offer->airline_pnr)), $m)) {
+                $airline = strtoupper($m[1]);
+            }
+
+            // 3. offer_text / admin_raw_note içi uçuş numarası
+            $metin = trim(($offer->offer_text ?? '') . ' ' . ($offer->admin_raw_note ?? ''));
+            if (!$airline && $metin && preg_match('/\b([A-Z]{2})\d{3,4}\b/', $metin, $m)) {
+                $airline = strtoupper($m[1]);
+            }
+
+            // 4. Gemini AI fallback
+            if (!$airline && $metin) {
+                $apiKey = config('services.gemini.key');
+                if ($apiKey) {
+                    try {
+                        $prompt   = 'Bu operasyon notundan sadece havayolu IATA kodunu (2 harf) çıkar. Sadece 2 harfli kodu yaz, başka hiçbir şey yazma. Bulamazsan boş bırak. Metin: ' . mb_substr($metin, 0, 500);
+                        $response = \Illuminate\Support\Facades\Http::timeout(15)->post(
+                            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}",
+                            ['contents' => [['parts' => [['text' => $prompt]]]], 'generationConfig' => ['thinkingConfig' => ['thinkingBudget' => 0]]]
+                        );
+                        $result = strtoupper(trim($response->json('candidates.0.content.parts.0.text') ?? ''));
+                        if (preg_match('/^[A-Z0-9]{2}$/', $result)) {
+                            $airline = $result;
+                            $aiFixed++;
+                        }
+                    } catch (\Throwable) {}
+                }
+            }
+
+            if ($airline) {
+                $offer->timestamps = false;
+                $offer->update(['airline' => $airline]);
+                $fixed++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        return back()->with('success', "Airline senkronizasyonu tamamlandı: {$fixed} teklif güncellendi ({$aiFixed} AI ile), {$skipped} atlandı.");
+    }
+
     public function bildirimSistemleriGuncelle(Request $request)
     {
         SistemAyar::set(SistemAyar::KEY_SMS_ENABLED, $request->boolean('sms_enabled'));
