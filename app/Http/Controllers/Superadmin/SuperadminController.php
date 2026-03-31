@@ -639,17 +639,21 @@ class SuperadminController extends Controller
         $depozito = 0;
         $debug = [];
 
-        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito, &$debug) {
+        $ileriAdimlar = ['odeme_plani_bekleniyor', 'odeme_bekleniyor', 'odeme_gecikti', 'odeme_alindi_devam', 'biletleme_bekleniyor', 'tamamlandi'];
+
+        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito, &$debug, $ileriAdimlar) {
             foreach ($batch as $talep) {
+                // aktif_adim ilerlemiş ama kabul_edildi teklif yoksa → beklemedeki teklifi kabul et
+                if (in_array($talep->aktif_adim, $ileriAdimlar) && !$talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL)) {
+                    $bekleyenTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_BEKLEMEDE);
+                    if ($bekleyenTeklif) {
+                        $bekleyenTeklif->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
+                        $talep->load('offers');
+                    }
+                }
+
                 $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
                 $depozitoVar = $kabulTeklif && $talep->payments->where('offer_id', $kabulTeklif->id)->where('payment_type', 'depozito')->isNotEmpty();
-
-                if ($talep->gtpnr === 'UG-KSK3AG') {
-                    $debug[] = 'offers: ' . $talep->offers->pluck('durum', 'id')->toJson();
-                    $debug[] = 'payments: ' . $talep->payments->count();
-                    $debug[] = 'kabulTeklif: ' . ($kabulTeklif ? "id={$kabulTeklif->id} deposit={$kabulTeklif->deposit_amount} durum={$kabulTeklif->durum}" : 'YOK');
-                    $debug[] = 'depozitoVar: ' . ($depozitoVar ? 'EVET' : 'HAYIR');
-                }
 
                 if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {
                     \App\Models\RequestPayment::create([
