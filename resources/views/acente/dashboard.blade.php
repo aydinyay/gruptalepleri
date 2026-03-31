@@ -195,10 +195,10 @@
                             $tripType = $segs->count() > 1 ? 'round_trip' : 'one_way';
                         }
                         $yonHtml = match($tripType) {
-                            'one_way'    => '<img src="/airline-logos/oneway.png" style="height:22px;width:auto;" title="Tek Yön" alt="Tek Yön">',
-                            'round_trip' => '<img src="/airline-logos/roundtrip.png" style="height:22px;width:auto;" title="Gidiş-Dönüş" alt="Gidiş-Dönüş">',
-                            'multi'      => '<span class="yon-sym yon-multi" title="Çok Ayaklı">⤳</span>',
-                            default      => '<img src="/airline-logos/oneway.png" style="height:22px;width:auto;" title="Tek Yön" alt="Tek Yön">',
+                            'one_way'    => '<div class="text-center"><img src="/airline-logos/oneway.png" style="height:20px;width:auto;" alt="→"><div style="font-size:0.6rem;color:#0d6efd;font-weight:700;margin-top:1px;">TEK YÖN</div></div>',
+                            'round_trip' => '<div class="text-center"><img src="/airline-logos/roundtrip.png" style="height:20px;width:auto;" alt="⇄"><div style="font-size:0.6rem;color:#198754;font-weight:700;margin-top:1px;">GİDİŞ-DÖNÜŞ</div></div>',
+                            'multi'      => '<div class="text-center"><span style="font-size:1.2rem;color:#fd7e14;">⤳</span><div style="font-size:0.6rem;color:#fd7e14;font-weight:700;">ÇOK AYAKLI</div></div>',
+                            default      => '<div class="text-center"><img src="/airline-logos/oneway.png" style="height:20px;width:auto;" alt="→"><div style="font-size:0.6rem;color:#0d6efd;font-weight:700;margin-top:1px;">TEK YÖN</div></div>',
                         };
 
                         // Gidiş saat dilimi
