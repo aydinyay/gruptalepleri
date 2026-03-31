@@ -538,9 +538,13 @@ function toggleMapFilter(el) {
 
 // DataTables custom row filter
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-    if (!aktifFiltre) return true;
     const row = table ? table.row(dataIndex).node() : null;
-    return row ? $(row).attr('data-status') === aktifFiltre : true;
+    if (!row) return true;
+    const status = $(row).attr('data-status');
+    if (aktifFiltre) {
+        return status === aktifFiltre;  // Seçili filtre — sadece onu göster
+    }
+    return status !== 'iptal';  // Varsayılan — iptal olanları gizle
 });
 
 // ─── Harita ──────────────────────────────────────────────────────────────
