@@ -333,7 +333,12 @@ const kolonlar = [
         title: '#',
         width: 36, hozAlign: 'center', headerSort: false,
         headerHozAlign: 'center',
-        formatter(cell) { return cell.getRow().getPosition(true); },
+        formatter(cell) {
+            if (!tablo) return '';
+            const page     = tablo.getPage()     || 1;
+            const pageSize = tablo.getPageSize() || 25;
+            return (page - 1) * pageSize + cell.getRow().getPosition(true);
+        },
     },
     {
         title: '<i class="fas fa-qrcode me-1"></i>GTPNR',
@@ -506,9 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const el = row.getElement();
             el.setAttribute('data-status', d.status);
             el.style.borderLeft = `3px solid ${d.statusBg}`;
-        },
-        rowClick(e, row) {
-            window.location = row.getData().url;
+            el.style.cursor = 'pointer';
         },
         dataFiltered(filters, rows) {
             document.getElementById('talepSayac').textContent = rows.length;
@@ -517,6 +520,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Varsayılan filtre: iptal gizle
     applyFilters();
+
+    // Satıra tıklayınca talep sayfasına git
+    tablo.on('rowClick', function(e, row) {
+        window.location = row.getData().url;
+    });
 
     // Arama
     document.getElementById('tabloArama').addEventListener('input', function() {
