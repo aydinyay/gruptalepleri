@@ -178,7 +178,7 @@
                         $aktifAdim === 'tamamlandi' =>
                             '<span class="text-success">✅</span>',
                         $aktifAdim === 'karar_bekleniyor' =>
-                            '<span class="text-info">⏳ Karar</span>',
+                            '<span class="text-info">⏳ Opsiyonda</span>',
                         default => '',
                     };
 

@@ -107,7 +107,7 @@
                                     ->filter(fn($o) => $o->option_date)
                                     ->sortBy('option_date')->first();
                                 if (!$opsOffer) {
-                                    return '<span class="text-secondary small">Karar bekleniyor</span>';
+                                    return '<span class="text-secondary small">Opsiyonda</span>';
                                 }
                                 $dl   = \Carbon\Carbon::parse($opsOffer->option_date.($opsOffer->option_time ? ' '.$opsOffer->option_time : ' 23:59:59'));
                                 $diff = now()->diffInMinutes($dl, false);

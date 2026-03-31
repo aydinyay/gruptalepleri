@@ -763,8 +763,7 @@
                                 <div class="col-md-3">
                                     <label class="form-label small">Durum</label>
                                     <select name="status" class="form-select form-select-sm">
-                                        <option value="aktif">Aktif (due_date ile)</option>
-                                        <option value="taslak">Taslak (due_date yok)</option>
+                                        <option value="bekleniyor">Bekleniyor</option>
                                         <option value="alindi">Alındı</option>
                                         <option value="iade">İade</option>
                                     </select>
@@ -797,12 +796,12 @@
                                     @if($odeme->status === 'alindi')
                                         <span class="badge bg-success" style="font-size:.68rem;">✓ Alındı</span>
                                     @elseif($odeme->status === 'aktif')
-                                        <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekliyor</span>
+                                        <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekleniyor</span>
                                         @if($odeme->due_date)
                                             <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}</span>
                                         @endif
                                     @elseif($odeme->status === 'taslak')
-                                        <span class="badge bg-secondary" style="font-size:.68rem;">Taslak</span>
+                                        <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekleniyor</span>
                                     @elseif($odeme->status === 'gecikti')
                                         <span class="badge bg-danger" style="font-size:.68rem;">⚠ Gecikti</span>
                                         @if($odeme->due_date)
@@ -936,7 +935,7 @@
                         </div>
                         <div class="col-4"><label class="form-label small fw-bold">Durum</label>
                             <select name="status" id="od_status" class="form-select form-select-sm">
-                                <option value="alindi">Alındı</option><option value="bekleniyor">Bekleniyor</option><option value="iade">İade</option>
+                                <option value="bekleniyor">Bekleniyor</option><option value="alindi">Alındı</option><option value="iade">İade</option>
                             </select>
                         </div>
                         <div class="col-6"><label class="form-label small fw-bold">Yöntem</label>
@@ -1312,7 +1311,7 @@ function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, am
     document.getElementById('od_amount').value    = amount   || '';
     document.getElementById('od_currency').value  = currency || 'TRY';
     document.getElementById('od_date').value      = date     || '';
-    document.getElementById('od_status').value    = status   || 'alindi';
+    document.getElementById('od_status').value    = (status === 'alindi' || status === 'iade') ? status : 'bekleniyor';
     document.getElementById('od_due_date').value  = dueDate  || '';
     odemeDuzenleModal.show();
 }

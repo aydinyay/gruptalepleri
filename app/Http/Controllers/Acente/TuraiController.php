@@ -346,7 +346,7 @@ class TuraiController extends Controller
 
         $aktifAdimLabel = match ($aktifAdim) {
             'teklif_bekleniyor'      => 'Teklif bekleniyor',
-            'karar_bekleniyor'       => 'Karar bekleniyor (teklif sunuldu)',
+            'karar_bekleniyor'       => 'Opsiyonda (teklif sunuldu)',
             'odeme_plani_bekleniyor' => 'Ödeme planı bekleniyor (teklif kabul edildi)',
             'odeme_bekleniyor'       => 'Ödeme bekleniyor',
             'odeme_gecikti'          => '⚠️ ÖDEME GECİKTİ',
@@ -393,7 +393,7 @@ class TuraiController extends Controller
                 'odeme_alindi_devam'     => '✅ Kısmi ödeme',
                 'biletleme_bekleniyor'   => '✅ Biletleme bekliyor',
                 'tamamlandi'             => '✅ Tamamlandı',
-                'karar_bekleniyor'       => '⏳ Karar bekliyor',
+                'karar_bekleniyor'       => '⏳ Opsiyonda',
                 'odeme_plani_bekleniyor' => '📋 Plan bekliyor',
                 default                  => '',
             } : '';

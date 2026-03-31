@@ -109,7 +109,7 @@
                 ->filter(fn($o) => $o->option_date)
                 ->sortBy('option_date')->first();
             if (!$opsiyonTeklif) {
-                return ['Karar Bekleniyor', 'secondary', 'Opsiyon süresi henüz belirlenmedi'];
+                return ['Opsiyonda', 'secondary', 'Opsiyon süresi henüz belirlenmedi'];
             }
             $dl   = \Carbon\Carbon::parse($opsiyonTeklif->option_date
                     . ($opsiyonTeklif->option_time ? ' '.$opsiyonTeklif->option_time : ' 23:59:59'));
@@ -118,7 +118,7 @@
             if ($diff <= 60)   return ['🚨 '.ceil($diff).' Dakika Kaldı', 'danger',  'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
             if ($diff <= 360)  return ['⏰ '.floor($diff/60).' Saat Kaldı',  'warning', 'Son karar tarihi: '.$dl->format('d.m.Y H:i')];
             if ($diff <= 1440) return ['⚠️ '.floor($diff/60).' Saat Kaldı', 'warning', 'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
-            return              ['📅 Karar Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
+            return              ['📅 Opsiyon Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
         })(),
         'odeme_plani_bekleniyor'  => ['Durum', 'warning', 'Ödeme planı bekleniyor'],
         'odeme_bekleniyor'        => ['Ödeme Son Tarihi', 'warning', $aktifPayment?->due_date?->format('d.m.Y') ?? '—'],
@@ -477,7 +477,7 @@
                                 <span>⚠️ Opsiyon süresi doldu — {{ $dlTs->format('d.m.Y H:i') }}</span>
                             @else
                                 <span>{{ $dlClass === 'kritik' ? '🚨' : ($dlClass === 'acil' ? '⏰' : ($dlClass === 'dikkat' ? '⚠️' : '📅')) }}
-                                Son karar tarihi: <strong>{{ $dlTs->format('d.m.Y H:i') }}</strong></span>
+                                Opsiyon bitiş tarihi: <strong>{{ $dlTs->format('d.m.Y H:i') }}</strong></span>
                                 <span class="opsiyon-kalan ms-auto" id="opsiyon-kalan-{{ $teklif->id }}"></span>
                             @endif
                         </div>
@@ -860,7 +860,7 @@
                             <div class="fw-bold" id="k-total"></div>
                         </div>
                         <div class="col-6">
-                            <div class="small text-danger fw-semibold">Son Karar Tarihi</div>
+                            <div class="small text-danger fw-semibold">Opsiyon Tarihi</div>
                             <div class="fw-bold" id="k-option"></div>
                         </div>
                     </div>
