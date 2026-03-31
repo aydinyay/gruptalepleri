@@ -22,8 +22,8 @@
 <x-navbar-admin active="talepler" />
 
 @php
-    $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','onaylandi'=>'Onaylandı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
-    $durumRenkleri   = ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirildi'=>'#ffc107','onaylandi'=>'#0d6efd','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'];
+    $durumEtiketleri = ['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'];
+    $durumRenkleri   = ['beklemede'=>'#6c757d','islemde'=>'#0d6efd','fiyatlandirildi'=>'#ffc107','depozitoda'=>'#6f42c1','biletlendi'=>'#198754','iade'=>'#dc3545','olumsuz'=>'#343a40'];
     $durumTextRenk   = ['fiyatlandirildi'=>'#000'];
 
     $yoneticiMesajlari = $talep->offers->pluck('offer_text')->filter(fn($m) => filled(trim((string)$m)));
@@ -186,7 +186,7 @@
                         @csrf
                         <div class="input-group input-group-sm">
                             <select name="status" class="form-select">
-                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','onaylandi'=>'Onaylandı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
+                                @foreach(['beklemede'=>'Beklemede','islemde'=>'İşlemde','fiyatlandirildi'=>'Fiyatlandırıldı','depozitoda'=>'Depozitoda','biletlendi'=>'Biletlendi','iade'=>'İade','olumsuz'=>'Olumsuz'] as $val => $label)
                                 <option value="{{ $val }}" {{ $talep->status == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>

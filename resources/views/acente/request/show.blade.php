@@ -662,7 +662,7 @@
                     <i class="fas fa-wallet me-2 text-success"></i>Ödeme Durumu
                 </div>
                 <div class="card-body">
-                    @if($kabulEdilenTeklif && in_array($talep->status, ['onaylandi','depozitoda']))
+                    @if($kabulEdilenTeklif && $talep->status === 'depozitoda')
                     <div class="alert alert-info alert-dismissible fade show py-2 small mb-3" role="alert">
                         <i class="fas fa-info-circle me-1"></i>
                         @if($aktifAdim === 'odeme_bekleniyor' && $aktifPayment?->due_date)

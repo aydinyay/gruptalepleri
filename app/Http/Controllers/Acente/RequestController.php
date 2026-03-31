@@ -204,7 +204,7 @@ class RequestController extends Controller
         $teklif->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
 
         // Talep durumunu güncelle
-        $talep->update(['status' => 'onaylandi']);
+        $talep->update(['status' => 'depozitoda']);
 
         RequestLog::create([
             'request_id'  => $talep->id,

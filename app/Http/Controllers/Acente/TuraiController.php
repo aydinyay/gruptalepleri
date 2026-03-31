@@ -402,7 +402,6 @@ class TuraiController extends Controller
                 'beklemede'       => '⏳ Beklemede',
                 'islemde'         => '🔄 İşlemde',
                 'fiyatlandirildi' => '💰 Fiyatlandırıldı',
-                'onaylandi'       => '✅ Onaylandı',
                 'depozitoda'      => '💳 Depozitoda',
                 'biletlendi'      => '🎫 Biletlendi',
                 'iptal'           => '❌ İptal',
