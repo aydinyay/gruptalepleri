@@ -44,12 +44,39 @@ class Offer extends Model
         'ai_raw_output' => 'array',
     ];
 
+    // Tam isim → IATA kodu normalizasyonu
+    public const AIRLINE_NORMALIZE = [
+        'PEGASUS'          => 'PC', 'PEGASUS AIRLINES' => 'PC', 'PGS'  => 'PC',
+        'TURKISH AIRLINES' => 'TK', 'THY'              => 'TK', 'TURKISH' => 'TK',
+        'SUNEXPRESS'       => 'XQ', 'SUN EXPRESS'      => 'XQ',
+        'ANADOLUJET'       => 'AJ', 'ANADOLU JET'      => 'AJ', 'AJET' => 'AJ',
+        'AIR EUROPA'       => 'UX',
+        'LUFTHANSA'        => 'LH', 'EMIRATES'         => 'EK',
+        'QATAR AIRWAYS'    => 'QR', 'QATAR'            => 'QR',
+        'ETIHAD'           => 'EY', 'AEGEAN'           => 'A3',
+        'WIZZ AIR'         => 'W6', 'WIZZAIR'          => 'W6',
+        'RYANAIR'          => 'FR', 'EASYJET'          => 'U2',
+        'BRITISH AIRWAYS'  => 'BA', 'AIR FRANCE'       => 'AF',
+        'KLM'              => 'KL', 'AEROFLOT'         => 'SU',
+    ];
+
+    public static function normalizeAirline(?string $value): ?string
+    {
+        if (empty($value)) return $value;
+        $upper = strtoupper(trim($value));
+        return static::AIRLINE_NORMALIZE[$upper] ?? $upper;
+    }
+
     protected static function boot()
     {
         parent::boot();
 
-        // flight_number'dan airline otomatik çıkar: "VF3002" → "VF", "TK1234" → "TK"
         static::saving(function ($offer) {
+            // Tam ismi IATA'ya çevir
+            if (!empty($offer->airline)) {
+                $offer->airline = static::normalizeAirline($offer->airline);
+            }
+            // flight_number'dan airline otomatik çıkar: "VF3002" → "VF"
             if (empty($offer->airline) && !empty($offer->flight_number)) {
                 if (preg_match('/^([A-Z0-9]{2})\d+/i', strtoupper(trim($offer->flight_number)), $m)) {
                     $offer->airline = strtoupper($m[1]);

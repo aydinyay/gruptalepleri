@@ -710,8 +710,13 @@ class SuperadminController extends Controller
         $skipped = 0;
         $batch   = 30; // Her çalıştırmada max 30 teklif
 
-        $offers = \App\Models\Offer::where(function($q) {
-            $q->whereNull('airline')->orWhere('airline', '');
+        // Hem boş olanları hem tam isim yazılmış olanları düzelt
+        $normalizeKeys = array_keys(\App\Models\Offer::AIRLINE_NORMALIZE);
+        $offers = \App\Models\Offer::where(function($q) use ($normalizeKeys) {
+            $q->whereNull('airline')
+              ->orWhere('airline', '')
+              ->orWhereIn('airline', $normalizeKeys)
+              ->orWhereIn(\DB::raw('UPPER(airline)'), $normalizeKeys);
         })->limit($batch)->get();
 
         foreach ($offers as $offer) {
@@ -733,6 +738,14 @@ class SuperadminController extends Controller
                 $airline = strtoupper($m[1]);
             }
 
+            // Mevcut değeri normalize et (tam isim → IATA)
+            if (!$airline && !empty($offer->airline)) {
+                $normalized = \App\Models\Offer::normalizeAirline($offer->airline);
+                if ($normalized !== $offer->airline) {
+                    $airline = $normalized;
+                }
+            }
+
             if ($airline) {
                 $offer->timestamps = false;
                 $offer->update(['airline' => $airline]);
@@ -742,8 +755,11 @@ class SuperadminController extends Controller
             }
         }
 
-        $kalan = \App\Models\Offer::where(function($q) {
-            $q->whereNull('airline')->orWhere('airline', '');
+        $kalan = \App\Models\Offer::where(function($q) use ($normalizeKeys) {
+            $q->whereNull('airline')
+              ->orWhere('airline', '')
+              ->orWhereIn('airline', $normalizeKeys)
+              ->orWhereIn(\DB::raw('UPPER(airline)'), $normalizeKeys);
         })->count();
 
         $msg = "{$fixed} teklif güncellendi, {$skipped} atlandı.";
