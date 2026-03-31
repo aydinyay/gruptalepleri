@@ -641,6 +641,7 @@ class SuperadminController extends Controller
 
         $ileriAdimlar = ['odeme_plani_bekleniyor', 'odeme_bekleniyor', 'odeme_gecikti', 'odeme_alindi_devam', 'biletleme_bekleniyor', 'tamamlandi'];
 
+        try {
         \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito, &$debug, $ileriAdimlar) {
             foreach ($batch as $talep) {
                 // aktif_adim ilerlemiş ama kabul_edildi teklif yoksa → beklemedeki teklifi kabul et
@@ -678,6 +679,9 @@ class SuperadminController extends Controller
         $msg = "Tüm aktif adımlar yenilendi. ({$count} kayıt, {$depozito} depozito oluşturuldu)";
         if ($debug) $msg .= ' | DEBUG: ' . implode(' | ', $debug);
         return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Hata: ' . $e->getMessage() . ' — ' . $e->getFile() . ':' . $e->getLine());
+        }
     }
 
     public function bildirimSistemleriGuncelle(Request $request)
