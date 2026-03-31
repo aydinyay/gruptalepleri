@@ -330,10 +330,10 @@ const slotIkon = {'06-12':'☀','12-17':'⛅','17-23':'🌙','Esnek':'⚡'};
 // ─── Tabulator kolonları ──────────────────────────────────────────────────────
 const kolonlar = [
     {
-        formatter: 'rownum',
+        title: '#',
         width: 36, hozAlign: 'center', headerSort: false,
         headerHozAlign: 'center',
-        title: '#',
+        formatter(cell) { return cell.getRow().getPosition(true); },
     },
     {
         title: '<i class="fas fa-qrcode me-1"></i>GTPNR',
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tablo = new Tabulator('#talepTablo', {
         data: taleplerData,
-        layout: 'fitDataFill',
+        layout: 'fitColumns',
         pagination: true,
         paginationSize: 25,
         paginationSizeSelector: [10, 25, 50, 100],
