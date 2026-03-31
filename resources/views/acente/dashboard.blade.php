@@ -10,16 +10,30 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         #map { height: 400px; width: 100%; border-radius: 0 0 8px 8px; }
-        .stat-card { border-radius: 12px; border: none; transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-3px); }
-        .stat-number { font-size: 2rem; font-weight: 700; }
         .map-filters { padding: 10px 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #dee2e6; }
         .filter-badge { cursor: pointer; user-select: none; }
         html[data-theme="dark"] .map-filters { background: #16213e !important; border-color: #2a2a4e !important; }
         html[data-theme="light"] .map-filters { background: #fff; }
-        /* Tablo hover - tıklanabilir satır */
         html[data-theme="dark"]  #talepTablosu tr:hover { background:#2a2a4e !important; }
         html[data-theme="light"] #talepTablosu tr:hover { background:#f0f5ff !important; }
+
+        /* Stat chips */
+        .stat-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1.2rem; align-items:center; }
+        .stat-chip {
+            display:inline-flex; align-items:center; gap:7px;
+            padding:6px 14px; border-radius:999px;
+            font-size:0.82rem; font-weight:600;
+            border:2px solid; cursor:default;
+            transition:transform 0.15s, box-shadow 0.15s;
+            white-space:nowrap;
+        }
+        .stat-chip:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+        .stat-chip .chip-num { font-size:1.05rem; font-weight:800; line-height:1; }
+        .stat-chip .chip-icon { font-size:0.85rem; opacity:0.85; }
+        .stat-chip-toplam { border-color:#6c757d; color:#6c757d; background:transparent; }
+        html[data-theme="dark"] .stat-chip { background: rgba(255,255,255,0.04); }
+        html[data-theme="light"] .stat-chip { background: #fff; }
+        .stat-chip-zero { opacity:0.45; }
     </style>
 </head>
 <body>
@@ -32,24 +46,40 @@
         $dashboardStatusOrder = ['beklemede', 'islemde', 'fiyatlandirildi', 'iptal', 'biletlendi', 'depozitoda'];
     @endphp
 
-    {{-- ÖZET KARTLAR --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-2">
-            <div class="card stat-card text-center p-3 shadow-sm">
-                <div class="stat-number text-dark">{{ $istatistik['toplam'] }}</div>
-                <div class="text-muted small">Toplam</div>
-            </div>
+    {{-- ÖZET CHİPLER --}}
+    @php
+        $chipIkonlar = [
+            'toplam'          => ['fa-layer-group', '#495057'],
+            'beklemede'       => ['fa-clock',        '#6c757d'],
+            'islemde'         => ['fa-spinner',       '#0d6efd'],
+            'fiyatlandirildi' => ['fa-tag',           '#ffc107'],
+            'depozitoda'      => ['fa-credit-card',   '#6f42c1'],
+            'biletlendi'      => ['fa-ticket-alt',    '#198754'],
+            'iptal'           => ['fa-ban',           '#dc3545'],
+        ];
+    @endphp
+    <div class="stat-chips pt-2">
+        {{-- Toplam --}}
+        <div class="stat-chip" style="border-color:#495057;color:#495057;">
+            <i class="fas fa-layer-group chip-icon"></i>
+            <span class="chip-num">{{ $istatistik['toplam'] }}</span>
+            <span>Toplam</span>
         </div>
-        @foreach($dashboardStatusOrder as $statusKey)
-            @php
-                $meta = $statusMetaMap[$statusKey] ?? \App\Models\Request::statusMeta($statusKey);
-            @endphp
-            <div class="col-6 col-md-2">
-                <div class="card stat-card text-center p-3 shadow-sm" style="border-top: 3px solid {{ $meta['bg'] }}">
-                    <div class="stat-number" style="color:{{ $meta['bg'] }}">{{ $istatistik[$statusKey] ?? 0 }}</div>
-                    <div class="text-muted small">{{ $meta['label'] }}</div>
-                </div>
-            </div>
+        @foreach(['beklemede','islemde','fiyatlandirildi','depozitoda','biletlendi','iptal'] as $sk)
+        @php
+            $meta  = $statusMetaMap[$sk] ?? \App\Models\Request::statusMeta($sk);
+            $sayi  = $istatistik[$sk] ?? 0;
+            $ikon  = $chipIkonlar[$sk][0];
+            $renk  = $meta['bg'];
+        @endphp
+        <div class="stat-chip {{ $sayi == 0 ? 'stat-chip-zero' : '' }}"
+             style="border-color:{{ $renk }};color:{{ $renk }};"
+             onclick="toggleFilter(document.querySelector('[data-status=\'{{ $sk }}\']'))"
+             title="{{ $meta['label'] }} taleplerini filtrele" style="cursor:pointer">
+            <i class="fas {{ $ikon }} chip-icon"></i>
+            <span class="chip-num">{{ $sayi }}</span>
+            <span>{{ $meta['label'] }}</span>
+        </div>
         @endforeach
     </div>
 
