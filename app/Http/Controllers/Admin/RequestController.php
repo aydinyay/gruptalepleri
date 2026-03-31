@@ -223,6 +223,7 @@ class RequestController extends Controller
 
         $eskiDurum = $talep->status;
         $talep->update(['status' => $yeniDurum]);
+        $talep->refreshAktifAdim();
 
         RequestLog::create([
             'request_id'  => $talep->id,
@@ -631,6 +632,8 @@ Ham veri:
             'option_time'           => $request->option_time ?: null,
             'offer_text'            => $request->offer_text,
         ]);
+
+        $talep->refreshAktifAdim();
 
         RequestLog::create([
             'request_id'  => $talep->id,
