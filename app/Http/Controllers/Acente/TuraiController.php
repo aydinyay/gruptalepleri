@@ -200,6 +200,194 @@ class TuraiController extends Controller
         }
     }
 
+    // ── Dashboard genel sohbet (gtpnr'sız) ────────────────────────────────────
+    public function dashboardChat(Request $request): JsonResponse
+    {
+        try {
+            $user = $this->acenteActor();
+
+            $talepler = GrupTalep::where('user_id', $user->id)
+                ->with([
+                    'segments',
+                    'offers'   => fn($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi']),
+                    'payments' => fn($q) => $q->where('is_active', true),
+                ])
+                ->latest()
+                ->limit(40)
+                ->get();
+
+            $gecmis = array_slice($request->input('gecmis', []), -12);
+            $mesaj  = trim($request->input('mesaj', ''));
+
+            if ($mesaj === '') {
+                return response()->json(['hata' => 'Mesaj boş olamaz.'], 422);
+            }
+
+            $apiKey = (string) config('services.gemini.key');
+            if ($apiKey === '') {
+                return response()->json(['hata' => 'AI servisi şu an kullanılamıyor.'], 503);
+            }
+
+            $model   = (string) config('services.gemini.text_model', 'gemini-2.5-flash');
+            $context = $this->buildDashboardContext($user, $talepler);
+            $yanit   = $this->geminiChat($context, $gecmis, $mesaj, $apiKey, $model);
+
+            return response()->json(['yanit' => $yanit]);
+
+        } catch (\Exception $e) {
+            return response()->json(['hata' => 'Sunucu hatası: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // ── Dashboard genel bağlam (belirli bir talep yok) ─────────────────────────
+    private function buildDashboardContext($user, $talepler): string
+    {
+        $now = Carbon::now('Europe/Istanbul');
+
+        $sirketUnvan    = SistemAyar::get('sirket_unvan',          'Grup Talepleri Turizm San. ve Tic. Ltd. Şti.');
+        $sirketVkn      = SistemAyar::get('sirket_vkn',            '4110477529');
+        $sirketVD       = SistemAyar::get('sirket_vergi_dairesi',  'Beyoğlu VD');
+        $sirketMersis   = SistemAyar::get('sirket_mersis_no',      '0411047752900001');
+        $sirketAdres    = SistemAyar::get('sirket_adres',          'İnönü Mah. Cumhuriyet Cad. No:93/12 Şişli / İstanbul');
+        $sirketTursabNo = SistemAyar::get('sirket_tursab_no',      '12572');
+        $sirketTursabGrp= SistemAyar::get('sirket_tursab_grup',    'A');
+        $whatsapp       = SistemAyar::get('sirket_whatsapp',       '+90 535 415 47 99');
+        $eposta         = SistemAyar::get('sirket_eposta',         'destek@gruptalepleri.com');
+        $telefon        = SistemAyar::get('sirket_telefon',        '+90 535 415 47 99');
+
+        $adminUsers = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
+            ->whereNotNull('phone')->where('phone', '!=', '')
+            ->orderByRaw("role = 'superadmin' DESC")
+            ->get(['name', 'phone', 'role']);
+        $adminTelStr = '';
+        foreach ($adminUsers as $au) {
+            $label = $au->role === 'superadmin' ? 'Süperadmin' : 'Admin';
+            $adminTelStr .= "{$label} ({$au->name}): [{$au->phone}](tel:{$au->phone})\n";
+        }
+        if ($adminTelStr === '') {
+            $adminTelStr = "Telefon: [{$telefon}](tel:{$telefon})\n";
+        }
+
+        $bankaHesaplari = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $iban = (string) SistemAyar::get("banka_iban_{$i}", $i === 1 ? SistemAyar::get('banka_iban', '') : '');
+            if (empty(trim($iban))) continue;
+            $bankaHesaplari[] = [
+                'doviz' => SistemAyar::get("banka_doviz_{$i}", 'TRY'),
+                'adi'   => SistemAyar::get("banka_adi_{$i}", SistemAyar::get('banka_adi', '')),
+                'sube'  => SistemAyar::get("banka_sube_{$i}", SistemAyar::get('banka_sube', '')),
+                'sahip' => SistemAyar::get("banka_hesap_sahibi_{$i}", SistemAyar::get('banka_hesap_sahibi', $sirketUnvan)),
+                'iban'  => "TR{$iban}",
+                'not'   => SistemAyar::get("banka_aciklama_{$i}", SistemAyar::get('banka_aciklama', 'Açıklama kısmına GTPNR numaranızı yazınız.')),
+            ];
+        }
+        $bankaStr = '';
+        if (empty($bankaHesaplari)) {
+            $bankaStr = "Henüz banka hesabı girilmemiş.\n";
+        } else {
+            foreach ($bankaHesaplari as $idx => $h) {
+                $bankaStr .= ($idx + 1) . ". Hesap ({$h['doviz']}):\n";
+                $bankaStr .= "   Banka    : {$h['adi']}" . ($h['sube'] ? " / {$h['sube']}" : '') . "\n";
+                $bankaStr .= "   Hesap Sah: {$h['sahip']}\n";
+                $bankaStr .= "   IBAN     : {$h['iban']}\n";
+                $bankaStr .= "   Not      : {$h['not']}\n\n";
+            }
+        }
+
+        $waNumara = preg_replace('/[^0-9]/', '', $whatsapp);
+        $waLink   = "https://wa.me/{$waNumara}?text=" . rawurlencode("Taleplerim hakkında görüşmek istiyorum.");
+
+        // Tüm talepler listesi
+        $talepStr   = '';
+        $acilOzetler = [];
+        foreach ($talepler as $t) {
+            $ilkSeg = $t->segments->first();
+            $sonSeg = $t->segments->last();
+            $isRT   = ($t->trip_type ?? '') === 'round_trip';
+
+            if ($isRT && $ilkSeg && $sonSeg && $ilkSeg->id !== $sonSeg->id) {
+                $t1 = $ilkSeg->departure_date ? Carbon::parse($ilkSeg->departure_date)->format('d M Y') : '';
+                $t2 = $sonSeg->departure_date ? Carbon::parse($sonSeg->departure_date)->format('d M Y') : '';
+                $rota = "🛫 {$ilkSeg->from_iata} → {$ilkSeg->to_iata} · {$t1} / 🛬 {$sonSeg->from_iata} ← {$sonSeg->to_iata} · {$t2}";
+            } else {
+                $rota = $t->segments->map(fn($s) => "🛫 {$s->from_iata} → {$s->to_iata}")->implode(' / ');
+                $rota .= $ilkSeg?->departure_date ? ' · ' . Carbon::parse($ilkSeg->departure_date)->format('d M Y') : '';
+            }
+
+            $kabulTeklif = $t->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
+            $fiyat = $kabulTeklif ? " | {$kabulTeklif->total_price} {$kabulTeklif->currency}" : '';
+
+            $aktifPayment = $t->payments->firstWhere('is_active', true);
+            $odemeStr = '';
+            if ($aktifPayment) {
+                $odemeStr = " | Aktif Ödeme: {$aktifPayment->amount} {$aktifPayment->currency}";
+                if ($aktifPayment->due_date) {
+                    $gecti = Carbon::parse($aktifPayment->due_date)->isPast() ? ' ⚠️GEÇTİ' : '';
+                    $odemeStr .= " (Son: {$aktifPayment->due_date}{$gecti})";
+                }
+            }
+
+            $statusLabel = match ($t->status) {
+                'beklemede'       => '⏳ Beklemede',
+                'islemde'         => '🔄 İşlemde',
+                'fiyatlandirildi' => '💰 Fiyatlandırıldı',
+                'depozitoda'      => '💳 Depozitoda',
+                'biletlendi'      => '🎫 Biletlendi',
+                'iptal'           => '❌ İptal',
+                'olumsuz'         => '🚫 Olumsuz',
+                default           => $t->status,
+            };
+
+            $talepStr .= "• {$t->gtpnr} | {$rota} | {$statusLabel}{$fiyat}{$odemeStr}\n";
+
+            // Acil özetler (opsiyonlu, gecikmiş ödeme)
+            if ($t->aktif_adim === 'odeme_gecikti') {
+                $acilOzetler[] = "⚠️ {$t->gtpnr} gecikmiş ödeme";
+            } elseif ($aktifPayment?->due_date && Carbon::parse($aktifPayment->due_date)->diffInHours(now(), false) < 0
+                && Carbon::parse($aktifPayment->due_date)->diffInHours(now(), false) > -48) {
+                $acilOzetler[] = "⏰ {$t->gtpnr} 48 saat içinde ödeme vadesi";
+            }
+        }
+
+        $acilStr = empty($acilOzetler) ? '' : "━━━ ACİL UYARILAR ━━━\n" . implode("\n", $acilOzetler) . "\n\n";
+
+        return <<<PROMPT
+Sen TURAi'sin. GrupTalepleri.com'un acente portalı yapay zeka asistanısın.
+Şu an {$user->name} kullanıcısının hesabına hizmet veriyorsun.
+Bugünün tarihi ve saati: {$now->format('d.m.Y H:i')} (Türkiye saati)
+
+Kullanıcı şu an dashboard (genel panel) sayfasında — belirli bir talep görüntülenmiyor.
+Tüm talepler aşağıda listelenmiştir.
+
+━━━ TÜM TALEPLERİ (Toplam: {$talepler->count()} adet) ━━━
+{$talepStr}
+{$acilStr}━━━ BANKA / HAVALE BİLGİLERİ ━━━
+{$bankaStr}
+━━━ ŞİRKET / FATURA BİLGİLERİ ━━━
+Unvan          : {$sirketUnvan}
+Vergi No (VKN) : {$sirketVkn}
+Vergi Dairesi  : {$sirketVD}
+MERSİS No      : {$sirketMersis}
+Adres          : {$sirketAdres}
+TÜRSAB         : {$sirketTursabGrp} Grubu Belge No: {$sirketTursabNo}
+E-posta        : {$eposta}
+
+━━━ İLETİŞİM VE ACİL (7/24) ━━━
+{$adminTelStr}WhatsApp: [WhatsApp ile Yaz →]({$waLink})
+E-posta : {$eposta}
+
+━━━ DAVRANIŞ KURALLARI ━━━
+1. Yalnızca yukarıdaki verileri kullan. Veritabanında olmayan bilgi söyleme.
+2. ROTA ARAMALARI: IATA kodu içeren soruları talep listesinden eşleştir.
+3. DESTİNASYON BİLGİSİ: Genel sorular için genel bilgini kullanabilirsin. Başına "(Genel bilgi)" ekle.
+4. HAVALE SORUSU: IBAN, hesap sahibi, açıklama notunu mutlaka belirt.
+5. KISA ve NET cevapla. Türkçe. Emoji kullanabilirsin ama abartma.
+6. İLETİŞİM KURALI: Telefon/WhatsApp verirken [tıklanabilir metin](url) formatında yaz.
+7. ACİL DURUM KURALI: İletişim ve Acil bölümündeki numaraları ver. Çalışma saatinden bahsetme.
+8. GÖRSEL FORMAT KURALI: Talep listelerken 🎫 **GTPNR** formatını kullan.
+PROMPT;
+    }
+
     // ── Bağlam oluşturucu ──────────────────────────────────────────────────────
     private function buildContext(GrupTalep $talep, $digerTalepler): string
     {

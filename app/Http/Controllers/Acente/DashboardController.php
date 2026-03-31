@@ -51,6 +51,28 @@ class DashboardController extends Controller
                 ];
             })->values()->toArray();
 
-        return view('acente.dashboard', compact('talepler', 'haritaVerisi', 'istatistik', 'agency'));
+        // Turai widget için değişkenler
+        $adminTelefonlar = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
+            ->whereNotNull('phone')->where('phone', '!=', '')
+            ->orderByRaw("role = 'superadmin' DESC")
+            ->get(['name', 'phone', 'role'])
+            ->toArray();
+
+        // Turai greeting: acil özetler
+        $turaiOzetler = [];
+        foreach ($talepler as $t) {
+            if ($t->status === 'iptal') continue;
+            $aktifPayment = $t->payments->first(); // is_active=true filtreli yüklendi
+            if ($t->aktif_adim === 'odeme_gecikti') {
+                $turaiOzetler[] = '⚠️ <strong>' . $t->gtpnr . '</strong> gecikmiş ödeme';
+            } elseif ($aktifPayment?->due_date) {
+                $saatKaldi = \Carbon\Carbon::parse($aktifPayment->due_date)->diffInHours(now(), false);
+                if ($saatKaldi < 0 && $saatKaldi > -48) {
+                    $turaiOzetler[] = '⏰ <strong>' . $t->gtpnr . '</strong> 48 saat içinde ödeme vadesi';
+                }
+            }
+        }
+
+        return view('acente.dashboard', compact('talepler', 'haritaVerisi', 'istatistik', 'agency', 'adminTelefonlar', 'turaiOzetler'));
     }
 }

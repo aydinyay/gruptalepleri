@@ -648,5 +648,17 @@ function cizRotalar() {
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&libraries=geometry&callback=initMap" async defer></script>
 @include('acente.partials.theme-script')
+
+@include('acente.partials.turai-widget', [
+    'turaiGtpnr'          => null,
+    'turaiAcilEndpoint'   => null,
+    'turaiSelfSmsEndpoint'=> null,
+    'turaiAdminPhones'    => $adminTelefonlar ?? [],
+    'turaiWaLink'         => 'https://wa.me/' . preg_replace('/[^0-9]/', '', \App\Models\SistemAyar::get('sirket_whatsapp', '905354154799')) . '?text=' . rawurlencode('Taleplerim hakkında görüşmek istiyorum.'),
+    'turaiAcenteAdi'      => $agency->name ?? (auth()->user()->name ?? ''),
+    'turaiUserId'         => auth()->id(),
+    'turaiSubtitle'       => 'Genel Panel · ' . ($talepler->count()) . ' talep',
+    'turaiOzetler'        => $turaiOzetler ?? [],
+])
 </body>
 </html>

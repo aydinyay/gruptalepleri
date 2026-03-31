@@ -779,6 +779,7 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/talep/{gtpnr}', [\App\Http\Controllers\Acente\RequestController::class, 'show'])->name('requests.show');
     Route::post('/talep/{gtpnr}/ai-analiz', [\App\Http\Controllers\Acente\RequestController::class, 'aiAnaliz'])->name('requests.ai-analiz');
     Route::post('/talep/{gtpnr}/turai', [\App\Http\Controllers\Acente\TuraiController::class, 'chat'])->name('requests.turai');
+    Route::post('/turai/dashboard', [\App\Http\Controllers\Acente\TuraiController::class, 'dashboardChat'])->name('turai.dashboard');
     Route::post('/talep/{gtpnr}/acil-sms', [\App\Http\Controllers\Acente\TuraiController::class, 'acilSms'])->name('requests.acil-sms');
     Route::post('/talep/{gtpnr}/self-sms', [\App\Http\Controllers\Acente\TuraiController::class, 'selfSms'])->name('requests.self-sms');
     Route::post('/talep/{gtpnr}/ai-kaydet', [\App\Http\Controllers\Acente\RequestController::class, 'aiKaydet'])->name('requests.ai-kaydet');
