@@ -237,6 +237,21 @@ class RequestController extends Controller
             $odeme->delete();
         }
 
+        // Depozito ödeme kaydını otomatik oluştur (due_date admin tarafından ayarlanacak)
+        if ($teklif->deposit_amount && $teklif->deposit_amount > 0) {
+            \App\Models\RequestPayment::create([
+                'request_id'   => $talep->id,
+                'offer_id'     => $teklif->id,
+                'sequence'     => 1,
+                'payment_type' => 'depozito',
+                'amount'       => $teklif->deposit_amount,
+                'currency'     => $teklif->currency,
+                'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
+                'is_active'    => false,
+                'created_by'   => 'system',
+            ]);
+        }
+
         // aktif_adim ve odeme_durumu'nu güncelle
         $talep->refreshAktifAdim();
 
