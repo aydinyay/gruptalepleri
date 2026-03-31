@@ -118,7 +118,7 @@
             if ($diff <= 60)   return ['🚨 '.ceil($diff).' Dakika Kaldı', 'danger',  'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
             if ($diff <= 360)  return ['⏰ '.floor($diff/60).' Saat Kaldı',  'warning', 'Opsiyon bitiş tarihi: '.$dl->format('d.m.Y H:i')];
             if ($diff <= 1440) return ['⚠️ '.floor($diff/60).' Saat Kaldı', 'warning', 'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
-            return              ['📅 Opsiyon Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
+            return              ['📅 Son Ödeme / Opsiyon Tarihi', 'info', $dl->format('d.m.Y H:i').' tarihine kadar'];
         })(),
         'odeme_plani_bekleniyor'  => ['Durum', 'warning', 'Ödeme planı bekleniyor'],
         'odeme_bekleniyor'        => (function() use ($aktifPayment) {
@@ -475,7 +475,7 @@
                         </div>
 
                         {{-- Opsiyon deadline bar (beklemede ve kabul_edildi teklifler için) --}}
-                        @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE && $teklif->option_date)
+                        @if(in_array($teklif->durum, [\App\Models\Offer::DURUM_BEKLEMEDE, \App\Models\Offer::DURUM_KABUL]) && $teklif->option_date)
                         @php
                             $hasDl  = (bool) $teklif->option_date;
                             $dlTs   = $hasDl ? \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 23:59:59')) : null;
