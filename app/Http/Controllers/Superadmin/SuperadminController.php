@@ -636,14 +636,33 @@ class SuperadminController extends Controller
     public function aktifAdimYenile()
     {
         $count = 0;
-        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count) {
+        $depozito = 0;
+
+        \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito) {
             foreach ($batch as $talep) {
+                // Kabul edilmiş teklifi olan ama hiç ödemesi olmayan kayıtlara depozito ekle
+                $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
+                if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && $talep->payments->isEmpty()) {
+                    \App\Models\RequestPayment::create([
+                        'request_id'   => $talep->id,
+                        'offer_id'     => $kabulTeklif->id,
+                        'sequence'     => 1,
+                        'payment_type' => 'depozito',
+                        'amount'       => $kabulTeklif->deposit_amount,
+                        'currency'     => $kabulTeklif->currency,
+                        'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
+                        'is_active'    => false,
+                        'created_by'   => 'system',
+                    ]);
+                    $depozito++;
+                }
+
                 $talep->refreshAktifAdim();
                 $count++;
             }
         });
 
-        return back()->with('success', "Tüm aktif adımlar yenilendi. ({$count} kayıt güncellendi)");
+        return back()->with('success', "Tüm aktif adımlar yenilendi. ({$count} kayıt, {$depozito} depozito oluşturuldu)");
     }
 
     public function bildirimSistemleriGuncelle(Request $request)
