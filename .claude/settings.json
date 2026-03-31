@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -h 127.0.0.1 -u gruprez1_gruprez1 -ppqcAnGRD6qF0Sz.G gruprez1_gruprez1 -e \":*)",
+      "Bash(curl -s \"https://gruptalepleri.com/gitfix.php?t=grt2026fix&cmd=tinker\")",
+      "Bash(php -l app/Http/Controllers/Superadmin/SuperadminController.php)"
+    ]
+  }
+}

@@ -705,14 +705,14 @@ class SuperadminController extends Controller
 
     public function airlineSenkronize()
     {
-        set_time_limit(300);
+        set_time_limit(25);
         $fixed   = 0;
-        $aiFixed = 0;
         $skipped = 0;
+        $batch   = 30; // Her çalıştırmada max 30 teklif
 
         $offers = \App\Models\Offer::where(function($q) {
             $q->whereNull('airline')->orWhere('airline', '');
-        })->get();
+        })->limit($batch)->get();
 
         foreach ($offers as $offer) {
             $airline = null;
@@ -733,25 +733,6 @@ class SuperadminController extends Controller
                 $airline = strtoupper($m[1]);
             }
 
-            // 4. Gemini AI fallback
-            if (!$airline && $metin) {
-                $apiKey = config('services.gemini.key');
-                if ($apiKey) {
-                    try {
-                        $prompt   = 'Bu operasyon notundan sadece havayolu IATA kodunu (2 harf) çıkar. Sadece 2 harfli kodu yaz, başka hiçbir şey yazma. Bulamazsan boş bırak. Metin: ' . mb_substr($metin, 0, 500);
-                        $response = \Illuminate\Support\Facades\Http::timeout(15)->post(
-                            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}",
-                            ['contents' => [['parts' => [['text' => $prompt]]]], 'generationConfig' => ['thinkingConfig' => ['thinkingBudget' => 0]]]
-                        );
-                        $result = strtoupper(trim($response->json('candidates.0.content.parts.0.text') ?? ''));
-                        if (preg_match('/^[A-Z0-9]{2}$/', $result)) {
-                            $airline = $result;
-                            $aiFixed++;
-                        }
-                    } catch (\Throwable) {}
-                }
-            }
-
             if ($airline) {
                 $offer->timestamps = false;
                 $offer->update(['airline' => $airline]);
@@ -761,7 +742,18 @@ class SuperadminController extends Controller
             }
         }
 
-        return back()->with('success', "Airline senkronizasyonu tamamlandı: {$fixed} teklif güncellendi ({$aiFixed} AI ile), {$skipped} atlandı.");
+        $kalan = \App\Models\Offer::where(function($q) {
+            $q->whereNull('airline')->orWhere('airline', '');
+        })->count();
+
+        $msg = "{$fixed} teklif güncellendi, {$skipped} atlandı.";
+        if ($kalan > 0) {
+            $msg .= " Hâlâ {$kalan} teklif boş — butona tekrar bas.";
+        } else {
+            $msg .= " Tümü tamamlandı!";
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function bildirimSistemleriGuncelle(Request $request)

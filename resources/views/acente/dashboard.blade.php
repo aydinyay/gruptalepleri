@@ -8,7 +8,7 @@
     <title>Acente Paneli</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <style>
         #map { height: 400px; width: 100%; border-radius: 0 0 8px 8px; }
         .map-filters { padding: 10px 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #dee2e6; }
@@ -404,8 +404,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
 // ─── Harita collapse localStorage ───────────────────────────────────────
@@ -432,12 +433,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('haritaToggleLabel').textContent = 'Haritayı Gizle';
     }
 
-    // DataTables init
-    table = new DataTable('#talepTablosu', {
-        order: [[10, 'asc']],        // Opsiyon/Adım kolonu — en yakın opsiyon üstte
+    // DataTables init (jQuery 1.13.x)
+    table = $('#talepTablosu').DataTable({
+        order: [[10, 'asc']],
         pageLength: 25,
         lengthMenu: [10, 25, 50, 100],
-        dom: 'rtip',                 // Sadece: tablo + bilgi + pagination (arama kutusu bizim custom)
+        dom: 'rtip',
         language: {
             lengthMenu:   '_MENU_ talep göster',
             info:         '_START_–_END_ / _TOTAL_ talep',
@@ -447,20 +448,19 @@ document.addEventListener('DOMContentLoaded', () => {
             paginate: { first:'«', last:'»', next:'›', previous:'‹' },
         },
         columnDefs: [
-            { orderable: false, targets: [2, 3, 6, 8, 9] },   // TÜR, YÖN, parkurlar, havayolu — sıralanabilir değil
+            { orderable: false, targets: [2, 3, 6, 8, 9] },
             { className: 'text-center', targets: [0, 4, 12] },
         ],
         drawCallback: function() {
-            // Sıra numaralarını güncelle
             let i = 1;
             this.api().rows({ page: 'current' }).nodes().each(function(row) {
-                row.querySelector('td:first-child').textContent = i++;
+                $('td:first-child', row).text(i++);
             });
         }
     });
 
     // Custom arama kutusu
-    document.getElementById('tabloArama').addEventListener('input', function() {
+    $('#tabloArama').on('input', function() {
         table.search(this.value).draw();
     });
 });
@@ -486,10 +486,10 @@ function toggleMapFilter(el) {
 }
 
 // DataTables custom row filter
-DataTable.ext.search.push(function(settings, data, dataIndex) {
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
     if (!aktifFiltre) return true;
     const row = table ? table.row(dataIndex).node() : null;
-    return row ? row.getAttribute('data-status') === aktifFiltre : true;
+    return row ? $(row).attr('data-status') === aktifFiltre : true;
 });
 
 // ─── Harita ──────────────────────────────────────────────────────────────
