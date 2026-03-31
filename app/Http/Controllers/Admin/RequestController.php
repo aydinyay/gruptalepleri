@@ -231,6 +231,27 @@ class RequestController extends Controller
             'user_id'     => auth()->id(),
         ]);
 
+        // Depozitoda geçişinde kabul_edildi teklif yoksa tek fiyatlı teklifi otomatik kabul et
+        if ($yeniDurum === RequestModel::STATUS_DEPOZITODA) {
+            $kabulVar = $talep->offers()->where('durum', \App\Models\Offer::DURUM_KABUL)->exists();
+            if (!$kabulVar) {
+                $fiyatliTeklifler = $talep->offers()
+                    ->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)
+                    ->where('price_per_pax', '>', 0)
+                    ->get();
+                if ($fiyatliTeklifler->count() === 1) {
+                    $fiyatliTeklifler->first()->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
+                    $talep->refreshAktifAdim();
+                    RequestLog::create([
+                        'request_id'  => $talep->id,
+                        'action'      => 'teklif_kabul',
+                        'description' => 'Teklif otomatik kabul edildi (depozito geçişi)',
+                        'user_id'     => auth()->id(),
+                    ]);
+                }
+            }
+        }
+
         $acenteUrl = route('acente.requests.show', $talep->gtpnr);
 
         if ($request->boolean('notify_push_acente') && $talep->user_id) {
