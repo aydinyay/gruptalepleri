@@ -642,7 +642,8 @@ class SuperadminController extends Controller
             foreach ($batch as $talep) {
                 // Kabul edilmiş teklifi olan ama hiç ödemesi olmayan kayıtlara depozito ekle
                 $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
-                if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && $talep->payments->isEmpty()) {
+                $depozitoVar = $kabulTeklif && $talep->payments->where('offer_id', $kabulTeklif->id)->where('payment_type', 'depozito')->isNotEmpty();
+                if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {
                     \App\Models\RequestPayment::create([
                         'request_id'   => $talep->id,
                         'offer_id'     => $kabulTeklif->id,
