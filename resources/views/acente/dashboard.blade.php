@@ -49,7 +49,9 @@
         html[data-theme="dark"] #talepTablosu tbody tr:hover { background:#2a2a4e !important; }
         html[data-theme="light"] #talepTablosu tbody tr:hover { background:#f0f5ff !important; }
         #talepTablosu td { vertical-align: middle; padding: 5px 6px; }
-        .airline-logo { height:22px; width:auto; max-width:48px; object-fit:contain; }
+        .airline-logo { width:64px; height:auto; max-height:32px; object-fit:contain; display:block; }
+        .airline-cell { text-align:center; min-width:72px; }
+        .airline-name { font-size:0.62rem; color:#888; margin-top:2px; display:block; line-height:1.2; }
         .yon-badge { font-size:0.68rem; padding:2px 7px; }
         .tur-badge { font-size:0.64rem; padding:2px 6px; }
         .gtpnr-code { color:#e94560; font-family:monospace; font-weight:700; font-size:0.85rem; }
@@ -201,6 +203,19 @@
                         $aktifAdim    = $talep->aktif_adim;
                         $aktifPayment = $talep->payments->first();
 
+                        // Havayolu adları
+                        $airlineAdlari = [
+                            'TK' => 'THY', 'PC' => 'Pegasus', 'XQ' => 'SunExpress',
+                            'VF' => 'VFly', 'AJ' => 'AnadoluJet', 'A3' => 'Aegean',
+                            'LH' => 'Lufthansa', 'EK' => 'Emirates', 'TF' => 'TF',
+                            'QR' => 'Qatar', 'EY' => 'Etihad', 'W6' => 'Wizz Air',
+                            'U2' => 'easyJet', 'FR' => 'Ryanair', 'BA' => 'British',
+                            'AF' => 'Air France', 'KL' => 'KLM', 'SU' => 'Aeroflot',
+                            'OS' => 'Austrian', 'LX' => 'Swiss', 'IB' => 'Iberia',
+                            'AZ' => 'ITA', 'SK' => 'SAS', 'MS' => 'EgyptAir',
+                            'ET' => 'Ethiopian', 'RJ' => 'Royal Jordanian',
+                        ];
+
                         // Havayolu logo
                         $airlineCode = $kabulTeklif?->airline ?? null;
                         if (!$airlineCode) {
@@ -349,14 +364,15 @@
                         </td>
 
                         {{-- HAVAYOLU --}}
-                        <td>
+                        <td class="airline-cell">
                             @if($airlineCode)
+                                @php $airlineAd = $airlineAdlari[$airlineCode] ?? $airlineCode; @endphp
                                 <img src="/airline-logos/{{ $airlineCode }}.png"
-                                     onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline';"
-                                     class="airline-logo me-1" alt="{{ $airlineCode }}">
-                                <span class="fw-bold" style="font-size:0.8rem;">{{ $airlineCode }}</span>
+                                     onerror="this.onerror=null;this.style.display='none';"
+                                     class="airline-logo mx-auto" alt="{{ $airlineAd }}">
+                                <span class="airline-name">{{ $airlineAd }}</span>
                                 @if($kabulTeklif?->baggage_kg)
-                                    <br><small class="text-muted">{{ $kabulTeklif->baggage_kg }}KG</small>
+                                    <span class="airline-name">{{ $kabulTeklif->baggage_kg }} KG</span>
                                 @endif
                             @else
                                 <span class="text-muted">—</span>
