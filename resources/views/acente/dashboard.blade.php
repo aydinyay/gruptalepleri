@@ -214,8 +214,16 @@
                         $deadlineDt  = null;
                         $opsSortVal  = 9999999999;
 
-                        if ($aktifAdim === 'karar_bekleniyor') {
-                            // Beklemedeki en yakın opsiyon tarihi
+                        // Opsiyon kolonu SADECE teklif option_date'ini gösterir.
+                        // Ödeme son tarihi → zaten ÖDEME kolonunda ayrıca görünür.
+                        if ($kabulTeklif?->option_date) {
+                            // Kabul edilmiş teklifin opsiyon tarihi — tüm aşamalarda göster
+                            $deadlineDt = \Carbon\Carbon::parse(
+                                $kabulTeklif->option_date .
+                                ($kabulTeklif->option_time ? ' '.$kabulTeklif->option_time : ' 23:59:59')
+                            );
+                        } elseif ($aktifAdim === 'karar_bekleniyor') {
+                            // Henüz kabul yok — beklemedeki teklifin opsiyon tarihi
                             $opsOffer = $talep->offers
                                 ->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)
                                 ->filter(fn($o) => $o->option_date)
@@ -226,44 +234,29 @@
                                     ($opsOffer->option_time ? ' '.$opsOffer->option_time : ' 23:59:59')
                                 );
                             }
-                        } elseif (in_array($aktifAdim, ['odeme_bekleniyor', 'odeme_gecikti'])) {
-                            // Aktif ödemenin son tarihi
-                            $deadlineDt = $aktifPayment?->due_date instanceof \Carbon\Carbon
-                                ? $aktifPayment->due_date
-                                : ($aktifPayment?->due_date ? \Carbon\Carbon::parse($aktifPayment->due_date) : null);
-                        } elseif ($kabulTeklif?->option_date) {
-                            // Kabul edilmiş teklifin opsiyon tarihi (odeme_plani_bekleniyor, biletleme_bekleniyor vb.)
-                            $deadlineDt = \Carbon\Carbon::parse(
-                                $kabulTeklif->option_date .
-                                ($kabulTeklif->option_time ?? null ? ' '.$kabulTeklif->option_time : ' 23:59:59')
-                            );
                         }
 
                         if ($deadlineDt) {
                             $opsSortVal = $deadlineDt->isFuture() ? $deadlineDt->timestamp : 9999999998;
                         }
 
-                        // Opsiyon HTML
+                        // Opsiyon HTML — hem tarih hem kalan süre göster
                         $opsiyonHtml = '';
                         if ($deadlineDt) {
                             $diff = now()->diffInMinutes($deadlineDt, false);
+                            $tarihStr = '<div class="text-muted" style="font-size:0.70rem;">'.$deadlineDt->format('d.m.Y H:i').'</div>';
                             if ($diff <= 0) {
-                                $opsiyonHtml = '<span class="text-danger fw-bold" style="font-size:0.76rem;">🔴 '.($aktifAdim === 'karar_bekleniyor' ? 'OPSİYON BİTTİ' : 'ÖDEME GECİKTİ').'</span>'
-                                    .'<br><small class="text-muted">'.$deadlineDt->format('d.m.Y H:i').'</small>';
+                                $opsiyonHtml = '<div class="text-danger fw-bold" style="font-size:0.76rem; white-space:nowrap;">🔴 OPSİYON BİTTİ</div>'.$tarihStr;
                             } elseif ($diff <= 60) {
-                                $opsiyonHtml = '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span>'
-                                    .'<br><small class="text-muted">'.$deadlineDt->format('d.m.Y H:i').'</small>';
+                                $opsiyonHtml = '<div class="text-danger fw-bold" style="white-space:nowrap;">🚨 '.ceil($diff).'dk kaldı</div>'.$tarihStr;
                             } elseif ($diff <= 360) {
-                                $opsiyonHtml = '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span>'
-                                    .'<br><small class="text-muted">'.$deadlineDt->format('d.m.Y H:i').'</small>';
+                                $opsiyonHtml = '<div class="text-warning fw-bold" style="white-space:nowrap;">⏰ '.floor($diff/60).'s kaldı</div>'.$tarihStr;
                             } elseif ($diff <= 1440) {
-                                $g = floor($diff/60);
-                                $opsiyonHtml = '<span class="text-warning">⏳ '.$g.'s kaldı</span>'
-                                    .'<br><small class="text-muted">'.$deadlineDt->format('d.m.Y H:i').'</small>';
+                                $g = floor($diff/60); $m = $diff % 60;
+                                $opsiyonHtml = '<div class="text-warning" style="white-space:nowrap;">⏳ '.$g.'s '.floor($m).'dk kaldı</div>'.$tarihStr;
                             } else {
                                 $g = floor($diff/1440); $s = floor(($diff%1440)/60);
-                                $opsiyonHtml = '<span class="text-info">'.$g.'g '.$s.'s kaldı</span>'
-                                    .'<br><small class="text-muted">'.$deadlineDt->format('d.m.Y H:i').'</small>';
+                                $opsiyonHtml = '<div class="text-info" style="white-space:nowrap;">'.$g.' gün '.$s.' sa kaldı</div>'.$tarihStr;
                             }
                         } else {
                             $opsiyonHtml = match($aktifAdim) {
