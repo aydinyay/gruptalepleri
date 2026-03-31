@@ -538,13 +538,13 @@ function toggleMapFilter(el) {
 
 // DataTables custom row filter
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-    const row = table ? table.row(dataIndex).node() : null;
-    if (!row) return true;
-    const status = $(row).attr('data-status');
+    const rowData = settings.aoData[dataIndex];
+    if (!rowData || !rowData.nTr) return true;
+    const status = rowData.nTr.getAttribute('data-status');
     if (aktifFiltre) {
-        return status === aktifFiltre;  // Seçili filtre — sadece onu göster
+        return status === aktifFiltre;
     }
-    return status !== 'iptal';  // Varsayılan — iptal olanları gizle
+    return status !== 'iptal';  // Varsayılan: iptal gizle
 });
 
 // ─── Harita ──────────────────────────────────────────────────────────────
