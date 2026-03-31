@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $talepler = TalepModel::where('user_id', $user->id)
             ->with([
                 'segments',
-                'offers'   => fn($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi'])->where('price_per_pax', '>', 0),
+                'offers'   => fn($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi'])->orderByRaw("FIELD(durum,'kabul_edildi','beklemede')"),
                 'payments' => fn($q) => $q->where('is_active', true),
             ])
             ->orderBy('created_at', 'desc')
