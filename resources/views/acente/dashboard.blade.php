@@ -54,6 +54,10 @@
         .airline-name { font-size:0.62rem; color:#888; margin-top:2px; display:block; line-height:1.2; }
         .yon-badge { font-size:0.68rem; padding:2px 7px; }
         .tur-badge { font-size:0.64rem; padding:2px 6px; }
+        .yon-sym { font-size:1.4rem; font-weight:900; line-height:1; display:block; }
+        .yon-oneway   { color:#0d6efd; }
+        .yon-roundtrip{ color:#198754; }
+        .yon-multi    { color:#fd7e14; }
         .gtpnr-code { color:#e94560; font-family:monospace; font-weight:700; font-size:0.85rem; }
         .parkur { font-weight:700; font-size:0.82rem; letter-spacing:0.5px; }
 
@@ -156,19 +160,20 @@
             <table id="talepTablosu" class="table table-sm table-hover mb-0 w-100">
                 <thead>
                     <tr>
-                        <th style="width:32px;">#</th>
-                        <th>GTPNR</th>
-                        <th>TÜR</th>
-                        <th>YÖN</th>
-                        <th style="text-align:center;">PAX</th>
-                        <th>GİDİŞ</th>
-                        <th>GİDİŞ PARKUR</th>
-                        <th>DÖNÜŞ</th>
-                        <th>DÖNÜŞ PARKUR</th>
-                        <th>HAVAYOLU</th>
-                        <th>OPSİYON / ADIM</th>
-                        <th>ÖDEME</th>
-                        <th>DURUM</th>
+                        <th style="width:28px;">#</th>
+                        <th>🎫 GTPNR</th>
+                        <th>✈️ HAVAYOLU</th>
+                        <th>🌍 TÜR</th>
+                        <th>↔ YÖN</th>
+                        <th style="text-align:center;">👥 PAX</th>
+                        <th>🧳 BAGAJ</th>
+                        <th>📅 GİDİŞ</th>
+                        <th>🛫 GİDİŞ PARKUR</th>
+                        <th>📅 DÖNÜŞ</th>
+                        <th>🛬 DÖNÜŞ PARKUR</th>
+                        <th>⏰ OPSİYON</th>
+                        <th>💰 KALAN ÖDEME</th>
+                        <th>🏷️ DURUM</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -179,16 +184,16 @@
                         $ilkSeg   = $segs->first();
                         $donusSeg = $segs->count() > 1 ? $segs->last() : null;
 
-                        // Tip: İÇHAT / DIŞHAT
+                        // İÇHAT / DIŞHAT
                         $isIchat = $ilkSeg
                             && in_array(strtoupper($ilkSeg->from_iata), $trIata)
                             && in_array(strtoupper($ilkSeg->to_iata), $trIata);
 
-                        // Yön badge
-                        $yonBadge = match($talep->trip_type) {
-                            'one_way'    => '<span class="badge yon-badge bg-primary"><i class="fas fa-arrow-right me-1"></i>Tek Yön</span>',
-                            'round_trip' => '<span class="badge yon-badge bg-success"><i class="fas fa-exchange-alt me-1"></i>G/D</span>',
-                            'multi'      => '<span class="badge yon-badge bg-warning text-dark"><i class="fas fa-route me-1"></i>Çok Ayaklı</span>',
+                        // YÖN — havayolu tarzı sembol (badge yok, sadece sembol)
+                        $yonHtml = match($talep->trip_type) {
+                            'one_way'    => '<span class="yon-sym yon-oneway" title="Tek Yön">→</span>',
+                            'round_trip' => '<span class="yon-sym yon-roundtrip" title="Gidiş-Dönüş">⇄</span>',
+                            'multi'      => '<span class="yon-sym yon-multi" title="Çok Ayaklı">⤳</span>',
                             default      => '<span class="text-muted">—</span>',
                         };
 
@@ -212,18 +217,33 @@
                             'U2' => 'easyJet', 'FR' => 'Ryanair', 'BA' => 'British',
                             'AF' => 'Air France', 'KL' => 'KLM', 'SU' => 'Aeroflot',
                             'OS' => 'Austrian', 'LX' => 'Swiss', 'IB' => 'Iberia',
-                            'AZ' => 'ITA', 'SK' => 'SAS', 'MS' => 'EgyptAir',
-                            'ET' => 'Ethiopian', 'RJ' => 'Royal Jordanian',
+                            'UX' => 'Air Europa', 'AZ' => 'ITA', 'SK' => 'SAS',
+                            'MS' => 'EgyptAir', 'ET' => 'Ethiopian', 'RJ' => 'RJ',
                         ];
 
-                        // Havayolu logo
+                        // Havayolu kodu
                         $airlineCode = $kabulTeklif?->airline ?? null;
                         if (!$airlineCode) {
-                            // Beklemedeki tekliflerden al
-                            $ilkTeklif = $talep->offers->first();
+                            $ilkTeklif   = $talep->offers->first();
                             $airlineCode = $ilkTeklif?->airline ?? null;
                         }
                         $airlineCode = $airlineCode ? strtoupper(trim($airlineCode)) : null;
+
+                        // BAGAJ — teklif varsa kullan, yoksa havayoluna göre varsayılan
+                        $defaultBagajKg = [
+                            'TK' => 20, 'PC' => 20, 'XQ' => 20, 'VF' => 20,
+                            'AJ' => 15, 'A3' => 23, 'EK' => 30, 'QR' => 30,
+                            'LH' => 23, 'AF' => 23, 'KL' => 23, 'BA' => 23,
+                            'EY' => 30, 'W6' => 0,  'FR' => 0,  'U2' => 0,
+                            'OS' => 23, 'LX' => 23, 'IB' => 23, 'UX' => 23,
+                        ];
+                        $bagajKg = $kabulTeklif?->baggage_kg ?? null;
+                        if ($bagajKg === null && $airlineCode) {
+                            $bagajKg = $defaultBagajKg[$airlineCode] ?? null;
+                            $bagajDefault = true;
+                        } else {
+                            $bagajDefault = false;
+                        }
 
                         // Opsiyon deadline hesabı
                         $deadlineDt  = null;
@@ -300,28 +320,53 @@
                             <small class="text-muted">{{ $talep->created_at->format('d.m.Y') }}</small>
                         </td>
 
-                        {{-- TÜR --}}
-                        <td>
-                            @if($isIchat)
-                                <span class="badge tur-badge" style="background:#198754;">İÇHAT</span>
+                        {{-- HAVAYOLU --}}
+                        <td class="airline-cell">
+                            @if($airlineCode)
+                                @php $airlineAd = $airlineAdlari[$airlineCode] ?? $airlineCode; @endphp
+                                <img src="/airline-logos/{{ $airlineCode }}.png"
+                                     onerror="this.onerror=null;this.style.display='none';"
+                                     class="airline-logo mx-auto" alt="{{ $airlineAd }}">
+                                <span class="airline-name">{{ $airlineAd }}</span>
                             @else
-                                <span class="badge tur-badge" style="background:#0d6efd;">DIŞHAT</span>
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+
+                        {{-- TÜR (İÇHAT/DIŞHAT) --}}
+                        <td class="text-center">
+                            @if($isIchat)
+                                <span class="badge tur-badge" style="background:#198754;">🇹🇷 İÇHAT</span>
+                            @else
+                                <span class="badge tur-badge" style="background:#0d6efd;">🌍 DIŞHAT</span>
                             @endif
                         </td>
 
                         {{-- YÖN --}}
-                        <td>{!! $yonBadge !!}</td>
+                        <td class="text-center">{!! $yonHtml !!}</td>
 
                         {{-- PAX --}}
                         <td class="text-center fw-bold">{{ $talep->pax_total }}</td>
+
+                        {{-- BAGAJ --}}
+                        <td class="text-center">
+                            @if($bagajKg !== null)
+                                <span class="{{ $bagajDefault ? 'text-muted' : 'fw-bold' }}">
+                                    🧳 {{ $bagajKg }} KG
+                                </span>
+                                @if($bagajDefault)
+                                    <br><span style="font-size:0.6rem; color:#aaa;">varsayılan</span>
+                                @endif
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
 
                         {{-- GİDİŞ TARİHİ --}}
                         <td>
                             @if($ilkSeg && $ilkSeg->departure_date)
                                 <span class="fw-bold">{{ \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d.m.Y') }}</span>
-                                @if($slotLabel)
-                                    <br><small class="text-muted">{{ $slotLabel }}</small>
-                                @endif
+                                @if($slotLabel)<br><small class="text-muted">{{ $slotLabel }}</small>@endif
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -330,7 +375,7 @@
                         {{-- GİDİŞ PARKUR --}}
                         <td>
                             @if($ilkSeg)
-                                <span class="parkur">{{ strtoupper($ilkSeg->from_iata) }} <i class="fas fa-arrow-right" style="font-size:0.6rem; opacity:0.6;"></i> {{ strtoupper($ilkSeg->to_iata) }}</span>
+                                <span class="parkur">{{ strtoupper($ilkSeg->from_iata) }} → {{ strtoupper($ilkSeg->to_iata) }}</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -340,15 +385,8 @@
                         <td>
                             @if($donusSeg && $donusSeg->departure_date)
                                 <span class="fw-bold">{{ \Carbon\Carbon::parse($donusSeg->departure_date)->format('d.m.Y') }}</span>
-                                @php
-                                    $dSlot = match($donusSeg->departure_time_slot ?? '') {
-                                        'sabah' => '☀ 06-12', 'ogle' => '🌤 12-17',
-                                        'aksam' => '🌙 17-23', 'esnek' => '⚡ Esnek', default => '',
-                                    };
-                                @endphp
-                                @if($dSlot)
-                                    <br><small class="text-muted">{{ $dSlot }}</small>
-                                @endif
+                                @php $dSlot = match($donusSeg->departure_time_slot ?? '') { 'sabah'=>'☀ 06-12','ogle'=>'🌤 12-17','aksam'=>'🌙 17-23','esnek'=>'⚡ Esnek',default=>'' }; @endphp
+                                @if($dSlot)<br><small class="text-muted">{{ $dSlot }}</small>@endif
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -357,42 +395,29 @@
                         {{-- DÖNÜŞ PARKUR --}}
                         <td>
                             @if($donusSeg)
-                                <span class="parkur">{{ strtoupper($donusSeg->from_iata) }} <i class="fas fa-arrow-right" style="font-size:0.6rem; opacity:0.6;"></i> {{ strtoupper($donusSeg->to_iata) }}</span>
+                                <span class="parkur">{{ strtoupper($donusSeg->from_iata) }} → {{ strtoupper($donusSeg->to_iata) }}</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
                         </td>
 
-                        {{-- HAVAYOLU --}}
-                        <td class="airline-cell">
-                            @if($airlineCode)
-                                @php $airlineAd = $airlineAdlari[$airlineCode] ?? $airlineCode; @endphp
-                                <img src="/airline-logos/{{ $airlineCode }}.png"
-                                     onerror="this.onerror=null;this.style.display='none';"
-                                     class="airline-logo mx-auto" alt="{{ $airlineAd }}">
-                                <span class="airline-name">{{ $airlineAd }}</span>
-                                @if($kabulTeklif?->baggage_kg)
-                                    <span class="airline-name">{{ $kabulTeklif->baggage_kg }} KG</span>
-                                @endif
-                            @else
-                                <span class="text-muted">—</span>
-                            @endif
-                        </td>
-
-                        {{-- OPSİYON / ADIM --}}
+                        {{-- OPSİYON --}}
                         <td data-order="{{ $opsSortVal }}">{!! $opsiyonHtml !!}</td>
 
-                        {{-- BEKLEYEN ÖDEME --}}
+                        {{-- KALAN ÖDEME --}}
                         <td>
                             @if($aktifPayment)
                                 <span class="fw-bold {{ $talep->odeme_durumu === 'gecikti' ? 'text-danger' : 'text-warning' }}">
-                                    {{ number_format($aktifPayment->amount, 0) }} {{ $aktifPayment->currency }}
+                                    💳 {{ number_format($aktifPayment->amount, 0) }} {{ $aktifPayment->currency }}
                                 </span>
                                 @if($aktifPayment->due_date)
-                                    <br><small class="text-muted">
-                                        {{ ($aktifPayment->due_date instanceof \Carbon\Carbon ? $aktifPayment->due_date : \Carbon\Carbon::parse($aktifPayment->due_date))->format('d.m.Y') }}
-                                    </small>
+                                    <br><small class="text-muted">Son: {{ ($aktifPayment->due_date instanceof \Carbon\Carbon ? $aktifPayment->due_date : \Carbon\Carbon::parse($aktifPayment->due_date))->format('d.m.Y') }}</small>
                                 @endif
+                            @elseif($kabulTeklif?->total_price)
+                                <span class="text-muted" style="font-size:0.75rem;">
+                                    📋 {{ number_format($kabulTeklif->total_price, 0) }} {{ $kabulTeklif->currency }}
+                                </span>
+                                <br><span style="font-size:0.6rem; color:#aaa;">teklif toplam</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -451,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DataTables init (jQuery 1.13.x)
     table = $('#talepTablosu').DataTable({
-        order: [[10, 'asc']],
+        order: [[11, 'asc']],  // OPSİYON kolonu — en yakın opsiyon üstte
         pageLength: 25,
         lengthMenu: [10, 25, 50, 100],
         dom: 'rtip',
@@ -464,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
             paginate: { first:'«', last:'»', next:'›', previous:'‹' },
         },
         columnDefs: [
-            { orderable: false, targets: [2, 3, 6, 8, 9] },
+            { orderable: false, targets: [2, 3, 4, 6, 8, 10] }, // HAVAYOLU,TÜR,YÖN,BAGAJ,GİDİŞ PARKUR,DÖNÜŞ PARKUR
             { className: 'text-center', targets: [0, 4, 12] },
         ],
         drawCallback: function() {
