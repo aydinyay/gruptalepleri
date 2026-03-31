@@ -189,10 +189,16 @@
                             && in_array(strtoupper($ilkSeg->from_iata), $trIata)
                             && in_array(strtoupper($ilkSeg->to_iata), $trIata);
 
-                        // YÖN — görsel ikonlar; trip_type boşsa segment sayısından çıkar
-                        $tripType = $talep->trip_type;
-                        if (!$tripType) {
-                            $tripType = $segs->count() > 1 ? 'round_trip' : 'one_way';
+                        // YÖN — segment sayısı her zaman öncelikli (trip_type güvenilmez)
+                        $segSayisi = $segs->count();
+                        if ($segSayisi > 2) {
+                            $tripType = 'multi';
+                        } elseif ($segSayisi === 2) {
+                            $tripType = 'round_trip';
+                        } elseif ($talep->trip_type === 'multi') {
+                            $tripType = 'multi';
+                        } else {
+                            $tripType = 'one_way';
                         }
                         $yonHtml = match($tripType) {
                             'one_way'    => '<div class="text-center"><img src="/airline-logos/oneway.png" style="height:20px;width:auto;" alt="→"><div style="font-size:0.6rem;color:#0d6efd;font-weight:700;margin-top:1px;">TEK YÖN</div></div>',
