@@ -849,6 +849,7 @@
                                     onclick="odemePaidAc(
                                         {{ $odeme->id }},
                                         '{{ route('admin.requests.payment.update', [$talep->gtpnr, $odeme->id]) }}',
+                                        '{{ addslashes($odemeLabel) }}',
                                         {{ $odeme->sequence }},
                                         {{ $odeme->amount }},
                                         '{{ $odeme->currency }}',
@@ -1265,7 +1266,6 @@ async function aiParseBaslat() {
         if (d.payment_amount) document.getElementById('p-amount').value   = d.payment_amount;
         if (d.payment_currency) document.getElementById('p-currency').value = d.payment_currency;
         if (d.payment_date)   document.getElementById('p-date').value     = d.payment_date;
-        if (d.payment_sequence) document.getElementById('p-sequence').value = d.payment_sequence;
         if (d.payment_amount) {
             document.getElementById('f-p-amount').value   = d.payment_amount;
             document.getElementById('f-p-currency').value = d.payment_currency || 'TRY';
@@ -1353,7 +1353,7 @@ function odemePlanlaAc() {
 
 const odemePaidModal = new bootstrap.Modal(document.getElementById('odemePaidModal'));
 
-function odemePaidAc(id, url, sequence, amount, currency, dueDate, paymentType) {
+function odemePaidAc(id, url, label, sequence, amount, currency, dueDate, paymentType) {
     document.getElementById('odemePaidForm').action = url;
     document.getElementById('paid_sequence').value        = sequence;
     document.getElementById('paid_type').value            = paymentType || 'depozito';
@@ -1366,7 +1366,6 @@ function odemePaidAc(id, url, sequence, amount, currency, dueDate, paymentType) 
     document.getElementById('paid_bank').value            = '';
     document.getElementById('paid_sender').value          = '';
     document.getElementById('paid_account').value         = '';
-    const label = sequence === 1 ? '1. Depozito' : sequence + '. Depozito (Bakiye Tamamlama)';
     document.getElementById('paid_ozet').innerHTML =
         '<strong>' + label + '</strong> · ' +
         parseFloat(amount).toLocaleString('tr-TR') + ' ' + currency +
