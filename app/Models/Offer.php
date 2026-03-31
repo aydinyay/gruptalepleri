@@ -44,6 +44,20 @@ class Offer extends Model
         'ai_raw_output' => 'array',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // flight_number'dan airline otomatik çıkar: "VF3002" → "VF", "TK1234" → "TK"
+        static::saving(function ($offer) {
+            if (empty($offer->airline) && !empty($offer->flight_number)) {
+                if (preg_match('/^([A-Z0-9]{2})\d+/i', strtoupper(trim($offer->flight_number)), $m)) {
+                    $offer->airline = strtoupper($m[1]);
+                }
+            }
+        });
+    }
+
     public function request()
     {
         return $this->belongsTo(Request::class);
