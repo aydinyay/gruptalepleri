@@ -89,9 +89,10 @@
                 <thead style="background:#0d6efd; font-size:0.72rem; text-transform:uppercase; letter-spacing:1px;">
                     <tr>
                         <th style="color:#fff;">GTPNR</th>
-                        <th style="color:#fff;">Rota</th>
+                        <th style="color:#fff;">Rota / Tip</th>
                         <th style="color:#fff;">PAX</th>
-                        <th style="color:#fff;">Gidiş</th>
+                        <th style="color:#fff;">Uçuş</th>
+                        <th style="color:#fff;">Havayolu</th>
                         <th style="color:#fff;">Adım / Opsiyon</th>
                         <th style="color:#fff;">Bekleyen Ödeme</th>
                         <th style="color:#fff;" class="text-center">Durum</th>
@@ -103,6 +104,18 @@
                         $sc = \App\Models\Request::statusMeta($talep->status);
                         $segs = $talep->segments->sortBy('order');
                         $ilkSeg = $segs->first();
+                        $sonSeg = $segs->last();
+
+                        // Trip type etiketi
+                        $tripTipi = match($talep->trip_type) {
+                            'one_way'    => 'Tek Yön',
+                            'round_trip' => 'Gidiş-Dönüş',
+                            'multi'      => 'Çok Ayaklı',
+                            default      => $talep->trip_type ?? '—',
+                        };
+
+                        // Kabul edilen teklif
+                        $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
 
                         // Aktif adım bazlı gösterim
                         $aktifAdim    = $talep->aktif_adim;
@@ -162,13 +175,29 @@
                         </td>
                         <td>
                             @foreach($segs as $seg)
-                                <span class="fw-bold">{{ $seg->from_iata }}–{{ $seg->to_iata }}</span><br>
+                                <span class="fw-bold">{{ $seg->from_iata }}→{{ $seg->to_iata }}</span><br>
                             @endforeach
+                            <small class="text-muted">{{ $tripTipi }}</small>
                         </td>
                         <td><span class="fw-bold">{{ $talep->pax_total }}</span></td>
                         <td>
                             @if($ilkSeg)
                                 <span>{{ \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d.m.Y') }}</span>
+                                @if($talep->trip_type === 'round_trip' && $sonSeg && $sonSeg->id !== $ilkSeg->id)
+                                    <br><small class="text-muted">↩ {{ \Carbon\Carbon::parse($sonSeg->departure_date)->format('d.m.Y') }}</small>
+                                @endif
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($kabulTeklif)
+                                <span class="fw-bold">{{ $kabulTeklif->airline ?? '—' }}</span>
+                                @if($kabulTeklif->baggage_kg)
+                                    <br><small class="text-muted">{{ $kabulTeklif->baggage_kg }} KG</small>
+                                @endif
+                            @elseif($aktifAdim === 'teklif_bekleniyor')
+                                <span class="text-muted small">Teklif bekleniyor</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -190,7 +219,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="8" class="text-center text-muted py-4">
                             Henüz talep yok.
                             <a href="{{ route('acente.requests.create') }}">İlk talebi oluştur →</a>
                         </td>
