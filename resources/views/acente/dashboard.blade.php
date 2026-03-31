@@ -189,12 +189,16 @@
                             && in_array(strtoupper($ilkSeg->from_iata), $trIata)
                             && in_array(strtoupper($ilkSeg->to_iata), $trIata);
 
-                        // YÖN — görsel ikonlar
-                        $yonHtml = match($talep->trip_type) {
+                        // YÖN — görsel ikonlar; trip_type boşsa segment sayısından çıkar
+                        $tripType = $talep->trip_type;
+                        if (!$tripType) {
+                            $tripType = $segs->count() > 1 ? 'round_trip' : 'one_way';
+                        }
+                        $yonHtml = match($tripType) {
                             'one_way'    => '<img src="/airline-logos/oneway.png" style="height:22px;width:auto;" title="Tek Yön" alt="Tek Yön">',
                             'round_trip' => '<img src="/airline-logos/roundtrip.png" style="height:22px;width:auto;" title="Gidiş-Dönüş" alt="Gidiş-Dönüş">',
                             'multi'      => '<span class="yon-sym yon-multi" title="Çok Ayaklı">⤳</span>',
-                            default      => '<span class="text-muted">—</span>',
+                            default      => '<img src="/airline-logos/oneway.png" style="height:22px;width:auto;" title="Tek Yön" alt="Tek Yön">',
                         };
 
                         // Gidiş saat dilimi
