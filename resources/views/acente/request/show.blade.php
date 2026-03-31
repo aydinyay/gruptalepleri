@@ -765,8 +765,13 @@
                     @else
                     <hr class="my-2">
                     <div class="text-center text-muted small py-2">
-                        <i class="fas fa-lock me-1"></i>
-                        Teklif kabul ettiğinizde ödeme planı aktif olacak.
+                        @if(in_array($aktifAdim, ['odeme_plani_bekleniyor', 'biletleme_bekleniyor', 'tamamlandi']))
+                            <i class="fas fa-hourglass-half me-1 text-warning"></i>
+                            Ödeme planınız hazırlanıyor, yakında bildirim alacaksınız.
+                        @else
+                            <i class="fas fa-lock me-1"></i>
+                            Teklif kabul ettiğinizde ödeme planı aktif olacak.
+                        @endif
                     </div>
                     @endif
                 </div>
