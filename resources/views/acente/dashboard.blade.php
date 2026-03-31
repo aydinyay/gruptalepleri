@@ -89,11 +89,12 @@
                 <thead style="background:#0d6efd; font-size:0.72rem; text-transform:uppercase; letter-spacing:1px;">
                     <tr>
                         <th style="color:#fff;">GTPNR</th>
-                        <th style="color:#fff;">Rota / Tip</th>
-                        <th style="color:#fff;">PAX</th>
-                        <th style="color:#fff;">Uçuş</th>
+                        <th style="color:#fff;">Tür / Yön</th>
+                        <th style="color:#fff; text-align:center;">PAX</th>
+                        <th style="color:#fff;">Gidiş</th>
+                        <th style="color:#fff;">Dönüş</th>
                         <th style="color:#fff;">Havayolu</th>
-                        <th style="color:#fff;">Adım / Opsiyon</th>
+                        <th style="color:#fff;">Opsiyon / Adım</th>
                         <th style="color:#fff;">Bekleyen Ödeme</th>
                         <th style="color:#fff;" class="text-center">Durum</th>
                     </tr>
@@ -101,69 +102,70 @@
                 <tbody id="talepTablosu">
                     @forelse($talepler as $talep)
                     @php
-                        $sc = \App\Models\Request::statusMeta($talep->status);
+                        $sc   = \App\Models\Request::statusMeta($talep->status);
                         $segs = $talep->segments->sortBy('order');
-                        $ilkSeg = $segs->first();
-                        $sonSeg = $segs->last();
+                        $ilkSeg  = $segs->first();
+                        $donusSeg = $segs->count() > 1 ? $segs->last() : null;
 
-                        // Trip type etiketi
+                        // İÇHAT / DIŞHAT
+                        $trIata = ['IST','SAW','ESB','AYT','ADB','GZT','TZX','DIY','DYB','ASR','VAN','EZS','BJV','MLX','SZF','KYA','ERZ','ERC','KSY','IGD','SXZ','HTY','NAV','AFY','KCO','USQ','MQM','NKT','YEI','BAL','KFS','AOE','TEQ','KZR','OGU','ONQ','MSR','KYS','DNZ','DLM','SIC'];
+                        $isIchat = $ilkSeg && in_array(strtoupper($ilkSeg->from_iata), $trIata) && in_array(strtoupper($ilkSeg->to_iata), $trIata);
+                        $turBadge = $isIchat
+                            ? '<span class="badge" style="background:#198754;font-size:0.65rem;">İÇHAT</span>'
+                            : '<span class="badge" style="background:#0d6efd;font-size:0.65rem;">DIŞHAT</span>';
+
                         $tripTipi = match($talep->trip_type) {
                             'one_way'    => 'Tek Yön',
                             'round_trip' => 'Gidiş-Dönüş',
                             'multi'      => 'Çok Ayaklı',
-                            default      => $talep->trip_type ?? '—',
+                            default      => '—',
+                        };
+
+                        $slotLabel = match($ilkSeg?->departure_time_slot ?? '') {
+                            'sabah'  => '06:00–12:00',
+                            'ogle'   => '12:00–17:00',
+                            'aksam'  => '17:00–23:00',
+                            'esnek'  => 'Esnek',
+                            default  => '',
                         };
 
                         // Kabul edilen teklif
-                        $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
-
-                        // Aktif adım bazlı gösterim
+                        $kabulTeklif  = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
                         $aktifAdim    = $talep->aktif_adim;
-                        $aktifPayment = $talep->payments->first(); // is_active=true olan geldi (eager load)
+                        $aktifPayment = $talep->payments->first();
 
+                        // Opsiyon / adım HTML
                         $opsiyonHtml = match($aktifAdim) {
-                            'teklif_bekleniyor'      => '<span class="text-muted">Teklif bekleniyor</span>',
+                            'teklif_bekleniyor'      => '<span class="text-muted small">Teklif bekleniyor</span>',
                             'karar_bekleniyor'       => (function() use ($talep) {
                                 $opsOffer = $talep->offers
                                     ->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)
-                                    ->filter(fn($o) => $o->option_date)
-                                    ->sortBy('option_date')->first();
-                                if (!$opsOffer) {
-                                    return '<span class="text-secondary small">Opsiyonda</span>';
-                                }
+                                    ->filter(fn($o) => $o->option_date)->sortBy('option_date')->first();
+                                if (!$opsOffer) return '<span class="text-secondary small">Karar bekleniyor</span>';
                                 $dl   = \Carbon\Carbon::parse($opsOffer->option_date.($opsOffer->option_time ? ' '.$opsOffer->option_time : ' 23:59:59'));
                                 $diff = now()->diffInMinutes($dl, false);
-                                if ($diff <= 0)
-                                    return '<span class="text-danger fw-bold">⚠️ Opsiyon doldu</span>';
-                                if ($diff <= 60)
-                                    return '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
-                                if ($diff <= 360)
-                                    return '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
-                                if ($diff <= 1440)
-                                    return '<span class="text-warning">⚠️ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
-                                return '<span class="text-info">📅 '.$dl->format('d.m').'</span><br><small class="text-muted">'.$dl->format('H:i').'</small>';
+                                if ($diff <= 0)   return '<span class="text-danger fw-bold" style="font-size:0.78rem;">OPSİYON BİTTİ</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 60)  return '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 360) return '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
+                                $g = floor($diff/1440); $s = floor(($diff%1440)/60);
+                                return '<span class="text-info fw-bold">'.$g.'g '.$s.'s kaldı</span><br><small class="text-muted">'.$dl->format('d.m.Y H:i').'</small>';
                             })(),
-                            'odeme_plani_bekleniyor' => '<span class="text-warning">⏳ Ödeme planı bekleniyor</span>',
+                            'odeme_plani_bekleniyor' => '<span class="text-warning small">⏳ Ödeme planı bekleniyor</span>',
                             'odeme_bekleniyor'       => (function() use ($aktifPayment) {
                                 if (!$aktifPayment?->due_date) return '<span class="text-warning fw-bold">💳 Ödeme bekleniyor</span>';
                                 $dueDt = $aktifPayment->due_date;
                                 $diff  = now()->diffInMinutes($dueDt, false);
-                                if ($diff <= 0)
-                                    return '<span class="text-danger fw-bold">⚠️ Ödeme süresi doldu</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
-                                if ($diff <= 60)
-                                    return '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
-                                if ($diff <= 360)
-                                    return '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
-                                if ($diff <= 1440)
-                                    return '<span class="text-warning">⚠️ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
-                                $g = floor($diff/1440);
-                                return '<span class="fw-bold" style="color:#FF9900;">💳 '.$g.'g kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 0)   return '<span class="text-danger fw-bold" style="font-size:0.78rem;">ÖDEME GECİKTİ</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 60)  return '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 360) return '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                $g = floor($diff/1440); $s = floor(($diff%1440)/60);
+                                return '<span class="fw-bold" style="color:#FF9900;">💳 '.$g.'g '.$s.'s kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
                             })(),
-                            'odeme_gecikti'          => '<span class="text-danger fw-bold">⚠️ Ödeme gecikti</span>',
-                            'odeme_alindi_devam'     => '<span class="text-info">✅ Kısmi ödeme</span>',
-                            'biletleme_bekleniyor'   => '<span class="text-success">✅ Biletleme bekleniyor</span>',
-                            'tamamlandi'             => '<span class="text-success">✅ Tamamlandı</span>',
-                            default                  => '<span class="text-muted">—</span>',
+                            'odeme_gecikti'        => '<span class="text-danger fw-bold">⚠️ Ödeme gecikti</span>',
+                            'odeme_alindi_devam'   => '<span class="text-info small">✅ Kısmi ödeme alındı</span>',
+                            'biletleme_bekleniyor' => '<span class="text-success small">✅ Biletleme bekleniyor</span>',
+                            'tamamlandi'           => '<span class="text-success small">✅ Tamamlandı</span>',
+                            default                => '<span class="text-muted">—</span>',
                         };
                     @endphp
                     <tr data-status="{{ $talep->status }}"
@@ -174,17 +176,33 @@
                             <small class="text-muted">{{ $talep->created_at->format('d.m.Y') }}</small>
                         </td>
                         <td>
-                            @foreach($segs as $seg)
-                                <span class="fw-bold">{{ $seg->from_iata }}→{{ $seg->to_iata }}</span><br>
-                            @endforeach
-                            <small class="text-muted">{{ $tripTipi }}</small>
+                            {!! $turBadge !!}
+                            <br><small class="text-muted">{{ $tripTipi }}</small>
                         </td>
-                        <td><span class="fw-bold">{{ $talep->pax_total }}</span></td>
+                        <td class="text-center fw-bold">{{ $talep->pax_total }}</td>
                         <td>
                             @if($ilkSeg)
-                                <span>{{ \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d.m.Y') }}</span>
-                                @if($talep->trip_type === 'round_trip' && $sonSeg && $sonSeg->id !== $ilkSeg->id)
-                                    <br><small class="text-muted">↩ {{ \Carbon\Carbon::parse($sonSeg->departure_date)->format('d.m.Y') }}</small>
+                                <span class="fw-bold">{{ $ilkSeg->from_iata }}–{{ $ilkSeg->to_iata }}</span><br>
+                                <small class="text-muted">{{ \Carbon\Carbon::parse($ilkSeg->departure_date)->format('d.m.Y') }}</small>
+                                @if($slotLabel)
+                                    <br><small class="text-muted">{{ $slotLabel }}</small>
+                                @endif
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($donusSeg)
+                                <span class="fw-bold">{{ $donusSeg->from_iata }}–{{ $donusSeg->to_iata }}</span><br>
+                                <small class="text-muted">{{ \Carbon\Carbon::parse($donusSeg->departure_date)->format('d.m.Y') }}</small>
+                                @php
+                                    $donusSlot = match($donusSeg->departure_time_slot ?? '') {
+                                        'sabah' => '06:00–12:00', 'ogle' => '12:00–17:00',
+                                        'aksam' => '17:00–23:00', 'esnek' => 'Esnek', default => '',
+                                    };
+                                @endphp
+                                @if($donusSlot)
+                                    <br><small class="text-muted">{{ $donusSlot }}</small>
                                 @endif
                             @else
                                 <span class="text-muted">—</span>
@@ -196,10 +214,8 @@
                                 @if($kabulTeklif->baggage_kg)
                                     <br><small class="text-muted">{{ $kabulTeklif->baggage_kg }} KG</small>
                                 @endif
-                            @elseif($aktifAdim === 'teklif_bekleniyor')
-                                <span class="text-muted small">Teklif bekleniyor</span>
                             @else
-                                <span class="text-muted">—</span>
+                                <span class="text-muted small">—</span>
                             @endif
                         </td>
                         <td>{!! $opsiyonHtml !!}</td>
@@ -219,7 +235,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
+                        <td colspan="9" class="text-center text-muted py-4">
                             Henüz talep yok.
                             <a href="{{ route('acente.requests.create') }}">İlk talebi oluştur →</a>
                         </td>
