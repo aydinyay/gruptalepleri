@@ -66,8 +66,16 @@
                       style="background:{{ $meta['bg'] }};color:{{ $meta['text'] }};"
                       onclick="toggleFilter(this)">{{ $meta['label'] }}</span>
             @endforeach
+            <button class="btn btn-sm btn-outline-secondary ms-auto" type="button"
+                    id="haritaToggleBtn"
+                    data-bs-toggle="collapse" data-bs-target="#haritaCollapse"
+                    onclick="haritaToggle()">
+                <i class="fas fa-map me-1"></i><span id="haritaToggleLabel">Haritayı Göster</span>
+            </button>
         </div>
-        <div id="map"></div>
+        <div class="collapse" id="haritaCollapse">
+            <div id="map"></div>
+        </div>
     </div>
 
     {{-- TALEPLER LİSTESİ --}}
@@ -84,7 +92,8 @@
                         <th style="color:#fff;">Rota</th>
                         <th style="color:#fff;">PAX</th>
                         <th style="color:#fff;">Gidiş</th>
-                        <th style="color:#fff;">Adım</th>
+                        <th style="color:#fff;">Adım / Opsiyon</th>
+                        <th style="color:#fff;">Bekleyen Ödeme</th>
                         <th style="color:#fff;" class="text-center">Durum</th>
                     </tr>
                 </thead>
@@ -124,13 +133,18 @@
                             'odeme_plani_bekleniyor' => '<span class="text-warning">⏳ Ödeme planı bekleniyor</span>',
                             'odeme_bekleniyor'       => (function() use ($aktifPayment) {
                                 if (!$aktifPayment?->due_date) return '<span class="text-warning fw-bold">💳 Ödeme bekleniyor</span>';
-                                $dueDt = \Carbon\Carbon::parse($aktifPayment->due_date)->endOfDay();
-                                $diff = now()->diff($dueDt);
-                                $parts = [];
-                                if ($diff->d) $parts[] = $diff->d.'g';
-                                if ($diff->h) $parts[] = $diff->h.'s';
-                                return '<span class="fw-bold" style="color:#FF9900;">💳 '.(implode(' ', $parts) ?: '<1s').' kaldı</span>'
-                                    .'<br><small class="text-muted">'.$dueDt->format('d.m.Y').'</small>';
+                                $dueDt = $aktifPayment->due_date;
+                                $diff  = now()->diffInMinutes($dueDt, false);
+                                if ($diff <= 0)
+                                    return '<span class="text-danger fw-bold">⚠️ Ödeme süresi doldu</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 60)
+                                    return '<span class="text-danger fw-bold">🚨 '.ceil($diff).'dk kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 360)
+                                    return '<span class="text-warning fw-bold">⏰ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                if ($diff <= 1440)
+                                    return '<span class="text-warning">⚠️ '.floor($diff/60).'s kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
+                                $g = floor($diff/1440);
+                                return '<span class="fw-bold" style="color:#FF9900;">💳 '.$g.'g kaldı</span><br><small class="text-muted">'.$dueDt->format('d.m.Y H:i').'</small>';
                             })(),
                             'odeme_gecikti'          => '<span class="text-danger fw-bold">⚠️ Ödeme gecikti</span>',
                             'odeme_alindi_devam'     => '<span class="text-info">✅ Kısmi ödeme</span>',
@@ -160,6 +174,16 @@
                             @endif
                         </td>
                         <td>{!! $opsiyonHtml !!}</td>
+                        <td>
+                            @if($aktifPayment)
+                                <span class="fw-bold text-warning">{{ number_format($aktifPayment->amount, 0) }} {{ $aktifPayment->currency }}</span>
+                                @if($aktifPayment->due_date)
+                                    <br><small class="text-muted">Son: {{ $aktifPayment->due_date->format('d.m.Y') }}</small>
+                                @endif
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td class="text-center">
                             <span class="badge" style="background:{{ $sc['bg'] }};color:{{ $sc['text'] }};">{{ $sc['label'] }}</span>
                         </td>
@@ -179,6 +203,26 @@
 </div>
 
 <script>
+// Harita collapse localStorage
+function haritaToggle() {
+    setTimeout(() => {
+        const open = document.getElementById('haritaCollapse').classList.contains('show');
+        localStorage.setItem('haritaAcik', open ? '1' : '0');
+        document.getElementById('haritaToggleLabel').textContent = open ? 'Haritayı Gizle' : 'Haritayı Göster';
+        if (open && typeof google !== 'undefined' && typeof map !== 'undefined') {
+            google.maps.event.trigger(map, 'resize');
+        }
+    }, 50);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const acik = localStorage.getItem('haritaAcik') === '1';
+    if (acik) {
+        const el = document.getElementById('haritaCollapse');
+        el.classList.add('show');
+        document.getElementById('haritaToggleLabel').textContent = 'Haritayı Gizle';
+    }
+});
+
 const haritaVerisi = @json($haritaVerisi);
 let aktifFiltre = null; // null = hepsi göster
 const statusMeta = @json($statusMetaMap);
