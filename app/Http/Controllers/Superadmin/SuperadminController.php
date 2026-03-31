@@ -635,41 +635,47 @@ class SuperadminController extends Controller
 
     public function aktifAdimYenile()
     {
+        set_time_limit(300);
+        $count = 0;
+        $depozito = 0;
+        $ileriAdimlar = ['odeme_plani_bekleniyor', 'odeme_bekleniyor', 'odeme_gecikti', 'odeme_alindi_devam', 'biletleme_bekleniyor', 'tamamlandi'];
+
         try {
-            // Sadece UG-KSK3AG'yi düzelt
-            $talep = \App\Models\Request::with(['offers', 'payments'])->where('gtpnr', 'UG-KSK3AG')->first();
-            if (!$talep) {
-                return back()->with('error', 'Talep bulunamadı.');
-            }
+            \App\Models\Request::with(['offers', 'payments'])->chunk(50, function ($batch) use (&$count, &$depozito, $ileriAdimlar) {
+                foreach ($batch as $talep) {
+                    // aktif_adim ilerlemiş ama kabul teklif yoksa → beklemedekini kabul et
+                    if (in_array($talep->aktif_adim, $ileriAdimlar) && !$talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL)) {
+                        $bekleyen = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_BEKLEMEDE);
+                        if ($bekleyen) {
+                            $bekleyen->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
+                            $talep->load('offers');
+                        }
+                    }
 
-            $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
-            if (!$kabulTeklif) {
-                $bekleyenTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_BEKLEMEDE);
-                if ($bekleyenTeklif) {
-                    $bekleyenTeklif->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
-                    $talep->load('offers');
                     $kabulTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
+                    $depozitoVar = $kabulTeklif && $talep->payments->where('offer_id', $kabulTeklif->id)->where('payment_type', 'depozito')->isNotEmpty();
+
+                    if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {
+                        \App\Models\RequestPayment::create([
+                            'request_id'   => $talep->id,
+                            'offer_id'     => $kabulTeklif->id,
+                            'sequence'     => 1,
+                            'payment_type' => 'depozito',
+                            'amount'       => $kabulTeklif->deposit_amount,
+                            'currency'     => $kabulTeklif->currency,
+                            'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
+                            'is_active'    => false,
+                            'created_by'   => auth()->id(),
+                        ]);
+                        $depozito++;
+                    }
+
+                    $talep->refreshAktifAdim();
+                    $count++;
                 }
-            }
+            });
 
-            $depozitoVar = $kabulTeklif && $talep->payments->where('offer_id', $kabulTeklif->id)->where('payment_type', 'depozito')->isNotEmpty();
-
-            if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {
-                \App\Models\RequestPayment::create([
-                    'request_id'   => $talep->id,
-                    'offer_id'     => $kabulTeklif->id,
-                    'sequence'     => 1,
-                    'payment_type' => 'depozito',
-                    'amount'       => $kabulTeklif->deposit_amount,
-                    'currency'     => $kabulTeklif->currency,
-                    'status'       => \App\Models\RequestPayment::STATUS_TASLAK,
-                    'is_active'    => false,
-                    'created_by'   => auth()->id(),
-                ]);
-            }
-
-            $talep->refreshAktifAdim();
-            return back()->with('success', 'UG-KSK3AG düzeltildi. Teklif: ' . ($kabulTeklif?->id ?? 'yok') . ' Depozito: ' . ($kabulTeklif?->deposit_amount ?? 0));
+            return back()->with('success', "Tüm aktif adımlar yenilendi. ({$count} kayıt, {$depozito} depozito oluşturuldu)");
         } catch (\Throwable $e) {
             return back()->with('error', 'Hata: ' . $e->getMessage() . ' | ' . basename($e->getFile()) . ':' . $e->getLine());
         }
