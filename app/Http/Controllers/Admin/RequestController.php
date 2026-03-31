@@ -209,7 +209,6 @@ class RequestController extends Controller
             RequestModel::STATUS_BEKLEMEDE,
             RequestModel::STATUS_ISLEMDE,
             RequestModel::STATUS_FIYATLANDIRILDI,
-            RequestModel::STATUS_ONAYLANDI,
             RequestModel::STATUS_DEPOZITODA,
             RequestModel::STATUS_BILETLENDI,
             RequestModel::STATUS_IADE,
