@@ -27,6 +27,24 @@ class StatsController extends Controller
             $loginFail   = (int) $this->db()->selectOne("SELECT COUNT(*) c FROM gt_events WHERE event_type='login_failed' AND DATE(created_at)=CURDATE()")->c;
             $onlineCount = (int) $this->db()->selectOne("SELECT COUNT(*) c FROM gt_online WHERE last_seen > NOW() - INTERVAL 5 MINUTE")->c;
 
+            // Online kırılımı: son 5 dakika içindeki ziyaretlerde member_name'e göre rol tespiti
+            $onlineBreakdown = $this->db()->selectOne("
+                SELECT
+                    COUNT(DISTINCT go.session_id) AS toplam,
+                    COUNT(DISTINCT CASE WHEN gv.member_name LIKE '%[superadmin]%' OR gv.member_name LIKE '%[admin]%' THEN go.session_id END) AS admin_count,
+                    COUNT(DISTINCT CASE WHEN gv.member_name LIKE '%[acente]%' THEN go.session_id END) AS uye_count
+                FROM gt_online go
+                LEFT JOIN (
+                    SELECT session_id, member_name
+                    FROM gt_visits
+                    WHERE created_at > NOW() - INTERVAL 5 MINUTE AND member_name <> ''
+                ) gv ON go.session_id = gv.session_id
+                WHERE go.last_seen > NOW() - INTERVAL 5 MINUTE
+            ");
+            $onlineAdmin    = (int) ($onlineBreakdown->admin_count ?? 0);
+            $onlineUye      = (int) ($onlineBreakdown->uye_count  ?? 0);
+            $onlineKayitsiz = max(0, $onlineCount - $onlineAdmin - $onlineUye);
+
             // Saatlik trafik
             $hourlyRows = $this->db()->select("SELECT HOUR(created_at) h, COUNT(*) c FROM gt_visits WHERE created_at >= NOW() - INTERVAL 24 HOUR GROUP BY HOUR(created_at)");
             $hourly = array_fill(0, 24, 0);
@@ -39,6 +57,7 @@ class StatsController extends Controller
             $topCountries = $this->db()->select("SELECT flag, country, COUNT(DISTINCT ip) u FROM gt_visits WHERE country <> '' GROUP BY country, flag ORDER BY u DESC LIMIT 8");
         } catch (\Throwable $e) {
             $todayTotal = $today404 = $today403 = $today500 = $riskyIps = $loginFail = $onlineCount = 0;
+            $onlineAdmin = $onlineUye = $onlineKayitsiz = 0;
             $hourly = array_fill(0, 24, 0);
             $topIps = $topPages = $topCountries = [];
             $dbError = $e->getMessage();
@@ -109,6 +128,9 @@ class StatsController extends Controller
             'timelineIp', 'timelineRows', 'timelineInfo', 'timelineStats',
             'notFoundRows',
             'memberRows', 'memberDetailName', 'memberDetail'
-        ))->with('dbError', $dbError ?? null);
+        ))->with('dbError', $dbError ?? null)
+          ->with('onlineAdmin', $onlineAdmin ?? 0)
+          ->with('onlineUye', $onlineUye ?? 0)
+          ->with('onlineKayitsiz', $onlineKayitsiz ?? 0);
     }
 }

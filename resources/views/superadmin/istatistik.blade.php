@@ -40,6 +40,12 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-success">{{ $onlineCount }} online</span>
+                @if($onlineAdmin > 0)
+                    <span class="badge" style="background:#6f42c1;">{{ $onlineAdmin }} admin</span>
+                @endif
+                @if($onlineUye > 0)
+                    <span class="badge bg-primary">{{ $onlineUye }} üye</span>
+                @endif
                 <span class="text-white-50 small">{{ now()->format('d.m.Y H:i') }}</span>
             </div>
         </div>
@@ -70,9 +76,49 @@
 
     {{-- Özet kartları (her sekmede görünür) --}}
     <div class="row g-3 mb-4">
+        {{-- Bugün Toplam --}}
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card stat-card shadow-sm p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:42px;height:42px;border-radius:10px;background:#0d6efd22;display:flex;align-items:center;justify-content:center;color:#0d6efd;flex-shrink:0;">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div>
+                        <div class="stat-num" style="color:#0d6efd;">{{ number_format($todayTotal) }}</div>
+                        <div class="text-muted" style="font-size:.72rem;">Bugün Toplam</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Online kırılımlı kart --}}
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card stat-card shadow-sm p-3">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div style="width:42px;height:42px;border-radius:10px;background:#19875422;display:flex;align-items:center;justify-content:center;color:#198754;flex-shrink:0;">
+                        <i class="fas fa-circle" style="font-size:.7rem;"></i>
+                    </div>
+                    <div>
+                        <div class="stat-num" style="color:#198754;">{{ number_format($onlineCount) }}</div>
+                        <div class="text-muted" style="font-size:.72rem;">Toplam Online</div>
+                    </div>
+                </div>
+                <div style="font-size:.72rem;padding-left:4px;border-top:1px solid #f0f2f5;padding-top:6px;display:flex;flex-direction:column;gap:3px;">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-user-shield me-1" style="color:#6f42c1;"></i>Admin</span>
+                        <strong style="color:#6f42c1;">{{ $onlineAdmin }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-building me-1" style="color:#0d6efd;"></i>Üye (Acente)</span>
+                        <strong style="color:#0d6efd;">{{ $onlineUye }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-user me-1 text-muted"></i>Kayıtsız Ziyaretçi</span>
+                        <strong class="text-muted">{{ $onlineKayitsiz }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
         @foreach([
-            ['Bugün Toplam','fas fa-eye',$todayTotal,'#0d6efd'],
-            ['Online','fas fa-circle',$onlineCount,'#198754'],
             ['404','fas fa-triangle-exclamation',$today404,'#dc3545'],
             ['403','fas fa-ban',$today403,'#fd7e14'],
             ['500 Hata','fas fa-server',$today500,'#6f42c1'],
