@@ -170,6 +170,12 @@
             'href' => route('superadmin.sistem.hub'),
             'items' => [
                 [
+                    'label' => 'Site Istatistikleri',
+                    'href' => route('superadmin.istatistik'),
+                    'icon' => 'fas fa-chart-mixed',
+                    'keys' => ['istatistik'],
+                ],
+                [
                     'label' => 'Site Ayarlari',
                     'href' => route('superadmin.site.ayarlar'),
                     'icon' => 'fas fa-sliders-h',

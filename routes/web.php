@@ -525,6 +525,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::patch('/sms-ayarlari/{ayar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarGuncelle'])->name('sms.guncelle');
     Route::delete('/sms-ayarlari/{ayar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsAyarSil'])->name('sms.sil');
 
+    // Site İstatistikleri
+    Route::get('/istatistik', [\App\Http\Controllers\Superadmin\StatsController::class, 'index'])->name('istatistik');
+
     // SMS Raporlar
     Route::get('/sms-raporlar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsRaporlar'])->name('sms.raporlar');
     Route::post('/sms-raporlar/durum-guncelle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsTeslimDurumlariGuncelle'])->name('sms.log.durum-guncelle');

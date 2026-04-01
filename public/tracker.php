@@ -307,11 +307,15 @@ $route_name = '';
 $member_id = '';
 $member_name = '';
 
-if (defined('GT_MEMBER_SESSION_ID') && GT_MEMBER_SESSION_ID && session_status() === PHP_SESSION_ACTIVE) {
+// Laravel middleware tarafından $_SERVER üzerinden iletilen üye bilgisi
+if (!empty($_SERVER['GT_MEMBER_ID'])) {
+    $member_id   = gt_substr_safe((string)$_SERVER['GT_MEMBER_ID'], 100);
+    $member_name = gt_substr_safe((string)($_SERVER['GT_MEMBER_NAME'] ?? ''), 200);
+} elseif (defined('GT_MEMBER_SESSION_ID') && GT_MEMBER_SESSION_ID && session_status() === PHP_SESSION_ACTIVE) {
     $member_id = gt_substr_safe($_SESSION[GT_MEMBER_SESSION_ID] ?? '', 100);
-}
-if (defined('GT_MEMBER_SESSION_NAME') && GT_MEMBER_SESSION_NAME && session_status() === PHP_SESSION_ACTIVE) {
-    $member_name = gt_substr_safe($_SESSION[GT_MEMBER_SESSION_NAME] ?? '', 200);
+    if (defined('GT_MEMBER_SESSION_NAME') && GT_MEMBER_SESSION_NAME) {
+        $member_name = gt_substr_safe($_SESSION[GT_MEMBER_SESSION_NAME] ?? '', 200);
+    }
 }
 
 /* -------------------------------------------------
