@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureTransferSupplierAccess;
+use App\Http\Middleware\VisitorTracker;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
             'transfer_supplier' => EnsureTransferSupplierAccess::class,
         ]);
+        $middleware->appendToGroup('web', VisitorTracker::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 419 Page Expired: logout butonuna tıklanınca session süresi dolmuşsa
