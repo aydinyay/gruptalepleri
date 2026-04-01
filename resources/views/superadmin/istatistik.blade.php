@@ -95,6 +95,13 @@
         @endforeach
     </div>
 
+    {{-- DB bağlantı hatası (geçici debug) --}}
+    @if(!empty($dbError))
+    <div class="alert alert-danger mb-3" style="font-family:Consolas,monospace;font-size:.82rem;">
+        <strong>DB Bağlantı Hatası:</strong> {{ $dbError }}
+    </div>
+    @endif
+
     {{-- ========== TAB: DASHBOARD ========== --}}
     @if($tab === 'dashboard')
 

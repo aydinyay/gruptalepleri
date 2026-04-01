@@ -66,16 +66,17 @@ return [
 
         // Ziyaretçi takip sistemi (gt_events, gt_visits, gt_online)
         'ziyaretci' => [
-            'driver'    => 'mysql',
-            'host'      => env('GT_DB_HOST', '127.0.0.1'),
-            'port'      => '3306',
-            'database'  => env('GT_DB_NAME', 'gruprez1_gruprez1_ziyaretci'),
-            'username'  => env('GT_DB_USER', 'gruprez1_takip'),
-            'password'  => env('GT_DB_PASS', 'GtTakip2024!'),
-            'charset'   => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix'    => '',
-            'strict'    => false,
+            'driver'      => 'mysql',
+            'host'        => env('GT_DB_HOST', 'localhost'),
+            'port'        => '3306',
+            'database'    => env('GT_DB_NAME', 'gruprez1_gruprez1_ziyaretci'),
+            'username'    => env('GT_DB_USER', 'gruprez1_takip'),
+            'password'    => env('GT_DB_PASS', 'GtTakip2024!'),
+            'unix_socket' => env('GT_DB_SOCKET', ''),
+            'charset'     => 'utf8mb4',
+            'collation'   => 'utf8mb4_unicode_ci',
+            'prefix'      => '',
+            'strict'      => false,
         ],
 
         // Eski gruprez sistemi — sadece okuma için

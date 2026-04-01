@@ -41,6 +41,7 @@ class StatsController extends Controller
             $todayTotal = $today404 = $today403 = $today500 = $riskyIps = $loginFail = $onlineCount = 0;
             $hourly = array_fill(0, 24, 0);
             $topIps = $topPages = $topCountries = [];
+            $dbError = $e->getMessage();
         }
 
         // --- Tab: IP Timeline ---
@@ -108,6 +109,6 @@ class StatsController extends Controller
             'timelineIp', 'timelineRows', 'timelineInfo', 'timelineStats',
             'notFoundRows',
             'memberRows', 'memberDetailName', 'memberDetail'
-        ));
+        ))->with('dbError', $dbError ?? null);
     }
 }
