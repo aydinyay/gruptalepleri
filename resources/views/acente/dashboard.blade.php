@@ -18,22 +18,29 @@
         html[data-theme="light"] .map-filters { background: #fff; }
 
         /* ── Stat chips ── */
-        .stat-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1.2rem; align-items:center; }
+        .stat-chips { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-bottom:1.2rem; }
+        @media(max-width:1100px){ .stat-chips { grid-template-columns:repeat(4,1fr); } }
+        @media(max-width:600px)  { .stat-chips { grid-template-columns:repeat(2,1fr); } }
         .stat-chip {
-            display:inline-flex; align-items:center; gap:7px;
-            padding:6px 14px; border-radius:999px;
-            font-size:0.82rem; font-weight:600;
-            border:1.5px solid; cursor:pointer;
-            transition:transform 0.15s, box-shadow 0.15s, background 0.15s;
+            display:flex; align-items:center; gap:12px;
+            padding:14px 16px; border-radius:12px;
+            cursor:pointer; border:none;
+            transition:transform 0.15s, box-shadow 0.15s;
             white-space:nowrap;
         }
-        .stat-chip:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
-        .stat-chip.aktif { box-shadow:0 0 0 3px rgba(0,0,0,0.15); transform:translateY(-1px); }
-        .stat-chip .chip-num { font-size:1.05rem; font-weight:800; line-height:1; }
-        .stat-chip .chip-icon { font-size:0.85rem; opacity:0.85; }
-        html[data-theme="dark"]  .stat-chip { background: rgba(255,255,255,0.04); }
-        html[data-theme="light"] .stat-chip { background: #fff; }
-        .stat-chip-zero { opacity:0.45; }
+        html[data-theme="dark"]  .stat-chip { background:#1e2a3a; box-shadow:0 1px 4px rgba(0,0,0,0.3); }
+        html[data-theme="light"] .stat-chip { background:#fff; box-shadow:0 1px 6px rgba(0,0,0,0.07); }
+        .stat-chip:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.13); }
+        .stat-chip.aktif { transform:translateY(-1px); box-shadow:0 0 0 2.5px var(--chip-color,#0d6efd),0 4px 12px rgba(0,0,0,0.12); }
+        .stat-chip .chip-icon-wrap {
+            width:40px; height:40px; border-radius:10px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1rem;
+        }
+        .stat-chip .chip-num { font-size:1.6rem; font-weight:800; line-height:1; }
+        .stat-chip .chip-label { font-size:0.7rem; color:#6c757d; margin-top:2px; }
+        html[data-theme="dark"] .stat-chip .chip-label { color:#8a9bb0; }
+        .stat-chip-zero .chip-num { opacity:0.4; }
 
         /* ── Tabulator overrides ── */
         .tabulator {
@@ -204,12 +211,18 @@
         ];
     @endphp
     <div class="stat-chips pt-2">
-        <div class="stat-chip" style="border-color:#495057;color:#495057;" title="Tüm talepler"
+        {{-- Toplam --}}
+        <div class="stat-chip" style="--chip-color:#495057;" title="Tüm talepler"
              onclick="filterByStatus(null)">
-            <i class="fas fa-layer-group chip-icon"></i>
-            <span class="chip-num">{{ $istatistik['toplam'] }}</span>
-            <span>Toplam</span>
+            <div class="chip-icon-wrap" style="background:#49505718;color:#495057;">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div>
+                <div class="chip-num" style="color:#495057;">{{ $istatistik['toplam'] }}</div>
+                <div class="chip-label">Toplam</div>
+            </div>
         </div>
+        {{-- Durum kartları --}}
         @foreach(['beklemede','islemde','fiyatlandirildi','depozitoda','biletlendi','iptal'] as $sk)
         @php
             $meta = $statusMetaMap[$sk] ?? \App\Models\Request::statusMeta($sk);
@@ -218,12 +231,16 @@
         @endphp
         <div class="stat-chip {{ $sayi == 0 ? 'stat-chip-zero' : '' }}"
              id="chip-{{ $sk }}"
-             style="border-color:{{ $renk }};color:{{ $renk }};"
+             style="--chip-color:{{ $renk }};"
              onclick="filterByStatus('{{ $sk }}')"
              title="{{ $meta['label'] }} taleplerini filtrele">
-            <i class="fas {{ $chipIkonlar[$sk] ?? 'fa-circle' }} chip-icon"></i>
-            <span class="chip-num">{{ $sayi }}</span>
-            <span>{{ $meta['label'] }}</span>
+            <div class="chip-icon-wrap" style="background:{{ $renk }}22;color:{{ $renk }};">
+                <i class="fas {{ $chipIkonlar[$sk] ?? 'fa-circle' }}"></i>
+            </div>
+            <div>
+                <div class="chip-num" style="color:{{ $renk }};">{{ $sayi }}</div>
+                <div class="chip-label">{{ $meta['label'] }}</div>
+            </div>
         </div>
         @endforeach
     </div>
