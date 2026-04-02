@@ -221,14 +221,23 @@ class BakanlikCsvImport extends Command
         $bom = fread($handle, 3);
         if ($bom !== "\xEF\xBB\xBF") { rewind($handle); }
 
-        $headers = fgetcsv($handle, 0, \',\');
+        // Delimiter otomatik tespit: ilk satırı oku, ; mi , mi?
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $bom2 = fread($handle, 3);
+        if ($bom2 !== "\xEF\xBB\xBF") { rewind($handle); }
+        $delim = (substr_count($firstLine, \';\') > substr_count($firstLine, \',\')) ? \';\' : \',\';
+
+        $headers = fgetcsv($handle, 0, $delim);
         if (!$headers) {
             $this->error(\'CSV baslik satiri okunamadi.\');
             fclose($handle);
             return self::FAILURE;
         }
 
-        $headers = array_map(fn($h) => trim($h), $headers);
+        // BOM kalintisi ilk headeri temizle
+        $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
+        $this->line(\'Delimiter: \' . ($delim === \';\' ? \'noktalivigul\' : \'virgul\'));
         $this->line(\'Kolonlar: \' . implode(\', \', $headers));
 
         $toplam = $yeni = $guncellenen = $hatali = 0;
@@ -240,7 +249,7 @@ class BakanlikCsvImport extends Command
             $bar->start();
         }
 
-        while (($row = fgetcsv($handle, 0, \',\')) !== false) {
+        while (($row = fgetcsv($handle, 0, $delim)) !== false) {
             if (count($row) < 2) continue;
             $normalized = array_slice(array_pad($row, count($headers), \'\'), 0, count($headers));
             $data = array_combine($headers, $normalized);

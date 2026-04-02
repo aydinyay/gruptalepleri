@@ -41,21 +41,25 @@ class BakanlikCsvImport extends Command
             return self::FAILURE;
         }
 
-        // BOM temizle
+        // Delimiter otomatik tespit
+        $firstLine = fgets($handle);
+        rewind($handle);
         $bom = fread($handle, 3);
         if ($bom !== "\xEF\xBB\xBF") {
             rewind($handle);
         }
+        $delim = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
 
-        $headers = fgetcsv($handle, 0, ',');
+        $headers = fgetcsv($handle, 0, $delim);
         if (!$headers) {
             $this->error('CSV başlık satırı okunamadı.');
             fclose($handle);
             return self::FAILURE;
         }
 
-        // Header normalize et (trim + lowercase)
-        $headers = array_map(fn($h) => trim($h), $headers);
+        // BOM kalıntısı ve whitespace temizle
+        $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
+        $this->line('Delimiter: ' . ($delim === ';' ? 'noktalıvirgül' : 'virgül'));
 
         $this->line('Kolonlar: ' . implode(', ', $headers));
 
@@ -71,7 +75,7 @@ class BakanlikCsvImport extends Command
             $bar->start();
         }
 
-        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+        while (($row = fgetcsv($handle, 0, $delim)) !== false) {
             if (count($row) < 2) continue;
 
             $normalized = array_slice(array_pad($row, count($headers), ''), 0, count($headers));
