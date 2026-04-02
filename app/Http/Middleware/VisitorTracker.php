@@ -12,6 +12,19 @@ class VisitorTracker
     {
         $response = $next($request);
 
+        // Admin / superadmin rotaları ve polling endpoint'leri sayılmaz
+        $excluded = [
+            'admin/*',
+            'superadmin/*',
+            'tracker_update.php',
+            'up',
+        ];
+        foreach ($excluded as $pattern) {
+            if ($request->is($pattern)) {
+                return $response;
+            }
+        }
+
         // Sadece GET isteklerini takip et
         if ($request->isMethod('GET')) {
             try {
