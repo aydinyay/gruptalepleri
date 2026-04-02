@@ -625,6 +625,148 @@ class TursabController extends Controller
         return back()->with('success', $data['belge_no'] . ' — ' . $data['acente_unvani'] . ' eklendi / güncellendi.');
     }
 
+    // ── CSV Import (Web) ─────────────────────────────────────────────────────
+
+    public function csvImportForm()
+    {
+        $this->assertSuperadmin();
+        $toplam = Acenteler::count();
+        return view('superadmin.kampanya-csv-import', compact('toplam'));
+    }
+
+    public function csvImportYukle(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $request->validate([
+            'csv_dosya' => 'required|file|mimes:csv,txt|max:51200',
+        ]);
+
+        $file = $request->file('csv_dosya');
+        $path = storage_path('app/import/acenteler.csv');
+
+        // Klasör yoksa oluştur
+        if (!is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        $file->move(dirname($path), 'acenteler.csv');
+
+        $noTruncate = $request->boolean('no_truncate', false);
+
+        \Artisan::call('bakanlik:csv-import', $noTruncate ? ['--no-truncate' => true] : []);
+        $out = trim(\Artisan::output());
+
+        return back()->with('success', "Import tamamlandı.\n\n" . $out);
+    }
+
+    // ── Email Kampanya ────────────────────────────────────────────────────────
+
+    public function emailKampanya(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $il       = trim($request->input('il', ''));
+        $ilce     = trim($request->input('ilce', ''));
+        $grup     = trim($request->input('grup', ''));
+        $q        = trim($request->input('q', ''));
+        $sadeceDavetEdilmemis = $request->boolean('sadece_yeni', true);
+        $perPage  = in_array((int) $request->input('per_page', 50), [25, 50, 100, 200])
+                    ? (int) $request->input('per_page', 50) : 50;
+
+        $tableExists     = \Illuminate\Support\Facades\Schema::hasTable('tursab_davetler');
+        $bugunGonderilen = $tableExists ? TursabDavet::whereDate('created_at', today())->count() : 0;
+        $kalanHak        = max(0, self::GUNLUK_LIMIT - $bugunGonderilen);
+
+        $davetEdilenler = $tableExists
+            ? TursabDavet::pluck('eposta')->map(fn($e) => strtolower($e))->toArray()
+            : [];
+
+        $iller = Acenteler::whereNotNull('il')->where('il', '!=', '')
+                          ->distinct()->orderBy('il')->pluck('il');
+
+        $query = Acenteler::whereNotNull('eposta')->where('eposta', '!=', '');
+
+        if ($q)    $query->where(fn($w) => $w->where('acente_unvani','like',"%{$q}%")->orWhere('belge_no','like',"%{$q}%"));
+        if ($il)   $query->where('il', $il);
+        if ($ilce) $query->where('il_ilce', $ilce);
+        if ($grup) $query->where('grup', $grup);
+
+        if ($sadeceDavetEdilmemis && count($davetEdilenler)) {
+            $placeholders = implode(',', array_fill(0, count($davetEdilenler), '?'));
+            $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $davetEdilenler);
+        }
+
+        $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta','telefon')
+                           ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')
+                           ->paginate($perPage)->withQueryString();
+
+        $gecmis = $tableExists
+            ? TursabDavet::with('gonderen')->orderByDesc('created_at')->limit(100)->get()
+            : collect();
+
+        return view('superadmin.kampanya-email', compact(
+            'acenteler','iller','bugunGonderilen','kalanHak',
+            'gecmis','il','ilce','grup','q','sadeceDavetEdilmemis','perPage'
+        ));
+    }
+
+    // ── SMS Kampanya ──────────────────────────────────────────────────────────
+
+    public function smsKampanya(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $il      = trim($request->input('il', ''));
+        $ilce    = trim($request->input('ilce', ''));
+        $grup    = trim($request->input('grup', ''));
+        $q       = trim($request->input('q', ''));
+        $sadeceCep = $request->boolean('sadece_cep', true);
+        $perPage = in_array((int) $request->input('per_page', 50), [25, 50, 100, 200])
+                   ? (int) $request->input('per_page', 50) : 50;
+
+        $iller = Acenteler::whereNotNull('il')->where('il', '!=', '')
+                          ->distinct()->orderBy('il')->pluck('il');
+
+        $query = Acenteler::query();
+
+        if ($q)    $query->where(fn($w) => $w->where('acente_unvani','like',"%{$q}%")->orWhere('belge_no','like',"%{$q}%"));
+        if ($il)   $query->where('il', $il);
+        if ($ilce) $query->where('il_ilce', $ilce);
+        if ($grup) $query->where('grup', $grup);
+
+        if ($sadeceCep) {
+            $query->whereNotNull('telefon')->where('telefon', '!=', '')
+                  ->whereRaw("telefon REGEXP '^[[:space:]]*(\\\\+?90)?0?5[0-9]'");
+        }
+
+        $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta','telefon')
+                           ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')
+                           ->paginate($perPage)->withQueryString();
+
+        return view('superadmin.kampanya-sms', compact(
+            'acenteler','iller','il','ilce','grup','q','sadeceCep','perPage'
+        ));
+    }
+
+    // ── AJAX: İlçe Listesi ───────────────────────────────────────────────────
+
+    public function ilceler(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $il = trim($request->input('il', ''));
+        if (!$il) {
+            return response()->json([]);
+        }
+
+        $ilceler = Acenteler::where('il', $il)
+                            ->whereNotNull('il_ilce')->where('il_ilce', '!=', '')
+                            ->distinct()->orderBy('il_ilce')->pluck('il_ilce');
+
+        return response()->json($ilceler);
+    }
+
     private function assertSuperadmin(): void
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);

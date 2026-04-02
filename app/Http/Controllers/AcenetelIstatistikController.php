@@ -232,14 +232,13 @@ class AcenetelIstatistikController extends Controller
             ->whereRaw("telefon REGEXP '^[[:space:]]*(\\\\+?90)?0?5[0-9]'")
             ->count();
 
-        // ── GRUP DAĞILIMI (TÜRSAB) ───────────────────────────────────────────
+        // ── GRUP DAĞILIMI (Bakanlık) ─────────────────────────────────────────
         $grupDagilim = DB::table('acenteler')
             ->selectRaw("
                 COALESCE(NULLIF(grup,''), 'Belirtilmemiş') as grup,
                 COUNT(*) as toplam,
                 SUM(eposta IS NOT NULL AND eposta != '') as eposta_var
             ")
-            ->where('kaynak', 'tursab')
             ->groupBy('grup')
             ->orderByDesc('toplam')
             ->get();

@@ -202,6 +202,12 @@ try {
                 $output .= "Git update basarisiz oldugu icin clear adimlari atlandi.\n";
             }
         }
+    } elseif ($action === 'csv-import') {
+        set_time_limit(600);
+        $noTruncate = isset($_GET['no_truncate']);
+        $args = [];
+        if ($noTruncate) $args['--no-truncate'] = true;
+        $run($kernel, 'bakanlik:csv-import', $args);
     } elseif ($action === 'ai-refresh') {
         set_time_limit(300);
         $days = (int) ($_GET['days'] ?? 30);
@@ -269,6 +275,8 @@ try {
 <a href="?key=<?= urlencode($providedKey) ?>&action=import-airlines" class="btn green" onclick="return confirm('Havayollari ice aktarilsin mi?')">Import Airlines</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=sync-legacy-offers" class="btn green" onclick="return confirm('Eski sistem opsiyon sync calissin mi?')">Legacy Offer Sync</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=repair-legacy-notes" class="btn blue" onclick="return confirm('Eski sistem notlari duzeltilsin mi?')">Repair Legacy Notes</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=csv-import&no_truncate=1" class="btn green" onclick="return confirm('Mevcut kayitlar korunarak CSV updateOrCreate yapilacak. Devam?')">CSV Import (UpdateOrCreate)</a>
 
 <?php if ($output !== ''): ?>
 <h3>Cikti:</h3>

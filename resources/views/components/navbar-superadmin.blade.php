@@ -26,10 +26,22 @@
                     'keys' => ['acenteler'],
                 ],
                 [
-                    'label' => 'TURSAB Kampanyasi',
+                    'label' => 'Kampanya Hub',
                     'href' => route('superadmin.tursab.kampanya'),
-                    'icon' => 'fas fa-envelope-open-text',
+                    'icon' => 'fas fa-bullhorn',
                     'keys' => ['tursab-kampanya'],
+                ],
+                [
+                    'label' => 'Email Kampanya',
+                    'href' => route('kampanya.email'),
+                    'icon' => 'fas fa-envelope-open-text',
+                    'keys' => ['kampanya-email'],
+                ],
+                [
+                    'label' => 'SMS Kampanya',
+                    'href' => route('kampanya.sms'),
+                    'icon' => 'fas fa-sms',
+                    'keys' => ['kampanya-sms'],
                 ],
                 [
                     'label' => 'TURAi',

@@ -262,7 +262,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     </div>
     <div class="col-md-6">
         <div class="section-card h-100">
-            <div class="card-hdr"><i class="fas fa-layer-group me-2 text-warning"></i>TÜRSAB Grup Dağılımı + Açıklama</div>
+            <div class="card-hdr"><i class="fas fa-layer-group me-2 text-warning"></i>Bakanlık Grup Dağılımı + Açıklama</div>
             <div class="card-bdy">
                 <div style="height:200px;"><canvas id="chartGrup"></canvas></div>
                 <table class="table table-sm mt-3 mb-0">
@@ -426,9 +426,8 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
         $epostaPct   = $toplam ? round($epostaVar/$toplam*100,1) : 0;
         $telefonPct  = $toplam ? round($telefonVar/$toplam*100,1) : 0;
     @endphp
-    <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#0d6efd;"><div class="kpi-val" style="color:#0d6efd;">{{ number_format($tursabRow?->toplam??0) }}</div><div class="kpi-label">TÜRSAB</div></div></div>
     <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#198754;"><div class="kpi-val" style="color:#198754;">{{ number_format($bakanlikRow?->toplam??0) }}</div><div class="kpi-label">Bakanlık</div></div></div>
-    <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#6f42c1;"><div class="kpi-val" style="color:#6f42c1;">{{ number_format($manuelRow?->toplam??0) }}</div><div class="kpi-label">Manuel</div></div></div>
+    <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#6c757d;"><div class="kpi-val" style="color:#6c757d;">{{ number_format($manuelRow?->toplam??0) }}</div><div class="kpi-label">Manuel Ek</div></div></div>
     <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#fd7e14;"><div class="kpi-val" style="color:#fd7e14;">{{ number_format($epostaVar) }}</div><div class="kpi-label">E-posta Var</div><div class="kpi-sub">{{ $epostaPct }}%</div></div></div>
     <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#20c997;"><div class="kpi-val" style="color:#20c997;">{{ number_format($telefonVar) }}</div><div class="kpi-label">Telefon Var</div><div class="kpi-sub">{{ $telefonPct }}%</div></div></div>
     <div class="col-6 col-md-2"><div class="kpi-card" style="border-color:#e94560;"><div class="kpi-val" style="color:#e94560;">{{ number_format($davetBasarili) }}</div><div class="kpi-label">Davet Gönderildi</div></div></div>
