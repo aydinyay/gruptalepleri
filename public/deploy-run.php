@@ -175,6 +175,43 @@ try {
         $run($kernel, 'config:clear');
         $run($kernel, 'view:clear');
         $run($kernel, 'route:clear');
+    } elseif ($action === 'patch-routes') {
+        // Eksik kampanya route'larını web.php'ye enjekte et
+        $routesFile = $basePath . '/routes/web.php';
+        $content = file_get_contents($routesFile);
+        if ($content === false) {
+            $output .= "HATA: routes/web.php okunamadı.\n";
+        } elseif (str_contains($content, "kampanya/csv-import")) {
+            $output .= "Zaten mevcut: kampanya/csv-import route'u var.\n";
+        } else {
+            // tursab-ilceler satırını bul ve önüne ekle
+            $anchor = "Route::get( '/tursab-ilceler'";
+            $newRoutes = "    Route::get( '/kampanya/email',      [\\App\\Http\\Controllers\\TursabController::class, 'emailKampanya'])->name('kampanya.email');\n"
+                       . "    Route::get( '/kampanya/sms',        [\\App\\Http\\Controllers\\TursabController::class, 'smsKampanya'])->name('kampanya.sms');\n"
+                       . "    Route::get( '/kampanya/csv-import', [\\App\\Http\\Controllers\\TursabController::class, 'csvImportForm'])->name('kampanya.csv-import');\n"
+                       . "    Route::post('/kampanya/csv-import', [\\App\\Http\\Controllers\\TursabController::class, 'csvImportYukle'])->name('kampanya.csv-import.yukle');\n"
+                       . "    Route::get( '/kampanya/zamanlama',  [\\App\\Http\\Controllers\\TursabController::class, 'zamanlamaForm'])->name('kampanya.zamanlama');\n"
+                       . "    Route::post('/kampanya/zamanlama',  [\\App\\Http\\Controllers\\TursabController::class, 'zamanlamaKaydet'])->name('kampanya.zamanlama.kaydet');\n"
+                       . "    Route::post('/kampanya/zamanlama/test', [\\App\\Http\\Controllers\\TursabController::class, 'zamanlamaTestGonder'])->name('kampanya.zamanlama.test');\n";
+            if (str_contains($content, $anchor)) {
+                $content = str_replace($anchor, $newRoutes . "    " . ltrim($anchor), $content);
+                file_put_contents($routesFile, $content);
+                $output .= "OK: 7 kampanya route'u eklendi.\n";
+            } else {
+                // Anchor bulunamadı, tursab.toplu-sms satırından sonra ekle
+                $anchor2 = "Route::post('/tursab-toplu-sms'";
+                if (str_contains($content, $anchor2)) {
+                    $pos = strpos($content, "\n", strpos($content, $anchor2));
+                    $content = substr($content, 0, $pos + 1) . $newRoutes . substr($content, $pos + 1);
+                    file_put_contents($routesFile, $content);
+                    $output .= "OK: 7 kampanya route'u (fallback anchor) eklendi.\n";
+                } else {
+                    $output .= "HATA: Ekleme noktası bulunamadı. Anchor yok.\n";
+                }
+            }
+        }
+        $run($kernel, 'route:clear');
+        $run($kernel, 'config:clear');
     } elseif ($action === 'migrate') {
         $run($kernel, 'migrate', ['--force' => true]);
     } elseif ($action === 'cache-clear') {
@@ -322,6 +359,7 @@ try {
 <a href="?key=<?= urlencode($providedKey) ?>&action=import-airlines" class="btn green" onclick="return confirm('Havayollari ice aktarilsin mi?')">Import Airlines</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=sync-legacy-offers" class="btn green" onclick="return confirm('Eski sistem opsiyon sync calissin mi?')">Legacy Offer Sync</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=repair-legacy-notes" class="btn blue" onclick="return confirm('Eski sistem notlari duzeltilsin mi?')">Repair Legacy Notes</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=patch-routes" class="btn red" onclick="return confirm('Eksik kampanya routelari web.php e eklenecek. Devam?')">🔧 Patch Routes (Inline)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Cek)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import&no_truncate=1" class="btn green" onclick="return confirm('Mevcut kayitlar korunarak CSV updateOrCreate yapilacak. Devam?')">CSV Import (UpdateOrCreate)</a>
