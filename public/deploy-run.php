@@ -175,6 +175,199 @@ try {
         $run($kernel, 'config:clear');
         $run($kernel, 'view:clear');
         $run($kernel, 'route:clear');
+    } elseif ($action === 'patch-controller') {
+        $ctrlFile = $basePath . '/app/Http/Controllers/TursabController.php';
+        $content  = file_get_contents($ctrlFile);
+        if ($content === false) {
+            $output .= "HATA: TursabController.php okunamadi.\n";
+        } elseif (str_contains($content, 'function csvImportForm')) {
+            $output .= "Zaten mevcut: csvImportForm metodu var.\n";
+        } else {
+            $newMethods = <<<'PHPCODE'
+
+    // ── CSV Import (Web) ─────────────────────────────────────────────────────
+
+    public function csvImportForm()
+    {
+        $this->assertSuperadmin();
+        $toplam = \App\Models\Acenteler::count();
+        return view('superadmin.kampanya-csv-import', compact('toplam'));
+    }
+
+    public function csvImportYukle(\Illuminate\Http\Request $request)
+    {
+        $this->assertSuperadmin();
+        $request->validate(['csv_dosya' => 'required|file|max:102400']);
+        set_time_limit(600);
+        ini_set('memory_limit', '512M');
+        $file = $request->file('csv_dosya');
+        $path = storage_path('app/import/acenteler.csv');
+        if (!is_dir(dirname($path))) { mkdir(dirname($path), 0755, true); }
+        $file->move(dirname($path), 'acenteler.csv');
+        $noTruncate = $request->boolean('no_truncate', false);
+        $exitCode = \Artisan::call('bakanlik:csv-import', $noTruncate ? ['--no-truncate' => true] : []);
+        $out = trim(\Artisan::output());
+        if ($exitCode !== 0) { return back()->with('error', "Import basarisiz (kod: {$exitCode}).\n\n" . $out); }
+        return back()->with('success', "Import tamamlandi.\n\n" . $out);
+    }
+
+    // ── Email Kampanya ────────────────────────────────────────────────────────
+
+    public function emailKampanya(\Illuminate\Http\Request $request)
+    {
+        $this->assertSuperadmin();
+        $il   = trim($request->input('il', ''));
+        $ilce = trim($request->input('ilce', ''));
+        $grup = trim($request->input('grup', ''));
+        $q    = trim($request->input('q', ''));
+        $sadeceDavetEdilmemis = $request->boolean('sadece_yeni', true);
+        $perPage = in_array((int)$request->input('per_page', 50), [25,50,100,200]) ? (int)$request->input('per_page',50) : 50;
+        $tableExists = \Illuminate\Support\Facades\Schema::hasTable('tursab_davetler');
+        $bugunGonderilen = $tableExists ? \App\Models\TursabDavet::whereDate('created_at', today())->count() : 0;
+        $kalanHak = max(0, 50 - $bugunGonderilen);
+        $davetEdilenler = $tableExists ? \App\Models\TursabDavet::pluck('eposta')->map(fn($e) => strtolower($e))->toArray() : [];
+        $iller = \App\Models\Acenteler::whereNotNull('il')->where('il','!=','')->distinct()->orderBy('il')->pluck('il');
+        $query = \App\Models\Acenteler::whereNotNull('eposta')->where('eposta','!=','');
+        if ($q)    $query->where(fn($w) => $w->where('acente_unvani','like',"%{$q}%")->orWhere('belge_no','like',"%{$q}%"));
+        if ($il)   $query->where('il', $il);
+        if ($ilce) $query->where('il_ilce', $ilce);
+        if ($grup) $query->where('grup', $grup);
+        if ($sadeceDavetEdilmemis && count($davetEdilenler)) {
+            $placeholders = implode(',', array_fill(0, count($davetEdilenler), '?'));
+            $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $davetEdilenler);
+        }
+        $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta','telefon')
+                           ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')->paginate($perPage)->withQueryString();
+        $gecmis = $tableExists ? \App\Models\TursabDavet::orderByDesc('created_at')->limit(100)->get() : collect();
+        return view('superadmin.kampanya-email', compact('acenteler','iller','bugunGonderilen','kalanHak','gecmis','il','ilce','grup','q','sadeceDavetEdilmemis','perPage'));
+    }
+
+    // ── SMS Kampanya ──────────────────────────────────────────────────────────
+
+    public function smsKampanya(\Illuminate\Http\Request $request)
+    {
+        $this->assertSuperadmin();
+        $il   = trim($request->input('il', ''));
+        $ilce = trim($request->input('ilce', ''));
+        $grup = trim($request->input('grup', ''));
+        $q    = trim($request->input('q', ''));
+        $sadeceCep = $request->boolean('sadece_cep', true);
+        $perPage = in_array((int)$request->input('per_page', 50), [25,50,100,200]) ? (int)$request->input('per_page',50) : 50;
+        $iller = \App\Models\Acenteler::whereNotNull('il')->where('il','!=','')->distinct()->orderBy('il')->pluck('il');
+        $query = \App\Models\Acenteler::query();
+        if ($q)    $query->where(fn($w) => $w->where('acente_unvani','like',"%{$q}%")->orWhere('belge_no','like',"%{$q}%"));
+        if ($il)   $query->where('il', $il);
+        if ($ilce) $query->where('il_ilce', $ilce);
+        if ($grup) $query->where('grup', $grup);
+        if ($sadeceCep) {
+            $query->whereNotNull('telefon')->where('telefon','!=','')->whereRaw("telefon REGEXP '^[[:space:]]*(\\\\+?90)?0?5[0-9]'");
+        }
+        $acenteler = $query->select('id','belge_no','acente_unvani','ticari_unvan','grup','il','il_ilce','eposta','telefon')
+                           ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')->paginate($perPage)->withQueryString();
+        return view('superadmin.kampanya-sms', compact('acenteler','iller','il','ilce','grup','q','sadeceCep','perPage'));
+    }
+
+    // ── Otomatik Zamanlama ────────────────────────────────────────────────────
+
+    public function zamanlamaForm()
+    {
+        $this->assertSuperadmin();
+        $emailAyar = $this->zamanlamaAyar('email');
+        $smsAyar   = $this->zamanlamaAyar('sms');
+        $emailLog  = $this->zamanlamaLog('email');
+        $smsLog    = $this->zamanlamaLog('sms');
+        $iller = \App\Models\Acenteler::whereNotNull('il')->where('il','!=','')->distinct()->orderBy('il')->pluck('il');
+        return view('superadmin.kampanya-zamanlama', compact('emailAyar','smsAyar','emailLog','smsLog','iller'));
+    }
+
+    public function zamanlamaKaydet(\Illuminate\Http\Request $request)
+    {
+        $this->assertSuperadmin();
+        $tip = $request->input('tip');
+        abort_unless(in_array($tip, ['email','sms']), 422);
+        $slotSaatleri = $request->input('slot_saat', []);
+        $slotAdetler  = $request->input('slot_adet', []);
+        $slotAktifler = $request->input('slot_aktif', []);
+        $slotlar = [];
+        foreach ($slotSaatleri as $i => $saat) {
+            if (!preg_match('/^\d{2}:\d{2}$/', $saat)) continue;
+            $slotlar[] = ['saat' => $saat, 'adet' => max(1, min(500, (int)($slotAdetler[$i] ?? 50))), 'aktif' => in_array((string)$i, array_keys($slotAktifler))];
+        }
+        $ayar = ['aktif' => $request->boolean('aktif'), 'slotlar' => $slotlar, 'filtre' => ['il' => trim($request->input('filtre_il','')), 'ilce' => trim($request->input('filtre_ilce','')), 'grup' => trim($request->input('filtre_grup',''))]];
+        if ($tip === 'email') { $ayar['filtre']['sablon'] = in_array($request->input('filtre_sablon'), ['emails.tursab_davet','emails.tursab_davet_yeni_acente']) ? $request->input('filtre_sablon') : 'emails.tursab_davet'; }
+        if ($tip === 'sms') { $mesaj = trim($request->input('sms_mesaj','')); if (mb_strlen($mesaj) > 160) { return back()->with('error','SMS metni 160 karakteri gecemez.'); } $ayar['mesaj'] = $mesaj; }
+        $key = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';
+        \App\Models\SistemAyar::set($key, json_encode($ayar, JSON_UNESCAPED_UNICODE));
+        return back()->with('success', ($tip === 'email' ? 'Email' : 'SMS') . ' kampanya zamanlama kaydedildi.');
+    }
+
+    public function zamanlamaTestGonder(\Illuminate\Http\Request $request)
+    {
+        $this->assertSuperadmin();
+        $tip = $request->input('tip', 'email');
+        abort_unless(in_array($tip, ['email','sms']), 422);
+        $command = $tip === 'email' ? 'kampanya:email-otomatik' : 'kampanya:sms-otomatik';
+        $args = ['--force' => true];
+        if ($request->boolean('dry_run', true)) $args['--dry-run'] = true;
+        \Artisan::call($command, $args);
+        $out = trim(\Artisan::output());
+        return response()->json(['success' => true, 'output' => $out ?: 'Komut tamamlandi.']);
+    }
+
+    private function zamanlamaAyar(string $tip): array
+    {
+        $key  = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';
+        $json = \App\Models\SistemAyar::get($key, '');
+        if (!$json) { return ['aktif' => false, 'slotlar' => [['saat' => '09:00', 'adet' => 50, 'aktif' => false]], 'filtre' => ['il' => '', 'ilce' => '', 'grup' => '', 'sablon' => 'emails.tursab_davet'], 'mesaj' => '']; }
+        $a = json_decode($json, true) ?? [];
+        if (!isset($a['slotlar']) || empty($a['slotlar'])) { $a['slotlar'] = [['saat' => '09:00', 'adet' => 50, 'aktif' => false]]; }
+        return $a;
+    }
+
+    private function zamanlamaLog(string $tip): array
+    {
+        $key  = $tip === 'email' ? 'kampanya_email_calisma_log' : 'kampanya_sms_calisma_log';
+        $json = \App\Models\SistemAyar::get($key, '{}');
+        return json_decode($json, true) ?? [];
+    }
+
+    // ── AJAX: İlçe Listesi ───────────────────────────────────────────────────
+
+    public function ilceler(\Illuminate\Http\Request $request)
+    {
+        $this->assertSuperadmin();
+        $il = trim($request->input('il', ''));
+        if (!$il) { return response()->json([]); }
+        $ilceler = \App\Models\Acenteler::where('il', $il)->whereNotNull('il_ilce')->where('il_ilce','!=','')->distinct()->orderBy('il_ilce')->pluck('il_ilce');
+        return response()->json($ilceler);
+    }
+
+PHPCODE;
+            // Son kapanış } öncesine inject et
+            $lastBrace = strrpos($content, '}');
+            $content   = substr($content, 0, $lastBrace) . $newMethods . "\n}\n";
+            file_put_contents($ctrlFile, $content);
+            $output .= "OK: TursabController'a yeni metodlar eklendi.\n";
+        }
+        $run($kernel, 'route:clear');
+        $run($kernel, 'config:clear');
+        $run($kernel, 'view:clear');
+    } elseif ($action === 'diagnose') {
+        // Route ve controller teşhis
+        $routesFile = $basePath . '/routes/web.php';
+        $content = file_get_contents($routesFile);
+        // kampanya/csv-import etrafındaki satırları göster
+        $lines = explode("\n", $content);
+        foreach ($lines as $i => $line) {
+            if (str_contains($line, 'kampanya')) {
+                $output .= ($i+1) . ": " . $line . "\n";
+            }
+        }
+        $output .= "\n--- TursabController metodları ---\n";
+        $ctrl = $basePath . '/app/Http/Controllers/TursabController.php';
+        $ctrlContent = file_get_contents($ctrl);
+        preg_match_all('/public function (\w+)\(/', $ctrlContent, $matches);
+        $output .= implode(', ', $matches[1]) . "\n";
     } elseif ($action === 'patch-routes') {
         // Eksik kampanya route'larını web.php'ye enjekte et
         $routesFile = $basePath . '/routes/web.php';
@@ -359,6 +552,8 @@ try {
 <a href="?key=<?= urlencode($providedKey) ?>&action=import-airlines" class="btn green" onclick="return confirm('Havayollari ice aktarilsin mi?')">Import Airlines</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=sync-legacy-offers" class="btn green" onclick="return confirm('Eski sistem opsiyon sync calissin mi?')">Legacy Offer Sync</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=repair-legacy-notes" class="btn blue" onclick="return confirm('Eski sistem notlari duzeltilsin mi?')">Repair Legacy Notes</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=patch-controller" class="btn red" onclick="return confirm('TursabController a yeni metodlar eklenecek. Devam?')">🔧 Patch Controller</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=diagnose" class="btn blue">🔍 Diagnose</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-routes" class="btn red" onclick="return confirm('Eksik kampanya routelari web.php e eklenecek. Devam?')">🔧 Patch Routes (Inline)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Cek)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
