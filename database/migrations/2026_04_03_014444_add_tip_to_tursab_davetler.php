@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tursab_davetler', function (Blueprint $table) {
-            // 'email' veya 'sms' — eski kayıtlar email varsayılır
-            $table->string('tip', 10)->default('email')->after('il');
+            if (!Schema::hasColumn('tursab_davetler', 'tip')) {
+                $table->string('tip', 10)->default('email')->after('il');
+            }
         });
     }
 
