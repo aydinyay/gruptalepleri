@@ -316,7 +316,14 @@ class BakanlikCsvImport extends Command
 }
 ';
         file_put_contents($dest, $code);
-        $output .= "OK: BakanlikCsvImport.php yazildi (null guard fix dahil).\n";
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($dest, true);
+            $output .= "Opcache temizlendi.\n";
+        }
+        $output .= "OK: BakanlikCsvImport.php yazildi (null guard + array_slice fix).\n";
+        // Verify the fix is in the written file
+        $verify = file_get_contents($dest);
+        $output .= str_contains($verify, 'array_slice') ? "Verify OK: array_slice mevcut.\n" : "UYARI: array_slice bulunamadi!\n";
         $run($kernel, 'config:clear');
     } elseif ($action === 'patch-controller') {
         $ctrlFile = $basePath . '/app/Http/Controllers/TursabController.php';
