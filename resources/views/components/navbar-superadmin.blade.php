@@ -33,19 +33,19 @@
                 ],
                 [
                     'label' => 'Email Kampanya',
-                    'href' => route('kampanya.email'),
+                    'href' => route('superadmin.kampanya.email'),
                     'icon' => 'fas fa-envelope-open-text',
                     'keys' => ['kampanya-email'],
                 ],
                 [
                     'label' => 'SMS Kampanya',
-                    'href' => route('kampanya.sms'),
+                    'href' => route('superadmin.kampanya.sms'),
                     'icon' => 'fas fa-sms',
                     'keys' => ['kampanya-sms'],
                 ],
                 [
                     'label' => 'Oto. Zamanlama',
-                    'href' => route('kampanya.zamanlama'),
+                    'href' => route('superadmin.kampanya.zamanlama'),
                     'icon' => 'fas fa-clock',
                     'keys' => ['kampanya-zamanlama'],
                 ],

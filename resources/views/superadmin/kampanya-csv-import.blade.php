@@ -26,7 +26,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted small">Acenteler tablosu <strong>tamamen silinir</strong> ve CSV'den yeniden yüklenir. Mevcut tüm veriler (TÜRSAB dahil) kaybolur.</p>
-                    <form method="POST" action="{{ route('kampanya.csv-import.yukle') }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('superadmin.kampanya.csv-import.yukle') }}" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="no_truncate" value="0">
                         <div class="mb-3">
@@ -51,7 +51,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted small">Tablo <strong>silinmez</strong>. CSV'deki belge_no'ya göre mevcut kayıtlar güncellenir, yeni olanlar eklenir.</p>
-                    <form method="POST" action="{{ route('kampanya.csv-import.yukle') }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('superadmin.kampanya.csv-import.yukle') }}" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="no_truncate" value="1">
                         <div class="mb-3">

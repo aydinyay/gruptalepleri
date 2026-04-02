@@ -69,7 +69,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     <span class="status-dot {{ $emailAyar['aktif'] ? 'active' : 'inactive' }}"></span>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('kampanya.zamanlama.kaydet') }}" id="emailForm">
+                    <form method="POST" action="{{ route('superadmin.kampanya.zamanlama.kaydet') }}" id="emailForm">
                         @csrf
                         <input type="hidden" name="tip" value="email">
 
@@ -167,7 +167,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     <span class="status-dot {{ $smsAyar['aktif'] ? 'active' : 'inactive' }}"></span>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('kampanya.zamanlama.kaydet') }}" id="smsForm">
+                    <form method="POST" action="{{ route('superadmin.kampanya.zamanlama.kaydet') }}" id="smsForm">
                         @csrf
                         <input type="hidden" name="tip" value="sms">
 
@@ -354,7 +354,7 @@ function testGonder(tip, dryRun) {
     document.getElementById('testCikti').textContent = 'Çalışıyor...';
     modal.show();
 
-    fetch('{{ route('kampanya.zamanlama.test') }}', {
+    fetch('{{ route('superadmin.kampanya.zamanlama.test') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({ tip, dry_run: dryRun })

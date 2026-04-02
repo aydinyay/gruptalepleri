@@ -52,7 +52,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     {{-- FİLTRELER --}}
     <div class="card shadow-sm mb-3">
         <div class="card-body py-3">
-            <form method="GET" action="{{ route('kampanya.sms') }}" id="filterForm">
+            <form method="GET" action="{{ route('superadmin.kampanya.sms') }}" id="filterForm">
                 <div class="row g-2 align-items-end">
                     <div class="col-sm-3">
                         <label class="form-label small mb-1">Arama</label>
@@ -137,7 +137,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     <span class="text-muted fw-normal">({{ $acenteler->total() }} kayıt)</span>
                 </span>
                 <select class="form-select form-select-sm" style="width:80px;"
-                    onchange="window.location='{{ route('kampanya.sms') }}?{{ http_build_query(array_merge(request()->except(['per_page','page']), [])) }}&per_page='+this.value">
+                    onchange="window.location='{{ route('superadmin.kampanya.sms') }}?{{ http_build_query(array_merge(request()->except(['per_page','page']), [])) }}&per_page='+this.value">
                     @foreach([25,50,100,200] as $pp)
                         <option value="{{ $pp }}" @selected($perPage == $pp)>{{ $pp }}</option>
                     @endforeach

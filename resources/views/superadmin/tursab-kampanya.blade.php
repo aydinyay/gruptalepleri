@@ -68,7 +68,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     {{-- Hub Kartları --}}
     <div class="row g-4 mb-5">
         <div class="col-md-4">
-            <a href="{{ route('kampanya.email') }}" class="card shadow hub-card d-block p-4">
+            <a href="{{ route('superadmin.kampanya.email') }}" class="card shadow hub-card d-block p-4">
                 <div class="hub-icon" style="background:#fff0f3;">
                     <i class="fas fa-envelope-open-text" style="color:#e94560;"></i>
                 </div>
@@ -77,7 +77,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
             </a>
         </div>
         <div class="col-md-4">
-            <a href="{{ route('kampanya.sms') }}" class="card shadow hub-card d-block p-4">
+            <a href="{{ route('superadmin.kampanya.sms') }}" class="card shadow hub-card d-block p-4">
                 <div class="hub-icon" style="background:#e0f7ff;">
                     <i class="fas fa-sms" style="color:#0dcaf0;"></i>
                 </div>
@@ -86,7 +86,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
             </a>
         </div>
         <div class="col-md-4">
-            <a href="{{ route('kampanya.csv-import') }}" class="card shadow hub-card d-block p-4">
+            <a href="{{ route('superadmin.kampanya.csv-import') }}" class="card shadow hub-card d-block p-4">
                 <div class="hub-icon" style="background:#f0fff4;">
                     <i class="fas fa-file-csv" style="color:#198754;"></i>
                 </div>
@@ -95,7 +95,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
             </a>
         </div>
         <div class="col-md-4">
-            <a href="{{ route('kampanya.zamanlama') }}" class="card shadow hub-card d-block p-4">
+            <a href="{{ route('superadmin.kampanya.zamanlama') }}" class="card shadow hub-card d-block p-4">
                 <div class="hub-icon" style="background:#fffbeb;">
                     <i class="fas fa-clock" style="color:#f59e0b;"></i>
                 </div>
