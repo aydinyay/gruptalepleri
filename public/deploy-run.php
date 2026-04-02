@@ -98,12 +98,20 @@ $runShell = static function (string $command, string $cwd) use (&$output): int {
 };
 
 $detectGitRoot = static function (string $candidate) use ($runShell): ?string {
-    if (is_dir($candidate . '/.git')) {
-        return $candidate;
+    // Önce mevcut dizin ve üst dizinleri .git için tara (4 seviye yukarı)
+    $check = $candidate;
+    for ($i = 0; $i < 5; $i++) {
+        if (is_dir($check . '/.git')) {
+            return $check;
+        }
+        $parent = dirname($check);
+        if ($parent === $check) break; // root'a ulaştık
+        $check = $parent;
     }
 
+    // .git bulunamadıysa git komutuyla dene
     $temp = '';
-    $exitCode = 0;
+    $exitCode = 1;
     if (function_exists('proc_open')) {
         $descriptors = [
             1 => ['pipe', 'w'],
@@ -128,7 +136,46 @@ $detectGitRoot = static function (string $candidate) use ($runShell): ?string {
 };
 
 try {
-    if ($action === 'migrate') {
+    if ($action === 'patch-navbar') {
+        // Acil: navbar ve kampanya blade'lerini GitHub'dan çek ve yaz
+        $branch = $deployBranch ?: 'main';
+        $rawBase = "https://raw.githubusercontent.com/aydinyay/gruptalepleri/{$branch}";
+        $files = [
+            'resources/views/components/navbar-superadmin.blade.php',
+            'resources/views/superadmin/tursab-kampanya.blade.php',
+            'resources/views/superadmin/kampanya-email.blade.php',
+            'resources/views/superadmin/kampanya-sms.blade.php',
+            'resources/views/superadmin/kampanya-csv-import.blade.php',
+            'resources/views/superadmin/kampanya-zamanlama.blade.php',
+            'routes/web.php',
+            'routes/console.php',
+            'app/Http/Controllers/TursabController.php',
+            'app/Models/TursabDavet.php',
+            'app/Http/Controllers/AcenetelIstatistikController.php',
+            'app/Console/Commands/KampanyaEmailOtomatik.php',
+            'app/Console/Commands/KampanyaSmsOtomatik.php',
+            'app/Console/Commands/BakanlikCsvImport.php',
+            'database/migrations/2026_04_03_012751_add_faks_harita_to_acenteler.php',
+            'database/migrations/2026_04_03_014444_add_tip_to_tursab_davetler.php',
+        ];
+        foreach ($files as $rel) {
+            $url     = $rawBase . '/' . $rel;
+            $dest    = $basePath . '/' . $rel;
+            $dir     = dirname($dest);
+            $content = @file_get_contents($url);
+            if ($content === false) {
+                $output .= "ATLANAMADI (fetch hatası): {$rel}\n";
+                continue;
+            }
+            if (!is_dir($dir)) @mkdir($dir, 0755, true);
+            file_put_contents($dest, $content);
+            $output .= "OK: {$rel}\n";
+        }
+        // Cache temizle
+        $run($kernel, 'config:clear');
+        $run($kernel, 'view:clear');
+        $run($kernel, 'route:clear');
+    } elseif ($action === 'migrate') {
         $run($kernel, 'migrate', ['--force' => true]);
     } elseif ($action === 'cache-clear') {
         $run($kernel, 'config:clear');
@@ -275,6 +322,7 @@ try {
 <a href="?key=<?= urlencode($providedKey) ?>&action=import-airlines" class="btn green" onclick="return confirm('Havayollari ice aktarilsin mi?')">Import Airlines</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=sync-legacy-offers" class="btn green" onclick="return confirm('Eski sistem opsiyon sync calissin mi?')">Legacy Offer Sync</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=repair-legacy-notes" class="btn blue" onclick="return confirm('Eski sistem notlari duzeltilsin mi?')">Repair Legacy Notes</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Cek)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import&no_truncate=1" class="btn green" onclick="return confirm('Mevcut kayitlar korunarak CSV updateOrCreate yapilacak. Devam?')">CSV Import (UpdateOrCreate)</a>
 
