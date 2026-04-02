@@ -64,8 +64,12 @@ class BakanlikCsvImport extends Command
         $guncellenen = 0;
         $hatali     = 0;
 
-        $bar = $this->output->createProgressBar();
-        $bar->start();
+        $isCli = php_sapi_name() === 'cli';
+        $bar = null;
+        if ($isCli) {
+            $bar = $this->output->createProgressBar();
+            $bar->start();
+        }
 
         while (($row = fgetcsv($handle, 0, ',')) !== false) {
             if (count($row) < 2) continue;
@@ -133,12 +137,12 @@ class BakanlikCsvImport extends Command
                 $this->warn("Hata ({$belgeNo}): " . $e->getMessage());
             }
 
-            $bar->advance();
+            if ($bar) $bar->advance();
         }
 
         fclose($handle);
-        $bar->finish();
-        $this->newLine(2);
+        if ($bar) $bar->finish();
+        if ($isCli) $this->newLine(2);
 
         $this->info("Tamamlandı!");
         $this->table(
