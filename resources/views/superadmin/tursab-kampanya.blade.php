@@ -94,6 +94,15 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <p class="text-muted small mb-0">Bakanlık Excel/CSV verisini sisteme yükle. Mevcut veriyi tamamen sıfırla veya güncelle.</p>
             </a>
         </div>
+        <div class="col-md-4">
+            <a href="{{ route('kampanya.zamanlama') }}" class="card shadow hub-card d-block p-4">
+                <div class="hub-icon" style="background:#fffbeb;">
+                    <i class="fas fa-clock" style="color:#f59e0b;"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Otomatik Zamanlama</h5>
+                <p class="text-muted small mb-0">Her gün belirlediğin saatlerde otomatik email ve SMS gönder. cPanel cron ile çalışır.</p>
+            </a>
+        </div>
     </div>
 
 </div>

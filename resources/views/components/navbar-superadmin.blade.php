@@ -44,6 +44,12 @@
                     'keys' => ['kampanya-sms'],
                 ],
                 [
+                    'label' => 'Oto. Zamanlama',
+                    'href' => route('kampanya.zamanlama'),
+                    'icon' => 'fas fa-clock',
+                    'keys' => ['kampanya-zamanlama'],
+                ],
+                [
                     'label' => 'TURAi',
                     'href' => route('superadmin.acente.ai'),
                     'icon' => 'fas fa-robot',

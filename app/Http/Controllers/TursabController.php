@@ -280,8 +280,27 @@ class TursabController extends Controller
 
             try {
                 $smsService->send(null, 'acente', $acenteAdi, $telefon, $mesaj);
+                TursabDavet::create([
+                    'belge_no'         => $belgeNo ?: null,
+                    'eposta'           => $eposta  ?: null,
+                    'acente_unvani'    => $acenteAdi,
+                    'il'               => $il      ?: null,
+                    'tip'              => 'sms',
+                    'status'           => 'sent',
+                    'gonderen_user_id' => auth()->id(),
+                ]);
                 $basarili++;
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                TursabDavet::create([
+                    'belge_no'         => $belgeNo ?: null,
+                    'eposta'           => $eposta  ?: null,
+                    'acente_unvani'    => $acenteAdi,
+                    'il'               => $il      ?: null,
+                    'tip'              => 'sms',
+                    'status'           => 'failed',
+                    'hata'             => $e->getMessage(),
+                    'gonderen_user_id' => auth()->id(),
+                ]);
                 $atlandi++;
             }
         }
@@ -747,6 +766,122 @@ class TursabController extends Controller
         return view('superadmin.kampanya-sms', compact(
             'acenteler','iller','il','ilce','grup','q','sadeceCep','perPage'
         ));
+    }
+
+    // ── Otomatik Zamanlama ────────────────────────────────────────────────────
+
+    public function zamanlamaForm()
+    {
+        $this->assertSuperadmin();
+
+        $emailAyar = $this->zamanlamaAyar('email');
+        $smsAyar   = $this->zamanlamaAyar('sms');
+
+        $emailLog = $this->zamanlamaLog('email');
+        $smsLog   = $this->zamanlamaLog('sms');
+
+        $iller = Acenteler::whereNotNull('il')->where('il', '!=', '')
+                          ->distinct()->orderBy('il')->pluck('il');
+
+        return view('superadmin.kampanya-zamanlama', compact(
+            'emailAyar', 'smsAyar', 'emailLog', 'smsLog', 'iller'
+        ));
+    }
+
+    public function zamanlamaKaydet(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $tip = $request->input('tip'); // 'email' veya 'sms'
+        abort_unless(in_array($tip, ['email', 'sms']), 422);
+
+        $slotSaatleri = $request->input('slot_saat', []);
+        $slotAdetler  = $request->input('slot_adet', []);
+        $slotAktifler = $request->input('slot_aktif', []);
+
+        $slotlar = [];
+        foreach ($slotSaatleri as $i => $saat) {
+            if (!preg_match('/^\d{2}:\d{2}$/', $saat)) continue;
+            $slotlar[] = [
+                'saat'  => $saat,
+                'adet'  => max(1, min(500, (int) ($slotAdetler[$i] ?? 50))),
+                'aktif' => in_array((string)$i, array_keys($slotAktifler)),
+            ];
+        }
+
+        $ayar = [
+            'aktif'  => $request->boolean('aktif'),
+            'slotlar' => $slotlar,
+            'filtre' => [
+                'il'   => trim($request->input('filtre_il', '')),
+                'ilce' => trim($request->input('filtre_ilce', '')),
+                'grup' => trim($request->input('filtre_grup', '')),
+            ],
+        ];
+
+        if ($tip === 'email') {
+            $ayar['filtre']['sablon'] = in_array($request->input('filtre_sablon'), ['emails.tursab_davet', 'emails.tursab_davet_yeni_acente'])
+                ? $request->input('filtre_sablon')
+                : 'emails.tursab_davet';
+        }
+
+        if ($tip === 'sms') {
+            $mesaj = trim($request->input('sms_mesaj', ''));
+            if (mb_strlen($mesaj) > 160) {
+                return back()->with('error', 'SMS metni 160 karakteri geçemez.');
+            }
+            $ayar['mesaj'] = $mesaj;
+        }
+
+        $key = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';
+        \App\Models\SistemAyar::set($key, json_encode($ayar, JSON_UNESCAPED_UNICODE));
+
+        return back()->with('success', ($tip === 'email' ? 'Email' : 'SMS') . ' kampanya zamanlaması kaydedildi.');
+    }
+
+    public function zamanlamaTestGonder(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $tip = $request->input('tip', 'email');
+        abort_unless(in_array($tip, ['email', 'sms']), 422);
+
+        $command = $tip === 'email' ? 'kampanya:email-otomatik' : 'kampanya:sms-otomatik';
+        $dryRun  = $request->boolean('dry_run', true);
+
+        $args = ['--force' => true];
+        if ($dryRun) $args['--dry-run'] = true;
+
+        \Artisan::call($command, $args);
+        $out = trim(\Artisan::output());
+
+        return response()->json(['success' => true, 'output' => $out ?: 'Komut tamamlandı (çıktı yok).']);
+    }
+
+    private function zamanlamaAyar(string $tip): array
+    {
+        $key = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';
+        $json = \App\Models\SistemAyar::get($key, '');
+        if (!$json) {
+            return [
+                'aktif'  => false,
+                'slotlar' => [['saat' => '09:00', 'adet' => 50, 'aktif' => false]],
+                'filtre' => ['il' => '', 'ilce' => '', 'grup' => '', 'sablon' => 'emails.tursab_davet'],
+                'mesaj'  => '',
+            ];
+        }
+        $a = json_decode($json, true) ?? [];
+        if (!isset($a['slotlar']) || empty($a['slotlar'])) {
+            $a['slotlar'] = [['saat' => '09:00', 'adet' => 50, 'aktif' => false]];
+        }
+        return $a;
+    }
+
+    private function zamanlamaLog(string $tip): array
+    {
+        $key  = $tip === 'email' ? 'kampanya_email_calisma_log' : 'kampanya_sms_calisma_log';
+        $json = \App\Models\SistemAyar::get($key, '{}');
+        return json_decode($json, true) ?? [];
     }
 
     // ── AJAX: İlçe Listesi ───────────────────────────────────────────────────

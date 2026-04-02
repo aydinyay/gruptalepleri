@@ -487,6 +487,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get( '/kampanya/csv-import', [\App\Http\Controllers\TursabController::class, 'csvImportForm'])->name('kampanya.csv-import');
     Route::post('/kampanya/csv-import', [\App\Http\Controllers\TursabController::class, 'csvImportYukle'])->name('kampanya.csv-import.yukle');
     Route::get( '/tursab-ilceler',      [\App\Http\Controllers\TursabController::class, 'ilceler'])->name('tursab.ilceler');
+    Route::get( '/kampanya/zamanlama',  [\App\Http\Controllers\TursabController::class, 'zamanlamaForm'])->name('kampanya.zamanlama');
+    Route::post('/kampanya/zamanlama',  [\App\Http\Controllers\TursabController::class, 'zamanlamaKaydet'])->name('kampanya.zamanlama.kaydet');
+    Route::post('/kampanya/zamanlama/test', [\App\Http\Controllers\TursabController::class, 'zamanlamaTestGonder'])->name('kampanya.zamanlama.test');
     Route::get('/acenteler-istatistik', [\App\Http\Controllers\AcenetelIstatistikController::class, 'index'])->name('acenteler.istatistik');
     Route::get('/acenteler-normalize', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalize'])->name('acenteler.normalize');
     Route::get('/normalize-kaynak/{mode}', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalizeKaynak'])->name('normalize.kaynak');
