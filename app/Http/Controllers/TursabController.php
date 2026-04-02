@@ -658,25 +658,25 @@ class TursabController extends Controller
         $this->assertSuperadmin();
 
         $request->validate([
-            'csv_dosya' => 'required|file|mimes:csv,txt|max:51200',
+            'csv_dosya' => 'required|file|max:102400',
         ]);
 
         $file = $request->file('csv_dosya');
         $path = storage_path('app/import/acenteler.csv');
 
-        // Klasör yoksa oluştur
         if (!is_dir(dirname($path))) {
             mkdir(dirname($path), 0755, true);
         }
 
         $file->move(dirname($path), 'acenteler.csv');
-
         $noTruncate = $request->boolean('no_truncate', false);
+        $mod = $noTruncate ? 'no_truncate=1' : '';
 
-        \Artisan::call('bakanlik:csv-import', $noTruncate ? ['--no-truncate' => true] : []);
-        $out = trim(\Artisan::output());
-
-        return back()->with('success', "Import tamamlandı.\n\n" . $out);
+        return back()->with('success',
+            "✅ CSV dosyası sunucuya yüklendi.\n\n" .
+            "Şimdi deploy-run.php üzerinden import'u başlatın:\n" .
+            url('/deploy-run.php') . "?key=gtp2026deploy&action=csv-import" . ($mod ? "&{$mod}" : '')
+        );
     }
 
     // ── Email Kampanya ────────────────────────────────────────────────────────

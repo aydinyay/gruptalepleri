@@ -33,9 +33,18 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 <div class="container-fluid px-4 pb-5">
 
     @if(session('success'))
+        @php $lines = explode("\n", session('success')); @endphp
         <div class="alert alert-success alert-dismissible fade show py-2">
             <i class="fas fa-check-circle me-2"></i>
-            <pre class="mb-0 d-inline" style="white-space:pre-wrap;font-size:0.85rem;">{{ session('success') }}</pre>
+            @foreach($lines as $line)
+                @if(str_starts_with(trim($line), 'http'))
+                    <br><a href="{{ trim($line) }}" class="btn btn-sm btn-success mt-2" target="_blank">
+                        ▶️ Import'u Başlat (deploy-run.php)
+                    </a>
+                @else
+                    <div>{{ $line }}</div>
+                @endif
+            @endforeach
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
