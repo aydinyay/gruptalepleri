@@ -640,10 +640,68 @@ PHPCODE;
         }
     } elseif ($action === 'csv-import') {
         set_time_limit(600);
+        ini_set('memory_limit', '512M');
         $noTruncate = isset($_GET['no_truncate']);
-        $args = [];
-        if ($noTruncate) $args['--no-truncate'] = true;
-        $run($kernel, 'bakanlik:csv-import', $args);
+        $csvFile = $basePath . '/storage/app/import/acenteler.csv';
+        if (!file_exists($csvFile)) {
+            $output .= "HATA: CSV dosyasi bulunamadi: {$csvFile}\n";
+        } else {
+            if (!$noTruncate) {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                \Illuminate\Support\Facades\DB::table('acenteler')->truncate();
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1');
+                $output .= "Tablo temizlendi (TRUNCATE).\n";
+            }
+            $handle = fopen($csvFile, 'r');
+            $firstLine = fgets($handle); rewind($handle);
+            $bom = fread($handle, 3);
+            if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+            $delim = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+            $headers = fgetcsv($handle, 0, $delim);
+            $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
+            $output .= "Delimiter: " . ($delim === ';' ? ';' : ',') . " | Kolon sayisi: " . count($headers) . "\n";
+            $toplam = $yeni = $guncellenen = $hatali = 0;
+            while (($row = fgetcsv($handle, 0, $delim)) !== false) {
+                if (count($row) < 2) continue;
+                $norm = array_slice(array_pad($row, count($headers), ''), 0, count($headers));
+                $data = array_combine($headers, $norm);
+                if ($data === false) { $hatali++; continue; }
+                $belgeNo = trim($data['belgeNo'] ?? $data['Detay_BelgeNo'] ?? '');
+                if (!$belgeNo) { $hatali++; continue; }
+                $payload = [
+                    'acente_unvani' => trim($data['Detay_Unvan'] ?? '') ?: trim($data['unvan'] ?? ''),
+                    'ticari_unvan'  => trim($data['Detay_TicariUnvan'] ?? '') ?: trim($data['ticariUnvan'] ?? ''),
+                    'grup'          => trim($data['grup'] ?? ''),
+                    'il'            => trim($data['_Il'] ?? '') ?: trim($data['ilAd'] ?? ''),
+                    'il_ilce'       => trim($data['Il_Ilce'] ?? ''),
+                    'telefon'       => trim($data['Detay_Telefon'] ?? '') ?: trim($data['telefon'] ?? ''),
+                    'eposta'        => trim($data['E-posta'] ?? ''),
+                    'faks'          => trim($data['Faks'] ?? '') ?: null,
+                    'adres'         => trim($data['Adres'] ?? $data['adres'] ?? '') ?: null,
+                    'harita'        => trim($data['Harita'] ?? '') ?: null,
+                    'internal_id'   => trim($data['internalId'] ?? '') ?: null,
+                    'durum'         => trim($data['_Durum'] ?? '') ?: null,
+                    'kaynak'        => 'bakanlik',
+                    'synced_at'     => now(),
+                    'updated_at'    => now(),
+                ];
+                try {
+                    $exists = \Illuminate\Support\Facades\DB::table('acenteler')->where('belge_no', $belgeNo)->exists();
+                    if ($exists) {
+                        \Illuminate\Support\Facades\DB::table('acenteler')->where('belge_no', $belgeNo)->update($payload);
+                        $guncellenen++;
+                    } else {
+                        \Illuminate\Support\Facades\DB::table('acenteler')->insert(array_merge($payload, ['belge_no' => $belgeNo, 'created_at' => now()]));
+                        $yeni++;
+                    }
+                    $toplam++;
+                } catch (\Throwable $e) {
+                    $hatali++;
+                }
+            }
+            fclose($handle);
+            $output .= "Tamamlandi! Toplam:{$toplam} Yeni:{$yeni} Guncellenen:{$guncellenen} Hatali:{$hatali}\n";
+        }
     } elseif ($action === 'ai-refresh') {
         set_time_limit(300);
         $days = (int) ($_GET['days'] ?? 30);
