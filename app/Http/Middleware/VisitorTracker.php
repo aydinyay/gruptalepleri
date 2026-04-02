@@ -12,12 +12,11 @@ class VisitorTracker
     {
         $response = $next($request);
 
-        // Admin / superadmin rotaları ve polling endpoint'leri sayılmaz
+        // Polling ve istatistik sayfasının kendisi sayılmaz (çift sayım önlemi)
         $excluded = [
-            'admin/*',
-            'superadmin/*',
-            'tracker_update.php',
-            'up',
+            'admin/push/*',          // yeni talep polling — her 30sn'de otomatik istek
+            'superadmin/istatistik', // stats sayfası kendini saymasın
+            'up',                    // health check
         ];
         foreach ($excluded as $pattern) {
             if ($request->is($pattern)) {
