@@ -242,7 +242,8 @@ class BakanlikCsvImport extends Command
 
         while (($row = fgetcsv($handle, 0, \',\')) !== false) {
             if (count($row) < 2) continue;
-            $data = array_combine($headers, array_pad($row, count($headers), \'\'));
+            $normalized = array_slice(array_pad($row, count($headers), \'\'), 0, count($headers));
+            $data = array_combine($headers, $normalized);
             if ($data === false) { $hatali++; continue; }
 
             $belgeNo = trim($data[\'belgeNo\'] ?? $data[\'Detay_BelgeNo\'] ?? \'\');
