@@ -142,6 +142,17 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             </div>
                         </div>
 
+                        <div class="mt-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="filtre_sadece_yeni" id="emailSadeceYeni" value="1"
+                                    @checked($emailAyar['filtre']['sadece_yeni'] ?? true)>
+                                <label class="form-check-label small" for="emailSadeceYeni">
+                                    <strong>Daha önce email gönderilenlere tekrar gönderme</strong>
+                                    <span class="text-muted">(spam önleme — önerilir)</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="d-flex gap-2 mt-3">
                             <button type="submit" class="btn btn-danger btn-sm">
                                 <i class="fas fa-save me-1"></i>Kaydet

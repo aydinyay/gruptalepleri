@@ -31,10 +31,11 @@ class KampanyaEmailOtomatik extends Command
             return self::SUCCESS;
         }
 
-        $slotlar = $ayar['slotlar'] ?? [];
-        $filtre  = $ayar['filtre']  ?? [];
-        $sablon  = $filtre['sablon'] ?? self::SABLON_DEFAULT;
-        $force   = $this->option('force');
+        $slotlar    = $ayar['slotlar'] ?? [];
+        $filtre     = $ayar['filtre']  ?? [];
+        $sablon     = $filtre['sablon'] ?? self::SABLON_DEFAULT;
+        $sadeceYeni = $filtre['sadece_yeni'] ?? true; // varsayılan: spam önleme açık
+        $force      = $this->option('force');
         $dryRun  = $this->option('dry-run');
 
         $simdikiSaat = now()->format('H:i');
@@ -66,13 +67,6 @@ class KampanyaEmailOtomatik extends Command
 
             $this->info("[$slotSaat] Email kampanyası başlıyor — $adet acente hedefleniyor...");
 
-            // Daha önce email gönderilen eposta listesi
-            $gidenlEpostalar = TursabDavet::where('tip', 'email')
-                ->whereNotNull('eposta')
-                ->pluck('eposta')
-                ->map(fn($e) => strtolower($e))
-                ->toArray();
-
             // Acente sorgusu
             $query = Acenteler::whereNotNull('eposta')->where('eposta', '!=', '');
 
@@ -80,9 +74,17 @@ class KampanyaEmailOtomatik extends Command
             if (!empty($filtre['ilce'])) $query->where('il_ilce', $filtre['ilce']);
             if (!empty($filtre['grup'])) $query->where('grup', $filtre['grup']);
 
-            if (count($gidenlEpostalar)) {
-                $placeholders = implode(',', array_fill(0, count($gidenlEpostalar), '?'));
-                $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $gidenlEpostalar);
+            // Spam önleme: daha önce gönderilenler hariç
+            if ($sadeceYeni) {
+                $gidenlEpostalar = TursabDavet::where('tip', 'email')
+                    ->whereNotNull('eposta')
+                    ->pluck('eposta')
+                    ->map(fn($e) => strtolower($e))
+                    ->toArray();
+                if (count($gidenlEpostalar)) {
+                    $placeholders = implode(',', array_fill(0, count($gidenlEpostalar), '?'));
+                    $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $gidenlEpostalar);
+                }
             }
 
             $acenteler = $query

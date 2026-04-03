@@ -823,6 +823,7 @@ class TursabController extends Controller
             $ayar['filtre']['sablon'] = in_array($request->input('filtre_sablon'), ['emails.tursab_davet', 'emails.tursab_davet_yeni_acente'])
                 ? $request->input('filtre_sablon')
                 : 'emails.tursab_davet';
+            $ayar['filtre']['sadece_yeni'] = $request->boolean('filtre_sadece_yeni');
         }
 
         if ($tip === 'sms') {
