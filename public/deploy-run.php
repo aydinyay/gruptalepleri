@@ -577,6 +577,15 @@ PHPCODE;
         $run($kernel, 'view:clear');
         $run($kernel, 'route:clear');
         $run($kernel, 'optimize:clear');
+    } elseif ($action === 'clear-views') {
+        $viewsDir = $basePath . '/storage/framework/views';
+        $deleted = 0;
+        foreach (glob($viewsDir . '/*.php') as $f) {
+            @unlink($f);
+            $deleted++;
+        }
+        $output .= "Silinen compiled view: {$deleted} dosya\n";
+        $output .= "Kalan: " . count(glob($viewsDir . '/*.php')) . " dosya\n";
     } elseif ($action === 'log') {
         $logFile = $basePath . '/storage/logs/laravel.log';
         if (!file_exists($logFile)) {
@@ -875,6 +884,7 @@ PHPCODE;
 <h2>Deploy Runner - GrupTalepleri</h2>
 <div class="warn">Bu dosyayi kullandiktan sonra hemen silin.</div>
 
+<a href="?key=<?= urlencode($providedKey) ?>&action=clear-views" class="btn red" onclick="return confirm('Compiled view cache temizlensin mi?')">🗑️ Clear Views (Direkt)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=log" class="btn blue">📋 Laravel Log (Son 100)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=status" class="btn blue">Migration Durumu</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=migrate" class="btn green" onclick="return confirm('Migration calistirilsin mi?')">Migrate</a>
