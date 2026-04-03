@@ -577,6 +577,27 @@ PHPCODE;
         $run($kernel, 'view:clear');
         $run($kernel, 'route:clear');
         $run($kernel, 'optimize:clear');
+    } elseif ($action === 'check-blade') {
+        $file = $basePath . '/resources/views/superadmin/kampanya-email.blade.php';
+        if (!file_exists($file)) { $output .= "DOSYA YOK: {$file}\n"; }
+        else {
+            $lines = file($file);
+            $output .= "Toplam satir: " . count($lines) . "\n";
+            foreach ($lines as $i => $line) {
+                if (str_contains($line, 'tursab.kampanya') || str_contains($line, 'Kampanya Hub')) {
+                    $output .= "Satir " . ($i+1) . ": " . trim($line) . "\n";
+                }
+            }
+            // views dir
+            $viewsDir = $basePath . '/storage/framework/views';
+            $files = glob($viewsDir . '/*.php') ?: [];
+            $output .= "\nViews dir ({$viewsDir}): " . count($files) . " dosya\n";
+            // shell ile de dene
+            if (function_exists('shell_exec')) {
+                $cnt = @shell_exec("ls " . escapeshellarg($viewsDir) . " 2>&1 | wc -l");
+                $output .= "Shell ls | wc -l: " . trim((string)$cnt) . "\n";
+            }
+        }
     } elseif ($action === 'fix-route-names') {
         // kampanya view'larindaki yanlis route adlarini duzelt
         $fixes = [
@@ -903,6 +924,7 @@ PHPCODE;
 <h2>Deploy Runner - GrupTalepleri</h2>
 <div class="warn">Bu dosyayi kullandiktan sonra hemen silin.</div>
 
+<a href="?key=<?= urlencode($providedKey) ?>&action=check-blade" class="btn blue">🔍 Check Blade (Kontrol)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=fix-route-names" class="btn red" onclick="return confirm('Route adlari duzeltilsin ve view cache temizlensin mi?')">🔧 Fix Route Names + Clear Views</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=clear-views" class="btn red" onclick="return confirm('Compiled view cache temizlensin mi?')">🗑️ Clear Views (Direkt)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=log" class="btn blue">📋 Laravel Log (Son 100)</a>
