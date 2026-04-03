@@ -665,6 +665,8 @@ PHPCODE;
             $headers = fgetcsv($handle, 0, $delim);
             $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
             echo "Delimiter:{$delim} Kolonlar:" . count($headers) . "\n"; flush();
+            // CSV Windows-1254 (Turkce Latin) -> UTF-8 donusum
+            $toUtf = fn($s) => mb_convert_encoding(trim($s), 'UTF-8', 'Windows-1254');
             $toplam = $hatali = 0;
             $batch = [];
             $now = now()->toDateTimeString();
@@ -677,18 +679,18 @@ PHPCODE;
                 if (!$belgeNo) { $hatali++; continue; }
                 $batch[] = [
                     'belge_no'      => $belgeNo,
-                    'acente_unvani' => trim($data['Detay_Unvan'] ?? '') ?: trim($data['unvan'] ?? ''),
-                    'ticari_unvan'  => trim($data['Detay_TicariUnvan'] ?? '') ?: trim($data['ticariUnvan'] ?? ''),
-                    'grup'          => trim($data['grup'] ?? ''),
-                    'il'            => trim($data['_Il'] ?? '') ?: trim($data['ilAd'] ?? ''),
-                    'il_ilce'       => trim($data['Il_Ilce'] ?? ''),
-                    'telefon'       => trim($data['Detay_Telefon'] ?? '') ?: trim($data['telefon'] ?? ''),
+                    'acente_unvani' => $toUtf($data['Detay_Unvan'] ?? '') ?: $toUtf($data['unvan'] ?? ''),
+                    'ticari_unvan'  => $toUtf($data['Detay_TicariUnvan'] ?? '') ?: $toUtf($data['ticariUnvan'] ?? ''),
+                    'grup'          => $toUtf($data['grup'] ?? ''),
+                    'il'            => $toUtf($data['_Il'] ?? '') ?: $toUtf($data['ilAd'] ?? ''),
+                    'il_ilce'       => $toUtf($data['Il_Ilce'] ?? ''),
+                    'telefon'       => $toUtf($data['Detay_Telefon'] ?? '') ?: $toUtf($data['telefon'] ?? ''),
                     'eposta'        => trim($data['E-posta'] ?? ''),
-                    'faks'          => trim($data['Faks'] ?? '') ?: null,
-                    'adres'         => trim($data['Adres'] ?? $data['adres'] ?? '') ?: null,
+                    'faks'          => $toUtf($data['Faks'] ?? '') ?: null,
+                    'adres'         => $toUtf($data['Adres'] ?? $data['adres'] ?? '') ?: null,
                     'harita'        => trim($data['Harita'] ?? '') ?: null,
                     'internal_id'   => trim($data['internalId'] ?? '') ?: null,
-                    'durum'         => trim($data['_Durum'] ?? '') ?: null,
+                    'durum'         => $toUtf($data['_Durum'] ?? '') ?: null,
                     'kaynak'        => 'bakanlik',
                     'synced_at'     => $now,
                     'created_at'    => $now,
