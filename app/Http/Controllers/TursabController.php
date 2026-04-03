@@ -902,6 +902,49 @@ class TursabController extends Controller
         return response()->json($ilceler);
     }
 
+    // ── Acente Listesi (Tümü) ────────────────────────────────────────────────
+
+    public function acenteListesi(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $il      = trim($request->input('il', ''));
+        $ilce    = trim($request->input('ilce', ''));
+        $grup    = trim($request->input('grup', ''));
+        $q       = trim($request->input('q', ''));
+        $perPage = in_array((int) $request->input('per_page', 50), [25, 50, 100, 200])
+                   ? (int) $request->input('per_page', 50) : 50;
+
+        $tableExists = \Illuminate\Support\Facades\Schema::hasTable('tursab_davetler');
+
+        // Davet edilmiş e-postalar (email ve sms ayrı)
+        $emailDavetler = $tableExists
+            ? TursabDavet::where('tip', 'email')->pluck('eposta')->map(fn($e) => strtolower(trim($e)))->flip()->all()
+            : [];
+        $smsDavetler = $tableExists
+            ? TursabDavet::where('tip', 'sms')->pluck('eposta')->map(fn($e) => strtolower(trim($e)))->flip()->all()
+            : [];
+
+        $iller = Acenteler::whereNotNull('il')->where('il', '!=', '')
+                          ->distinct()->orderBy('il')->pluck('il');
+
+        $query = Acenteler::query();
+
+        if ($q)    $query->where(fn($w) => $w->where('acente_unvani', 'like', "%{$q}%")->orWhere('belge_no', 'like', "%{$q}%"));
+        if ($il)   $query->where('il', $il);
+        if ($ilce) $query->where('il_ilce', $ilce);
+        if ($grup) $query->where('grup', $grup);
+
+        $acenteler = $query->select('id', 'belge_no', 'acente_unvani', 'grup', 'il', 'il_ilce', 'eposta', 'telefon')
+                           ->orderByRaw('CAST(belge_no AS UNSIGNED) DESC')
+                           ->paginate($perPage)->withQueryString();
+
+        return view('superadmin.acente-listesi', compact(
+            'acenteler', 'iller', 'il', 'ilce', 'grup', 'q', 'perPage',
+            'emailDavetler', 'smsDavetler'
+        ));
+    }
+
     private function assertSuperadmin(): void
     {
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);

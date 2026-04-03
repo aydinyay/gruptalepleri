@@ -483,6 +483,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/acente-sync-start',  [\App\Http\Controllers\TursabController::class, 'aceneSyncBaslat'])->name('acente.sync.start');
     Route::get( '/acente-sync-status', [\App\Http\Controllers\TursabController::class, 'aceneSyncStatus'])->name('acente.sync.status');
     Route::get( '/kampanya/email',      [\App\Http\Controllers\TursabController::class, 'emailKampanya'])->name('kampanya.email');
+    Route::get( '/kampanya/acenteler',  [\App\Http\Controllers\TursabController::class, 'acenteListesi'])->name('kampanya.acenteler');
     Route::get( '/kampanya/sms',        [\App\Http\Controllers\TursabController::class, 'smsKampanya'])->name('kampanya.sms');
     Route::get( '/kampanya/csv-import', [\App\Http\Controllers\TursabController::class, 'csvImportForm'])->name('kampanya.csv-import');
     Route::post('/kampanya/csv-import', [\App\Http\Controllers\TursabController::class, 'csvImportYukle'])->name('kampanya.csv-import.yukle');
