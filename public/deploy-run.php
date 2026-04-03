@@ -688,7 +688,7 @@ PHPCODE;
                     'eposta'        => trim($data['E-posta'] ?? ''),
                     'faks'          => $toUtf($data['Faks'] ?? '') ?: null,
                     'adres'         => $toUtf($data['Adres'] ?? $data['adres'] ?? '') ?: null,
-                    'harita'        => trim($data['Harita'] ?? '') ?: null,
+                    'harita'        => $toUtf($data['Harita'] ?? '') ?: null,
                     'internal_id'   => trim($data['internalId'] ?? '') ?: null,
                     'durum'         => $toUtf($data['_Durum'] ?? '') ?: null,
                     'kaynak'        => 'bakanlik',
