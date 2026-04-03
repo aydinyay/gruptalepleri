@@ -639,10 +639,13 @@ PHPCODE;
             }
         }
     } elseif ($action === 'csv-import') {
+        $output .= "ACTION BASLADI: csv-import\n";
         set_time_limit(600);
         ini_set('memory_limit', '512M');
         $noTruncate = isset($_GET['no_truncate']);
         $csvFile = $basePath . '/storage/app/import/acenteler.csv';
+        $output .= "CSV yolu: {$csvFile}\n";
+        $output .= "Dosya var mi: " . (file_exists($csvFile) ? 'EVET' : 'HAYIR') . "\n";
         if (!file_exists($csvFile)) {
             $output .= "HATA: CSV dosyasi bulunamadi: {$csvFile}\n";
         } else {
