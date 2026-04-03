@@ -143,6 +143,7 @@ try {
         $files = [
             'resources/views/components/navbar-superadmin.blade.php',
             'resources/views/superadmin/tursab-kampanya.blade.php',
+            'resources/views/superadmin/acente-listesi.blade.php',
             'resources/views/superadmin/kampanya-email.blade.php',
             'resources/views/superadmin/kampanya-sms.blade.php',
             'resources/views/superadmin/kampanya-csv-import.blade.php',
