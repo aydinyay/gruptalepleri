@@ -577,6 +577,16 @@ PHPCODE;
         $run($kernel, 'view:clear');
         $run($kernel, 'route:clear');
         $run($kernel, 'optimize:clear');
+    } elseif ($action === 'log') {
+        $logFile = $basePath . '/storage/logs/laravel.log';
+        if (!file_exists($logFile)) {
+            $output .= "Log dosyası bulunamadı: {$logFile}\n";
+        } else {
+            $lines = file($logFile);
+            $last = array_slice($lines, -100);
+            $output .= "--- Son 100 satır ({$logFile}) ---\n";
+            $output .= implode('', $last);
+        }
     } elseif ($action === 'status') {
         $run($kernel, 'migrate:status');
     } elseif ($action === 'import-airports') {
@@ -865,6 +875,7 @@ PHPCODE;
 <h2>Deploy Runner - GrupTalepleri</h2>
 <div class="warn">Bu dosyayi kullandiktan sonra hemen silin.</div>
 
+<a href="?key=<?= urlencode($providedKey) ?>&action=log" class="btn blue">📋 Laravel Log (Son 100)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=status" class="btn blue">Migration Durumu</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=migrate" class="btn green" onclick="return confirm('Migration calistirilsin mi?')">Migrate</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=cache-clear" class="btn red">Cache Clear</a>
