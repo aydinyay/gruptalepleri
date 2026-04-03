@@ -639,6 +639,8 @@ PHPCODE;
             }
         }
     } elseif ($action === 'csv-import') {
+        echo '<div style="background:#000;color:#0f0;padding:1rem;font-family:monospace;white-space:pre-wrap;">'; flush();
+        echo "CSV Import basladi...\n"; flush();
         $output .= "ACTION BASLADI: csv-import\n";
         set_time_limit(600);
         ini_set('memory_limit', '512M');
@@ -705,7 +707,9 @@ PHPCODE;
             }
             fclose($handle);
             $output .= "Tamamlandi! Toplam:{$toplam} Yeni:{$yeni} Guncellenen:{$guncellenen} Hatali:{$hatali}\n";
+            echo "Tamamlandi! Toplam:{$toplam} Yeni:{$yeni} Guncellenen:{$guncellenen} Hatali:{$hatali}\n"; flush();
         }
+        echo '</div>'; flush();
     } elseif ($action === 'ai-refresh') {
         set_time_limit(300);
         $days = (int) ($_GET['days'] ?? 30);
@@ -783,7 +787,7 @@ PHPCODE;
 
 <?php if ($output !== ''): ?>
 <h3>Cikti:</h3>
-<pre><?= htmlspecialchars($output, ENT_QUOTES, 'UTF-8') ?></pre>
+<pre><?= htmlspecialchars(mb_convert_encoding($output, 'UTF-8', 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></pre>
 <?php endif; ?>
 
 <p style="color:#666;font-size:0.8rem;">
