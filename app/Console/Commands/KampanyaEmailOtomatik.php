@@ -87,9 +87,12 @@ class KampanyaEmailOtomatik extends Command
                 }
             }
 
+            // Yeni acente tebrik şablonunda en son eklenenler önce gelsin
+            $siralama = ($sablon === 'emails.tursab_davet_yeni_acente') ? 'DESC' : 'ASC';
+
             $acenteler = $query
                 ->select('id','belge_no','acente_unvani','ticari_unvan','il','eposta','telefon')
-                ->orderByRaw('CAST(belge_no AS UNSIGNED) ASC')
+                ->orderByRaw("CAST(belge_no AS UNSIGNED) {$siralama}")
                 ->limit($adet)
                 ->get();
 
