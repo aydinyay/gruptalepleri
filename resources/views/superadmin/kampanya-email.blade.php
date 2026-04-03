@@ -34,7 +34,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <h5><i class="fas fa-envelope-open-text me-2" style="color:#e94560;"></i>Email Kampanyası</h5>
                 <p>Bakanlık listesindeki acentelere toplu davet e-postası gönder — günlük limit: 50</p>
             </div>
-            <a href="{{ route('tursab.kampanya') }}" class="btn btn-sm btn-outline-light">
+            <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">
                 ← Kampanya Hub
             </a>
         </div>

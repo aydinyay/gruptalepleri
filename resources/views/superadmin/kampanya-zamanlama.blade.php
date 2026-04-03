@@ -30,7 +30,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <h5><i class="fas fa-clock me-2" style="color:#ffc107;"></i>Otomatik Kampanya Zamanlaması</h5>
                 <p>Her gün belirlenen saatlerde otomatik email ve SMS gönderimi</p>
             </div>
-            <a href="{{ route('tursab.kampanya') }}" class="btn btn-sm btn-outline-light">← Kampanya Hub</a>
+            <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">← Kampanya Hub</a>
         </div>
     </div>
 </div>

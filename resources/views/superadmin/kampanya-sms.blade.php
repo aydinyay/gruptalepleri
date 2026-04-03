@@ -30,7 +30,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <h5><i class="fas fa-sms me-2" style="color:#0dcaf0;"></i>SMS Kampanyası</h5>
                 <p>Bakanlık listesindeki acentelere toplu SMS gönder</p>
             </div>
-            <a href="{{ route('tursab.kampanya') }}" class="btn btn-sm btn-outline-light">← Kampanya Hub</a>
+            <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">← Kampanya Hub</a>
         </div>
     </div>
 </div>
