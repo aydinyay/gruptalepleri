@@ -155,7 +155,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     </div>
 
     {{-- ACENTE LİSTESİ --}}
-    <form method="POST" action="{{ route('tursab.toplu-davet') }}" id="davetForm">
+    <form method="POST" action="{{ route('superadmin.tursab.toplu-davet') }}" id="davetForm">
         @csrf
         <div class="sticky-action shadow-sm mb-3">
             <div class="container-fluid px-4">

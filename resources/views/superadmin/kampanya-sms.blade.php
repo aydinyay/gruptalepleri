@@ -101,7 +101,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
     </div>
 
     {{-- SMS METNİ + ACENTE LİSTESİ --}}
-    <form method="POST" action="{{ route('tursab.toplu-sms') }}" id="smsForm">
+    <form method="POST" action="{{ route('superadmin.tursab.toplu-sms') }}" id="smsForm">
         @csrf
 
         <div class="sticky-action shadow-sm mb-3">

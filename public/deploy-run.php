@@ -608,7 +608,11 @@ PHPCODE;
         foreach ($fixes as $file) {
             if (!file_exists($file)) { $output .= "YOK: {$file}\n"; continue; }
             $content = file_get_contents($file);
-            $new = str_replace("route('tursab.kampanya')", "route('superadmin.tursab.kampanya')", $content);
+            $new = str_replace(
+                ["route('tursab.kampanya')", "route('tursab.toplu-davet')", "route('tursab.toplu-sms')"],
+                ["route('superadmin.tursab.kampanya')", "route('superadmin.tursab.toplu-davet')", "route('superadmin.tursab.toplu-sms')"],
+                $content
+            );
             if ($content === $new) { $output .= "DEGISIKLIK YOK: " . basename($file) . "\n"; }
             else { file_put_contents($file, $new); $output .= "DUZELTILDI: " . basename($file) . "\n"; }
         }
