@@ -638,6 +638,86 @@ PHPCODE;
                 $output .= "Git update basarisiz oldugu icin clear adimlari atlandi.\n";
             }
         }
+    } elseif ($action === 'csv-import-pdo') {
+        echo '<div style="background:#000;color:#0f0;padding:1rem;font-family:monospace;white-space:pre-wrap;">'; flush();
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+        echo "PDO ile CSV import basladi...\n"; flush();
+        $dbCfg = config('database.connections.mysql');
+        $dsn = "mysql:host={$dbCfg['host']};port={$dbCfg['port']};dbname={$dbCfg['database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $dbCfg['username'], $dbCfg['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+        ]);
+        echo "DB baglantisi OK: {$dbCfg['database']}\n"; flush();
+        $noTruncate = isset($_GET['no_truncate']);
+        $csvFile = $basePath . '/storage/app/import/acenteler.csv';
+        if (!file_exists($csvFile)) {
+            echo "HATA: CSV bulunamadi: {$csvFile}\n"; flush();
+        } else {
+            if (!$noTruncate) {
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+                $pdo->exec('TRUNCATE TABLE acenteler');
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+                echo "TRUNCATE OK.\n"; flush();
+            }
+            $handle = fopen($csvFile, 'r');
+            $firstLine = fgets($handle); rewind($handle);
+            $bom = fread($handle, 3);
+            if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+            $delim = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+            $headers = fgetcsv($handle, 0, $delim);
+            $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
+            echo "Delimiter:{$delim} Kolonlar:" . count($headers) . "\n"; flush();
+            $toUtf = function($s) {
+                $s = trim($s);
+                if ($s === '' || mb_check_encoding($s, 'UTF-8')) return $s;
+                $r = @iconv('windows-1254', 'UTF-8//IGNORE', $s);
+                return ($r !== false && $r !== '') ? $r : mb_convert_encoding($s, 'UTF-8', 'ISO-8859-9');
+            };
+            $sql = "INSERT INTO acenteler (belge_no,acente_unvani,ticari_unvan,grup,il,il_ilce,telefon,eposta,faks,adres,harita,internal_id,durum,kaynak,synced_at,created_at,updated_at)
+                    VALUES (:belge_no,:acente_unvani,:ticari_unvan,:grup,:il,:il_ilce,:telefon,:eposta,:faks,:adres,:harita,:internal_id,:durum,:kaynak,:synced_at,:created_at,:updated_at)";
+            $stmt = $pdo->prepare($sql);
+            $toplam = $hatali = 0;
+            $now = date('Y-m-d H:i:s');
+            while (($row = fgetcsv($handle, 0, $delim)) !== false) {
+                if (count($row) < 2) continue;
+                $norm = array_slice(array_pad($row, count($headers), ''), 0, count($headers));
+                $data = @array_combine($headers, $norm);
+                if (!$data) { $hatali++; continue; }
+                $belgeNo = trim($data['belgeNo'] ?? $data['Detay_BelgeNo'] ?? '');
+                if (!$belgeNo) { $hatali++; continue; }
+                try {
+                    $stmt->execute([
+                        ':belge_no'      => $belgeNo,
+                        ':acente_unvani' => $toUtf($data['Detay_Unvan'] ?? '') ?: $toUtf($data['unvan'] ?? ''),
+                        ':ticari_unvan'  => $toUtf($data['Detay_TicariUnvan'] ?? '') ?: $toUtf($data['ticariUnvan'] ?? ''),
+                        ':grup'          => $toUtf($data['grup'] ?? ''),
+                        ':il'            => $toUtf($data['_Il'] ?? '') ?: $toUtf($data['ilAd'] ?? ''),
+                        ':il_ilce'       => $toUtf($data['Il_Ilce'] ?? ''),
+                        ':telefon'       => $toUtf($data['Detay_Telefon'] ?? '') ?: $toUtf($data['telefon'] ?? ''),
+                        ':eposta'        => trim($data['E-posta'] ?? ''),
+                        ':faks'          => $toUtf($data['Faks'] ?? '') ?: null,
+                        ':adres'         => $toUtf($data['Adres'] ?? $data['adres'] ?? '') ?: null,
+                        ':harita'        => $toUtf($data['Harita'] ?? '') ?: null,
+                        ':internal_id'   => trim($data['internalId'] ?? '') ?: null,
+                        ':durum'         => $toUtf($data['_Durum'] ?? '') ?: null,
+                        ':kaynak'        => 'bakanlik',
+                        ':synced_at'     => $now,
+                        ':created_at'    => $now,
+                        ':updated_at'    => $now,
+                    ]);
+                    $toplam++;
+                    if ($toplam % 1000 === 0) { echo "{$toplam} satir eklendi...\n"; flush(); }
+                } catch (\Throwable $e) {
+                    $hatali++;
+                    if ($hatali <= 2) { echo "HATA ({$belgeNo}): " . $e->getMessage() . "\n"; flush(); }
+                }
+            }
+            fclose($handle);
+            echo "TAMAMLANDI! Toplam:{$toplam} Hatali:{$hatali}\n"; flush();
+        }
+        echo '</div>'; flush();
     } elseif ($action === 'csv-import') {
         echo '<div style="background:#000;color:#0f0;padding:1rem;font-family:monospace;white-space:pre-wrap;">'; flush();
         echo "CSV Import basladi...\n"; flush();
@@ -802,6 +882,8 @@ PHPCODE;
 <a href="?key=<?= urlencode($providedKey) ?>&action=diagnose" class="btn blue">🔍 Diagnose</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-routes" class="btn red" onclick="return confirm('Eksik kampanya routelari web.php e eklenecek. Devam?')">🔧 Patch Routes (Inline)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Cek)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo" class="btn red" onclick="return confirm('TRUNCATE + CSV import (PDO). Emin misin?')">🚀 CSV Import PDO (TRUNCATE)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo&no_truncate=1" class="btn green" onclick="return confirm('UpdateOrCreate (PDO). Devam?')">🚀 CSV Import PDO (UpdateOrCreate)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import&no_truncate=1" class="btn green" onclick="return confirm('Mevcut kayitlar korunarak CSV updateOrCreate yapilacak. Devam?')">CSV Import (UpdateOrCreate)</a>
 
