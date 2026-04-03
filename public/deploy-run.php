@@ -665,8 +665,16 @@ PHPCODE;
             $headers = fgetcsv($handle, 0, $delim);
             $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
             echo "Delimiter:{$delim} Kolonlar:" . count($headers) . "\n"; flush();
-            // CSV Windows-1254 (Turkce Latin) -> UTF-8 donusum
-            $toUtf = fn($s) => mb_convert_encoding(trim($s), 'UTF-8', 'Windows-1254');
+            // Baglanti charset'ini zorla
+            $DB->statement('SET NAMES utf8mb4');
+            // CSV Windows-1254 -> UTF-8 donusum (iconv ile)
+            $toUtf = function($s) {
+                $s = trim($s);
+                if ($s === '') return '';
+                if (mb_check_encoding($s, 'UTF-8')) return $s;
+                $r = @iconv('windows-1254', 'UTF-8//IGNORE', $s);
+                return ($r !== false && $r !== '') ? $r : mb_convert_encoding($s, 'UTF-8', 'ISO-8859-9');
+            };
             $toplam = $hatali = 0;
             $batch = [];
             $now = now()->toDateTimeString();
