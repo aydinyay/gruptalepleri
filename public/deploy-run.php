@@ -577,6 +577,25 @@ PHPCODE;
         $run($kernel, 'view:clear');
         $run($kernel, 'route:clear');
         $run($kernel, 'optimize:clear');
+    } elseif ($action === 'fix-route-names') {
+        // kampanya view'larindaki yanlis route adlarini duzelt
+        $fixes = [
+            $basePath . '/resources/views/superadmin/kampanya-email.blade.php',
+            $basePath . '/resources/views/superadmin/kampanya-sms.blade.php',
+            $basePath . '/resources/views/superadmin/kampanya-zamanlama.blade.php',
+        ];
+        foreach ($fixes as $file) {
+            if (!file_exists($file)) { $output .= "YOK: {$file}\n"; continue; }
+            $content = file_get_contents($file);
+            $new = str_replace("route('tursab.kampanya')", "route('superadmin.tursab.kampanya')", $content);
+            if ($content === $new) { $output .= "DEGISIKLIK YOK: " . basename($file) . "\n"; }
+            else { file_put_contents($file, $new); $output .= "DUZELTILDI: " . basename($file) . "\n"; }
+        }
+        // compiled view cache temizle
+        $viewsDir = $basePath . '/storage/framework/views';
+        $deleted = 0;
+        foreach (glob($viewsDir . '/*.php') as $f) { @unlink($f); $deleted++; }
+        $output .= "Compiled views silindi: {$deleted}\n";
     } elseif ($action === 'clear-views') {
         $viewsDir = $basePath . '/storage/framework/views';
         $deleted = 0;
@@ -884,6 +903,7 @@ PHPCODE;
 <h2>Deploy Runner - GrupTalepleri</h2>
 <div class="warn">Bu dosyayi kullandiktan sonra hemen silin.</div>
 
+<a href="?key=<?= urlencode($providedKey) ?>&action=fix-route-names" class="btn red" onclick="return confirm('Route adlari duzeltilsin ve view cache temizlensin mi?')">🔧 Fix Route Names + Clear Views</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=clear-views" class="btn red" onclick="return confirm('Compiled view cache temizlensin mi?')">🗑️ Clear Views (Direkt)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=log" class="btn blue">📋 Laravel Log (Son 100)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=status" class="btn blue">Migration Durumu</a>
