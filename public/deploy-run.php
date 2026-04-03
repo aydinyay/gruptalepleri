@@ -697,6 +697,7 @@ PHPCODE;
                     $toplam++;
                 } catch (\Throwable $e) {
                     $hatali++;
+                    if ($hatali <= 3) $output .= "DB Hata ({$belgeNo}): " . $e->getMessage() . "\n";
                 }
             }
             fclose($handle);
