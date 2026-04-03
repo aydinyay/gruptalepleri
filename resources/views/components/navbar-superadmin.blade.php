@@ -44,6 +44,12 @@
                     'keys' => ['kampanya-sms'],
                 ],
                 [
+                    'label' => 'Acente Listesi',
+                    'href' => route('superadmin.kampanya.acenteler'),
+                    'icon' => 'fas fa-list',
+                    'keys' => ['kampanya-acenteler'],
+                ],
+                [
                     'label' => 'Oto. Zamanlama',
                     'href' => route('superadmin.kampanya.zamanlama'),
                     'icon' => 'fas fa-clock',
