@@ -641,21 +641,21 @@ PHPCODE;
     } elseif ($action === 'csv-import') {
         echo '<div style="background:#000;color:#0f0;padding:1rem;font-family:monospace;white-space:pre-wrap;">'; flush();
         echo "CSV Import basladi...\n"; flush();
-        $output .= "ACTION BASLADI: csv-import\n";
-        set_time_limit(600);
+        set_time_limit(0);
         ini_set('memory_limit', '512M');
         $noTruncate = isset($_GET['no_truncate']);
         $csvFile = $basePath . '/storage/app/import/acenteler.csv';
-        $output .= "CSV yolu: {$csvFile}\n";
-        $output .= "Dosya var mi: " . (file_exists($csvFile) ? 'EVET' : 'HAYIR') . "\n";
+        echo "Dosya: " . (file_exists($csvFile) ? 'BULUNDU' : 'YOK - ' . $csvFile) . "\n"; flush();
         if (!file_exists($csvFile)) {
             $output .= "HATA: CSV dosyasi bulunamadi: {$csvFile}\n";
+            echo "HATA: Dosya yok.\n"; flush();
         } else {
+            $DB = \Illuminate\Support\Facades\DB::getFacadeRoot();
             if (!$noTruncate) {
-                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
-                \Illuminate\Support\Facades\DB::table('acenteler')->truncate();
-                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1');
-                $output .= "Tablo temizlendi (TRUNCATE).\n";
+                $DB->statement('SET FOREIGN_KEY_CHECKS=0');
+                $DB->table('acenteler')->truncate();
+                $DB->statement('SET FOREIGN_KEY_CHECKS=1');
+                echo "TRUNCATE OK.\n"; flush();
             }
             $handle = fopen($csvFile, 'r');
             $firstLine = fgets($handle); rewind($handle);
@@ -664,16 +664,19 @@ PHPCODE;
             $delim = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
             $headers = fgetcsv($handle, 0, $delim);
             $headers = array_map(fn($h) => trim(ltrim($h, "\xEF\xBB\xBF\xE2\x80\x8B")), $headers);
-            $output .= "Delimiter: " . ($delim === ';' ? ';' : ',') . " | Kolon sayisi: " . count($headers) . "\n";
-            $toplam = $yeni = $guncellenen = $hatali = 0;
+            echo "Delimiter:{$delim} Kolonlar:" . count($headers) . "\n"; flush();
+            $toplam = $hatali = 0;
+            $batch = [];
+            $now = now()->toDateTimeString();
             while (($row = fgetcsv($handle, 0, $delim)) !== false) {
                 if (count($row) < 2) continue;
                 $norm = array_slice(array_pad($row, count($headers), ''), 0, count($headers));
-                $data = array_combine($headers, $norm);
-                if ($data === false) { $hatali++; continue; }
+                $data = @array_combine($headers, $norm);
+                if (!$data) { $hatali++; continue; }
                 $belgeNo = trim($data['belgeNo'] ?? $data['Detay_BelgeNo'] ?? '');
                 if (!$belgeNo) { $hatali++; continue; }
-                $payload = [
+                $batch[] = [
+                    'belge_no'      => $belgeNo,
                     'acente_unvani' => trim($data['Detay_Unvan'] ?? '') ?: trim($data['unvan'] ?? ''),
                     'ticari_unvan'  => trim($data['Detay_TicariUnvan'] ?? '') ?: trim($data['ticariUnvan'] ?? ''),
                     'grup'          => trim($data['grup'] ?? ''),
@@ -687,27 +690,34 @@ PHPCODE;
                     'internal_id'   => trim($data['internalId'] ?? '') ?: null,
                     'durum'         => trim($data['_Durum'] ?? '') ?: null,
                     'kaynak'        => 'bakanlik',
-                    'synced_at'     => now(),
-                    'updated_at'    => now(),
+                    'synced_at'     => $now,
+                    'created_at'    => $now,
+                    'updated_at'    => $now,
                 ];
-                try {
-                    $exists = \Illuminate\Support\Facades\DB::table('acenteler')->where('belge_no', $belgeNo)->exists();
-                    if ($exists) {
-                        \Illuminate\Support\Facades\DB::table('acenteler')->where('belge_no', $belgeNo)->update($payload);
-                        $guncellenen++;
-                    } else {
-                        \Illuminate\Support\Facades\DB::table('acenteler')->insert(array_merge($payload, ['belge_no' => $belgeNo, 'created_at' => now()]));
-                        $yeni++;
+                $toplam++;
+                if (count($batch) >= 500) {
+                    try {
+                        $DB->table('acenteler')->insert($batch);
+                        echo $toplam . " satir islendi...\n"; flush();
+                    } catch (\Throwable $e) {
+                        $hatali += count($batch);
+                        echo "BATCH HATA: " . $e->getMessage() . "\n"; flush();
                     }
-                    $toplam++;
+                    $batch = [];
+                }
+            }
+            if ($batch) {
+                try {
+                    $DB->table('acenteler')->insert($batch);
                 } catch (\Throwable $e) {
-                    $hatali++;
-                    if ($hatali <= 3) $output .= "DB Hata ({$belgeNo}): " . $e->getMessage() . "\n";
+                    $hatali += count($batch);
+                    echo "SON BATCH HATA: " . $e->getMessage() . "\n"; flush();
                 }
             }
             fclose($handle);
-            $output .= "Tamamlandi! Toplam:{$toplam} Yeni:{$yeni} Guncellenen:{$guncellenen} Hatali:{$hatali}\n";
-            echo "Tamamlandi! Toplam:{$toplam} Yeni:{$yeni} Guncellenen:{$guncellenen} Hatali:{$hatali}\n"; flush();
+            $msg = "TAMAMLANDI! Toplam:{$toplam} Hatali:{$hatali}";
+            $output .= $msg . "\n";
+            echo $msg . "\n"; flush();
         }
         echo '</div>'; flush();
     } elseif ($action === 'ai-refresh') {
