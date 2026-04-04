@@ -21,13 +21,11 @@ Schedule::command('opsiyon:check')->everyMinute();
 // Zamanlanmış email kampanyası — her 5 dakikada kontrol, komut kendi saatini yönetir
 Schedule::command('kampanya:email-otomatik')
     ->everyFiveMinutes()
-    ->withoutOverlapping(10)
     ->environments(['production']);
 
 // Zamanlanmış SMS kampanyası — her 5 dakikada kontrol
 Schedule::command('kampanya:sms-otomatik')
     ->everyFiveMinutes()
-    ->withoutOverlapping(10)
     ->environments(['production']);
 
 // Zamanlanmış SMS'leri her dakika kontrol et ve gönder
