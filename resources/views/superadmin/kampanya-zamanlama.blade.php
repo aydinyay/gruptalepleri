@@ -42,6 +42,24 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
 <div class="container-fluid px-4 pb-5">
 
+    {{-- Cron Durum Bandı --}}
+    @if($cronAktif)
+        <div class="alert alert-success py-2 d-flex align-items-center gap-2 mb-3">
+            <span style="width:10px;height:10px;border-radius:50%;background:#198754;display:inline-block;flex-shrink:0;"></span>
+            <span><strong>Cron aktif</strong> — Son çalışma: <strong>{{ $cronSonCalisma->format('H:i:s') }}</strong> ({{ $cronSonCalisma->diffForHumans() }})</span>
+        </div>
+    @elseif($cronSonCalisma)
+        <div class="alert alert-danger py-2 d-flex align-items-center gap-2 mb-3">
+            <span style="width:10px;height:10px;border-radius:50%;background:#dc3545;display:inline-block;flex-shrink:0;"></span>
+            <span><strong>Cron çalışmıyor!</strong> Son çalışma: <strong>{{ $cronSonCalisma->format('H:i:s') }}</strong> ({{ $cronSonCalisma->diffForHumans() }}) — cPanel → Cron Jobs kontrol edin.</span>
+        </div>
+    @else
+        <div class="alert alert-warning py-2 d-flex align-items-center gap-2 mb-3">
+            <span style="width:10px;height:10px;border-radius:50%;background:#ffc107;display:inline-block;flex-shrink:0;"></span>
+            <span><strong>Cron durumu bilinmiyor</strong> — Henüz heartbeat alınmadı. 1-2 dakika bekleyip sayfayı yenileyin.</span>
+        </div>
+    @endif
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show py-2">
             <i class="fas fa-check-circle me-2"></i>{{ session('success') }}

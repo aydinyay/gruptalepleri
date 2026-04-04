@@ -8,6 +8,11 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Cron heartbeat — her dakika çalışarak son tetiklenme zamanını yazar
+Schedule::call(function () {
+    \App\Models\SistemAyar::set('cron_heartbeat', now()->toISOString());
+})->everyMinute()->name('cron-heartbeat')->withoutOverlapping();
+
 // Her dakika çağrılır; komut kendi içinde ayarlanan aralığa göre çalışıp çalışmayacağına karar verir
 Schedule::command('opsiyon:check')->everyMinute();
 

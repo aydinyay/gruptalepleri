@@ -780,11 +780,21 @@ class TursabController extends Controller
         $emailLog = $this->zamanlamaLog('email');
         $smsLog   = $this->zamanlamaLog('sms');
 
+        // Cron heartbeat
+        $cronHeartbeat = \App\Models\SistemAyar::get('cron_heartbeat');
+        $cronAktif     = false;
+        $cronSonCalisma = null;
+        if ($cronHeartbeat) {
+            $cronSonCalisma = \Carbon\Carbon::parse($cronHeartbeat)->timezone('Europe/Istanbul');
+            $cronAktif = $cronSonCalisma->diffInMinutes(now()) <= 3;
+        }
+
         $iller = Acenteler::whereNotNull('il')->where('il', '!=', '')
                           ->distinct()->orderBy('il')->pluck('il');
 
         return view('superadmin.kampanya-zamanlama', compact(
-            'emailAyar', 'smsAyar', 'emailLog', 'smsLog', 'iller'
+            'emailAyar', 'smsAyar', 'emailLog', 'smsLog', 'iller',
+            'cronAktif', 'cronSonCalisma'
         ));
     }
 
