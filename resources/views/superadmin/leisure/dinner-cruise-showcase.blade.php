@@ -288,93 +288,72 @@
         <div class="grid-3">
             @forelse($packages as $package)
                 @php
-                    $levelClass = match(strtolower((string) $package->level)) {
-                        'vip'     => 'pkg-vip',
-                        'premium' => 'pkg-premium',
-                        'standard'=> 'pkg-standard',
-                        default   => 'pkg-default',
-                    };
-                    $heroImage = trim((string) ($package->hero_image_url ?? ''));
-                    if ($heroImage !== '' && !str_starts_with($heroImage, 'http') && !str_starts_with($heroImage, '/')) {
-                        $heroImage = '/' . ltrim($heroImage, '/');
-                    }
                     $includes = collect($package->includes_tr ?? [])->filter()->take(5)->values();
                     $excludes = collect($package->excludes_tr ?? [])->filter()->take(3)->values();
+                    $levelColor = match(strtolower((string) $package->level)) {
+                        'vip'     => '#7c2d12',
+                        'premium' => '#312e81',
+                        default   => '#0f766e',
+                    };
                 @endphp
-                <article class="pkg-card">
-                    <div class="pkg-visual {{ $levelClass }}" @if($heroImage !== '') style="background-image:url('{{ $heroImage }}');" @endif>
-                        <span class="pkg-level-badge">{{ strtoupper((string) $package->level) }}</span>
-                        <div>
-                            <div style="font-size:11px;opacity:.7;margin-bottom:3px;">Bosphorus Dinner Cruise</div>
-                            <div style="font-weight:700;font-size:16px;">{{ $package->name_tr }}</div>
-                        </div>
+                <article class="sc-card" style="padding:20px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ $levelColor }};flex-shrink:0;"></span>
+                        <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:{{ $levelColor }};">{{ strtoupper((string) $package->level) }}</span>
                     </div>
-                    <div class="pkg-body">
-                        <h4>{{ $package->name_en ?: $package->name_tr }}</h4>
-                        <p>{{ $package->summary_tr ?: 'Boğazda akşam yemeği, canlı müzik ve eğlence programı içeren tam kapsamlı gemi turu.' }}</p>
-                        @if($includes->isNotEmpty())
-                            <div class="pkg-section-label">Dahil olanlar</div>
-                            <ul>
-                                @foreach($includes as $item)<li>{{ $item }}</li>@endforeach
-                            </ul>
-                        @endif
-                        @if($excludes->isNotEmpty())
-                            <div class="pkg-section-label">Hariç</div>
-                            <ul>
-                                @foreach($excludes as $item)<li>{{ $item }}</li>@endforeach
-                            </ul>
-                        @endif
-                    </div>
+                    <h3 style="margin:0 0 8px;font-size:18px;">{{ $package->name_tr }}</h3>
+                    <p style="margin:0 0 12px;color:var(--muted);font-size:14px;">{{ $package->summary_tr ?: 'Boğazda akşam yemeği, canlı müzik ve eğlence programı.' }}</p>
+                    @if($includes->isNotEmpty())
+                        <ul class="benefits" style="padding-left:18px;margin:0;color:var(--muted);font-size:14px;line-height:1.8;">
+                            @foreach($includes as $item)<li>{{ $item }}</li>@endforeach
+                        </ul>
+                    @endif
+                    @if($excludes->isNotEmpty())
+                        <p style="font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;margin:12px 0 4px;">Hariç</p>
+                        <ul style="padding-left:18px;margin:0;color:#94a3b8;font-size:13px;line-height:1.8;">
+                            @foreach($excludes as $item)<li>{{ $item }}</li>@endforeach
+                        </ul>
+                    @endif
                 </article>
             @empty
-                {{-- Statik fallback paketler --}}
-                <article class="pkg-card">
-                    <div class="pkg-visual pkg-standard">
-                        <span class="pkg-level-badge">STANDARD</span>
-                        <div style="font-weight:700;font-size:16px;">Classic Dinner Cruise</div>
+                <article class="sc-card">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#0f766e;flex-shrink:0;"></span>
+                        <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0f766e;">STANDARD</span>
                     </div>
-                    <div class="pkg-body">
-                        <h4>Classic Dinner Cruise</h4>
-                        <p>Boğazda akşam yemeği eşliğinde canlı müzik ve eğlence programı.</p>
-                        <div class="pkg-section-label">Dahil olanlar</div>
-                        <ul>
-                            <li>Fix menü akşam yemeği</li>
-                            <li>Canlı müzik ve sahne programı</li>
-                            <li>Merkezi iskelelerden kalkış</li>
-                        </ul>
-                    </div>
+                    <h3 style="margin:0 0 8px;font-size:18px;">Classic Dinner Cruise</h3>
+                    <p style="margin:0 0 12px;color:var(--muted);font-size:14px;">Boğazda akşam yemeği eşliğinde canlı müzik ve eğlence programı.</p>
+                    <ul class="benefits" style="padding-left:18px;margin:0;color:var(--muted);font-size:14px;line-height:1.8;">
+                        <li>Fix menü akşam yemeği</li>
+                        <li>Canlı müzik ve sahne programı</li>
+                        <li>Merkezi iskelelerden kalkış</li>
+                    </ul>
                 </article>
-                <article class="pkg-card">
-                    <div class="pkg-visual pkg-vip">
-                        <span class="pkg-level-badge">VIP</span>
-                        <div style="font-weight:700;font-size:16px;">Premium Dinner Cruise</div>
+                <article class="sc-card">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#7c2d12;flex-shrink:0;"></span>
+                        <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7c2d12;">VIP</span>
                     </div>
-                    <div class="pkg-body">
-                        <h4>Premium Dinner Cruise</h4>
-                        <p>VIP masa konumlaması ve geliştirilmiş menü alternatifleri ile özel gece deneyimi.</p>
-                        <div class="pkg-section-label">Dahil olanlar</div>
-                        <ul>
-                            <li>VIP masa konumlaması seçeneği</li>
-                            <li>Geliştirilmiş menü alternatifleri</li>
-                            <li>Özel gün kutlama kurguları</li>
-                        </ul>
-                    </div>
+                    <h3 style="margin:0 0 8px;font-size:18px;">Premium Dinner Cruise</h3>
+                    <p style="margin:0 0 12px;color:var(--muted);font-size:14px;">VIP masa konumlaması ve geliştirilmiş menü alternatifleri ile özel gece deneyimi.</p>
+                    <ul class="benefits" style="padding-left:18px;margin:0;color:var(--muted);font-size:14px;line-height:1.8;">
+                        <li>VIP masa konumlaması seçeneği</li>
+                        <li>Geliştirilmiş menü alternatifleri</li>
+                        <li>Özel gün kutlama kurguları</li>
+                    </ul>
                 </article>
-                <article class="pkg-card">
-                    <div class="pkg-visual pkg-premium">
-                        <span class="pkg-level-badge">GROUP</span>
-                        <div style="font-weight:700;font-size:16px;">Group & Incentive</div>
+                <article class="sc-card">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#312e81;flex-shrink:0;"></span>
+                        <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#312e81;">GROUP</span>
                     </div>
-                    <div class="pkg-body">
-                        <h4>Group &amp; Incentive Çözümleri</h4>
-                        <p>Kurumsal gruplar için transfer + cruise kombine satış ve markalı etkinlik desteği.</p>
-                        <div class="pkg-section-label">Dahil olanlar</div>
-                        <ul>
-                            <li>Kurumsal grup rezervasyon yönetimi</li>
-                            <li>Transfer + cruise kombine satış</li>
-                            <li>Markalı özel etkinlik desteği</li>
-                        </ul>
-                    </div>
+                    <h3 style="margin:0 0 8px;font-size:18px;">Group &amp; Incentive</h3>
+                    <p style="margin:0 0 12px;color:var(--muted);font-size:14px;">Kurumsal gruplar için transfer + cruise kombine satış ve markalı etkinlik desteği.</p>
+                    <ul class="benefits" style="padding-left:18px;margin:0;color:var(--muted);font-size:14px;line-height:1.8;">
+                        <li>Kurumsal grup rezervasyon yönetimi</li>
+                        <li>Transfer + cruise kombine satış</li>
+                        <li>Markalı özel etkinlik desteği</li>
+                    </ul>
                 </article>
             @endforelse
         </div>
