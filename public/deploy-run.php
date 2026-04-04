@@ -565,6 +565,10 @@ PHPCODE;
         }
         $run($kernel, 'route:clear');
         $run($kernel, 'config:clear');
+    } elseif ($action === 'schedule-run') {
+        $run($kernel, 'schedule:run');
+    } elseif ($action === 'email-force') {
+        $run($kernel, 'kampanya:email-otomatik', ['--force' => true]);
     } elseif ($action === 'migrate') {
         $run($kernel, 'migrate', ['--force' => true]);
     } elseif ($action === 'cache-clear') {
@@ -929,6 +933,8 @@ PHPCODE;
 <h2>Deploy Runner - GrupTalepleri</h2>
 <div class="warn">Bu dosyayi kullandiktan sonra hemen silin.</div>
 
+<a href="?key=<?= urlencode($providedKey) ?>&action=schedule-run" class="btn green">⚙️ Schedule Run (Test)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=email-force" class="btn red" onclick="return confirm('Email kampanyası FORCE çalıştırılacak. Onaylıyor musun?')">📧 Email Force Çalıştır</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=check-blade" class="btn blue">🔍 Check Blade (Kontrol)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=fix-route-names" class="btn red" onclick="return confirm('Route adlari duzeltilsin ve view cache temizlensin mi?')">🔧 Fix Route Names + Clear Views</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=clear-views" class="btn red" onclick="return confirm('Compiled view cache temizlensin mi?')">🗑️ Clear Views (Direkt)</a>
