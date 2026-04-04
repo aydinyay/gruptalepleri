@@ -10,6 +10,8 @@ Artisan::command('inspire', function () {
 
 // Cron heartbeat — her dakika çalışarak son tetiklenme zamanını yazar
 Schedule::call(function () {
+    $file = storage_path('app/cron_heartbeat.txt');
+    file_put_contents($file, now()->toISOString());
     \App\Models\SistemAyar::set('cron_heartbeat', now()->toISOString());
 })->everyMinute()->name('cron-heartbeat')->withoutOverlapping();
 

@@ -780,9 +780,12 @@ class TursabController extends Controller
         $emailLog = $this->zamanlamaLog('email');
         $smsLog   = $this->zamanlamaLog('sms');
 
-        // Cron heartbeat
-        $cronHeartbeat = \App\Models\SistemAyar::get('cron_heartbeat');
-        $cronAktif     = false;
+        // Cron heartbeat — önce dosyadan, yoksa DB'den oku
+        $heartbeatFile = storage_path('app/cron_heartbeat.txt');
+        $cronHeartbeat = file_exists($heartbeatFile)
+            ? trim(file_get_contents($heartbeatFile))
+            : \App\Models\SistemAyar::get('cron_heartbeat');
+        $cronAktif      = false;
         $cronSonCalisma = null;
         if ($cronHeartbeat) {
             $cronSonCalisma = \Carbon\Carbon::parse($cronHeartbeat)->timezone('Europe/Istanbul');
