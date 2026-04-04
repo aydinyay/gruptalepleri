@@ -342,6 +342,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <th>Tür</th>
                             <th>Adet</th>
                             <th>Filtre</th>
+                            <th>Tarih Aralığı</th>
                             <th>Durum</th>
                             <th></th>
                         </tr>
@@ -373,6 +374,17 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <td><span class="badge bg-danger">📧 Email</span>@if($cakisiyorMu) <span class="badge bg-warning text-dark ms-1">⚠ Çakışma</span>@endif</td>
                             <td>{{ $slot['adet'] }}</td>
                             <td class="text-muted">{{ $filtreTxt }}</td>
+                            <td class="text-muted" style="font-size:0.78rem;">
+                                @php
+                                    $bas = $emailAyar['baslangic_tarihi'] ?? '';
+                                    $bit = $emailAyar['bitis_tarihi'] ?? '';
+                                @endphp
+                                @if($bas || $bit)
+                                    {{ $bas ?: '∞' }} → {{ $bit ?: '∞' }}
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($calistiMi)
                                     <span class="text-success fw-bold">✓ Tamamlandı</span>
@@ -405,6 +417,17 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <td><span class="badge bg-info text-dark">📱 SMS</span>@if($cakisiyorMu) <span class="badge bg-warning text-dark ms-1">⚠ Çakışma</span>@endif</td>
                             <td>{{ $slot['adet'] }}</td>
                             <td class="text-muted">{{ $smsAyar['filtre']['il'] ?? 'Tümü' }}</td>
+                            <td class="text-muted" style="font-size:0.78rem;">
+                                @php
+                                    $bas = $smsAyar['baslangic_tarihi'] ?? '';
+                                    $bit = $smsAyar['bitis_tarihi'] ?? '';
+                                @endphp
+                                @if($bas || $bit)
+                                    {{ $bas ?: '∞' }} → {{ $bit ?: '∞' }}
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($calistiMi)
                                     <span class="text-info fw-bold">✓ Tamamlandı</span>
