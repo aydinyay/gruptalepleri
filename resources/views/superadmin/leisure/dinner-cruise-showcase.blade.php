@@ -246,11 +246,11 @@
 
 <header class="hero">
     <div class="showcase-container">
-        <span class="badge-chip">🚢 B2B Satışa Özel | Bosphorus Dinner Cruise</span>
-        <h1>Acenteler için hazır satılabilir Bosphorus Dinner Cruise paketleri</h1>
+        <span class="badge-chip">🚢 B2B | Bosphorus Dinner Cruise</span>
+        <h1>Müşteriniz sorarken teklifiniz hazır olsun</h1>
         <p class="lead">
-            Misafirleriniz için boğazda akşam yemeği, eğlence ve transfer opsiyonlarını tek noktadan yönetin.
-            Hedefiniz daha hızlı teklif, daha net fiyat ve daha az operasyon yükü ise bu sayfa sizin için tasarlandı.
+            Boğazda akşam yemeği, canlı müzik ve eğlence — sabit B2B fiyatlarla, açık kontenjanla.
+            GrupTalepleri üzerinden talep oluşturun, aynı gün teklifinizi alın, müşterinize iletin.
         </p>
         <div class="hero-actions">
             <a class="btn-sc btn-sc-primary" href="{{ route('acente.dinner-cruise.create') }}">Talep Oluştur</a>
@@ -414,25 +414,25 @@
 
 <section class="sc-section">
     <div class="showcase-container">
-        <h2>Çalışma akışı: 4 adımda satış</h2>
-        <p class="sub">Teklif aşamasından operasyon kapanışına kadar tek ekip, tek platform.</p>
+        <h2>Nasıl çalışır?</h2>
+        <p class="sub">Sistemden talebi oluşturun, gerisini biz halledelim.</p>
         <div class="grid-4">
-            <div class="step-card"><strong>Adım 1</strong><p>Acente talebi tarih, kişi sayısı ve paket seçimiyle GrupTalepleri üzerinden iletilir.</p></div>
-            <div class="step-card"><strong>Adım 2</strong><p>Uygunluk kontrolü yapılır ve B2B teklif aynı gün paylaşılır.</p></div>
-            <div class="step-card"><strong>Adım 3</strong><p>Onay sonrası rezervasyon bloklanır, özel menü ve servis detayları netleştirilir.</p></div>
-            <div class="step-card"><strong>Adım 4</strong><p>Operasyon dosyası kapanışına kadar tek ekip ile takip edilir.</p></div>
+            <div class="step-card"><strong>Adım 1 — Talep</strong><p>GrupTalepleri sistemine girin, tarih + kişi sayısı + paket seçin, talebi gönderin.</p></div>
+            <div class="step-card"><strong>Adım 2 — Teklif</strong><p>Aynı gün B2B fiyatlı teklifiniz hazır. Müşterinize direkt iletebilirsiniz.</p></div>
+            <div class="step-card"><strong>Adım 3 — Konfirmasyon</strong><p>Müşteri onayı sonrası rezervasyon kesinleşir. Özel istek varsa bu aşamada netleştirilir.</p></div>
+            <div class="step-card"><strong>Adım 4 — Operasyon</strong><p>Etkinlik gününe kadar tek ekip, tek iletişim hattı. Siz sadece müşterinizi gönderin.</p></div>
         </div>
     </div>
 </section>
 
 <div class="cta-box px-4 px-md-5">
-    <h2>B2B Bosphorus Dinner Cruise satışına bugün başlayın</h2>
-    <p class="sub">{{ $sirket['unvan'] }} — Fiyat listesi, acente komisyon modeli ve sezonluk kontenjan için bize ulaşın.</p>
+    <h2>Hemen başlayın</h2>
+    <p class="sub">Sistem üzerinden talep oluşturun ya da doğrudan ulaşın — aynı gün dönüş garantisi.</p>
     <ul class="contact-list">
-        <li>Talep: <a href="{{ route('acente.dinner-cruise.create') }}">GrupTalepleri sistem üzerinden talep oluştur →</a></li>
-        <li>E-posta: <a href="mailto:{{ $sirket['eposta'] }}">{{ $sirket['eposta'] }}</a></li>
-        <li>Telefon: <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}">{{ $sirket['telefon'] }}</a></li>
-        <li>WhatsApp: <a href="https://wa.me/{{ $sirket['whatsapp'] }}" target="_blank" rel="noopener">Hızlı iletişim →</a></li>
+        <li>🖥 <a href="{{ route('acente.dinner-cruise.create') }}">Sisteme gir ve talep oluştur →</a></li>
+        <li>📧 <a href="mailto:{{ $sirket['eposta'] }}">{{ $sirket['eposta'] }}</a></li>
+        <li>📞 <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}">{{ $sirket['telefon'] }}</a></li>
+        <li>💬 <a href="https://wa.me/{{ $sirket['whatsapp'] }}" target="_blank" rel="noopener">WhatsApp ile yaz →</a></li>
     </ul>
 </div>
 
