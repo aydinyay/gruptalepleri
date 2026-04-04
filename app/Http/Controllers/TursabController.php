@@ -919,6 +919,7 @@ class TursabController extends Controller
                 'tursab_davetler.created_at',
                 'acenteler.telefon',
             )
+            ->groupBy('tursab_davetler.eposta')
             ->orderByDesc('tursab_davetler.tiklanma_at')
             ->paginate(50);
 
