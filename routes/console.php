@@ -47,6 +47,7 @@ Schedule::call(fn() => \Artisan::call('acenteler:sync', ['--batch' => '50', '--d
     ->weekly()
     ->sundays()
     ->at('02:00')
+    ->name('acenteler-sync')
     ->withoutOverlapping(120)
     ->environments(['production']);
 
