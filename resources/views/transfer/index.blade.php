@@ -112,11 +112,11 @@
 
 <div class="container py-4 gt-transfer-page">
     <div class="gt-transfer-hero mb-3">
-        <div class="kicker">Transfer Marketplace</div>
-        <h1>Havalimani transfer arama ekrani</h1>
+        <div class="kicker"><i class="fas fa-shuttle-van me-1"></i>Transfer Marketplace</div>
+        <h1>Havalimanı Transfer — Anlık Fiyat & Rezervasyon</h1>
         <p>
-            Havalimani, bolge, tarih ve yolcu bilgilerini girin. Sonuclarda supplier bazli fiyatlari gorup
-            rezervasyona yerel checkout ile devam edin.
+            Havalimanı, bölge, tarih ve yolcu bilgilerini girin; tedarikçi bazlı anlık fiyatları karşılaştırın,
+            tek tıkla rezervasyona geçin.
         </p>
     </div>
 
