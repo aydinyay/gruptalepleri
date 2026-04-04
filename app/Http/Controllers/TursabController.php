@@ -895,6 +895,36 @@ class TursabController extends Controller
         return back()->with('success', "$saat slotu silindi.");
     }
 
+    public function sicakLeadler()
+    {
+        $this->assertSuperadmin();
+
+        $leadler = \App\Models\TursabDavet::whereNotNull('tiklanma_at')
+            ->where('tip', 'email')
+            ->whereNotExists(function ($q) {
+                $q->select(\DB::raw(1))
+                  ->from('users')
+                  ->whereColumn('users.belge_no', 'tursab_davetler.belge_no');
+            })
+            ->join('acenteler', 'acenteler.belge_no', '=', 'tursab_davetler.belge_no')
+            ->select(
+                'tursab_davetler.id',
+                'tursab_davetler.belge_no',
+                'tursab_davetler.acente_unvani',
+                'tursab_davetler.eposta',
+                'tursab_davetler.il',
+                'tursab_davetler.kampanya_etiket',
+                'tursab_davetler.tiklanma_at',
+                'tursab_davetler.tiklanma_sayisi',
+                'tursab_davetler.created_at',
+                'acenteler.telefon',
+            )
+            ->orderByDesc('tursab_davetler.tiklanma_at')
+            ->paginate(50);
+
+        return view('superadmin.sicak-leadler', compact('leadler'));
+    }
+
     private function zamanlamaAyar(string $tip): array
     {
         $key = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';

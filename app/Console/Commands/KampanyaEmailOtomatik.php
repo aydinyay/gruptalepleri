@@ -16,6 +16,8 @@ class KampanyaEmailOtomatik extends Command
     private const AYAR_KEY       = 'kampanya_email_zamanlama';
     private const LOG_KEY        = 'kampanya_email_calisma_log';
     private const SABLON_DEFAULT = 'emails.tursab_davet';
+    private const ETIKET         = 'email-oto';
+    private const COOLDOWN_DAYS  = 7;
 
     public function handle(): int
     {
@@ -51,9 +53,9 @@ class KampanyaEmailOtomatik extends Command
         }
 
         // Tarih aralığı kontrolü
-        $bugunTarih   = now()->format('Y-m-d');
-        $baslangic    = $ayar['baslangic_tarihi'] ?? '';
-        $bitis        = $ayar['bitis_tarihi']     ?? '';
+        $bugunTarih = now()->format('Y-m-d');
+        $baslangic  = $ayar['baslangic_tarihi'] ?? '';
+        $bitis      = $ayar['bitis_tarihi']     ?? '';
         if ($baslangic && $bugunTarih < $baslangic) {
             $this->line("Kampanya henüz başlamadı (başlangıç: $baslangic).");
             return self::SUCCESS;
@@ -66,12 +68,10 @@ class KampanyaEmailOtomatik extends Command
         $slotlar    = $ayar['slotlar'] ?? [];
         $filtre     = $ayar['filtre']  ?? [];
         $sablon     = $filtre['sablon'] ?? self::SABLON_DEFAULT;
-        $sadeceYeni = $filtre['sadece_yeni'] ?? true; // varsayılan: spam önleme açık
         $force      = $this->option('force');
-        $dryRun  = $this->option('dry-run');
+        $dryRun     = $this->option('dry-run');
 
-        $simdikiSaat = now()->format('H:i');
-        $simdikiSaatSadece = now()->format('H'); // sadece saat (00-23)
+        $simdikiSaatSadece = now()->format('H');
         $bugun = now()->format('Y-m-d');
 
         // Bugünkü çalışma logu
@@ -79,19 +79,39 @@ class KampanyaEmailOtomatik extends Command
         $log = json_decode($logJson, true) ?? [];
         $bugunCalisanlar = $log[$bugun] ?? [];
 
+        // Global cooldown: son 7 günde gönderilmiş epostalar
+        $cooldownEpostalar = TursabDavet::where('tip', 'email')
+            ->where('status', 'sent')
+            ->where('created_at', '>=', now()->subDays(self::COOLDOWN_DAYS))
+            ->whereNotNull('eposta')
+            ->pluck('eposta')
+            ->map(fn($e) => strtolower(trim($e)))
+            ->unique()
+            ->toArray();
+
+        // Kampanya dedup: bu etiketle daha önce gönderilmiş epostalar (süresiz)
+        $etiketEpostalar = TursabDavet::where('tip', 'email')
+            ->where('kampanya_etiket', self::ETIKET)
+            ->whereNotNull('eposta')
+            ->pluck('eposta')
+            ->map(fn($e) => strtolower(trim($e)))
+            ->unique()
+            ->toArray();
+
+        // Birleşik hariç tutma listesi
+        $hariçEpostalar = array_unique(array_merge($cooldownEpostalar, $etiketEpostalar));
+
         foreach ($slotlar as $slot) {
             if (empty($slot['aktif'])) continue;
 
-            $slotSaat = $slot['saat'] ?? '';    // "09:00"
+            $slotSaat = $slot['saat'] ?? '';
             $adet     = (int) ($slot['adet'] ?? 50);
             if (!$slotSaat || $adet <= 0) continue;
 
-            $slotSaatSadece = substr($slotSaat, 0, 2); // "09"
+            $slotSaatSadece = substr($slotSaat, 0, 2);
 
-            // Saat eşleşiyor mu?
             if (!$force && $simdikiSaatSadece !== $slotSaatSadece) continue;
 
-            // Bu slot bugün zaten çalıştı mı?
             if (!$force && in_array($slotSaat, $bugunCalisanlar)) {
                 $this->line("[$slotSaat] Bu slot bugün zaten çalıştı, atlanıyor.");
                 continue;
@@ -99,32 +119,23 @@ class KampanyaEmailOtomatik extends Command
 
             $this->info("[$slotSaat] Email kampanyası başlıyor — $adet acente hedefleniyor...");
 
-            // Acente sorgusu
             $query = Acenteler::whereNotNull('eposta')->where('eposta', '!=', '');
 
             if (!empty($filtre['il']))   $query->where('il', $filtre['il']);
             if (!empty($filtre['ilce'])) $query->where('il_ilce', $filtre['ilce']);
             if (!empty($filtre['grup'])) $query->where('grup', $filtre['grup']);
 
-            // Spam önleme: daha önce gönderilenler hariç
-            if ($sadeceYeni) {
-                $gidenlEpostalar = TursabDavet::where('tip', 'email')
-                    ->whereNotNull('eposta')
-                    ->pluck('eposta')
-                    ->map(fn($e) => strtolower($e))
-                    ->toArray();
-                if (count($gidenlEpostalar)) {
-                    $placeholders = implode(',', array_fill(0, count($gidenlEpostalar), '?'));
-                    $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $gidenlEpostalar);
-                }
+            // Hariç tutulanlar (cooldown + etiket dedup)
+            if (count($hariçEpostalar)) {
+                $placeholders = implode(',', array_fill(0, count($hariçEpostalar), '?'));
+                $query->whereRaw("LOWER(eposta) NOT IN ({$placeholders})", $hariçEpostalar);
             }
 
-            // Yeni acente tebrik şablonunda en son eklenenler önce gelsin
             $siralama = ($sablon === 'emails.tursab_davet_yeni_acente') ? 'DESC' : 'ASC';
 
-            // Geçersiz email adreslerini absorbe etmek için $adet'in 3 katı çek
+            // Geçersiz email absorbe için 3 katı çek
             $acenteler = $query
-                ->select('id','belge_no','acente_unvani','ticari_unvan','il','eposta','telefon')
+                ->select('id', 'belge_no', 'acente_unvani', 'ticari_unvan', 'il', 'eposta', 'telefon')
                 ->orderByRaw("CAST(belge_no AS UNSIGNED) {$siralama}")
                 ->limit($adet * 3)
                 ->get();
@@ -135,11 +146,11 @@ class KampanyaEmailOtomatik extends Command
                 continue;
             }
 
-            $basarili = 0;
+            $basarili  = 0;
             $basarisiz = 0;
 
             foreach ($acenteler as $a) {
-                if ($basarili >= $adet) break; // yeterli sayıya ulaşıldı
+                if ($basarili >= $adet) break;
 
                 $email = trim($a->eposta ?? '');
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $basarisiz++; continue; }
@@ -160,10 +171,13 @@ class KampanyaEmailOtomatik extends Command
                         'acente_unvani'    => $a->acente_unvani,
                         'il'               => $a->il ?: null,
                         'tip'              => 'email',
+                        'kampanya_etiket'  => self::ETIKET,
                         'status'           => 'sent',
                         'gonderen_user_id' => null,
                     ]);
                     $basarili++;
+                    // Hariç listeye ekle (aynı çalışma içinde tekrar seçilmesin)
+                    $hariçEpostalar[] = strtolower($email);
                 } catch (\Throwable $e) {
                     TursabDavet::create([
                         'belge_no'         => $a->belge_no ?: null,
@@ -171,6 +185,7 @@ class KampanyaEmailOtomatik extends Command
                         'acente_unvani'    => $a->acente_unvani,
                         'il'               => $a->il ?: null,
                         'tip'              => 'email',
+                        'kampanya_etiket'  => self::ETIKET,
                         'status'           => 'failed',
                         'hata'             => $e->getMessage(),
                         'gonderen_user_id' => null,
@@ -192,7 +207,6 @@ class KampanyaEmailOtomatik extends Command
     private function markSlotDone(string $bugun, string $slotSaat, array &$log): void
     {
         $log[$bugun][] = $slotSaat;
-        // Sadece son 7 günü tut
         $log = array_filter($log, fn($k) => $k >= now()->subDays(7)->format('Y-m-d'), ARRAY_FILTER_USE_KEY);
         SistemAyar::set(self::LOG_KEY, json_encode($log));
     }
@@ -203,7 +217,15 @@ class KampanyaEmailOtomatik extends Command
             ? 'Hayırlı Olsun! GrupTalepleri\'nden tebrikler 🎉'
             : 'GrupTalepleri.com — Platforma Davet';
 
-        $vars = ['acenteUnvani' => $acenteAdi, 'belgeNo' => $belgeNo, 'kayitUrl' => route('register'), 'aiParagraf' => ''];
+        // Kayıt linkini takip linki olarak sar
+        $izLink = url('/iz/' . base64_encode(self::ETIKET . '|' . $belgeNo));
+
+        $vars = [
+            'acenteUnvani' => $acenteAdi,
+            'belgeNo'      => $belgeNo,
+            'kayitUrl'     => $izLink,
+            'aiParagraf'   => '',
+        ];
 
         Mail::send(
             $sablon,

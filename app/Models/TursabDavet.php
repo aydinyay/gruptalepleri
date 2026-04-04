@@ -10,7 +10,8 @@ class TursabDavet extends Model
 
     protected $fillable = [
         'belge_no', 'eposta', 'acente_unvani', 'il',
-        'tip', 'status', 'hata', 'gonderen_user_id',
+        'tip', 'kampanya_etiket', 'status', 'hata', 'gonderen_user_id',
+        'tiklanma_at', 'tiklanma_sayisi',
     ];
 
     protected $casts = [

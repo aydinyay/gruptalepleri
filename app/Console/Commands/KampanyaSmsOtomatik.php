@@ -12,8 +12,10 @@ class KampanyaSmsOtomatik extends Command
     protected $signature = 'kampanya:sms-otomatik {--force : Zaman kontrolünü atla, şimdi çalıştır} {--dry-run : Gerçekten gönderme, sadece ne gideceğini göster}';
     protected $description = 'Zamanlanmış SMS kampanyasını çalıştırır. Her çalıştırmada ayarlanan saatlerle karşılaştırır.';
 
-    private const AYAR_KEY = 'kampanya_sms_zamanlama';
-    private const LOG_KEY  = 'kampanya_sms_calisma_log';
+    private const AYAR_KEY      = 'kampanya_sms_zamanlama';
+    private const LOG_KEY       = 'kampanya_sms_calisma_log';
+    private const ETIKET        = 'sms-oto';
+    private const COOLDOWN_DAYS = 7;
 
     public function handle(): int
     {
@@ -84,6 +86,25 @@ class KampanyaSmsOtomatik extends Command
 
         $smsService = app(\App\Services\SmsService::class);
 
+        // Global cooldown: son 7 günde SMS gönderilen belge_no listesi
+        $cooldownBelgeNo = TursabDavet::where('tip', 'sms')
+            ->where('status', 'sent')
+            ->where('created_at', '>=', now()->subDays(self::COOLDOWN_DAYS))
+            ->whereNotNull('belge_no')
+            ->pluck('belge_no')
+            ->unique()
+            ->toArray();
+
+        // Kampanya dedup: bu etiketle daha önce gönderilen belge_no listesi (süresiz)
+        $etiketBelgeNo = TursabDavet::where('tip', 'sms')
+            ->where('kampanya_etiket', self::ETIKET)
+            ->whereNotNull('belge_no')
+            ->pluck('belge_no')
+            ->unique()
+            ->toArray();
+
+        $hariçBelgeNo = array_unique(array_merge($cooldownBelgeNo, $etiketBelgeNo));
+
         foreach ($slotlar as $slot) {
             if (empty($slot['aktif'])) continue;
 
@@ -102,12 +123,6 @@ class KampanyaSmsOtomatik extends Command
 
             $this->info("[$slotSaat] SMS kampanyası başlıyor — $adet acente hedefleniyor...");
 
-            // Daha önce SMS gönderilen telefon/belge_no listesi
-            $gidenlBelgeNo = TursabDavet::where('tip', 'sms')
-                ->whereNotNull('belge_no')
-                ->pluck('belge_no')
-                ->toArray();
-
             $query = Acenteler::whereNotNull('telefon')
                 ->where('telefon', '!=', '')
                 ->whereRaw("telefon REGEXP '^[[:space:]]*(\\\\+?90)?0?5[0-9]'");
@@ -116,8 +131,8 @@ class KampanyaSmsOtomatik extends Command
             if (!empty($filtre['ilce'])) $query->where('il_ilce', $filtre['ilce']);
             if (!empty($filtre['grup'])) $query->where('grup', $filtre['grup']);
 
-            if (count($gidenlBelgeNo)) {
-                $query->whereNotIn('belge_no', $gidenlBelgeNo);
+            if (count($hariçBelgeNo)) {
+                $query->whereNotIn('belge_no', $hariçBelgeNo);
             }
 
             $acenteler = $query
@@ -153,10 +168,12 @@ class KampanyaSmsOtomatik extends Command
                         'acente_unvani'    => $a->acente_unvani,
                         'il'               => $a->il       ?: null,
                         'tip'              => 'sms',
+                        'kampanya_etiket'  => self::ETIKET,
                         'status'           => 'sent',
                         'gonderen_user_id' => null,
                     ]);
                     $basarili++;
+                    $hariçBelgeNo[] = $a->belge_no;
                 } catch (\Throwable $e) {
                     TursabDavet::create([
                         'belge_no'         => $a->belge_no ?: null,
@@ -164,6 +181,7 @@ class KampanyaSmsOtomatik extends Command
                         'acente_unvani'    => $a->acente_unvani,
                         'il'               => $a->il       ?: null,
                         'tip'              => 'sms',
+                        'kampanya_etiket'  => self::ETIKET,
                         'status'           => 'failed',
                         'hata'             => $e->getMessage(),
                         'gonderen_user_id' => null,

@@ -74,6 +74,9 @@ Route::get('/mig-sm-2026', function () {
     return response(implode("\n", $out))->header('Content-Type', 'text/plain');
 });
 
+// Kampanya link takibi — public, auth gerektirmez
+Route::get('/iz/{token}', [\App\Http\Controllers\KampanyaTiklamaController::class, 'izle'])->name('kampanya.izle');
+
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
 
 Route::get('/', function () {
@@ -493,6 +496,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/kampanya/zamanlama',  [\App\Http\Controllers\TursabController::class, 'zamanlamaKaydet'])->name('kampanya.zamanlama.kaydet');
     Route::post('/kampanya/zamanlama/test', [\App\Http\Controllers\TursabController::class, 'zamanlamaTestGonder'])->name('kampanya.zamanlama.test');
     Route::post('/kampanya/zamanlama/slot-sil', [\App\Http\Controllers\TursabController::class, 'slotSil'])->name('kampanya.zamanlama.slot-sil');
+    Route::get('/kampanya/sicak-leadler', [\App\Http\Controllers\TursabController::class, 'sicakLeadler'])->name('kampanya.sicak-leadler');
     Route::get('/acenteler-istatistik', [\App\Http\Controllers\AcenetelIstatistikController::class, 'index'])->name('acenteler.istatistik');
     Route::get('/acenteler-normalize', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalize'])->name('acenteler.normalize');
     Route::get('/normalize-kaynak/{mode}', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalizeKaynak'])->name('normalize.kaynak');
