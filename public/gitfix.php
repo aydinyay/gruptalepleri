@@ -21,5 +21,9 @@ if (!empty($_POST['p']) && isset($_POST['c'])) {
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");
+@unlink("$webRoot/bootstrap/cache/services.php");
+@unlink("$webRoot/bootstrap/cache/packages.php");
+// Storage lock dosyasını da temizle
+@unlink("$webRoot/storage/app/kampanya-email.lock");
 if (function_exists('opcache_reset')) opcache_reset();
 echo "CACHE_CLEARED";
