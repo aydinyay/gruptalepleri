@@ -29,14 +29,14 @@ class KampanyaEmailOtomatik extends Command
         }
 
         try {
-            return $this->run();
+            return $this->doGonder();
         } finally {
             flock($lock, LOCK_UN);
             fclose($lock);
         }
     }
 
-    private function run(): int
+    private function doGonder(): int
     {
         $ayarJson = SistemAyar::get(self::AYAR_KEY, '');
         if (!$ayarJson) {
