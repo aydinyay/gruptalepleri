@@ -635,6 +635,17 @@ PHPCODE;
         }
         $output .= "Silinen compiled view: {$deleted} dosya\n";
         $output .= "Kalan: " . count(glob($viewsDir . '/*.php')) . " dosya\n";
+    } elseif ($action === 'cron-log') {
+        $logFile = $basePath . '/storage/logs/cron.log';
+        if (!file_exists($logFile)) {
+            $output .= "cron.log bulunamadı: {$logFile}\n";
+            $output .= "Cron henüz çalışmamış veya /dev/null'a yönlendiriliyor.\n";
+        } else {
+            $lines = file($logFile);
+            $last = array_slice($lines, -50);
+            $output .= "--- cron.log Son 50 satır ---\n";
+            $output .= implode('', $last);
+        }
     } elseif ($action === 'log') {
         $logFile = $basePath . '/storage/logs/laravel.log';
         if (!file_exists($logFile)) {
@@ -938,6 +949,7 @@ PHPCODE;
 <a href="?key=<?= urlencode($providedKey) ?>&action=check-blade" class="btn blue">🔍 Check Blade (Kontrol)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=fix-route-names" class="btn red" onclick="return confirm('Route adlari duzeltilsin ve view cache temizlensin mi?')">🔧 Fix Route Names + Clear Views</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=clear-views" class="btn red" onclick="return confirm('Compiled view cache temizlensin mi?')">🗑️ Clear Views (Direkt)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=cron-log" class="btn blue">📋 Cron Log</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=log" class="btn blue">📋 Laravel Log (Son 100)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=status" class="btn blue">Migration Durumu</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=migrate" class="btn green" onclick="return confirm('Migration calistirilsin mi?')">Migrate</a>
