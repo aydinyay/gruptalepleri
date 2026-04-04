@@ -275,6 +275,118 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
 
     </div>
 
+    {{-- Bugünkü Plan --}}
+    @php
+        $bugun       = now()->timezone('Europe/Istanbul')->format('Y-m-d');
+        $simdi       = now()->timezone('Europe/Istanbul')->format('H:i');
+        $emailCalan  = $emailLog[$bugun] ?? [];
+        $smsCalan    = $smsLog[$bugun]   ?? [];
+
+        $planliEmail = collect($emailAyar['slotlar'] ?? [])
+            ->filter(fn($s) => !empty($s['aktif']) && !empty($s['saat']))
+            ->sortBy('saat')->values();
+
+        $planliSms = collect($smsAyar['slotlar'] ?? [])
+            ->filter(fn($s) => !empty($s['aktif']) && !empty($s['saat']))
+            ->sortBy('saat')->values();
+
+        // Çakışma: aynı saatte hem email hem SMS var mı?
+        $emailSaatler = $planliEmail->pluck('saat')->map(fn($s) => substr($s,0,2))->toArray();
+        $smsSaatler   = $planliSms->pluck('saat')->map(fn($s) => substr($s,0,2))->toArray();
+        $cakisan      = array_intersect($emailSaatler, $smsSaatler);
+    @endphp
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header py-2 fw-bold small d-flex justify-content-between align-items-center">
+            <span>📅 Bugünkü Gönderim Planı <span class="text-muted fw-normal">({{ now()->timezone('Europe/Istanbul')->format('d.m.Y') }})</span></span>
+            @if(count($cakisan))
+                <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>Aynı saatte Email + SMS çakışması!</span>
+            @endif
+        </div>
+        <div class="card-body py-3">
+            @if($planliEmail->isEmpty() && $planliSms->isEmpty())
+                <p class="text-muted small mb-0">Aktif plan yok. Yukarıdan slot ekleyip kaydedin.</p>
+            @else
+            <div class="table-responsive">
+                <table class="table table-sm mb-0" style="font-size:0.83rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Saat</th>
+                            <th>Tür</th>
+                            <th>Adet</th>
+                            <th>Filtre</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($planliEmail->merge($planliSms)->sortBy('saat') as $slot)
+                        @php
+                            $tip      = $planliEmail->contains('saat', $slot['saat']) && $planliSms->contains('saat', $slot['saat'])
+                                        ? ($slot === $planliEmail->firstWhere('saat', $slot['saat']) ? 'email' : 'sms')
+                                        : ($planliEmail->contains('saat', $slot['saat']) ? 'email' : 'sms');
+                            // Daha basit: email mi sms mi anlamak için orijinal koleksiyona bak
+                        @endphp
+                        @endforeach
+
+                        @foreach($planliEmail as $slot)
+                        @php
+                            $saatKisa  = substr($slot['saat'], 0, 2);
+                            $gecti     = $simdi > substr($slot['saat'],0,2).':59';
+                            $calistiMi = in_array($slot['saat'], $emailCalan);
+                            $cakisiyorMu = in_array($saatKisa, $smsSaatler);
+                            $filtreTxt = collect([
+                                $emailAyar['filtre']['il']   ?? '' ?: null,
+                                $emailAyar['filtre']['grup'] ?? '' ?: null,
+                                ($emailAyar['filtre']['sablon'] ?? '') === 'emails.tursab_davet_yeni_acente' ? 'Tebrik' : 'Standart',
+                            ])->filter()->implode(' / ');
+                        @endphp
+                        <tr class="{{ $calistiMi ? 'table-success' : ($gecti ? 'table-light text-muted' : '') }}">
+                            <td class="fw-bold">{{ $slot['saat'] }}</td>
+                            <td><span class="badge bg-danger">📧 Email</span>@if($cakisiyorMu) <span class="badge bg-warning text-dark ms-1">⚠ Çakışma</span>@endif</td>
+                            <td>{{ $slot['adet'] }}</td>
+                            <td class="text-muted">{{ $filtreTxt }}</td>
+                            <td>
+                                @if($calistiMi)
+                                    <span class="text-success fw-bold">✓ Tamamlandı</span>
+                                @elseif($gecti)
+                                    <span class="text-muted">— Geçti (çalışmadı)</span>
+                                @else
+                                    <span class="text-primary">⏳ Bekliyor</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+
+                        @foreach($planliSms as $slot)
+                        @php
+                            $saatKisa    = substr($slot['saat'], 0, 2);
+                            $gecti       = $simdi > substr($slot['saat'],0,2).':59';
+                            $calistiMi   = in_array($slot['saat'], $smsCalan);
+                            $cakisiyorMu = in_array($saatKisa, $emailSaatler);
+                        @endphp
+                        <tr class="{{ $calistiMi ? 'table-info' : ($gecti ? 'table-light text-muted' : '') }}">
+                            <td class="fw-bold">{{ $slot['saat'] }}</td>
+                            <td><span class="badge bg-info text-dark">📱 SMS</span>@if($cakisiyorMu) <span class="badge bg-warning text-dark ms-1">⚠ Çakışma</span>@endif</td>
+                            <td>{{ $slot['adet'] }}</td>
+                            <td class="text-muted">{{ $smsAyar['filtre']['il'] ?? 'Tümü' }}</td>
+                            <td>
+                                @if($calistiMi)
+                                    <span class="text-info fw-bold">✓ Tamamlandı</span>
+                                @elseif($gecti)
+                                    <span class="text-muted">— Geçti (çalışmadı)</span>
+                                @else
+                                    <span class="text-primary">⏳ Bekliyor</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+        </div>
+    </div>
+
     {{-- Çalışma Logları --}}
     <div class="row g-4 mt-2">
         <div class="col-md-6">
