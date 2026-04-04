@@ -82,6 +82,18 @@
                     'keys' => ['kampanya-acenteler'],
                 ],
                 [
+                    'label' => 'Şablonlar',
+                    'href'  => route('superadmin.sablonlar.index'),
+                    'icon'  => 'fas fa-file-code',
+                    'keys'  => ['sablonlar'],
+                ],
+                [
+                    'label' => 'Kampanyalar',
+                    'href'  => route('superadmin.kampanyalar.index'),
+                    'icon'  => 'fas fa-layer-group',
+                    'keys'  => ['kampanyalar'],
+                ],
+                [
                     'label' => 'Sosyal Medya',
                     'href'  => route('superadmin.sosyal.medya'),
                     'icon'  => 'fas fa-share-nodes',

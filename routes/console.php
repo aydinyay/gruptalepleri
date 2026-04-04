@@ -34,6 +34,19 @@ Schedule::call(function () {
     Artisan::call('kampanya:sms-otomatik');
 })->everyFiveMinutes()->name('kampanya-sms-otomatik')->environments(['production']);
 
+// Kampanya sistemi — DB'deki aktif kampanyaları çalıştırır (email + SMS)
+Schedule::call(function () {
+    Artisan::call('kampanya:calistir');
+    $out = trim(Artisan::output());
+    if ($out) {
+        file_put_contents(
+            storage_path('app/kampanya-calistir-out.txt'),
+            date('Y-m-d H:i:s') . "\n" . $out . "\n---\n",
+            FILE_APPEND
+        );
+    }
+})->everyFiveMinutes()->name('kampanya-calistir')->environments(['production']);
+
 // Zamanlanmış SMS'leri her dakika kontrol et ve gönder
 Schedule::call(fn() => \Artisan::call('sms:send-scheduled'))->everyMinute();
 

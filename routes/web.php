@@ -497,6 +497,24 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/kampanya/zamanlama/test', [\App\Http\Controllers\TursabController::class, 'zamanlamaTestGonder'])->name('kampanya.zamanlama.test');
     Route::post('/kampanya/zamanlama/slot-sil', [\App\Http\Controllers\TursabController::class, 'slotSil'])->name('kampanya.zamanlama.slot-sil');
     Route::get('/kampanya/sicak-leadler', [\App\Http\Controllers\TursabController::class, 'sicakLeadler'])->name('kampanya.sicak-leadler');
+
+    // Şablon kütüphanesi
+    Route::get('/sablonlar',                    [\App\Http\Controllers\KampanyaSablonController::class, 'index'])->name('sablonlar.index');
+    Route::get('/sablonlar/yeni',               [\App\Http\Controllers\KampanyaSablonController::class, 'create'])->name('sablonlar.create');
+    Route::post('/sablonlar',                   [\App\Http\Controllers\KampanyaSablonController::class, 'store'])->name('sablonlar.store');
+    Route::get('/sablonlar/{sablon}/duzenle',   [\App\Http\Controllers\KampanyaSablonController::class, 'edit'])->name('sablonlar.edit');
+    Route::put('/sablonlar/{sablon}',           [\App\Http\Controllers\KampanyaSablonController::class, 'update'])->name('sablonlar.update');
+    Route::delete('/sablonlar/{sablon}',        [\App\Http\Controllers\KampanyaSablonController::class, 'destroy'])->name('sablonlar.destroy');
+    Route::get('/sablonlar/{sablon}/onizle',    [\App\Http\Controllers\KampanyaSablonController::class, 'preview'])->name('sablonlar.preview');
+
+    // Kampanya yönetimi
+    Route::get('/kampanyalar',                  [\App\Http\Controllers\KampanyaController::class, 'index'])->name('kampanyalar.index');
+    Route::get('/kampanyalar/yeni',             [\App\Http\Controllers\KampanyaController::class, 'create'])->name('kampanyalar.create');
+    Route::post('/kampanyalar',                 [\App\Http\Controllers\KampanyaController::class, 'store'])->name('kampanyalar.store');
+    Route::get('/kampanyalar/{kampanya}',        [\App\Http\Controllers\KampanyaController::class, 'show'])->name('kampanyalar.show');
+    Route::post('/kampanyalar/{kampanya}/aktif', [\App\Http\Controllers\KampanyaController::class, 'aktifEt'])->name('kampanyalar.aktif');
+    Route::post('/kampanyalar/{kampanya}/dur',   [\App\Http\Controllers\KampanyaController::class, 'durdur'])->name('kampanyalar.durdur');
+    Route::delete('/kampanyalar/{kampanya}',     [\App\Http\Controllers\KampanyaController::class, 'destroy'])->name('kampanyalar.destroy');
     Route::get('/acenteler-istatistik', [\App\Http\Controllers\AcenetelIstatistikController::class, 'index'])->name('acenteler.istatistik');
     Route::get('/acenteler-normalize', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalize'])->name('acenteler.normalize');
     Route::get('/normalize-kaynak/{mode}', [\App\Http\Controllers\AcenetelIstatistikController::class, 'normalizeKaynak'])->name('normalize.kaynak');
