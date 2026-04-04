@@ -420,7 +420,7 @@
             <div class="step-card"><strong>Adım 1 — Talep</strong><p>Sisteme girin: tarih, kişi sayısı (yetişkin/çocuk/bebek), paket seviyesi, iskele ve özel istekleri seçin. Talep anında oluşur.</p></div>
             <div class="step-card"><strong>Adım 2 — Teklif</strong><p>Operasyon ekibi teklifi sistem üzerinden hazırlar — fiyat, dahil hizmetler ve medya ile birlikte acentenin paneline düşer.</p></div>
             <div class="step-card"><strong>Adım 3 — Onay & Ödeme</strong><p>Acente teklifi sistem üzerinden kabul eder. Ödeme tamamlandığında rezervasyon kesinleşir, finans kaydı otomatik oluşur.</p></div>
-            <div class="step-card"><strong>Adım 4 — Operasyon</strong><p>Ödeme tamamlanmadan operasyon başlamaz. Etkinlik gününe kadar tek ekip, tek iletişim hattı.</p></div>
+            <div class="step-card"><strong>Adım 4 — Operasyon</strong><p>Ödeme sonrası operasyon ekibi devreye girer. Etkinlik gününe kadar tek ekip, tek iletişim hattı.</p></div>
         </div>
     </div>
 </section>
