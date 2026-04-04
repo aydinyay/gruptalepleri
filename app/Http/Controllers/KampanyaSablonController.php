@@ -24,7 +24,7 @@ class KampanyaSablonController extends Controller
     public function store(Request $request)
     {
         $this->assertSuperadmin();
-        $data = $this->validate($request);
+        $data = $this->validasyon($request);
         KampanyaSablon::create($data + ['olusturan_id' => auth()->id()]);
         return redirect()->route('superadmin.sablonlar.index')->with('success', 'Şablon oluşturuldu.');
     }
@@ -38,7 +38,7 @@ class KampanyaSablonController extends Controller
     public function update(Request $request, KampanyaSablon $sablon)
     {
         $this->assertSuperadmin();
-        $sablon->update($this->validate($request));
+        $sablon->update($this->validasyon($request));
         return redirect()->route('superadmin.sablonlar.index')->with('success', 'Şablon güncellendi.');
     }
 
@@ -60,7 +60,7 @@ class KampanyaSablonController extends Controller
         return response($html)->header('Content-Type', 'text/html');
     }
 
-    private function validate(Request $request): array
+    private function validasyon(Request $request): array
     {
         return $request->validate([
             'ad'          => 'required|string|max:150',
