@@ -262,20 +262,20 @@
 
 <section class="sc-section">
     <div class="showcase-container">
-        <h2>Neden bu ürünü acente kanalında kolay satarsınız?</h2>
-        <p class="sub">B2B odaklı model sayesinde hem satış hem operasyon tarafında hız kazanırsınız.</p>
+        <h2>Neden dinner cruise satmak bu kadar kolay?</h2>
+        <p class="sub">Fiyatlar belli, yer neredeyse her zaman var. Sisteme gir, talep oluştur, teklifini al — dakikalar içinde müşterine sun.</p>
         <div class="grid-3">
             <article class="sc-card">
                 <h3>🎯 Net B2B fiyatlama</h3>
-                <p>Kişi başı fiyat, dahil/hariç hizmetler ve ekstra kalemleri açıkça sunarız. Marj planlaması kolaylaşır.</p>
+                <p>Paket bazlı sabit fiyatlar — kişi başı hesaplama, dahil/hariç kalemler netdir. Marjınızı önceden planlarsınız.</p>
             </article>
             <article class="sc-card">
-                <h3>📅 Kontenjan ve tarih desteği</h3>
-                <p>Yüksek sezonda alternatif tarih ve tekne planlarıyla talep kaçırma riskini azaltırız.</p>
+                <h3>✅ Her zaman yer garantisi</h3>
+                <p>Kontenjan %99 açık. Yüksek sezon dahil neredeyse her tarih için müşterinize güvenle söz verebilirsiniz.</p>
             </article>
             <article class="sc-card">
                 <h3>⚡ Tek noktadan operasyon</h3>
-                <p>Rezervasyon, konfirmasyon, özel menüler ve transfer notlarını düzenli bir akışla yönetirsiniz.</p>
+                <p>Talep, teklif, konfirmasyon ve operasyon takibi GrupTalepleri sistemi üzerinden — ekstra koordinasyon yok.</p>
             </article>
         </div>
     </div>
