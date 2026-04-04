@@ -899,8 +899,13 @@ class TursabController extends Controller
     {
         $this->assertSuperadmin();
 
-        $leadler = \App\Models\TursabDavet::whereNotNull('tiklanma_at')
+        // Eposta başına en son tıklama kaydını al
+        $subQuery = \App\Models\TursabDavet::whereNotNull('tiklanma_at')
             ->where('tip', 'email')
+            ->selectRaw('MAX(id) as max_id')
+            ->groupBy('eposta');
+
+        $leadler = \App\Models\TursabDavet::whereIn('tursab_davetler.id', $subQuery)
             ->whereNotExists(function ($q) {
                 $q->select(\DB::raw(1))
                   ->from('users')
@@ -919,7 +924,6 @@ class TursabController extends Controller
                 'tursab_davetler.created_at',
                 'acenteler.telefon',
             )
-            ->groupBy('tursab_davetler.eposta')
             ->orderByDesc('tursab_davetler.tiklanma_at')
             ->paginate(50);
 
