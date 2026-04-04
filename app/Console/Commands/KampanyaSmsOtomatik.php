@@ -17,6 +17,24 @@ class KampanyaSmsOtomatik extends Command
 
     public function handle(): int
     {
+        $lockFile = storage_path('app/kampanya-sms.lock');
+        $lock = fopen($lockFile, 'c');
+        if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
+            $this->line('Başka bir kampanya SMS örneği çalışıyor, atlanıyor.');
+            if ($lock) fclose($lock);
+            return self::SUCCESS;
+        }
+
+        try {
+            return $this->doGonder();
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
+    private function doGonder(): int
+    {
         $ayarJson = SistemAyar::get(self::AYAR_KEY, '');
         if (!$ayarJson) {
             $this->line('SMS kampanya ayarı bulunamadı.');
@@ -26,6 +44,19 @@ class KampanyaSmsOtomatik extends Command
         $ayar = json_decode($ayarJson, true);
         if (empty($ayar['aktif'])) {
             $this->line('SMS kampanyası devre dışı.');
+            return self::SUCCESS;
+        }
+
+        // Tarih aralığı kontrolü
+        $bugunTarih = now()->format('Y-m-d');
+        $baslangic  = $ayar['baslangic_tarihi'] ?? '';
+        $bitis      = $ayar['bitis_tarihi']     ?? '';
+        if ($baslangic && $bugunTarih < $baslangic) {
+            $this->line("SMS kampanyası henüz başlamadı (başlangıç: $baslangic).");
+            return self::SUCCESS;
+        }
+        if ($bitis && $bugunTarih > $bitis) {
+            $this->line("SMS kampanyası sona erdi (bitiş: $bitis).");
             return self::SUCCESS;
         }
 
