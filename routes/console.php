@@ -21,6 +21,12 @@ Schedule::command('opsiyon:check')->everyMinute();
 // Zamanlanmış email kampanyası — Schedule::call kullanılıyor, proc_open gerektirmez
 Schedule::call(function () {
     Artisan::call('kampanya:email-otomatik');
+    $out = trim(Artisan::output());
+    file_put_contents(
+        storage_path('app/kampanya-email-out.txt'),
+        date('Y-m-d H:i:s') . "\n" . ($out ?: '(çıktı yok)') . "\n---\n",
+        FILE_APPEND
+    );
 })->everyFiveMinutes()->name('kampanya-email-otomatik')->environments(['production']);
 
 // Zamanlanmış SMS kampanyası
