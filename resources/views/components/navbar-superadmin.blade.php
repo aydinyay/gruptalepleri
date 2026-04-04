@@ -265,3 +265,4 @@
 @if($showCelebrationWidget)
 <x-ai-kutlama-widget />
 @endif
+

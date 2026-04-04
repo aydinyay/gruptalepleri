@@ -53,3 +53,4 @@ class KampanyaSablonlarSeeder extends Seeder
         ])->render();
     }
 }
+// deploy

@@ -21,3 +21,4 @@ class KampanyaSablon extends Model
         return $this->hasMany(Kampanya::class, 'sablon_id');
     }
 }
+// deploy

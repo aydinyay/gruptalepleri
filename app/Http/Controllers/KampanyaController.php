@@ -126,3 +126,4 @@ class KampanyaController extends Controller
         abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
     }
 }
+// deploy

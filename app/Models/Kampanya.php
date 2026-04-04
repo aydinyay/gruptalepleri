@@ -28,3 +28,4 @@ class Kampanya extends Model
         return $this->hasMany(TursabDavet::class, 'kampanya_etiket', 'etiket');
     }
 }
+// deploy

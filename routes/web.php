@@ -507,7 +507,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::delete('/sablonlar/{sablon}',        [\App\Http\Controllers\KampanyaSablonController::class, 'destroy'])->name('sablonlar.destroy');
     Route::get('/sablonlar/{sablon}/onizle',    [\App\Http\Controllers\KampanyaSablonController::class, 'preview'])->name('sablonlar.preview');
 
-    // Kampanya yönetimi
+    // Kampanya yönetim rotaları
     Route::get('/kampanyalar',                  [\App\Http\Controllers\KampanyaController::class, 'index'])->name('kampanyalar.index');
     Route::get('/kampanyalar/yeni',             [\App\Http\Controllers\KampanyaController::class, 'create'])->name('kampanyalar.create');
     Route::post('/kampanyalar',                 [\App\Http\Controllers\KampanyaController::class, 'store'])->name('kampanyalar.store');
