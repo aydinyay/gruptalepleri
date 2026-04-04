@@ -904,7 +904,7 @@ class TursabController extends Controller
             ->whereNotExists(function ($q) {
                 $q->select(\DB::raw(1))
                   ->from('users')
-                  ->whereColumn('users.belge_no', 'tursab_davetler.belge_no');
+                  ->whereColumn('users.email', 'tursab_davetler.eposta');
             })
             ->join('acenteler', 'acenteler.belge_no', '=', 'tursab_davetler.belge_no')
             ->select(
