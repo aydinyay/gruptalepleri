@@ -253,9 +253,9 @@
             Hedefiniz daha hızlı teklif, daha net fiyat ve daha az operasyon yükü ise bu sayfa sizin için tasarlandı.
         </p>
         <div class="hero-actions">
-            <a class="btn-sc btn-sc-primary" href="mailto:destek@gruptalepleri.com?subject=B2B%20Bosphorus%20Dinner%20Cruise%20Talebi">Teklif Al</a>
-            <a class="btn-sc btn-sc-ghost" href="tel:+905354154799">📞 Hemen Ara</a>
-            <a class="btn-sc btn-sc-light" href="https://wa.me/905354154799" target="_blank" rel="noopener">💬 WhatsApp</a>
+            <a class="btn-sc btn-sc-primary" href="{{ route('acente.dinner-cruise.create') }}">Talep Oluştur</a>
+            <a class="btn-sc btn-sc-ghost" href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}">📞 {{ $sirket['telefon'] }}</a>
+            <a class="btn-sc btn-sc-light" href="https://wa.me/{{ $sirket['whatsapp'] }}" target="_blank" rel="noopener">💬 WhatsApp</a>
         </div>
     </div>
 </header>
@@ -427,16 +427,17 @@
 
 <div class="cta-box px-4 px-md-5">
     <h2>B2B Bosphorus Dinner Cruise satışına bugün başlayın</h2>
-    <p class="sub">Fiyat listesi, acente komisyon modeli ve sezonluk kontenjan için bize ulaşın.</p>
+    <p class="sub">{{ $sirket['unvan'] }} — Fiyat listesi, acente komisyon modeli ve sezonluk kontenjan için bize ulaşın.</p>
     <ul class="contact-list">
-        <li>E-posta: <a href="mailto:destek@gruptalepleri.com">destek@gruptalepleri.com</a></li>
-        <li>Telefon: <a href="tel:+905354154799">+90 535 415 47 99</a></li>
-        <li>WhatsApp: <a href="https://wa.me/905354154799" target="_blank" rel="noopener">Hızlı iletişim →</a></li>
+        <li>Talep: <a href="{{ route('acente.dinner-cruise.create') }}">GrupTalepleri sistem üzerinden talep oluştur →</a></li>
+        <li>E-posta: <a href="mailto:{{ $sirket['eposta'] }}">{{ $sirket['eposta'] }}</a></li>
+        <li>Telefon: <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['telefon']) }}">{{ $sirket['telefon'] }}</a></li>
+        <li>WhatsApp: <a href="https://wa.me/{{ $sirket['whatsapp'] }}" target="_blank" rel="noopener">Hızlı iletişim →</a></li>
     </ul>
 </div>
 
 <footer>
-    © {{ date('Y') }} GrupTalepleri | Bosphorus Dinner Cruise B2B
+    © {{ date('Y') }} {{ $sirket['unvan'] }} | TÜRSAB Belge No: {{ $sirket['tursab_no'] }}
 </footer>
 
 @include('admin.partials.theme-script')
