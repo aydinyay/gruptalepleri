@@ -872,6 +872,24 @@ class TursabController extends Controller
         return response()->json(['success' => true, 'output' => $out ?: 'Komut tamamlandı (çıktı yok).']);
     }
 
+    public function slotSil(Request $request)
+    {
+        $this->assertSuperadmin();
+        $tip  = $request->input('tip');
+        $saat = $request->input('saat');
+        abort_unless(in_array($tip, ['email', 'sms']) && preg_match('/^\d{2}:\d{2}$/', $saat), 422);
+
+        $key  = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';
+        $ayar = json_decode(\App\Models\SistemAyar::get($key, '{}'), true) ?? [];
+        $ayar['slotlar'] = array_values(array_filter(
+            $ayar['slotlar'] ?? [],
+            fn($s) => ($s['saat'] ?? '') !== $saat
+        ));
+        \App\Models\SistemAyar::set($key, json_encode($ayar, JSON_UNESCAPED_UNICODE));
+
+        return back()->with('success', "$saat slotu silindi.");
+    }
+
     private function zamanlamaAyar(string $tip): array
     {
         $key = $tip === 'email' ? 'kampanya_email_zamanlama' : 'kampanya_sms_zamanlama';

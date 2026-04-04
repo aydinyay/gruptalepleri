@@ -329,6 +329,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <th>Adet</th>
                             <th>Filtre</th>
                             <th>Durum</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -367,6 +368,14 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                     <span class="text-primary">⏳ Bekliyor</span>
                                 @endif
                             </td>
+                            <td>
+                                <form method="POST" action="{{ route('superadmin.kampanya.zamanlama.slot-sil') }}" onsubmit="return confirm('{{ $slot['saat'] }} email slotu silinsin mi?')">
+                                    @csrf
+                                    <input type="hidden" name="tip" value="email">
+                                    <input type="hidden" name="saat" value="{{ $slot['saat'] }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Sil"><i class="fas fa-trash-alt fa-xs"></i></button>
+                                </form>
+                            </td>
                         </tr>
                         @endforeach
 
@@ -390,6 +399,14 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                                 @else
                                     <span class="text-primary">⏳ Bekliyor</span>
                                 @endif
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ route('superadmin.kampanya.zamanlama.slot-sil') }}" onsubmit="return confirm('{{ $slot['saat'] }} SMS slotu silinsin mi?')">
+                                    @csrf
+                                    <input type="hidden" name="tip" value="sms">
+                                    <input type="hidden" name="saat" value="{{ $slot['saat'] }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Sil"><i class="fas fa-trash-alt fa-xs"></i></button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach
