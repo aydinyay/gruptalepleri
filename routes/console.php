@@ -16,7 +16,7 @@ Schedule::call(function () {
 })->everyMinute()->name('cron-heartbeat')->withoutOverlapping();
 
 // Her dakika çağrılır; komut kendi içinde ayarlanan aralığa göre çalışıp çalışmayacağına karar verir
-Schedule::command('opsiyon:check')->everyMinute();
+Schedule::call(fn() => \Artisan::call('opsiyon:check'))->everyMinute();
 
 // Zamanlanmış email kampanyası — Schedule::call kullanılıyor, proc_open gerektirmez
 Schedule::call(function () {
@@ -35,20 +35,19 @@ Schedule::call(function () {
 })->everyFiveMinutes()->name('kampanya-sms-otomatik')->environments(['production']);
 
 // Zamanlanmış SMS'leri her dakika kontrol et ve gönder
-Schedule::command('sms:send-scheduled')->everyMinute();
+Schedule::call(fn() => \Artisan::call('sms:send-scheduled'))->everyMinute();
 
 // Zamanlanmış broadcast duyurularını her dakika kontrol et ve gönder
-Schedule::command('broadcast:send-scheduled')->everyMinute();
+Schedule::call(fn() => \Artisan::call('broadcast:send-scheduled'))->everyMinute();
 
 // Bakanlık ile haftalık tam senkronizasyon — Her Pazar 02:00
 // Her çalışmada 50 belge_no işler; tüm listeyi taramak için birden fazla
 // schedule:run çevrimi gerekir (cron her dakika tetikliyor, withoutOverlapping korur)
-Schedule::command('acenteler:sync', ['--batch' => '50', '--delay' => '300'])
+Schedule::call(fn() => \Artisan::call('acenteler:sync', ['--batch' => '50', '--delay' => '300']))
     ->weekly()
     ->sundays()
     ->at('02:00')
     ->withoutOverlapping(120)
-    ->runInBackground()
     ->environments(['production']);
 
 // Local geliştirme ortamında DB boşalma riskine karşı otomatik sağlık kontrolü
