@@ -50,6 +50,19 @@ class KampanyaEmailOtomatik extends Command
             return self::SUCCESS;
         }
 
+        // Tarih aralığı kontrolü
+        $bugunTarih   = now()->format('Y-m-d');
+        $baslangic    = $ayar['baslangic_tarihi'] ?? '';
+        $bitis        = $ayar['bitis_tarihi']     ?? '';
+        if ($baslangic && $bugunTarih < $baslangic) {
+            $this->line("Kampanya henüz başlamadı (başlangıç: $baslangic).");
+            return self::SUCCESS;
+        }
+        if ($bitis && $bugunTarih > $bitis) {
+            $this->line("Kampanya sona erdi (bitiş: $bitis).");
+            return self::SUCCESS;
+        }
+
         $slotlar    = $ayar['slotlar'] ?? [];
         $filtre     = $ayar['filtre']  ?? [];
         $sablon     = $filtre['sablon'] ?? self::SABLON_DEFAULT;

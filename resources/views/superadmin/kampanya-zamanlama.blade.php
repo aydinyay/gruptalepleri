@@ -102,6 +102,20 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <label class="form-check-label fw-semibold" for="emailAktif">Otomasyonu Aktif Et</label>
                         </div>
 
+                        {{-- Tarih Aralığı --}}
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Başlangıç Tarihi <span class="text-muted">(boş = hep)</span></label>
+                                <input type="date" name="baslangic_tarihi" class="form-control form-control-sm"
+                                       value="{{ $emailAyar['baslangic_tarihi'] ?? '' }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Bitiş Tarihi <span class="text-muted">(boş = hep)</span></label>
+                                <input type="date" name="bitis_tarihi" class="form-control form-control-sm"
+                                       value="{{ $emailAyar['bitis_tarihi'] ?? '' }}">
+                            </div>
+                        </div>
+
                         {{-- Zaman Slotları --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold small">Gönderim Saatleri</label>

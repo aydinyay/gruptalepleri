@@ -822,10 +822,15 @@ class TursabController extends Controller
             ];
         }
 
+        $baslangic = $request->input('baslangic_tarihi', '');
+        $bitis     = $request->input('bitis_tarihi', '');
+
         $ayar = [
-            'aktif'  => $request->boolean('aktif'),
-            'slotlar' => $slotlar,
-            'filtre' => [
+            'aktif'            => $request->boolean('aktif'),
+            'baslangic_tarihi' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $baslangic) ? $baslangic : '',
+            'bitis_tarihi'     => preg_match('/^\d{4}-\d{2}-\d{2}$/', $bitis)     ? $bitis     : '',
+            'slotlar'          => $slotlar,
+            'filtre'           => [
                 'il'   => trim($request->input('filtre_il', '')),
                 'ilce' => trim($request->input('filtre_ilce', '')),
                 'grup' => trim($request->input('filtre_grup', '')),
