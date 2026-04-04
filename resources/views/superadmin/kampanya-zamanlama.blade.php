@@ -30,6 +30,11 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                 <h5><i class="fas fa-clock me-2" style="color:#ffc107;"></i>Otomatik Kampanya Zamanlaması</h5>
                 <p>Her gün belirlenen saatlerde otomatik email ve SMS gönderimi</p>
             </div>
+            <div class="text-end">
+                <div class="text-white-50 small">Sunucu saati</div>
+                <div class="text-white fw-bold" id="sunucuSaat" style="font-size:1.1rem; font-family:monospace;">{{ now()->timezone('Europe/Istanbul')->format('H:i:s') }}</div>
+                <div class="text-white-50" style="font-size:0.75rem;">{{ now()->timezone('Europe/Istanbul')->format('d.m.Y') }} (Türkiye)</div>
+            </div>
             <a href="{{ route('superadmin.tursab.kampanya') }}" class="btn btn-sm btn-outline-light">← Kampanya Hub</a>
         </div>
     </div>
@@ -352,11 +357,25 @@ function addSlot(containerId, countRef) {
 
 function removeSlot(btn) {
     const row = btn.closest('[data-slot]');
-    if (row.parentElement.querySelectorAll('[data-slot]').length <= 1) {
-        alert('En az 1 slot olmalı.'); return;
-    }
     row.remove();
 }
+
+// Sunucu saatini JS ile saniye saniye güncelle (sayfa yüklenme anındaki offset'i kullan)
+(function() {
+    const el = document.getElementById('sunucuSaat');
+    if (!el) return;
+    // PHP'den gelen başlangıç saniyesi
+    let serverMs = {{ now()->timezone('Europe/Istanbul')->timestamp }} * 1000;
+    const startMs = Date.now();
+    setInterval(function() {
+        const elapsed = Date.now() - startMs;
+        const d = new Date(serverMs + elapsed);
+        const h = String(d.getHours()).padStart(2,'0');
+        const m = String(d.getMinutes()).padStart(2,'0');
+        const s = String(d.getSeconds()).padStart(2,'0');
+        el.textContent = h + ':' + m + ':' + s;
+    }, 1000);
+})();
 
 function testGonder(tip, dryRun) {
     if (!dryRun && !confirm((tip === 'email' ? 'Email' : 'SMS') + ' kampanyası şimdi gerçekten çalıştırılacak. Onaylıyor musunuz?')) return;
