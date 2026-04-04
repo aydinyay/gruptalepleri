@@ -5,370 +5,439 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @include('admin.partials.theme-styles')
-    <title>Dinner Cruise Teklif Vitrini</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Bosphorus Dinner Cruise B2B | GrupTalepleri</title>
+    <meta name="description" content="Acenteler için Bosphorus Dinner Cruise satış sayfası: net fiyatlar, kontenjan desteği, operasyon kolaylığı ve hızlı teklif süreci.">
     <style>
-        .gt-dc-showcase-page {
-            background: radial-gradient(circle at top right, rgba(56, 189, 248, .14), transparent 32%), linear-gradient(180deg, #f3f6fb 0%, #eef2f8 48%, #f8fafc 100%);
-            min-height: 100vh;
+        :root {
+            --bg: #f4f7fb;
+            --ink: #12213f;
+            --muted: #5b6785;
+            --accent: #e94e77;
+            --accent-dark: #cd3e63;
+            --card: #ffffff;
+            --line: #dce3ef;
+            --ok: #0f766e;
         }
-        .gt-dc-hero {
-            position: relative;
-            overflow: hidden;
-            border-radius: 28px;
-            border: 1px solid rgba(148, 163, 184, .22);
-            background: linear-gradient(130deg, #0b1730 0%, #123161 48%, #1e3a8a 100%);
-            color: #f8fafc;
-            box-shadow: 0 32px 80px rgba(15, 23, 42, .24);
-        }
-        .gt-dc-hero::after {
-            content: "";
-            position: absolute;
-            right: -140px;
-            top: -150px;
-            width: 360px;
-            height: 360px;
-            border-radius: 999px;
-            background: radial-gradient(circle, rgba(255, 255, 255, .22), transparent 66%);
-            pointer-events: none;
-        }
-        .gt-dc-hero .hero-content { position: relative; z-index: 1; }
-        .gt-dc-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: .45rem;
-            border-radius: 999px;
-            padding: .45rem .75rem;
-            font-size: .78rem;
-            font-weight: 700;
-            background: rgba(255, 255, 255, .12);
-            color: rgba(248, 250, 252, .95);
-            border: 1px solid rgba(255, 255, 255, .18);
-        }
-        .gt-dc-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.2rem; }
-        .gt-dc-actions .btn { border-radius: 999px; padding: .68rem 1rem; font-weight: 700; }
-        .gt-dc-stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
-        .gt-dc-stat {
-            border-radius: 18px;
-            padding: .9rem;
-            border: 1px solid rgba(255, 255, 255, .14);
-            background: rgba(255, 255, 255, .08);
-        }
-        .gt-dc-stat .value { font-size: 1.8rem; font-weight: 800; line-height: 1; color: #fff; }
-        .gt-dc-stat .label { font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: rgba(226, 232, 240, .86); }
-
-        .gt-dc-section-title {
-            font-family: Georgia, "Times New Roman", serif;
-            font-weight: 700;
-            letter-spacing: -.02em;
+        * { box-sizing: border-box; }
+        body {
             margin: 0;
-            color: #0f172a;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+            line-height: 1.55;
         }
-        .gt-dc-section-copy { color: #64748b; margin: .4rem 0 0; }
-
-        .gt-dc-package-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-        .gt-dc-package-card {
-            border-radius: 24px;
-            overflow: hidden;
-            border: 1px solid rgba(148, 163, 184, .22);
-            background: rgba(255, 255, 255, .92);
-            box-shadow: 0 18px 45px rgba(15, 23, 42, .08);
-        }
-        .gt-dc-package-visual {
-            position: relative;
-            overflow: hidden;
+        .hero {
+            background: linear-gradient(125deg, #0f1f42 0%, #19356e 52%, #204993 100%);
             color: #fff;
-            padding: 1rem;
-            min-height: 180px;
+            padding: 56px 20px 48px;
+        }
+        .showcase-container { max-width: 1120px; margin: 0 auto; }
+        .badge-chip {
+            display: inline-block;
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+        .hero h1 {
+            margin: 0 0 14px;
+            font-size: clamp(28px, 4.5vw, 48px);
+            line-height: 1.14;
+            max-width: 820px;
+        }
+        .hero .lead {
+            margin: 0;
+            max-width: 700px;
+            font-size: 17px;
+            color: rgba(255,255,255,.88);
+        }
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .btn-sc {
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 11px 18px;
+            display: inline-block;
+            font-size: 14px;
+            transition: .15s ease;
+        }
+        .btn-sc-primary { background: var(--accent); color: #fff; }
+        .btn-sc-primary:hover { background: var(--accent-dark); color: #fff; }
+        .btn-sc-ghost { color: #fff; border: 1px solid rgba(255,255,255,.4); }
+        .btn-sc-ghost:hover { border-color: rgba(255,255,255,.75); color: #fff; }
+        .btn-sc-light { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+        .btn-sc-light:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+        .sc-section { padding: 44px 20px 8px; }
+        .sc-section h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 32px); color: var(--ink); }
+        .sc-section .sub { color: var(--muted); margin: 0 0 18px; }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 16px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0,1fr));
+            gap: 14px;
+        }
+        .sc-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .sc-card h3 { margin: 0 0 8px; font-size: 17px; color: var(--ink); }
+        .sc-card p { margin: 0; color: var(--muted); font-size: 14px; }
+        .sc-card ul { margin: 10px 0 0; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+        /* Package cards with gradient visuals */
+        .pkg-card {
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: var(--card);
+            box-shadow: 0 8px 24px rgba(15,23,42,.07);
+        }
+        .pkg-visual {
+            position: relative;
+            padding: 16px;
+            min-height: 160px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             background-size: cover;
             background-position: center;
+            color: #fff;
         }
-        .gt-dc-package-visual::before {
+        .pkg-visual::before {
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(15, 23, 42, .14), rgba(15, 23, 42, .58));
+            background: linear-gradient(180deg, rgba(15,23,42,.18), rgba(15,23,42,.62));
             pointer-events: none;
         }
-        .gt-dc-package-visual > * {
-            position: relative;
-            z-index: 1;
-        }
-        .gt-dc-package-standard { background: linear-gradient(135deg, #0f766e, #0f172a 72%); }
-        .gt-dc-package-vip { background: linear-gradient(135deg, #7c2d12, #1e293b 66%, #be123c); }
-        .gt-dc-package-premium { background: linear-gradient(135deg, #312e81, #111827 66%, #0369a1); }
-        .gt-dc-badge {
-            display: inline-flex;
-            border-radius: 999px;
-            padding: .35rem .68rem;
-            font-size: .73rem;
+        .pkg-visual > * { position: relative; z-index: 1; }
+        .pkg-standard { background: linear-gradient(135deg, #0f766e, #0f172a 72%); }
+        .pkg-vip { background: linear-gradient(135deg, #7c2d12, #1e293b 66%, #be123c); }
+        .pkg-premium { background: linear-gradient(135deg, #312e81, #111827 66%, #0369a1); }
+        .pkg-default { background: linear-gradient(135deg, #1e3a5f, #0f172a); }
+        .pkg-level-badge {
+            display: inline-block;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 99px;
+            padding: 3px 10px;
+            font-size: 11px;
             font-weight: 700;
-            background: rgba(255, 255, 255, .14);
         }
-        .gt-dc-package-body { padding: 1rem; }
-        .gt-dc-package-body h4 { margin: 0; font-size: 1.35rem; color: #0f172a; font-family: Georgia, "Times New Roman", serif; }
-        .gt-dc-package-body p { margin: .45rem 0 0; color: #64748b; min-height: 52px; }
-        .gt-dc-mini-list { margin: .75rem 0 0; padding-left: 1rem; color: #475569; font-size: .9rem; line-height: 1.6; }
-        .gt-dc-mini-title { margin-top: .75rem; font-size: .74rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #334155; }
+        .pkg-body { padding: 16px; }
+        .pkg-body h4 { margin: 0 0 6px; font-size: 17px; color: var(--ink); }
+        .pkg-body p { margin: 0 0 10px; color: var(--muted); font-size: 13px; min-height: 40px; }
+        .pkg-body ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+        .pkg-section-label { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #64748b; margin: 10px 0 4px; }
 
-        .gt-dc-media-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; }
-        .gt-dc-media-card {
-            border-radius: 18px;
-            overflow: hidden;
-            border: 1px solid rgba(148, 163, 184, .2);
-            background: rgba(255, 255, 255, .9);
+        /* Steps */
+        .step-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px;
         }
-        .gt-dc-media-card img {
-            width: 100%;
-            height: 170px;
-            object-fit: cover;
-            display: block;
-        }
-        .gt-dc-video-fallback {
-            height: 170px;
+        .step-card strong { display: block; color: var(--ok); font-size: 12px; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+        .step-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+        /* Extras pills */
+        .pill-wrap {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1e293b, #334155);
-            color: #cbd5e1;
-            font-weight: 700;
-            letter-spacing: .04em;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
         }
-        .gt-dc-media-body { padding: .75rem .8rem; }
-        .gt-dc-media-title { margin: 0; font-size: .93rem; font-weight: 700; color: #0f172a; }
-        .gt-dc-media-meta { margin-top: .25rem; font-size: .78rem; color: #64748b; }
-
-        .gt-dc-extra-wrap {
-            border-radius: 20px;
-            border: 1px solid rgba(148, 163, 184, .2);
-            background: rgba(255, 255, 255, .9);
-            padding: 1rem;
-        }
-        .gt-dc-extra-title { margin: 0 0 .6rem; font-size: .95rem; font-weight: 800; color: #0f172a; }
-        .gt-dc-pill-row { display: flex; flex-wrap: wrap; gap: .55rem; }
-        .gt-dc-pill {
+        .pill {
             display: inline-flex;
             align-items: center;
-            gap: .35rem;
-            border-radius: 999px;
-            padding: .45rem .75rem;
-            font-size: .8rem;
-            font-weight: 700;
-            border: 1px solid rgba(148, 163, 184, .25);
-            color: #0f172a;
+            gap: 5px;
+            border-radius: 99px;
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--line);
+            color: var(--ink);
             background: #f8fafc;
         }
-        .gt-dc-pill.included {
-            background: rgba(16, 185, 129, .12);
-            border-color: rgba(16, 185, 129, .25);
-            color: #047857;
+        .pill.included {
+            background: rgba(15,118,110,.1);
+            border-color: rgba(15,118,110,.25);
+            color: var(--ok);
         }
 
-        html[data-theme="dark"] .gt-dc-showcase-page {
-            background: radial-gradient(circle at top right, rgba(56, 189, 248, .16), transparent 32%), linear-gradient(180deg, #07101d 0%, #0a1627 48%, #091120 100%);
+        /* CTA box */
+        .cta-box {
+            margin: 40px auto 56px;
+            max-width: 1120px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 28px;
         }
-        html[data-theme="dark"] .gt-dc-section-title,
-        html[data-theme="dark"] .gt-dc-package-body h4,
-        html[data-theme="dark"] .gt-dc-media-title,
-        html[data-theme="dark"] .gt-dc-extra-title { color: #f8fafc; }
-        html[data-theme="dark"] .gt-dc-section-copy,
-        html[data-theme="dark"] .gt-dc-package-body p,
-        html[data-theme="dark"] .gt-dc-media-meta { color: #9fb2d9; }
-        html[data-theme="dark"] .gt-dc-package-card,
-        html[data-theme="dark"] .gt-dc-media-card,
-        html[data-theme="dark"] .gt-dc-extra-wrap {
-            border-color: rgba(96, 165, 250, .16);
-            background: rgba(10, 20, 37, .9);
+        .cta-box h2 { margin: 0 0 8px; font-size: clamp(20px, 2.5vw, 28px); }
+        .cta-box .sub { color: var(--muted); margin: 0 0 16px; }
+        .contact-list { margin: 0; padding-left: 18px; color: var(--ink); }
+        .contact-list li { margin-bottom: 8px; }
+        .contact-list a { color: var(--accent); text-decoration: none; }
+        .contact-list a:hover { text-decoration: underline; }
+
+        .admin-bar {
+            background: rgba(15,23,42,.06);
+            border-bottom: 1px solid var(--line);
+            padding: 8px 20px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
-        html[data-theme="dark"] .gt-dc-mini-list { color: #cbd5e1; }
-        html[data-theme="dark"] .gt-dc-mini-title { color: #cbd5e1; }
-        html[data-theme="dark"] .gt-dc-pill {
-            color: #e2e8f0;
-            background: rgba(15, 23, 42, .78);
-            border-color: rgba(96, 165, 250, .18);
-        }
-        html[data-theme="dark"] .gt-dc-pill.included {
-            background: rgba(6, 78, 59, .3);
-            border-color: rgba(16, 185, 129, .28);
-            color: #6ee7b7;
+        .admin-bar a { color: var(--muted); text-decoration: none; font-weight: 600; }
+        .admin-bar a:hover { color: var(--ink); }
+
+        footer {
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+            border-top: 1px solid var(--line);
+            background: var(--card);
+            font-size: 13px;
         }
 
-        @media (max-width: 1199.98px) {
-            .gt-dc-package-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .gt-dc-media-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        /* Dark mode */
+        html[data-theme="dark"] body { --bg: #07101d; --ink: #e2e8f0; --muted: #9fb2d9; --card: #0a1627; --line: rgba(96,165,250,.16); }
+        html[data-theme="dark"] .admin-bar { background: rgba(255,255,255,.04); }
+
+        @media (max-width: 960px) {
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .grid-4 { grid-template-columns: 1fr 1fr; }
         }
-        @media (max-width: 991.98px) {
-            .gt-dc-stat-grid { grid-template-columns: 1fr; }
-            .gt-dc-package-grid,
-            .gt-dc-media-grid { grid-template-columns: 1fr; }
+        @media (max-width: 640px) {
+            .grid-3, .grid-4 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-<body class="theme-scope gt-dc-showcase-page">
+<body class="theme-scope">
 <x-navbar-superadmin active="dinner-cruise" />
 
-@php
-    $packageCount = $packages->count();
-    $mediaCount = $mediaAssets->count();
-    $includedCount = $includedExtras->count();
-@endphp
-
-<div class="container-fluid py-4 px-3 px-md-4">
-    <div class="gt-dc-hero p-4 p-lg-5 mb-4">
-        <div class="row g-4 align-items-end hero-content">
-            <div class="col-12 col-lg-8">
-                <span class="gt-dc-chip"><i class="fas fa-sparkles"></i>Superadmin sunum vitrini</span>
-                <h2 class="mt-3 mb-2 fw-bold" style="font-size:clamp(2rem,4vw,3rem);font-family:Georgia, 'Times New Roman', serif;">Dinner Cruise Teklif Vitrini</h2>
-                <p class="mb-0 text-white-50" style="max-width:70ch;line-height:1.8;">
-                    Superadmin tarafinda tanimlanan paket, medya ve servisleri tek bir premium vitrinde gorun.
-                    Bu ekran "ne satildigini" operasyon tablosundan bagimsiz, katalog kalitesinde gostermek icin var.
-                </p>
-                <div class="gt-dc-actions">
-                    <a href="{{ route('superadmin.leisure.settings.index') }}" class="btn btn-light text-dark"><i class="fas fa-sliders me-1"></i>Leisure Ayarlari</a>
-                    <a href="{{ route('superadmin.dinner-cruise.index') }}" class="btn btn-outline-light"><i class="fas fa-list-check me-1"></i>Talep Listesi</a>
-                    <a href="{{ route('acente.dinner-cruise.index') }}" class="btn btn-outline-light"><i class="fas fa-eye me-1"></i>Acenta Vitrinini Gor</a>
-                </div>
-            </div>
-            <div class="col-12 col-lg-4">
-                <div class="gt-dc-stat-grid">
-                    <div class="gt-dc-stat">
-                        <div class="label">Aktif paket</div>
-                        <div class="value">{{ $packageCount }}</div>
-                    </div>
-                    <div class="gt-dc-stat">
-                        <div class="label">Aktif medya</div>
-                        <div class="value">{{ $mediaCount }}</div>
-                    </div>
-                    <div class="gt-dc-stat">
-                        <div class="label">Varsayilan servis</div>
-                        <div class="value">{{ $includedCount }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
-        <div>
-            <h3 class="gt-dc-section-title">Paket Teklifleri</h3>
-            <p class="gt-dc-section-copy">Leisure ayarlarindan eklediginiz dinner cruise paketleri canli vitrinde.</p>
-        </div>
-    </div>
-
-    <div class="gt-dc-package-grid mb-4">
-        @forelse($packages as $package)
-            @php
-                $levelClass = match(strtolower((string) $package->level)) {
-                    'vip' => 'gt-dc-package-vip',
-                    'premium' => 'gt-dc-package-premium',
-                    default => 'gt-dc-package-standard',
-                };
-                $heroImage = trim((string) ($package->hero_image_url ?? ''));
-                if ($heroImage !== '' && ! str_starts_with($heroImage, 'http://') && ! str_starts_with($heroImage, 'https://') && ! str_starts_with($heroImage, '/')) {
-                    $heroImage = '/' . ltrim($heroImage, '/');
-                }
-                $includes = collect($package->includes_tr ?? [])->filter()->take(4)->values();
-                $excludes = collect($package->excludes_tr ?? [])->filter()->take(3)->values();
-            @endphp
-            <article class="gt-dc-package-card">
-                <div class="gt-dc-package-visual {{ $levelClass }}" @if($heroImage !== '') style="background-image: url('{{ $heroImage }}');" @endif>
-                    <div class="d-flex justify-content-between align-items-start gap-2">
-                        <span class="gt-dc-badge">Level: {{ strtoupper((string) $package->level) }}</span>
-                        <span class="gt-dc-badge">{{ strtoupper((string) $package->code) }}</span>
-                    </div>
-                    <div>
-                        <div class="small text-white-50 mb-1">Dinner Cruise Collection</div>
-                        <div class="h5 mb-0 fw-bold">{{ $package->name_tr }}</div>
-                    </div>
-                </div>
-                <div class="gt-dc-package-body">
-                    <h4>{{ $package->name_en ?: $package->name_tr }}</h4>
-                    <p>{{ $package->summary_tr ?: 'Paket ozeti eklenmediyse bu alan otomatik placeholder ile gorunur.' }}</p>
-
-                    <div class="gt-dc-mini-title">Dahil Olanlar</div>
-                    <ul class="gt-dc-mini-list">
-                        @forelse($includes as $item)
-                            <li>{{ $item }}</li>
-                        @empty
-                            <li>Heniz dahil listesi girilmedi.</li>
-                        @endforelse
-                    </ul>
-
-                    <div class="gt-dc-mini-title">Haric Olanlar</div>
-                    <ul class="gt-dc-mini-list mb-0">
-                        @forelse($excludes as $item)
-                            <li>{{ $item }}</li>
-                        @empty
-                            <li>Haric listesi girilmedi.</li>
-                        @endforelse
-                    </ul>
-                </div>
-            </article>
-        @empty
-            <div class="p-4 rounded-4 border bg-white text-muted" style="grid-column:1/-1;border-color:rgba(148,163,184,.2)!important;">
-                Henuz aktif dinner cruise paketi bulunmuyor. Paket eklemek icin Leisure Ayarlari ekranini kullanabilirsiniz.
-            </div>
-        @endforelse
-    </div>
-
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
-        <div>
-            <h3 class="gt-dc-section-title">Medya Vitrini</h3>
-            <p class="gt-dc-section-copy">Katalog kalitesinde galeri: aktif medya kutuphanesi otomatik yansir.</p>
-        </div>
-    </div>
-
-    <div class="gt-dc-media-grid mb-4">
-        @forelse($mediaAssets as $asset)
-            <article class="gt-dc-media-card">
-                @if($asset->media_type === 'photo' && $asset->resolvedUrl())
-                    <img src="{{ $asset->resolvedUrl() }}" alt="{{ $asset->title_tr }}">
-                @else
-                    <div class="gt-dc-video-fallback">VIDEO</div>
-                @endif
-                <div class="gt-dc-media-body">
-                    <h4 class="gt-dc-media-title">{{ $asset->title_tr ?: 'Leisure medya' }}</h4>
-                    <div class="gt-dc-media-meta">{{ $asset->category ?: 'kategori yok' }} · {{ strtoupper($asset->media_type) }}</div>
-                </div>
-            </article>
-        @empty
-            <div class="p-4 rounded-4 border bg-white text-muted" style="grid-column:1/-1;border-color:rgba(148,163,184,.2)!important;">
-                Henuz aktif medya kaydi yok. Leisure Ayarlari > Medya Kutuphanesi bolumunden ekleyebilirsiniz.
-            </div>
-        @endforelse
-    </div>
-
-    <div class="row g-3">
-        <div class="col-12 col-lg-6">
-            <div class="gt-dc-extra-wrap">
-                <h4 class="gt-dc-extra-title">Varsayilan Dahil Servisler</h4>
-                <div class="gt-dc-pill-row">
-                    @forelse($includedExtras as $item)
-                        <span class="gt-dc-pill included"><i class="fas fa-check-circle"></i>{{ $item->title_tr }}</span>
-                    @empty
-                        <span class="gt-dc-pill included">Varsayilan dahil servis tanimlanmadi.</span>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-6">
-            <div class="gt-dc-extra-wrap">
-                <h4 class="gt-dc-extra-title">Opsiyonel Upsell Servisleri</h4>
-                <div class="gt-dc-pill-row">
-                    @forelse($optionalExtras as $item)
-                        <span class="gt-dc-pill"><i class="fas fa-plus-circle"></i>{{ $item->title_tr }}</span>
-                    @empty
-                        <span class="gt-dc-pill">Opsiyonel servis tanimlanmadi.</span>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
+{{-- Admin quick-links bar --}}
+<div class="admin-bar">
+    <span>🔧 Superadmin</span>
+    <a href="{{ route('superadmin.leisure.settings.index') }}">⚙ Leisure Ayarları</a>
+    <a href="{{ route('superadmin.dinner-cruise.index') }}">📋 Talep Listesi</a>
+    <a href="{{ route('acente.dinner-cruise.index') }}">👁 Acente Vitrinini Gör</a>
+    <span class="ms-auto">{{ $packages->count() }} paket · {{ $mediaAssets->count() }} medya · {{ $includedExtras->count() }} dahil servis</span>
 </div>
+
+<header class="hero">
+    <div class="showcase-container">
+        <span class="badge-chip">🚢 B2B Satışa Özel | Bosphorus Dinner Cruise</span>
+        <h1>Acenteler için hazır satılabilir Bosphorus Dinner Cruise paketleri</h1>
+        <p class="lead">
+            Misafirleriniz için boğazda akşam yemeği, eğlence ve transfer opsiyonlarını tek noktadan yönetin.
+            Hedefiniz daha hızlı teklif, daha net fiyat ve daha az operasyon yükü ise bu sayfa sizin için tasarlandı.
+        </p>
+        <div class="hero-actions">
+            <a class="btn-sc btn-sc-primary" href="mailto:destek@gruptalepleri.com?subject=B2B%20Bosphorus%20Dinner%20Cruise%20Talebi">Teklif Al</a>
+            <a class="btn-sc btn-sc-ghost" href="tel:+905354154799">📞 Hemen Ara</a>
+            <a class="btn-sc btn-sc-light" href="https://wa.me/905354154799" target="_blank" rel="noopener">💬 WhatsApp</a>
+        </div>
+    </div>
+</header>
+
+<section class="sc-section">
+    <div class="showcase-container">
+        <h2>Neden bu ürünü acente kanalında kolay satarsınız?</h2>
+        <p class="sub">B2B odaklı model sayesinde hem satış hem operasyon tarafında hız kazanırsınız.</p>
+        <div class="grid-3">
+            <article class="sc-card">
+                <h3>🎯 Net B2B fiyatlama</h3>
+                <p>Kişi başı fiyat, dahil/hariç hizmetler ve ekstra kalemleri açıkça sunarız. Marj planlaması kolaylaşır.</p>
+            </article>
+            <article class="sc-card">
+                <h3>📅 Kontenjan ve tarih desteği</h3>
+                <p>Yüksek sezonda alternatif tarih ve tekne planlarıyla talep kaçırma riskini azaltırız.</p>
+            </article>
+            <article class="sc-card">
+                <h3>⚡ Tek noktadan operasyon</h3>
+                <p>Rezervasyon, konfirmasyon, özel menüler ve transfer notlarını düzenli bir akışla yönetirsiniz.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="sc-section">
+    <div class="showcase-container">
+        <h2>Paket içerikleri</h2>
+        <p class="sub">Aktif dinner cruise paketleri — Leisure Ayarları'ndan güncellenir.</p>
+        <div class="grid-3">
+            @forelse($packages as $package)
+                @php
+                    $levelClass = match(strtolower((string) $package->level)) {
+                        'vip'     => 'pkg-vip',
+                        'premium' => 'pkg-premium',
+                        'standard'=> 'pkg-standard',
+                        default   => 'pkg-default',
+                    };
+                    $heroImage = trim((string) ($package->hero_image_url ?? ''));
+                    if ($heroImage !== '' && !str_starts_with($heroImage, 'http') && !str_starts_with($heroImage, '/')) {
+                        $heroImage = '/' . ltrim($heroImage, '/');
+                    }
+                    $includes = collect($package->includes_tr ?? [])->filter()->take(5)->values();
+                    $excludes = collect($package->excludes_tr ?? [])->filter()->take(3)->values();
+                @endphp
+                <article class="pkg-card">
+                    <div class="pkg-visual {{ $levelClass }}" @if($heroImage !== '') style="background-image:url('{{ $heroImage }}');" @endif>
+                        <span class="pkg-level-badge">{{ strtoupper((string) $package->level) }}</span>
+                        <div>
+                            <div style="font-size:11px;opacity:.7;margin-bottom:3px;">Bosphorus Dinner Cruise</div>
+                            <div style="font-weight:700;font-size:16px;">{{ $package->name_tr }}</div>
+                        </div>
+                    </div>
+                    <div class="pkg-body">
+                        <h4>{{ $package->name_en ?: $package->name_tr }}</h4>
+                        <p>{{ $package->summary_tr ?: 'Boğazda akşam yemeği, canlı müzik ve eğlence programı içeren tam kapsamlı gemi turu.' }}</p>
+                        @if($includes->isNotEmpty())
+                            <div class="pkg-section-label">Dahil olanlar</div>
+                            <ul>
+                                @foreach($includes as $item)<li>{{ $item }}</li>@endforeach
+                            </ul>
+                        @endif
+                        @if($excludes->isNotEmpty())
+                            <div class="pkg-section-label">Hariç</div>
+                            <ul>
+                                @foreach($excludes as $item)<li>{{ $item }}</li>@endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </article>
+            @empty
+                {{-- Statik fallback paketler --}}
+                <article class="pkg-card">
+                    <div class="pkg-visual pkg-standard">
+                        <span class="pkg-level-badge">STANDARD</span>
+                        <div style="font-weight:700;font-size:16px;">Classic Dinner Cruise</div>
+                    </div>
+                    <div class="pkg-body">
+                        <h4>Classic Dinner Cruise</h4>
+                        <p>Boğazda akşam yemeği eşliğinde canlı müzik ve eğlence programı.</p>
+                        <div class="pkg-section-label">Dahil olanlar</div>
+                        <ul>
+                            <li>Fix menü akşam yemeği</li>
+                            <li>Canlı müzik ve sahne programı</li>
+                            <li>Merkezi iskelelerden kalkış</li>
+                        </ul>
+                    </div>
+                </article>
+                <article class="pkg-card">
+                    <div class="pkg-visual pkg-vip">
+                        <span class="pkg-level-badge">VIP</span>
+                        <div style="font-weight:700;font-size:16px;">Premium Dinner Cruise</div>
+                    </div>
+                    <div class="pkg-body">
+                        <h4>Premium Dinner Cruise</h4>
+                        <p>VIP masa konumlaması ve geliştirilmiş menü alternatifleri ile özel gece deneyimi.</p>
+                        <div class="pkg-section-label">Dahil olanlar</div>
+                        <ul>
+                            <li>VIP masa konumlaması seçeneği</li>
+                            <li>Geliştirilmiş menü alternatifleri</li>
+                            <li>Özel gün kutlama kurguları</li>
+                        </ul>
+                    </div>
+                </article>
+                <article class="pkg-card">
+                    <div class="pkg-visual pkg-premium">
+                        <span class="pkg-level-badge">GROUP</span>
+                        <div style="font-weight:700;font-size:16px;">Group & Incentive</div>
+                    </div>
+                    <div class="pkg-body">
+                        <h4>Group &amp; Incentive Çözümleri</h4>
+                        <p>Kurumsal gruplar için transfer + cruise kombine satış ve markalı etkinlik desteği.</p>
+                        <div class="pkg-section-label">Dahil olanlar</div>
+                        <ul>
+                            <li>Kurumsal grup rezervasyon yönetimi</li>
+                            <li>Transfer + cruise kombine satış</li>
+                            <li>Markalı özel etkinlik desteği</li>
+                        </ul>
+                    </div>
+                </article>
+            @endforelse
+        </div>
+    </div>
+</section>
+
+@if($includedExtras->isNotEmpty() || $optionalExtras->isNotEmpty())
+<section class="sc-section">
+    <div class="showcase-container">
+        <h2>Servisler</h2>
+        <p class="sub">Standart dahil ve opsiyonel ek hizmetler.</p>
+        <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+            @if($includedExtras->isNotEmpty())
+            <div class="sc-card">
+                <h3>✅ Standart Dahil</h3>
+                <div class="pill-wrap">
+                    @foreach($includedExtras as $item)
+                        <span class="pill included">{{ $item->title_tr }}</span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            @if($optionalExtras->isNotEmpty())
+            <div class="sc-card">
+                <h3>➕ Opsiyonel Ek Servisler</h3>
+                <div class="pill-wrap">
+                    @foreach($optionalExtras as $item)
+                        <span class="pill">{{ $item->title_tr }}</span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+</section>
+@endif
+
+<section class="sc-section">
+    <div class="showcase-container">
+        <h2>Çalışma akışı: 4 adımda satış</h2>
+        <p class="sub">Teklif aşamasından operasyon kapanışına kadar tek ekip, tek platform.</p>
+        <div class="grid-4">
+            <div class="step-card"><strong>Adım 1</strong><p>Acente talebi tarih, kişi sayısı ve paket seçimiyle GrupTalepleri üzerinden iletilir.</p></div>
+            <div class="step-card"><strong>Adım 2</strong><p>Uygunluk kontrolü yapılır ve B2B teklif aynı gün paylaşılır.</p></div>
+            <div class="step-card"><strong>Adım 3</strong><p>Onay sonrası rezervasyon bloklanır, özel menü ve servis detayları netleştirilir.</p></div>
+            <div class="step-card"><strong>Adım 4</strong><p>Operasyon dosyası kapanışına kadar tek ekip ile takip edilir.</p></div>
+        </div>
+    </div>
+</section>
+
+<div class="cta-box px-4 px-md-5">
+    <h2>B2B Bosphorus Dinner Cruise satışına bugün başlayın</h2>
+    <p class="sub">Fiyat listesi, acente komisyon modeli ve sezonluk kontenjan için bize ulaşın.</p>
+    <ul class="contact-list">
+        <li>E-posta: <a href="mailto:destek@gruptalepleri.com">destek@gruptalepleri.com</a></li>
+        <li>Telefon: <a href="tel:+905354154799">+90 535 415 47 99</a></li>
+        <li>WhatsApp: <a href="https://wa.me/905354154799" target="_blank" rel="noopener">Hızlı iletişim →</a></li>
+    </ul>
+</div>
+
+<footer>
+    © {{ date('Y') }} GrupTalepleri | Bosphorus Dinner Cruise B2B
+</footer>
 
 @include('admin.partials.theme-script')
 </body>
