@@ -100,15 +100,16 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                     <div class="card-header py-2 fw-semibold small">Kullanılabilir Değişkenler</div>
                     <div class="card-body py-2">
                         <p class="small text-muted mb-2">Tıklayarak editöre ekle:</p>
-                        @foreach(['{{acente_adi}}','{{belge_no}}','{{kayit_url}}','{{il}}'] as $var)
+                        @php $degiskenler = ['{{acente_adi}}','{{belge_no}}','{{kayit_url}}','{{il}}']; @endphp
+                        @foreach($degiskenler as $var)
                         <span class="badge bg-secondary var-badge me-1 mb-1" onclick="degiskenEkle('{{ $var }}')">{{ $var }}</span>
                         @endforeach
                         <hr class="my-2">
                         <p class="small text-muted mb-0">
-                            <strong>{{acente_adi}}</strong> — Acente ünvanı<br>
-                            <strong>{{belge_no}}</strong> — TÜRSAB belge no<br>
-                            <strong>{{kayit_url}}</strong> — Kayıt linki (takipli)<br>
-                            <strong>{{il}}</strong> — İl
+                            <strong>@{{acente_adi}}</strong> — Acente ünvanı<br>
+                            <strong>@{{belge_no}}</strong> — TÜRSAB belge no<br>
+                            <strong>@{{kayit_url}}</strong> — Kayıt linki (takipli)<br>
+                            <strong>@{{il}}</strong> — İl
                         </p>
                     </div>
                 </div>
