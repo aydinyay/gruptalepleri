@@ -18,15 +18,15 @@ Schedule::call(function () {
 // Her dakika çağrılır; komut kendi içinde ayarlanan aralığa göre çalışıp çalışmayacağına karar verir
 Schedule::command('opsiyon:check')->everyMinute();
 
-// Zamanlanmış email kampanyası — her 5 dakikada kontrol, komut kendi saatini yönetir
-Schedule::command('kampanya:email-otomatik')
-    ->everyFiveMinutes()
-    ->environments(['production']);
+// Zamanlanmış email kampanyası — Schedule::call kullanılıyor, proc_open gerektirmez
+Schedule::call(function () {
+    Artisan::call('kampanya:email-otomatik');
+})->everyFiveMinutes()->name('kampanya-email-otomatik')->environments(['production']);
 
-// Zamanlanmış SMS kampanyası — her 5 dakikada kontrol
-Schedule::command('kampanya:sms-otomatik')
-    ->everyFiveMinutes()
-    ->environments(['production']);
+// Zamanlanmış SMS kampanyası
+Schedule::call(function () {
+    Artisan::call('kampanya:sms-otomatik');
+})->everyFiveMinutes()->name('kampanya-sms-otomatik')->environments(['production']);
 
 // Zamanlanmış SMS'leri her dakika kontrol et ve gönder
 Schedule::command('sms:send-scheduled')->everyMinute();
