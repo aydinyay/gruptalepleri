@@ -19,6 +19,25 @@ class KampanyaEmailOtomatik extends Command
 
     public function handle(): int
     {
+        // Eş zamanlı çalışmayı önle — dosya kilidi
+        $lockFile = storage_path('app/kampanya-email.lock');
+        $lock = fopen($lockFile, 'c');
+        if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
+            $this->line('Başka bir kampanya email örneği çalışıyor, atlanıyor.');
+            if ($lock) fclose($lock);
+            return self::SUCCESS;
+        }
+
+        try {
+            return $this->run();
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
+    private function run(): int
+    {
         $ayarJson = SistemAyar::get(self::AYAR_KEY, '');
         if (!$ayarJson) {
             $this->line('Email kampanya ayarı bulunamadı.');

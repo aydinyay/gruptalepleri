@@ -75,15 +75,6 @@ Route::get('/mig-sm-2026', function () {
 });
 
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
-// Kampanya cron endpoint — CLI SMTP sorunu için web bağlamından tetikleme
-Route::get('/kampanya-cron', function (\Illuminate\Http\Request $request) {
-    $key = env('KAMPANYA_CRON_KEY', 'gtp_kampanya_cron_2026');
-    if ($request->input('key') !== $key) {
-        abort(403);
-    }
-    \Artisan::call('kampanya:email-otomatik');
-    return response('OK: ' . trim(\Artisan::output()), 200)->header('Content-Type', 'text/plain');
-})->name('kampanya.cron');
 
 Route::get('/', function () {
     if (auth()->check()) {
