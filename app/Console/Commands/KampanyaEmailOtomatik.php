@@ -90,10 +90,11 @@ class KampanyaEmailOtomatik extends Command
             // Yeni acente tebrik şablonunda en son eklenenler önce gelsin
             $siralama = ($sablon === 'emails.tursab_davet_yeni_acente') ? 'DESC' : 'ASC';
 
+            // Geçersiz email adreslerini absorbe etmek için $adet'in 3 katı çek
             $acenteler = $query
                 ->select('id','belge_no','acente_unvani','ticari_unvan','il','eposta','telefon')
                 ->orderByRaw("CAST(belge_no AS UNSIGNED) {$siralama}")
-                ->limit($adet)
+                ->limit($adet * 3)
                 ->get();
 
             if ($acenteler->isEmpty()) {
@@ -106,6 +107,8 @@ class KampanyaEmailOtomatik extends Command
             $basarisiz = 0;
 
             foreach ($acenteler as $a) {
+                if ($basarili >= $adet) break; // yeterli sayıya ulaşıldı
+
                 $email = trim($a->eposta ?? '');
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $basarisiz++; continue; }
                 $localPart = explode('@', $email)[0] ?? '';
