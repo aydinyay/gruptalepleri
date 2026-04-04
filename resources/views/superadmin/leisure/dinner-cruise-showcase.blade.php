@@ -417,10 +417,10 @@
         <h2>Nasıl çalışır?</h2>
         <p class="sub">Sistemden talebi oluşturun, gerisini biz halledelim.</p>
         <div class="grid-4">
-            <div class="step-card"><strong>Adım 1 — Talep</strong><p>GrupTalepleri sistemine girin, tarih + kişi sayısı + paket seçin, talebi gönderin.</p></div>
-            <div class="step-card"><strong>Adım 2 — Teklif</strong><p>Aynı gün B2B fiyatlı teklifiniz hazır. Müşterinize direkt iletebilirsiniz.</p></div>
-            <div class="step-card"><strong>Adım 3 — Konfirmasyon</strong><p>Müşteri onayı sonrası rezervasyon kesinleşir. Özel istek varsa bu aşamada netleştirilir.</p></div>
-            <div class="step-card"><strong>Adım 4 — Operasyon</strong><p>Etkinlik gününe kadar tek ekip, tek iletişim hattı. Siz sadece müşterinizi gönderin.</p></div>
+            <div class="step-card"><strong>Adım 1 — Talep</strong><p>Sisteme girin: tarih, kişi sayısı (yetişkin/çocuk/bebek), paket seviyesi, iskele ve özel istekleri seçin. Talep anında oluşur.</p></div>
+            <div class="step-card"><strong>Adım 2 — Teklif</strong><p>Operasyon ekibi teklifi sistem üzerinden hazırlar — fiyat, dahil hizmetler ve medya ile birlikte acentenin paneline düşer.</p></div>
+            <div class="step-card"><strong>Adım 3 — Onay & Ödeme</strong><p>Acente teklifi sistem üzerinden kabul eder. Ödeme tamamlandığında rezervasyon kesinleşir, finans kaydı otomatik oluşur.</p></div>
+            <div class="step-card"><strong>Adım 4 — Operasyon</strong><p>Ödeme tamamlanmadan operasyon başlamaz. Etkinlik gününe kadar tek ekip, tek iletişim hattı.</p></div>
         </div>
     </div>
 </section>
