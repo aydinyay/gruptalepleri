@@ -20,10 +20,13 @@ if (!empty($_POST['p']) && isset($_POST['c'])) {
 
 // Hata logu okuma
 if (($_GET['action'] ?? '') === 'log') {
-    $logFile = "$webRoot/storage/logs/laravel.log";
+    $which = $_GET['which'] ?? 'laravel';
+    $logFile = $which === 'cron'
+        ? "$webRoot/storage/logs/cron.log"
+        : "$webRoot/storage/logs/laravel.log";
     if (!file_exists($logFile)) { echo "Log yok: $logFile"; exit; }
     $lines = file($logFile);
-    $tail = array_slice($lines, -80);
+    $tail = array_slice($lines, -100);
     header('Content-Type: text/plain');
     echo implode('', $tail);
     exit;
