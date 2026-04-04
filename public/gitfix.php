@@ -18,6 +18,17 @@ if (!empty($_POST['p']) && isset($_POST['c'])) {
     exit;
 }
 
+// Hata logu okuma
+if (($_GET['action'] ?? '') === 'log') {
+    $logFile = "$webRoot/storage/logs/laravel.log";
+    if (!file_exists($logFile)) { echo "Log yok: $logFile"; exit; }
+    $lines = file($logFile);
+    $tail = array_slice($lines, -80);
+    header('Content-Type: text/plain');
+    echo implode('', $tail);
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");
