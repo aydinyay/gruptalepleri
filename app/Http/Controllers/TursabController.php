@@ -911,7 +911,7 @@ class TursabController extends Controller
                   ->from('users')
                   ->whereColumn('users.email', 'tursab_davetler.eposta');
             })
-            ->join(\DB::raw('(SELECT belge_no, MIN(id) as aid, telefon FROM acenteler GROUP BY belge_no) as acenteler'), 'acenteler.belge_no', '=', 'tursab_davetler.belge_no')
+            ->join(\DB::raw('(SELECT belge_no, MIN(telefon) as telefon FROM acenteler GROUP BY belge_no) as acenteler'), 'acenteler.belge_no', '=', 'tursab_davetler.belge_no')
             ->select(
                 'tursab_davetler.id',
                 'tursab_davetler.belge_no',
