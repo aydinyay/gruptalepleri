@@ -183,10 +183,6 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="testGonder('email', true)">
                                 <i class="fas fa-eye me-1"></i>Önizleme (Dry-Run)
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="testGonder('email', false)"
-                                onclick="return confirm('Şimdi gerçekten gönderilecek!')">
-                                <i class="fas fa-paper-plane me-1"></i>Şimdi Çalıştır
-                            </button>
                         </div>
                     </form>
                 </div>
@@ -282,8 +278,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="testGonder('sms', true)">
                                 <i class="fas fa-eye me-1"></i>Önizleme
                             </button>
-                            <button type="button" class="btn btn-outline-info btn-sm" onclick="testGonder('sms', false)">
-                                <i class="fas fa-sms me-1"></i>Şimdi Çalıştır
+                            {{-- Şimdi Çalıştır kaldırıldı: zamanlama sayfasında anlık gönderim karışıklık yaratıyor --}}
                             </button>
                         </div>
                     </form>
