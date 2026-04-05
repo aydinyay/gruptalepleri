@@ -26,6 +26,7 @@ class User extends Authenticatable
         'role',
         'show_iade_badge',
         'can_send_broadcast',
+        'email_unsubscribed',
     ];
 
     /**

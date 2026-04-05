@@ -184,12 +184,36 @@ class EmailService
             return;
         }
 
+        // Abonelikten çıkmış kullanıcıya email gönderme
+        if ($user->email_unsubscribed) {
+            return;
+        }
+
         $adminEmailCopy = $user->role === 'acente' && SistemAyar::adminEmailCopyEnabled();
         $adminEmail = 'destek@gruptalepleri.com';
 
+        // Unsubscribe linki — sadece gerçek user'lar için (id varsa)
+        $unsubscribeHtml = '';
+        if ($user->id && $user->role === 'acente') {
+            $unsubscribeUrl = \URL::signedRoute('abonelik.confirm', ['user' => $user->id]);
+            $unsubscribeHtml = '
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;padding:12px 0 0;">
+<tr><td align="center" style="font-size:12px;color:#adb5bd;padding:12px 0 20px;">
+Adresinize gönderilen iletileri almak istemiyorsanız
+<a href="' . $unsubscribeUrl . '" style="color:#adb5bd;text-decoration:underline;">lütfen buraya tıklayın</a>.
+</td></tr>
+</table>';
+        }
+
+        // View'i render et, unsubscribe footer'ı </body> öncesine ekle
+        $html = view($view, $data)->render();
+        if ($unsubscribeHtml) {
+            $html = str_replace('</body>', $unsubscribeHtml . '</body>', $html);
+        }
+
         $status = 'sent';
         try {
-            Mail::send($view, $data, function ($m) use ($user, $subject, $adminEmailCopy, $adminEmail) {
+            Mail::html($html, function ($m) use ($user, $subject, $adminEmailCopy, $adminEmail) {
                 $m->to($user->email, $user->name)->subject($subject);
                 if ($adminEmailCopy) {
                     $m->bcc($adminEmail, 'GrupTalepleri Admin');
@@ -210,7 +234,7 @@ class EmailService
             'recipient'      => $user->role === 'acente' ? 'acente' : 'admin',
             'recipient_name' => $user->name,
             'phone'          => null,
-            'message'        => strip_tags(view($view, $data)->render()),
+            'message'        => strip_tags($html),
             'subject'        => $subject,
             'status'         => $status,
             'sent_at'        => now(),

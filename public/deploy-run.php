@@ -565,6 +565,28 @@ PHPCODE;
         }
         $run($kernel, 'route:clear');
         $run($kernel, 'config:clear');
+    } elseif ($action === 'patch-console') {
+        // routes/console.php — runInBackground kaldir (proc_open devre disi sunucularda sorun cikarir)
+        $consoleFile = $basePath . '/routes/console.php';
+        $content = file_get_contents($consoleFile);
+        $fixed = $content;
+        $fixed = str_replace("    ->runInBackground()\n    ->environments(['production']);\n\n// Zamanlanmış SMS kampanyası", "    ->environments(['production']);\n\n// Zamanlanmış SMS kampanyası", $fixed);
+        $fixed = str_replace("    ->runInBackground()\n    ->environments(['production']);\n\n// Zamanlanmış SMS'leri", "    ->environments(['production']);\n\n// Zamanlanmış SMS'leri", $fixed);
+        if ($fixed === $content) {
+            $output .= "Değişiklik gerekmedi veya pattern bulunamadı (belki zaten düzeltilmiş).\n";
+        } else {
+            file_put_contents($consoleFile, $fixed);
+            $output .= "routes/console.php güncellendi — runInBackground kaldırıldı.\n";
+        }
+        $run($kernel, 'config:clear');
+        $run($kernel, 'cache:clear');
+    } elseif ($action === 'kampanya-log') {
+        $logFile = $basePath . '/storage/app/kampanya-email-out.txt';
+        if (!file_exists($logFile)) {
+            $output .= "Henüz log yok: {$logFile}\n";
+        } else {
+            $output .= file_get_contents($logFile);
+        }
     } elseif ($action === 'schedule-run') {
         $run($kernel, 'schedule:run');
     } elseif ($action === 'email-force') {
