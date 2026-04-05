@@ -169,7 +169,7 @@
                                     <option value="">Seciniz</option>
                                     @foreach($openRecords as $recordOption)
                                         <option value="{{ $recordOption->id }}">
-                                            #{{ $recordOption->id }} {{ $recordOption->document_ref ?: '-' }} - Odenen: {{ number_format((float) $recordOption->paid_amount, 2, ',', '.') }} {{ $recordOption->currency }}
+                                            #{{ $recordOption->id }} {{ $recordOption->document_ref ?: '-' }} — {{ $recordOption->agencyUser?->name ?? '—' }} — Odenen: {{ number_format((float) $recordOption->paid_amount, 2, ',', '.') }} {{ $recordOption->currency }}
                                         </option>
                                     @endforeach
                                 </select>
