@@ -56,12 +56,14 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        // Push + SMS bildirimi
+        // Push + SMS + Email bildirimleri
         try {
             (new \App\Services\NotificationService())->yeniAcente($request->company_title, $request->name, $request->phone);
             $mesaj = 'GT YENI ACENTE! ' . $request->company_title . ' firmasi kayit oldu. Yetkili: ' . $request->name . ' / ' . $request->phone;
             (new \App\Services\SmsService())->sendByEvent('new_agency', null, $mesaj);
-            (new \App\Services\EmailService())->yeniAcente($request->company_title, $request->name, $request->phone, $request->email, route('superadmin.acenteler'));
+            $emailSvc = new \App\Services\EmailService();
+            $emailSvc->yeniAcente($request->company_title, $request->name, $request->phone, $request->email, route('superadmin.acenteler'));
+            $emailSvc->hosgeldiniz($user, $request->company_title, $request->name, route('acente.dashboard'));
         } catch (\Exception $e) {
             // Bildirim hatası kaydı engellemesin
         }

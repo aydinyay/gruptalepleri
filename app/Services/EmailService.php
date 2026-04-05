@@ -71,6 +71,16 @@ class EmailService
     }
 
     /**
+     * Hoş geldiniz emaili — yeni kaydolan acentenin kendisine.
+     */
+    public function hosgeldiniz(User $user, string $companyTitle, string $contactName, string $dashboardUrl): void
+    {
+        $subject = "GrupTalepleri'ne Hoş Geldiniz — {$companyTitle}";
+        $data    = compact('companyTitle', 'contactName', 'dashboardUrl');
+        $this->send(null, $user, $subject, 'emails.hosgeldiniz', $data);
+    }
+
+    /**
      * Yeni acente kaydı — admin + superadmin'e email.
      */
     public function yeniAcente(string $companyTitle, string $contactName, string $phone, string $email, string $adminUrl): void
