@@ -27,14 +27,22 @@ Route::get('/git-pull-2026', function () {
 Route::get('/migrate-run-2026', function () {
     if (request('t') !== 'grtdeploy2026') abort(403);
     $lines = [];
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    $lines[] = 'migrate: ' . \Illuminate\Support\Facades\Artisan::output();
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $lines[] = 'migrate: ' . \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Throwable $e) {
+        $lines[] = 'migrate ERROR: ' . $e->getMessage();
+    }
     $seedClass = request('seed');
     if ($seedClass) {
         $allowed = ['BlogSeeder', 'SistemOlaySeeder'];
         if (in_array($seedClass, $allowed, true)) {
-            \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => $seedClass, '--force' => true]);
-            $lines[] = 'seed: ' . \Illuminate\Support\Facades\Artisan::output();
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => $seedClass, '--force' => true]);
+                $lines[] = 'seed: ' . \Illuminate\Support\Facades\Artisan::output();
+            } catch (\Throwable $e) {
+                $lines[] = 'seed ERROR: ' . $e->getMessage();
+            }
         } else {
             $lines[] = 'seed: izin verilmeyen seeder: ' . $seedClass;
         }
