@@ -601,11 +601,11 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/istatistik', [\App\Http\Controllers\Superadmin\StatsController::class, 'index'])->name('istatistik');
 
     // Sistem Olay Şablonları
-    Route::get('/sistem-olaylari',                   [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'index'])->name('sistem.olaylar');
-    Route::post('/sistem-olaylari',                  [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'store'])->name('sistem.olaylar.store');
-    Route::get('/sistem-olaylari/{sablon}/duzenle',  [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'edit'])->name('sistem.olaylar.edit');
-    Route::put('/sistem-olaylari/{sablon}',          [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'update'])->name('sistem.olaylar.update');
-    Route::post('/sistem-olaylari/{sablon}/sifirla', [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'sifirla'])->name('sistem.olaylar.sifirla');
+    Route::get('/sistem-olaylari',                        [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'index'])->name('sistem.olaylar');
+    Route::post('/sistem-olaylari',                       [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'store'])->name('sistem.olaylar.store');
+    Route::get('/sistem-olaylari/{id}/duzenle',           [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'edit'])->name('sistem.olaylar.edit');
+    Route::put('/sistem-olaylari/{id}',                   [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'update'])->name('sistem.olaylar.update');
+    Route::post('/sistem-olaylari/{id}/sifirla',          [\App\Http\Controllers\Superadmin\SistemOlayController::class, 'sifirla'])->name('sistem.olaylar.sifirla');
 
     // SMS Raporlar
     Route::get('/sms-raporlar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'smsRaporlar'])->name('sms.raporlar');

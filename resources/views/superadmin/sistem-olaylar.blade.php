@@ -142,12 +142,12 @@
                     <i class="fas fa-envelope {{ $olay->email_aktif ? 'text-info' : 'text-secondary' }}"></i>
                     <i class="fas fa-sms {{ $olay->sms_aktif ? 'text-success' : 'text-secondary' }} ms-1"></i>
                 </span>
-                <a href="{{ route('superadmin.sistem.olaylar.edit', $olay) }}"
+                <a href="{{ route('superadmin.sistem.olaylar.edit', $olay->id) }}"
                    class="btn btn-sm btn-outline-secondary py-0 px-2">
                     <i class="fas fa-edit me-1"></i>Düzenle
                 </a>
                 @if($olay->email_govde || $olay->sms_govde)
-                <form method="POST" action="{{ route('superadmin.sistem.olaylar.sifirla', $olay) }}"
+                <form method="POST" action="{{ route('superadmin.sistem.olaylar.sifirla', $olay->id) }}"
                       onsubmit="return confirm('Özel şablon silinip varsayılana dönülsün mü?')">
                     @csrf
                     <button class="btn btn-sm btn-outline-warning py-0 px-2">
@@ -160,7 +160,7 @@
 
         @if($acik)
         <div class="card-body">
-            <form method="POST" action="{{ route('superadmin.sistem.olaylar.update', $olay) }}">
+            <form method="POST" action="{{ route('superadmin.sistem.olaylar.update', $olay->id) }}">
                 @csrf @method('PUT')
 
                 {{-- Değişken chip'leri --}}
