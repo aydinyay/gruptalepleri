@@ -4,6 +4,8 @@
 ])
 
 @php
+    $calisanlarFeatureReady = \Illuminate\Support\Facades\Schema::hasColumn('users', 'parent_agency_id');
+    $isAcenteOwner = $calisanlarFeatureReady && auth()->user()?->isAcenteOwner();
     $transferSupplierFeatureReady = \Illuminate\Support\Facades\Schema::hasTable('transfer_suppliers');
     $transferSupplier = null;
     $transferTermsVersion = 1;
@@ -153,6 +155,12 @@
                     'icon' => 'fas fa-id-card',
                     'keys' => ['profil', 'hesap'],
                 ],
+                ...($isAcenteOwner ? [[
+                    'label' => 'Çalışanlar',
+                    'href'  => route('acente.calisanlar.index'),
+                    'icon'  => 'fas fa-users',
+                    'keys'  => ['calisanlar'],
+                ]] : []),
             ],
         ],
     ];

@@ -16,7 +16,11 @@ class DashboardController extends Controller
         $user = $this->acenteActor();
         $agency = $user->agency;
 
-        $talepler = TalepModel::where('user_id', $user->id)
+        $rootId = $user->acenteRootId();
+        $talepler = TalepModel::where(function ($q) use ($rootId) {
+            $q->where('user_id', $rootId)
+              ->orWhereIn('user_id', \App\Models\User::where('parent_agency_id', $rootId)->pluck('id'));
+        })
             ->with([
                 'segments',
                 'offers'   => fn($q) => $q->whereIn('durum', ['beklemede', 'kabul_edildi'])->orderByRaw("FIELD(durum,'kabul_edildi','beklemede')"),

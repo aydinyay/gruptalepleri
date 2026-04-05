@@ -129,7 +129,11 @@ class RequestController extends Controller
         if ($this->isAcentePreviewMode()) {
             $query->where('user_id', $this->acenteActor()->id);
         } elseif (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
-            $query->where('user_id', auth()->id());
+            $rootId = auth()->user()->acenteRootId();
+            $query->where(function ($q) use ($rootId) {
+                $q->where('user_id', $rootId)
+                  ->orWhereIn('user_id', \App\Models\User::where('parent_agency_id', $rootId)->pluck('id'));
+            });
         }
         $query->firstOrFail();
 
@@ -171,7 +175,11 @@ class RequestController extends Controller
         if ($this->isAcentePreviewMode()) {
             $query->where('user_id', $this->acenteActor()->id);
         } elseif (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
-            $query->where('user_id', auth()->id());
+            $rootId = auth()->user()->acenteRootId();
+            $query->where(function ($q) use ($rootId) {
+                $q->where('user_id', $rootId)
+                  ->orWhereIn('user_id', \App\Models\User::where('parent_agency_id', $rootId)->pluck('id'));
+            });
         }
         $talep = $query->firstOrFail();
 
@@ -190,8 +198,11 @@ class RequestController extends Controller
             return $blocked;
         }
 
+        $actor = $this->acenteActor();
+        $rootId = $actor->acenteRootId();
+        $agencyIds = \App\Models\User::where('parent_agency_id', $rootId)->pluck('id')->push($rootId);
         $talep = TalepModel::where('gtpnr', $gtpnr)
-            ->where('user_id', $this->acenteActor()->id)
+            ->whereIn('user_id', $agencyIds)
             ->with('offers')
             ->firstOrFail();
 
@@ -269,9 +280,11 @@ class RequestController extends Controller
         $query = TalepModel::where('gtpnr', $gtpnr)
             ->with(['segments', 'offers', 'logs.user', 'payments', 'notifications']);
 
-        // Admin/superadmin tüm talepleri görebilir (preview modda da kısıtlama yok); acente sadece kendi talebini
+        // Admin/superadmin tüm talepleri görebilir; acente kendi acentesinin tüm taleplerini görebilir
         if (!in_array(auth()->user()->role, ['admin', 'superadmin']) && !$this->isAcentePreviewMode()) {
-            $query->where('user_id', auth()->id());
+            $rootId = auth()->user()->acenteRootId();
+            $agencyIds = \App\Models\User::where('parent_agency_id', $rootId)->pluck('id')->push($rootId);
+            $query->whereIn('user_id', $agencyIds);
         }
 
         $talep = $query->firstOrFail();

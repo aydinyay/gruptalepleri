@@ -886,6 +886,11 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::put('/profil', [\App\Http\Controllers\Acente\ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/sifre', [\App\Http\Controllers\Acente\ProfileController::class, 'updatePassword'])->name('profil.sifre');
 
+    Route::get('/calisanlar', [\App\Http\Controllers\Acente\CalisanController::class, 'index'])->name('calisanlar.index');
+    Route::post('/calisanlar/davet', [\App\Http\Controllers\Acente\CalisanController::class, 'davetGonder'])->name('calisanlar.davet');
+    Route::delete('/calisanlar/{id}', [\App\Http\Controllers\Acente\CalisanController::class, 'sil'])->name('calisanlar.sil');
+    Route::patch('/calisanlar/{id}/yetki', [\App\Http\Controllers\Acente\CalisanController::class, 'yetkiGuncelle'])->name('calisanlar.yetki');
+
     });
 
     Route::middleware('auth')->group(function () {
@@ -893,6 +898,10 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Çalışan davet kabul — auth gerektirmez
+Route::get('/davet/{token}', [\App\Http\Controllers\DavetController::class, 'show'])->name('davet.show');
+Route::post('/davet/{token}', [\App\Http\Controllers\DavetController::class, 'kabul'])->name('davet.kabul');
 
 // Bildirimler — tüm roller için ortak
 Route::middleware('auth')->prefix('bildirimler')->name('bildirimler.')->group(function () {

@@ -85,6 +85,8 @@
                 $active = 'create';
             } elseif (str_starts_with($routeName, 'acente.profil')) {
                 $active = 'profil';
+            } elseif (str_starts_with($routeName, 'acente.calisanlar')) {
+                $active = 'calisanlar';
             }
         }
     @endphp

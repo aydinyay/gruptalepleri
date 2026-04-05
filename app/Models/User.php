@@ -27,6 +27,10 @@ class User extends Authenticatable
         'show_iade_badge',
         'can_send_broadcast',
         'email_unsubscribed',
+        'parent_agency_id',
+        'acente_rolu',
+        'davet_token',
+        'davet_expires_at',
     ];
 
     /**
@@ -48,8 +52,43 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'davet_expires_at'  => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // --- Çoklu acente kullanıcısı ---
+
+    public function isAcenteOwner(): bool
+    {
+        return $this->role === 'acente' && is_null($this->parent_agency_id);
+    }
+
+    public function acenteRootId(): int
+    {
+        return $this->parent_agency_id ?? $this->id;
+    }
+
+    public function canDo(string $yetki): bool
+    {
+        $paket = $this->acente_rolu ?? 'owner';
+        $yetkiler = [
+            'owner'     => ['talep', 'teklif', 'odeme', 'finans', 'yolcu', 'ayarlar', 'calisanlar'],
+            'tam'       => ['talep', 'teklif', 'odeme', 'finans', 'yolcu'],
+            'operasyon' => ['talep', 'teklif', 'yolcu'],
+            'muhasebe'  => ['finans', 'odeme'],
+        ];
+        return in_array($yetki, $yetkiler[$paket] ?? []);
+    }
+
+    public function calisanlar()
+    {
+        return $this->hasMany(User::class, 'parent_agency_id');
+    }
+
+    public function parentAgency()
+    {
+        return $this->belongsTo(User::class, 'parent_agency_id');
     }
 
 public function agency()
