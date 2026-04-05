@@ -32,22 +32,109 @@
 {{-- Instagram profil bağlantısı --}}
 <meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
 
-{{-- JSON-LD Yapılandırılmış Veri (Google arama sonucu zengin snippet) --}}
+{{-- JSON-LD: TravelAgency + WebSite + Services + FAQ --}}
 <script type="application/ld+json">{!! json_encode([
-    '@context'     => 'https://schema.org',
-    '@type'        => 'TravelAgency',
-    'name'         => $sirket['unvan'],
-    'alternateName'=> 'GrupTalepleri',
-    'url'          => 'https://gruptalepleri.com',
-    'logo'         => 'https://gruptalepleri.com/og-image.png',
-    'description'  => 'Turizm acenteleri ve kurumsal şirketler için grup uçuş ve charter talep platformu.',
-    'address'      => ['@type'=>'PostalAddress','streetAddress'=>$sirket['adres'],'addressCountry'=>'TR'],
-    'telephone'    => preg_replace('/[^0-9+]/','',$sirket['telefon']),
-    'email'        => $sirket['eposta'],
-    'sameAs'       => ['https://www.instagram.com/'.$sirket['instagram']],
-    'areaServed'   => 'TR',
-    'priceRange'   => '₺₺',
-    'openingHours' => 'Mo-Fr 09:00-18:00',
+    '@context' => 'https://schema.org',
+    '@graph'   => [
+
+        {{-- 1. TravelAgency (LocalBusiness) --}}
+        [
+            '@type'        => 'TravelAgency',
+            '@id'          => 'https://gruptalepleri.com/#organization',
+            'name'         => $sirket['unvan'],
+            'alternateName'=> 'GrupTalepleri',
+            'url'          => 'https://gruptalepleri.com',
+            'logo'         => ['@type'=>'ImageObject','url'=>'https://gruptalepleri.com/og-image.png'],
+            'description'  => 'Turizm acenteleri ve kurumsal şirketler için grup uçuş, charter ve özel seyahat talep platformu. TÜRSAB A Grubu belgeli.',
+            'address'      => ['@type'=>'PostalAddress','streetAddress'=>$sirket['adres'],'addressLocality'=>'Şişli','addressRegion'=>'İstanbul','addressCountry'=>'TR'],
+            'geo'          => ['@type'=>'GeoCoordinates','latitude'=>'41.0532','longitude'=>'28.9868'],
+            'telephone'    => preg_replace('/[^0-9+]/','',$sirket['telefon']),
+            'email'        => $sirket['eposta'],
+            'sameAs'       => ['https://www.instagram.com/'.$sirket['instagram']],
+            'areaServed'   => ['@type'=>'Country','name'=>'Turkey'],
+            'priceRange'   => '₺₺',
+            'openingHoursSpecification' => [
+                ['@type'=>'OpeningHoursSpecification','dayOfWeek'=>['Monday','Tuesday','Wednesday','Thursday','Friday'],'opens'=>'09:00','closes'=>'18:00'],
+            ],
+            'hasOfferCatalog' => [
+                '@type' => 'OfferCatalog',
+                'name'  => 'Grup Seyahat Hizmetleri',
+                'itemListElement' => [
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Grup Uçuş Talebi','description'=>'Tarifeli gruplar için rekabetçi teklifler ve GTPNR takip sistemi.']],
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Charter Uçak Kiralama','description'=>'Tam kabin charter kiralama, paket tur grupları için özel çözümler.']],
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Özel Jet Kiralama','description'=>'VIP ve kurumsal seyahatler için özel jet temini ve rezervasyonu.']],
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Helikopter Kiralama','description'=>'VIP transfer, gezi ve iş seyahati için helikopter çözümleri.']],
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Havalimanı Transfer','description'=>'Havalimanı, otel ve etkinlik transferleri için VIP araç temini.']],
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Yat Kiralama','description'=>'Tekne kiralama, mavi yolculuk ve özel yat organizasyonları.']],
+                    ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Dinner Cruise','description'=>'Boğaz ve koy turları, özel akşam yemeği etkinlikleri.']],
+                ],
+            ],
+        ],
+
+        {{-- 2. WebSite + SearchAction (Google Sitelinks arama kutusu) --}}
+        [
+            '@type'            => 'WebSite',
+            '@id'              => 'https://gruptalepleri.com/#website',
+            'url'              => 'https://gruptalepleri.com',
+            'name'             => 'GrupTalepleri',
+            'description'      => 'Turizm acenteleri için grup uçuş ve charter talep platformu.',
+            'publisher'        => ['@id' => 'https://gruptalepleri.com/#organization'],
+            'potentialAction'  => [
+                '@type'       => 'SearchAction',
+                'target'      => ['@type'=>'EntryPoint','urlTemplate'=>'https://gruptalepleri.com/grup-talepleri?q={search_term_string}'],
+                'query-input' => 'required name=search_term_string',
+            ],
+        ],
+
+        {{-- 3. FAQPage --}}
+        [
+            '@type'      => 'FAQPage',
+            '@id'        => 'https://gruptalepleri.com/#faq',
+            'mainEntity' => [
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Grup uçuş talebi nasıl yapılır?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Ücretsiz üye olup giriş yaptıktan sonra "Yeni Talep" butonuna tıklayın. Güzergah, tarih, yolcu sayısı ve tercihlerinizi girin. Sistem size otomatik bir GTPNR numarası atar ve operasyon ekibimiz en kısa sürede teklif girer.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Minimum kaç kişiyle grup bileti alınabilir?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Tarifeli uçuşlarda genel kural olarak minimum 10 kişiden itibaren grup tarifesi uygulanır. Charter uçuşlarda ise uçak kapasitesine göre değişir; tek koltuktan tam kabin kiralamaya kadar her ölçekte çözüm sunulmaktadır.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'TÜRSAB belgeli acente misiniz?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Evet. Grup Talepleri Turizm San. ve Tic. Ltd. Şti. olarak TÜRSAB A Grubu seyahat acentası belgesine sahibiz. Belge No: '.$sirket['tursab_no'].'.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Teklif ne kadar sürede gelir?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Tarifeli grup taleplerinde genellikle 2-4 saat, charter taleplerinde ise güzergah ve tarihe göre 4-24 saat içinde teklif iletilmektedir. Acil operasyonlar için telefon veya WhatsApp ile doğrudan iletişime geçebilirsiniz.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Üyelik ücretli mi?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Hayır. GrupTalepleri platformuna üyelik tamamen ücretsizdir. Kayıt olduktan sonra hemen talep oluşturmaya başlayabilirsiniz.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Yurt dışı grup uçuşları için de hizmet veriyor musunuz?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Evet. Yurt içi güzergahların yanı sıra Avrupa, Orta Doğu, Uzak Doğu ve tüm uluslararası destinasyonlara grup uçuş talebi oluşturabilirsiniz. Charter uçuşlarda dünya genelinde operasyon desteği sağlanmaktadır.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Ödeme nasıl yapılır?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Teklif onaylandıktan sonra havale/EFT veya kredi kartı ile ödeme yapılabilmektedir. Büyük tutarlı operasyonlarda depozito + bakiye şeklinde taksitli ödeme planı oluşturulabilmektedir.'],
+                ],
+                [
+                    '@type'          => 'Question',
+                    'name'           => 'Dinner Cruise için nasıl teklif alabilirim?',
+                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Platforma giriş yaparak Leisure menüsünden Dinner Cruise seçeneğini seçin. Tarih, oturum (akşam/gece), kişi sayısı ve menü tercihlerinizi girin. Net B2B fiyatlarla anlık teklif alırsınız.'],
+                ],
+            ],
+        ],
+
+    ],
 ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -366,6 +453,17 @@ nav{
 .btn-kurumsal:hover{background:var(--red2);color:var(--white);}
 
 /* CTA BAND */
+/* SSS */
+.sss-section{background:var(--light);padding:5rem 5%;}
+.sss-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:3rem;max-width:960px;margin-left:auto;margin-right:auto;}
+@media(max-width:768px){.sss-grid{grid-template-columns:1fr;}}
+.sss-item{background:#fff;border-radius:12px;border:1px solid #e9ecef;overflow:hidden;}
+.sss-q{width:100%;background:none;border:none;text-align:left;padding:1.1rem 1.3rem;font-size:.95rem;font-weight:600;color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.5rem;line-height:1.4;}
+.sss-q i{flex-shrink:0;transition:transform .25s;color:var(--red);}
+.sss-q[aria-expanded="true"] i{transform:rotate(45deg);}
+.sss-a{display:none;padding:.1rem 1.3rem 1.1rem;font-size:.88rem;color:var(--gray);line-height:1.7;}
+.sss-item.open .sss-a{display:block;}
+
 .cta-band{
     background:linear-gradient(135deg,var(--red) 0%,var(--red2) 100%);
     padding:4.5rem 5%;text-align:center;
@@ -443,6 +541,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
         <a href="#nasil" class="nav-item">Nasıl Çalışır</a>
         <a href="#neden" class="nav-item">Neden Biz</a>
         <a href="#kimler" class="nav-item">Kimler İçin</a>
+        <a href="#sss" class="nav-item">SSS</a>
         <a href="/acente-tanitim.html" class="nav-item">Platform Tanıtımı</a>
         <a href="{{ route('login') }}" class="btn-nav-login">Giriş Yap</a>
         <a href="{{ route('register') }}" class="btn-nav-register">Üye Ol</a>
@@ -771,6 +870,36 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
     </div>
 </section>
 
+{{-- SSS --}}
+<section class="sss-section" id="sss">
+    <div class="section-label" style="text-align:center;">SSS</div>
+    <div class="section-title" style="text-align:center;">Sık Sorulan Sorular</div>
+    <div class="section-sub" style="text-align:center;margin:0 auto;">Platformumuz hakkında merak ettikleriniz.</div>
+
+    <div class="sss-grid">
+        @php $sssler = [
+            ['s'=>'Grup uçuş talebi nasıl yapılır?', 'c'=>'Ücretsiz üye olup giriş yaptıktan sonra "Yeni Talep" butonuna tıklayın. Güzergah, tarih, yolcu sayısı ve tercihlerinizi girin. Sistem size otomatik bir GTPNR numarası atar ve operasyon ekibimiz en kısa sürede teklif girer.'],
+            ['s'=>'Minimum kaç kişiyle grup bileti alınabilir?', 'c'=>'Tarifeli uçuşlarda genel kural olarak minimum 10 kişiden itibaren grup tarifesi uygulanır. Charter uçuşlarda ise uçak kapasitesine göre değişir; tek koltuktan tam kabin kiralamaya kadar her ölçekte çözüm sunulmaktadır.'],
+            ['s'=>'TÜRSAB belgeli acente misiniz?', 'c'=>'Evet. TÜRSAB A Grubu seyahat acentası belgesine sahibiz. Belge No: '.$sirket['tursab_no'].'. Tüm operasyonlarımız yasal güvence altındadır.'],
+            ['s'=>'Teklif ne kadar sürede gelir?', 'c'=>'Tarifeli grup taleplerinde genellikle 2-4 saat, charter taleplerinde ise güzergah ve tarihe göre 4-24 saat içinde teklif iletilmektedir. Acil operasyonlar için doğrudan WhatsApp veya telefon ile iletişime geçebilirsiniz.'],
+            ['s'=>'Üyelik ücretli mi?', 'c'=>'Hayır. Platforma üyelik tamamen ücretsizdir. Kayıt olduktan sonra hemen talep oluşturmaya başlayabilirsiniz.'],
+            ['s'=>'Yurt dışı grup uçuşları için de hizmet veriyor musunuz?', 'c'=>'Evet. Yurt içinin yanı sıra Avrupa, Orta Doğu, Uzak Doğu ve tüm uluslararası destinasyonlara grup uçuş talebi oluşturabilirsiniz. Charter operasyonlarda dünya genelinde hizmet verilmektedir.'],
+            ['s'=>'Ödeme nasıl yapılır?', 'c'=>'Teklif onaylandıktan sonra havale/EFT veya kredi kartı ile ödeme yapılabilmektedir. Büyük tutarlı operasyonlarda depozito + bakiye şeklinde taksitli ödeme planı oluşturulabilmektedir.'],
+            ['s'=>'Dinner Cruise için nasıl teklif alabilirim?', 'c'=>'Platforma giriş yaparak Leisure menüsünden Dinner Cruise seçeneğini seçin. Tarih, oturum, kişi sayısı ve menü tercihlerinizi girin. Net B2B fiyatlarla anlık teklif alırsınız.'],
+        ]; @endphp
+
+        @foreach($sssler as $i => $sss)
+        <div class="sss-item{{ $i === 0 ? ' open' : '' }}">
+            <button class="sss-q" aria-expanded="{{ $i === 0 ? 'true' : 'false' }}" onclick="sssToggle(this)">
+                {{ $sss['s'] }}
+                <i class="fas fa-plus"></i>
+            </button>
+            <div class="sss-a">{{ $sss['c'] }}</div>
+        </div>
+        @endforeach
+    </div>
+</section>
+
 {{-- CTA BAND --}}
 <div class="cta-band">
     <h2>Hemen Üye Olun, İlk Talebinizi Oluşturun</h2>
@@ -865,6 +994,20 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// SSS accordion
+function sssToggle(btn) {
+    const item = btn.closest('.sss-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.sss-item.open').forEach(el => {
+        el.classList.remove('open');
+        el.querySelector('.sss-q').setAttribute('aria-expanded','false');
+    });
+    if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded','true');
+    }
+}
+
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
