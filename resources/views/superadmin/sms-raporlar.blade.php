@@ -55,6 +55,10 @@
                 E-posta
                 <span class="badge {{ $activeChannel === 'email' ? 'bg-light text-info' : 'bg-info text-dark' }}">{{ $channelCounts['email'] ?? 0 }}</span>
             </a>
+            <a href="{{ route('superadmin.sms.raporlar', array_merge($commonQuery, ['channel' => 'olaylar'])) }}"
+               class="btn btn-sm {{ $activeChannel === 'olaylar' ? 'btn-warning text-dark' : 'btn-outline-warning' }}">
+                <i class="fas fa-bolt me-1"></i>Sistem Olaylari
+            </a>
         </div>
     </div>
 
@@ -97,6 +101,118 @@
         @endif
     </div>
 
+    @if($activeChannel === 'olaylar')
+    {{-- SİSTEM OLAYLARI TABLOSU --}}
+    @php
+    $olaylar = [
+        [
+            'olay'       => 'Yeni Talep Olusturuldu',
+            'tetikleyen' => 'Acente → Yeni talep gönder',
+            'kanal'      => ['Email'],
+            'alici'      => 'Admin + Superadmin',
+            'icerik'     => '"Yeni Grup Talebi: {GTPNR}" — Acente adı, pax, talep linki',
+        ],
+        [
+            'olay'       => 'Teklif Eklendi',
+            'tetikleyen' => 'Admin → Teklif ekle',
+            'kanal'      => ['Email', 'SMS'],
+            'alici'      => 'Acente (+ Superadmin CC)',
+            'icerik'     => '"Teklifiniz Hazır: {GTPNR}" — Havayolu, fiyat, talep linki',
+        ],
+        [
+            'olay'       => 'Teklif Kabul Edildi',
+            'tetikleyen' => 'Acente → Teklifi onayla',
+            'kanal'      => ['Email', 'SMS'],
+            'alici'      => 'Admin + Superadmin',
+            'icerik'     => '"Teklif Kabul Edildi: {GTPNR}" — Acente adı, havayolu',
+        ],
+        [
+            'olay'       => 'Durum Degisti',
+            'tetikleyen' => 'Admin → Durum güncelle',
+            'kanal'      => ['Email'],
+            'alici'      => 'Acente (+ Superadmin CC)',
+            'icerik'     => '"Talep Durumu Güncellendi: {GTPNR}" — Eski/yeni durum',
+        ],
+        [
+            'olay'       => 'Opsiyon Vadesi Uyarisi',
+            'tetikleyen' => 'Otomatik (zamanlı görev)',
+            'kanal'      => ['Email'],
+            'alici'      => 'Admin + Superadmin',
+            'icerik'     => '"Ödeme Vadesi Uyarısı: {GTPNR} — {X} saat kaldı"',
+        ],
+        [
+            'olay'       => 'Yeni Acente Kaydi',
+            'tetikleyen' => 'Acente → Kayıt ol',
+            'kanal'      => ['Email'],
+            'alici'      => 'Admin + Superadmin',
+            'icerik'     => '"Yeni Acente Kaydı: {Şirket}" — İletişim bilgileri',
+        ],
+        [
+            'olay'       => 'Hos Geldiniz (Acente)',
+            'tetikleyen' => 'Acente → Kayıt ol',
+            'kanal'      => ['Email'],
+            'alici'      => 'Acente (kendisi)',
+            'icerik'     => '"GrupTalepleri\'ne Hoş Geldiniz" — Dashboard linki',
+        ],
+        [
+            'olay'       => 'Hizli Yanit SMS',
+            'tetikleyen' => 'Admin → Hızlı Yanıt gönder',
+            'kanal'      => ['SMS'],
+            'alici'      => 'Acente',
+            'icerik'     => 'Serbest metin — admin tarafından yazılır',
+        ],
+        [
+            'olay'       => 'Broadcast / Duyuru',
+            'tetikleyen' => 'Superadmin → Broadcast gönder',
+            'kanal'      => ['Email', 'SMS'],
+            'alici'      => 'Seçili acenteler',
+            'icerik'     => 'Özel şablon veya serbest metin',
+        ],
+    ];
+    @endphp
+    <div class="card shadow-sm mb-3">
+        <div class="card-header fw-bold"><i class="fas fa-bolt me-1 text-warning"></i>Sistem Olaylari — Kim, Ne Zaman, Kime Gönderir</div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Olay</th>
+                        <th>Tetikleyen</th>
+                        <th>Kanal</th>
+                        <th>Alici</th>
+                        <th>Gönderilen İçerik</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($olaylar as $o)
+                    <tr>
+                        <td class="fw-semibold" style="white-space:nowrap;">{{ $o['olay'] }}</td>
+                        <td class="text-muted small">{{ $o['tetikleyen'] }}</td>
+                        <td>
+                            @foreach($o['kanal'] as $k)
+                                @if($k === 'Email')
+                                    <span class="badge bg-info text-dark me-1">Email</span>
+                                @elseif($k === 'SMS')
+                                    <span class="badge bg-success me-1">SMS</span>
+                                @else
+                                    <span class="badge bg-secondary me-1">{{ $k }}</span>
+                                @endif
+                            @endforeach
+                        </td>
+                        <td class="small">{{ $o['alici'] }}</td>
+                        <td class="text-muted small">{{ $o['icerik'] }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-light small text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            Bu olayların email içerikleri <code>resources/views/emails/</code> klasöründeki Blade şablonlarında tanımlıdır.
+            SMS içerikleri ilgili Controller'da sabit metin olarak yazılmıştır.
+        </div>
+    </div>
+    @else
     <div class="card shadow-sm mb-3">
         <div class="card-body py-2">
             <form method="GET" class="row g-2 align-items-end">
@@ -276,6 +392,7 @@
         </div>
         @endif
     </div>
+    @endif
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

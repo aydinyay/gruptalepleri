@@ -1019,7 +1019,7 @@ class SuperadminController extends Controller
     public function smsRaporlar(Request $request)
     {
         $channel = $request->input('channel', 'all');
-        if (! in_array($channel, ['all', 'sms', 'email'], true)) {
+        if (! in_array($channel, ['all', 'sms', 'email', 'olaylar'], true)) {
             $channel = 'all';
         }
 
