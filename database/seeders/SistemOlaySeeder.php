@@ -57,8 +57,8 @@ class SistemOlaySeeder extends Seeder
             ],
             [
                 'olay_kodu'   => 'opsiyon_uyarisi',
-                'olay_adi'    => 'Opsiyon Uyarısı (Admin)',
-                'alici'       => 'admin',
+                'olay_adi'    => 'Opsiyon Uyarısı (Admin + Acente)',
+                'alici'       => 'her_ikisi',
                 'email_konu'  => null,
                 'email_govde' => null,
                 'sms_govde'   => null,

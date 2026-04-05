@@ -72,7 +72,8 @@ class CheckOpsiyonExpiry extends Command
                 if ($ayar->sms_aktif) {
                     $smsService->sendByEvent('opsiyon_uyarisi', $odeme->request_id, $msg);
                 }
-                $emailService->opsiyonUyarisi($odeme->request_id, $gtpnr, '💳 Ödeme Vadesi', $saatKaldi, $dueDt->format('d.m.Y H:i'), $url);
+                $acenteUserId = $odeme->request?->user_id;
+                $emailService->opsiyonUyarisi($odeme->request_id, $gtpnr, '💳 Ödeme Vadesi', $saatKaldi, $dueDt->format('d.m.Y H:i'), $url, $acenteUserId);
 
                 Cache::put($cacheKey, true, 60 * 48);
                 $this->line("Ödeme uyarısı gönderildi: {$gtpnr} ({$ayar->saat_oncesi}s önce)");

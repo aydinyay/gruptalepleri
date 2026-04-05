@@ -76,21 +76,35 @@ class EmailService
     }
 
     /**
-     * Ödeme vadesi yaklaşıyor — admin + superadmin'e email.
+     * Ödeme vadesi yaklaşıyor — admin + superadmin + acente'ye email.
      */
-    public function opsiyonUyarisi(int $requestId, string $gtpnr, string $airline, int $saatKaldi, string $opsiyonBitis, string $adminUrl): void
+    public function opsiyonUyarisi(int $requestId, string $gtpnr, string $airline, int $saatKaldi, string $opsiyonBitis, string $adminUrl, ?int $acenteUserId = null): void
     {
-        $subject  = "⚠️ Ödeme Vadesi Uyarısı: {$gtpnr} — {$saatKaldi} saat kaldı";
-        $varsData = ['gtpnr' => $gtpnr, 'havayolu' => $airline, 'saat_kaldi' => $saatKaldi, 'bitis' => $opsiyonBitis, 'link' => $adminUrl];
-        $ozel     = SistemOlaySablon::resolveEmail('opsiyon_uyarisi', $varsData);
+        $subject   = "⚠️ Ödeme Vadesi Uyarısı: {$gtpnr} — {$saatKaldi} saat kaldı";
+        $varsData  = ['gtpnr' => $gtpnr, 'havayolu' => $airline, 'saat_kaldi' => $saatKaldi, 'bitis' => $opsiyonBitis, 'link' => $adminUrl];
+        $ozel      = SistemOlaySablon::resolveEmail('opsiyon_uyarisi', $varsData);
         $bladeData = compact('gtpnr', 'airline', 'saatKaldi', 'opsiyonBitis', 'adminUrl');
 
+        // Admin + Superadmin
         $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
         foreach ($alicilar as $user) {
             if ($ozel) {
                 $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
             } else {
                 $this->send($requestId, $user, $subject, 'emails.opsiyon_uyarisi', $bladeData);
+            }
+        }
+
+        // Acente
+        if ($acenteUserId) {
+            $acente = User::find($acenteUserId);
+            if ($acente && $acente->email) {
+                $acenteSubject = "⚠️ Ödeme Vadesi Hatırlatması: {$gtpnr} — {$saatKaldi} saat kaldı";
+                if ($ozel) {
+                    $this->sendHtml($requestId, $acente, $ozel['konu'] ?? $acenteSubject, $ozel['html']);
+                } else {
+                    $this->send($requestId, $acente, $acenteSubject, 'emails.opsiyon_uyarisi', $bladeData);
+                }
             }
         }
     }
