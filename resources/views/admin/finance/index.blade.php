@@ -110,7 +110,7 @@
                                     <option value="">Seciniz</option>
                                     @foreach($openRecords as $recordOption)
                                         <option value="{{ $recordOption->id }}">
-                                            #{{ $recordOption->id }} {{ $recordOption->document_ref ?: '-' }} - {{ number_format((float) $recordOption->remaining_amount, 2, ',', '.') }} {{ $recordOption->currency }}
+                                            #{{ $recordOption->id }} {{ $recordOption->document_ref ?: '-' }} — {{ $recordOption->agencyUser?->name ?? '—' }} — {{ number_format((float) $recordOption->remaining_amount, 2, ',', '.') }} {{ $recordOption->currency }}
                                         </option>
                                     @endforeach
                                 </select>
