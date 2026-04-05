@@ -866,9 +866,15 @@ Route::post('/ai-kutlama/{campaign}/goruldu', [\App\Http\Controllers\AiCelebrati
 Route::post('/ai-kutlama/{campaign}/kapatildi', [\App\Http\Controllers\AiCelebrationController::class, 'closed'])->name('ai-kutlama.closed');
 Route::post('/ai-kutlama/{campaign}/tiklandi', [\App\Http\Controllers\AiCelebrationController::class, 'clicked'])->name('ai-kutlama.clicked');
 
-// E-posta abonelik yönetimi (signed URL, auth gerektirmez)
+// E-posta abonelik yönetimi — kayıtlı kullanıcılar (signed URL)
 Route::get('/abonelik/iptal/{user}',  [\App\Http\Controllers\AbonelikController::class, 'confirm'])->name('abonelik.confirm')->middleware('signed');
 Route::post('/abonelik/iptal/{user}', [\App\Http\Controllers\AbonelikController::class, 'iptal'])->name('abonelik.iptal')->middleware('signed');
 Route::post('/abonelik/baslat/{user}',[\App\Http\Controllers\AbonelikController::class, 'baslat'])->name('abonelik.baslat')->middleware('signed');
+
+// Footer e-posta aboneliği — misafir ziyaretçiler
+Route::post('/footer-abone',                        [\App\Http\Controllers\EmailAboneController::class, 'store'])->name('abone.store')->middleware('throttle:5,60');
+Route::get('/abonelik/misafir-iptal/{token}',       [\App\Http\Controllers\EmailAboneController::class, 'iptal'])->name('abone.iptal');
+Route::post('/abonelik/misafir-iptal/{token}',      [\App\Http\Controllers\EmailAboneController::class, 'iptalOnayla'])->name('abone.iptal.onayla');
+Route::post('/abonelik/misafir-baslat/{token}',     [\App\Http\Controllers\EmailAboneController::class, 'baslatOnayla'])->name('abone.baslat.onayla');
 
 require __DIR__.'/auth.php';

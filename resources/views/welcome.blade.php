@@ -790,6 +790,31 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
                 <i class="fas fa-certificate" style="color:#f5a623;"></i>
                 TÜRSAB {{ $sirket['tursab_grup'] }} Grubu &nbsp;·&nbsp; Belge No: <strong>{{ $sirket['tursab_no'] }}</strong>
             </div>
+
+            {{-- E-posta aboneliği --}}
+            <div style="margin-top:1.25rem;">
+                <div style="font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.6rem;">
+                    Duyurulardan haberdar olun
+                </div>
+                @if(session('abone_mesaj'))
+                    <div style="font-size:.84rem;padding:.5rem .75rem;border-radius:.5rem;margin-bottom:.5rem;
+                        background:{{ session('abone_durum') === 'ok' ? 'rgba(34,197,94,.15)' : 'rgba(251,191,36,.15)' }};
+                        color:{{ session('abone_durum') === 'ok' ? '#86efac' : '#fde68a' }};">
+                        {{ session('abone_mesaj') }}
+                    </div>
+                @endif
+                <form action="{{ route('abone.store') }}" method="POST"
+                      style="display:flex;gap:.4rem;flex-wrap:wrap;">
+                    @csrf
+                    <input type="email" name="email" placeholder="E-posta adresiniz"
+                           required
+                           style="flex:1;min-width:0;padding:.5rem .75rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.84rem;outline:none;">
+                    <button type="submit"
+                            style="padding:.5rem 1rem;border-radius:.5rem;border:none;background:#e8a020;color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+                        Abone Ol
+                    </button>
+                </form>
+            </div>
         </div>
 
         {{-- Orta: İletişim --}}
