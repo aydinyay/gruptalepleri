@@ -99,6 +99,12 @@
                     'icon'  => 'fas fa-share-nodes',
                     'keys'  => ['sosyal-medya'],
                 ],
+                [
+                    'label' => 'Blog / Rehber',
+                    'href'  => route('superadmin.blog.index'),
+                    'icon'  => 'fas fa-newspaper',
+                    'keys'  => ['blog'],
+                ],
             ],
         ],
         [

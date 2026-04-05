@@ -77,6 +77,14 @@ Route::get('/mig-sm-2026', function () {
 // Kampanya link takibi — public, auth gerektirmez
 Route::get('/iz/{token}', [\App\Http\Controllers\KampanyaTiklamaController::class, 'izle'])->name('kampanya.izle');
 
+// Blog — public
+Route::get('/blog',                           [\App\Http\Controllers\BlogPublicController::class, 'index'])->name('blog.index');
+Route::get('/blog/kategori/{kategori:slug}',  [\App\Http\Controllers\BlogPublicController::class, 'kategori'])->name('blog.kategori');
+Route::get('/blog/{slug}',                    [\App\Http\Controllers\BlogPublicController::class, 'show'])->name('blog.show');
+
+// Sitemap — dinamik (blog yazılarını dahil eder)
+Route::get('/sitemap-dinamik.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
+
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
 
 Route::get('/', function () {
@@ -583,6 +591,19 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/opsiyon-ayarlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarEkle'])->name('opsiyon.ekle');
     Route::post('/opsiyon-ayarlari/{opsiyonAyar}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarToggle'])->name('opsiyon.toggle');
     Route::delete('/opsiyon-ayarlari/{opsiyonAyar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarSil'])->name('opsiyon.sil');
+
+    // Blog Yönetimi
+    Route::prefix('blog')->name('blog.')->group(function () {
+        Route::get('/',                              [\App\Http\Controllers\Superadmin\BlogController::class, 'index'])->name('index');
+        Route::get('/yeni',                          [\App\Http\Controllers\Superadmin\BlogController::class, 'create'])->name('create');
+        Route::post('/',                             [\App\Http\Controllers\Superadmin\BlogController::class, 'store'])->name('store');
+        Route::get('/{blog}/duzenle',                [\App\Http\Controllers\Superadmin\BlogController::class, 'edit'])->name('edit');
+        Route::put('/{blog}',                        [\App\Http\Controllers\Superadmin\BlogController::class, 'update'])->name('update');
+        Route::delete('/{blog}',                     [\App\Http\Controllers\Superadmin\BlogController::class, 'destroy'])->name('destroy');
+        Route::get('/kategoriler',                   [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriler'])->name('kategoriler');
+        Route::post('/kategoriler',                  [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriStore'])->name('kategori.store');
+        Route::delete('/kategoriler/{kategori}',     [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriDestroy'])->name('kategori.destroy');
+    });
 });
 
 // Admin
