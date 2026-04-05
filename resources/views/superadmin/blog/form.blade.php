@@ -77,7 +77,7 @@
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Kapak Görseli</label>
-                    <div class="text-muted small mb-2">Önerilen: 1200×630 px — JPG, PNG veya WebP, max 2 MB</div>
+                    <div class="text-muted small mb-2">Önerilen: 1200×630 px — JPG, PNG veya WebP, max 5 MB</div>
 
                     @php $mevcutGorsel = old('kapak_gorseli_url', $blog->kapak_gorseli ?? ''); @endphp
 
