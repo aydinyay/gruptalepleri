@@ -23,6 +23,8 @@
                 $active = 'dinner-cruise';
             } elseif (str_starts_with($routeName, 'superadmin.yacht-charter')) {
                 $active = 'yacht-charter';
+            } elseif (str_starts_with($routeName, 'superadmin.finance.receipts')) {
+                $active = 'finance-receipts';
             } elseif (str_starts_with($routeName, 'superadmin.finance')) {
                 $active = 'finance';
             } elseif (str_starts_with($routeName, 'superadmin.quick-reply')) {
@@ -33,6 +35,8 @@
                 $active = 'sms-raporlar';
             } elseif (str_starts_with($routeName, 'superadmin.sistem.olaylar')) {
                 $active = 'sistem-olaylar';
+            } elseif (str_starts_with($routeName, 'superadmin.blog.kategoriler')) {
+                $active = 'blog-kategoriler';
             } elseif (str_starts_with($routeName, 'superadmin.sms.ayarlar')) {
                 $active = 'sms-ayarlar';
             } elseif (str_starts_with($routeName, 'superadmin.ai-kutlama')) {

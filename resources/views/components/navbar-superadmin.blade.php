@@ -105,6 +105,12 @@
                     'icon'  => 'fas fa-newspaper',
                     'keys'  => ['blog'],
                 ],
+                [
+                    'label' => 'Blog Kategorileri',
+                    'href'  => route('superadmin.blog.kategoriler'),
+                    'icon'  => 'fas fa-tags',
+                    'keys'  => ['blog-kategoriler'],
+                ],
             ],
         ],
         [
@@ -190,6 +196,12 @@
                     'href' => route('superadmin.finance.index'),
                     'icon' => 'fas fa-coins',
                     'keys' => ['finance'],
+                ],
+                [
+                    'label' => 'Dekontlar',
+                    'href'  => route('superadmin.finance.receipts.index'),
+                    'icon'  => 'fas fa-file-invoice',
+                    'keys'  => ['finance-receipts'],
                 ],
             ],
         ],
