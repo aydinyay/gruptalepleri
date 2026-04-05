@@ -32,12 +32,10 @@
 {{-- Instagram profil bağlantısı --}}
 <meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
 
-{{-- JSON-LD: TravelAgency + WebSite + Services + FAQ --}}
+{{-- JSON-LD 1: TravelAgency + WebSite --}}
 <script type="application/ld+json">{!! json_encode([
     '@context' => 'https://schema.org',
     '@graph'   => [
-
-        {{-- 1. TravelAgency (LocalBusiness) --}}
         [
             '@type'        => 'TravelAgency',
             '@id'          => 'https://gruptalepleri.com/#organization',
@@ -70,70 +68,35 @@
                 ],
             ],
         ],
-
-        {{-- 2. WebSite + SearchAction (Google Sitelinks arama kutusu) --}}
         [
-            '@type'            => 'WebSite',
-            '@id'              => 'https://gruptalepleri.com/#website',
-            'url'              => 'https://gruptalepleri.com',
-            'name'             => 'GrupTalepleri',
-            'description'      => 'Turizm acenteleri için grup uçuş ve charter talep platformu.',
-            'publisher'        => ['@id' => 'https://gruptalepleri.com/#organization'],
-            'potentialAction'  => [
+            '@type'           => 'WebSite',
+            '@id'             => 'https://gruptalepleri.com/#website',
+            'url'             => 'https://gruptalepleri.com',
+            'name'            => 'GrupTalepleri',
+            'description'     => 'Turizm acenteleri için grup uçuş ve charter talep platformu.',
+            'publisher'       => ['@id'=>'https://gruptalepleri.com/#organization'],
+            'potentialAction' => [
                 '@type'       => 'SearchAction',
                 'target'      => ['@type'=>'EntryPoint','urlTemplate'=>'https://gruptalepleri.com/grup-talepleri?q={search_term_string}'],
                 'query-input' => 'required name=search_term_string',
             ],
         ],
+    ],
+], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
 
-        {{-- 3. FAQPage --}}
-        [
-            '@type'      => 'FAQPage',
-            '@id'        => 'https://gruptalepleri.com/#faq',
-            'mainEntity' => [
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Grup uçuş talebi nasıl yapılır?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Ücretsiz üye olup giriş yaptıktan sonra "Yeni Talep" butonuna tıklayın. Güzergah, tarih, yolcu sayısı ve tercihlerinizi girin. Sistem size otomatik bir GTPNR numarası atar ve operasyon ekibimiz en kısa sürede teklif girer.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Minimum kaç kişiyle grup bileti alınabilir?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Tarifeli uçuşlarda genel kural olarak minimum 10 kişiden itibaren grup tarifesi uygulanır. Charter uçuşlarda ise uçak kapasitesine göre değişir; tek koltuktan tam kabin kiralamaya kadar her ölçekte çözüm sunulmaktadır.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'TÜRSAB belgeli acente misiniz?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Evet. Grup Talepleri Turizm San. ve Tic. Ltd. Şti. olarak TÜRSAB A Grubu seyahat acentası belgesine sahibiz. Belge No: '.$sirket['tursab_no'].'.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Teklif ne kadar sürede gelir?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Tarifeli grup taleplerinde genellikle 2-4 saat, charter taleplerinde ise güzergah ve tarihe göre 4-24 saat içinde teklif iletilmektedir. Acil operasyonlar için telefon veya WhatsApp ile doğrudan iletişime geçebilirsiniz.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Üyelik ücretli mi?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Hayır. GrupTalepleri platformuna üyelik tamamen ücretsizdir. Kayıt olduktan sonra hemen talep oluşturmaya başlayabilirsiniz.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Yurt dışı grup uçuşları için de hizmet veriyor musunuz?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Evet. Yurt içi güzergahların yanı sıra Avrupa, Orta Doğu, Uzak Doğu ve tüm uluslararası destinasyonlara grup uçuş talebi oluşturabilirsiniz. Charter uçuşlarda dünya genelinde operasyon desteği sağlanmaktadır.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Ödeme nasıl yapılır?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Teklif onaylandıktan sonra havale/EFT veya kredi kartı ile ödeme yapılabilmektedir. Büyük tutarlı operasyonlarda depozito + bakiye şeklinde taksitli ödeme planı oluşturulabilmektedir.'],
-                ],
-                [
-                    '@type'          => 'Question',
-                    'name'           => 'Dinner Cruise için nasıl teklif alabilirim?',
-                    'acceptedAnswer' => ['@type'=>'Answer','text'=>'Platforma giriş yaparak Leisure menüsünden Dinner Cruise seçeneğini seçin. Tarih, oturum (akşam/gece), kişi sayısı ve menü tercihlerinizi girin. Net B2B fiyatlarla anlık teklif alırsınız.'],
-                ],
-            ],
-        ],
-
+{{-- JSON-LD 2: FAQPage --}}
+<script type="application/ld+json">{!! json_encode([
+    '@context'   => 'https://schema.org',
+    '@type'      => 'FAQPage',
+    'mainEntity' => [
+        ['@type'=>'Question','name'=>'Grup uçuş talebi nasıl yapılır?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Ücretsiz üye olup giriş yaptıktan sonra "Yeni Talep" butonuna tıklayın. Güzergah, tarih, yolcu sayısı ve tercihlerinizi girin. Sistem size otomatik bir GTPNR numarası atar ve operasyon ekibimiz en kısa sürede teklif girer.']],
+        ['@type'=>'Question','name'=>'Minimum kaç kişiyle grup bileti alınabilir?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Tarifeli uçuşlarda genel kural olarak minimum 10 kişiden itibaren grup tarifesi uygulanır. Charter uçuşlarda ise uçak kapasitesine göre değişir; tek koltuktan tam kabin kiralamaya kadar her ölçekte çözüm sunulmaktadır.']],
+        ['@type'=>'Question','name'=>'TÜRSAB belgeli acente misiniz?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Evet. Grup Talepleri Turizm San. ve Tic. Ltd. Şti. olarak TÜRSAB A Grubu seyahat acentası belgesine sahibiz. Belge No: '.$sirket['tursab_no'].'.']],
+        ['@type'=>'Question','name'=>'Teklif ne kadar sürede gelir?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Tarifeli grup taleplerinde genellikle 2-4 saat, charter taleplerinde ise güzergah ve tarihe göre 4-24 saat içinde teklif iletilmektedir. Acil operasyonlar için telefon veya WhatsApp ile doğrudan iletişime geçebilirsiniz.']],
+        ['@type'=>'Question','name'=>'Üyelik ücretli mi?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Hayır. GrupTalepleri platformuna üyelik tamamen ücretsizdir. Kayıt olduktan sonra hemen talep oluşturmaya başlayabilirsiniz.']],
+        ['@type'=>'Question','name'=>'Yurt dışı grup uçuşları için de hizmet veriyor musunuz?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Evet. Yurt içi güzergahların yanı sıra Avrupa, Orta Doğu, Uzak Doğu ve tüm uluslararası destinasyonlara grup uçuş talebi oluşturabilirsiniz. Charter uçuşlarda dünya genelinde operasyon desteği sağlanmaktadır.']],
+        ['@type'=>'Question','name'=>'Ödeme nasıl yapılır?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Teklif onaylandıktan sonra havale/EFT veya kredi kartı ile ödeme yapılabilmektedir. Büyük tutarlı operasyonlarda depozito + bakiye şeklinde taksitli ödeme planı oluşturulabilmektedir.']],
+        ['@type'=>'Question','name'=>'Dinner Cruise için nasıl teklif alabilirim?','acceptedAnswer'=>['@type'=>'Answer','text'=>'Platforma giriş yaparak Leisure menüsünden Dinner Cruise seçeneğini seçin. Tarih, oturum (akşam/gece), kişi sayısı ve menü tercihlerinizi girin. Net B2B fiyatlarla anlık teklif alırsınız.']],
     ],
 ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
 
