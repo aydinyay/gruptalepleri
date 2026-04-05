@@ -69,10 +69,24 @@ class CheckOpsiyonExpiry extends Command
                 if ($ayar->push_aktif) {
                     $notifService->opsiyonUyarisi($gtpnr, '💳 Ödeme Vadesi', $saatKaldi, $url);
                 }
-                if ($ayar->sms_aktif) {
-                    $smsService->sendByEvent('opsiyon_uyarisi', $odeme->request_id, $msg);
-                }
                 $acenteUserId = $odeme->request?->user_id;
+                if ($ayar->sms_aktif) {
+                    // Admin SMS
+                    $smsService->sendByEvent('opsiyon_uyarisi', $odeme->request_id, $msg);
+
+                    // Acente SMS
+                    $acenteUser = $acenteUserId ? \App\Models\User::find($acenteUserId) : null;
+                    $acentePhone = $acenteUser?->phone ?? $odeme->request?->phone ?? null;
+                    if ($acentePhone) {
+                        $acenteMsg = \App\Models\SistemOlaySablon::resolveSms('opsiyon_uyarisi', [
+                            'gtpnr'      => $gtpnr,
+                            'saat_kaldi' => $saatKaldi,
+                            'bitis'      => $dueDt->format('d.m.Y'),
+                            'link'       => $url,
+                        ]) ?? "HATIRLATMA: {$gtpnr} talebiniz için ödeme vadesi {$saatKaldi} saat içinde doluyor. {$dueDt->format('d.m.Y')}";
+                        $smsService->send($odeme->request_id, 'acente', $acenteUser?->name ?? 'Acente', (string) $acentePhone, $acenteMsg);
+                    }
+                }
                 $emailService->opsiyonUyarisi($odeme->request_id, $gtpnr, '💳 Ödeme Vadesi', $saatKaldi, $dueDt->format('d.m.Y H:i'), $url, $acenteUserId);
 
                 Cache::put($cacheKey, true, 60 * 48);
