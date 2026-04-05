@@ -732,9 +732,12 @@
                             </div>
                         </form>
                     @elseif($kalanTutar > 0)
-                        <div class="alert alert-light border mt-2 py-2 small">
-                            <i class="fas fa-university me-1 text-primary"></i>
-                            Ödemenizi <strong>EFT / Havale</strong> ile yapabilirsiniz. Operasyon ekibimiz ödemenizi aldığında sisteme işleyecektir.
+                        <div class="mt-2">
+                            @include('partials.banka-bilgileri', ['gtpnr' => $talep->gtpnr, 'compact' => true])
+                        </div>
+                        <div class="text-muted mt-2" style="font-size:.78rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Ödemenizi gönderdikten sonra <a href="{{ route('acente.finance.index') }}">Finans</a> sayfasından dekont bildiriminde bulunabilirsiniz.
                         </div>
                     @endif
 

@@ -245,6 +245,30 @@
         @endforeach
     </div>
 
+    {{-- ── Ödeme bekleyen talep varsa banka bilgisi banner --}}
+    @if(($istatistik['depozitoda'] ?? 0) > 0)
+    <div class="card shadow-sm mb-3" style="border-left:4px solid #e8a020;">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div style="font-size:.88rem;">
+                    <i class="fas fa-university me-2 text-warning"></i>
+                    <strong>{{ $istatistik['depozitoda'] }} talebin ödemesi bekleniyor.</strong>
+                    Havale / EFT yapmak için banka bilgilerimize ulaşın.
+                </div>
+                <button class="btn btn-sm btn-outline-warning"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#dashBankaBilgileri">
+                    <i class="fas fa-chevron-down me-1"></i>Banka Bilgileri
+                </button>
+            </div>
+            <div class="collapse mt-3" id="dashBankaBilgileri">
+                @include('partials.banka-bilgileri', ['compact' => true])
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- ── HARİTA ── --}}
     <div class="card shadow-sm mb-3">
         <div class="map-filters d-flex align-items-center gap-2 flex-wrap">

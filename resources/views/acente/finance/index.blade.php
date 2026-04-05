@@ -36,6 +36,8 @@
     @endif
 
     @if($coreReady)
+        @include('partials.banka-bilgileri')
+
         <div class="card shadow-sm mb-4">
             <div class="card-header fw-semibold">Havale / EFT Dekont Bildirimi</div>
             <div class="card-body">
