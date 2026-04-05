@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\SistemOlaySablon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class SistemOlaySeeder extends Seeder
 {
@@ -75,8 +75,15 @@ class SistemOlaySeeder extends Seeder
             ],
         ];
 
+        $now = now();
         foreach ($olaylar as $olay) {
-            SistemOlaySablon::updateOrCreate(
+            $olay['degiskenler'] = json_encode($olay['degiskenler']);
+            $olay['email_aktif'] = 1;
+            $olay['sms_aktif']   = 1;
+            $olay['created_at']  = $now;
+            $olay['updated_at']  = $now;
+
+            DB::table('sistem_olay_sablonlari')->updateOrInsert(
                 ['olay_kodu' => $olay['olay_kodu']],
                 $olay
             );
