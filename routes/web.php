@@ -187,8 +187,12 @@ Route::get('/dashboard', function () {
     };
 })->middleware(['auth'])->name('dashboard');
 
-// Kısa talep linki: SMS/email içinde paylaşılabilir.
+// Kısa talep linki: SMS/email içinde paylaşılabilir. Role göre yönlendir.
 Route::middleware(['auth'])->get('/t/{gtpnr}', function (string $gtpnr) {
+    $role = auth()->user()->role;
+    if ($role === 'acente') {
+        return redirect()->route('acente.requests.show', $gtpnr);
+    }
     return redirect()->route('admin.requests.show', $gtpnr);
 })->name('requests.short');
 
