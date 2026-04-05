@@ -45,7 +45,7 @@ $_jsonLd1 = json_encode([
             'url'          => 'https://gruptalepleri.com',
             'logo'         => [$_type=>'ImageObject','url'=>'https://gruptalepleri.com/og-image.png'],
             'description'  => 'Turizm acenteleri ve kurumsal şirketler için grup uçuş, charter ve özel seyahat talep platformu. TÜRSAB A Grubu belgeli.',
-            'address'      => [$_type=>'PostalAddress','streetAddress'=>$sirket['adres'],'addressLocality'=>'Şişli','addressRegion'=>'İstanbul','addressCountry'=>'TR'],
+            'address'      => [$_type=>'PostalAddress','streetAddress'=>$sirket['adres'],'addressLocality'=>'Şişli','addressRegion'=>'İstanbul','postalCode'=>'34373','addressCountry'=>'TR'],
             'geo'          => [$_type=>'GeoCoordinates','latitude'=>'41.0532','longitude'=>'28.9868'],
             'telephone'    => preg_replace('/[^0-9+]/','',$sirket['telefon']),
             'email'        => $sirket['eposta'],
