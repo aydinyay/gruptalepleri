@@ -23,6 +23,19 @@ Route::get('/git-pull-2026', function () {
         ->header('Content-Type', 'text/plain');
 });
 
+// ── Migration + Seeder çalıştırıcı (token korumalı) ──
+Route::get('/migrate-run-2026', function () {
+    if (request('t') !== 'grtdeploy2026') abort(403);
+    $lines = [];
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    $lines[] = 'migrate: ' . \Illuminate\Support\Facades\Artisan::output();
+    if (request('seed') === '1') {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'BlogSeeder', '--force' => true]);
+        $lines[] = 'seed: ' . \Illuminate\Support\Facades\Artisan::output();
+    }
+    return response(implode("\n", $lines), 200)->header('Content-Type', 'text/plain');
+});
+
 // ── Bakanlık Sync HTTP tetikleyici (cron + manuel için, token korumalı) ──
 Route::get('/acente-sync-run', function () {
     if (request('t') !== 'grtacesync2026') abort(403);
