@@ -181,6 +181,11 @@ class Request extends Model
         return $this->hasMany(FlightSegment::class);
     }
 
+    public function yolcular()
+    {
+        return $this->hasMany(TalepYolcusu::class, 'request_id')->orderBy('sira');
+    }
+
     public function offers()
     {
         return $this->hasMany(Offer::class);

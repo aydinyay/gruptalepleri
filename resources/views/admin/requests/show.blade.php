@@ -298,6 +298,47 @@
             </div>
             @endif
 
+            {{-- Yolcu Listesi --}}
+            @if(\Illuminate\Support\Facades\Schema::hasTable('talep_yolculari'))
+            @php $yolcular = $talep->yolcular()->get(); @endphp
+            <div class="card mb-3">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">👥 Yolcu Listesi
+                        <span class="badge bg-secondary ms-1">{{ $yolcular->count() }} / {{ $talep->pax_total }}</span>
+                    </span>
+                    @if($yolcular->count() > 0)
+                    <a href="{{ route('admin.requests.yolcular.export', $talep->gtpnr) }}" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                        <i class="fas fa-download me-1"></i>CSV
+                    </a>
+                    @endif
+                </div>
+                <div class="card-body p-0">
+                    @if($yolcular->isEmpty())
+                        <p class="text-muted small p-2 mb-0">Acente henüz yolcu listesi girmedi.</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0" style="font-size:0.78rem;">
+                                <thead class="table-light">
+                                    <tr><th>#</th><th>Ad Soyad</th><th>Tür</th><th>Kimlik No</th><th>Doğum</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($yolcular as $y)
+                                    <tr>
+                                        <td>{{ $y->sira }}</td>
+                                        <td>{{ $y->ad }} {{ $y->soyad }}</td>
+                                        <td><span class="badge bg-secondary">{{ $y->tur }}</span></td>
+                                        <td>{{ $y->kimlik_no ?: '—' }}</td>
+                                        <td>{{ $y->dogum_tarihi ? \Carbon\Carbon::parse($y->dogum_tarihi)->format('d.m.Y') : '—' }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
         </div>
 
         {{-- ════════════════════ SAĞ SÜTUN ════════════════════ --}}

@@ -739,6 +739,24 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin')->name('adm
     Route::post('/talepler/{gtpnr}/teklif/{offer}/toggle', [\App\Http\Controllers\Admin\RequestController::class, 'toggleOffer'])->name('requests.offer.toggle');
     Route::delete('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'deleteOffer'])->name('requests.offer.delete');
     Route::patch('/talepler/{gtpnr}', [\App\Http\Controllers\Admin\RequestController::class, 'updateRequest'])->name('requests.update');
+    Route::get('/talepler/{gtpnr}/yolcular/export', function (string $gtpnr) {
+        $talep = \App\Models\Request::where('gtpnr', $gtpnr)->firstOrFail();
+        $yolcular = $talep->yolcular()->get();
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $gtpnr . '-yolcular.csv"',
+        ];
+        $callback = function () use ($yolcular, $talep) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Sira', 'Tur', 'Ad', 'Soyad', 'Kimlik No', 'Kimlik Tipi', 'Dogum Tarihi', 'Uyruk', 'Cinsiyet'], ';');
+            foreach ($yolcular as $y) {
+                fputcsv($handle, [$y->sira, $y->tur, $y->ad, $y->soyad, $y->kimlik_no, $y->kimlik_tipi, $y->dogum_tarihi, $y->uyruk, $y->cinsiyet], ';');
+            }
+            fclose($handle);
+        };
+        return response()->stream($callback, 200, $headers);
+    })->name('requests.yolcular.export');
     Route::delete('/talepler/{gtpnr}', [\App\Http\Controllers\Admin\RequestController::class, 'destroy'])->name('requests.destroy');
     Route::get('/hizli-yanitla', [\App\Http\Controllers\Admin\QuickReplyController::class, 'index'])->name('quick-reply.index');
     Route::post('/hizli-yanitla/parse', [\App\Http\Controllers\Admin\QuickReplyController::class, 'parse'])->name('quick-reply.parse');
@@ -885,6 +903,12 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/profil', [\App\Http\Controllers\Acente\ProfileController::class, 'edit'])->name('profil');
     Route::put('/profil', [\App\Http\Controllers\Acente\ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/sifre', [\App\Http\Controllers\Acente\ProfileController::class, 'updatePassword'])->name('profil.sifre');
+
+    Route::get('/talep/yolcu-sablon', [\App\Http\Controllers\Acente\YolcuController::class, 'sablonIndir'])->name('yolcular.sablon');
+    Route::get('/talep/{gtpnr}/yolcular', [\App\Http\Controllers\Acente\YolcuController::class, 'index'])->name('yolcular.index');
+    Route::post('/talep/{gtpnr}/yolcular', [\App\Http\Controllers\Acente\YolcuController::class, 'store'])->name('yolcular.store');
+    Route::delete('/talep/{gtpnr}/yolcular/{id}', [\App\Http\Controllers\Acente\YolcuController::class, 'destroy'])->name('yolcular.destroy');
+    Route::post('/talep/{gtpnr}/yolcular/csv', [\App\Http\Controllers\Acente\YolcuController::class, 'csvYukle'])->name('yolcular.csv');
 
     Route::get('/calisanlar', [\App\Http\Controllers\Acente\CalisanController::class, 'index'])->name('calisanlar.index');
     Route::post('/calisanlar/davet', [\App\Http\Controllers\Acente\CalisanController::class, 'davetGonder'])->name('calisanlar.davet');

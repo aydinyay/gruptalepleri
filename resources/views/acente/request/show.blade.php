@@ -843,6 +843,23 @@
             </div>
             @endif
 
+            {{-- ── YOLCU LİSTESİ ── --}}
+            @if(!in_array($aktifAdim, ['teklif_bekleniyor', 'karar_bekleniyor']))
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold"><i class="fas fa-users me-2 text-primary"></i>Yolcu Listesi</div>
+                            <div class="text-muted small mt-1">Havayoluna iletilecek yolcu bilgilerini girin.</div>
+                        </div>
+                        <a href="{{ route('acente.yolcular.index', $talep->gtpnr) }}" class="btn btn-sm btn-primary">
+                            Yolcu Listesine Git →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- ── İLETİŞİM ── --}}
             <div class="card shadow-sm mb-3">
                 <div class="card-body d-grid gap-2">
