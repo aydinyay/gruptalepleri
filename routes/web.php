@@ -29,9 +29,15 @@ Route::get('/migrate-run-2026', function () {
     $lines = [];
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     $lines[] = 'migrate: ' . \Illuminate\Support\Facades\Artisan::output();
-    if (request('seed') === '1') {
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'BlogSeeder', '--force' => true]);
-        $lines[] = 'seed: ' . \Illuminate\Support\Facades\Artisan::output();
+    $seedClass = request('seed');
+    if ($seedClass) {
+        $allowed = ['BlogSeeder', 'SistemOlaySeeder'];
+        if (in_array($seedClass, $allowed, true)) {
+            \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => $seedClass, '--force' => true]);
+            $lines[] = 'seed: ' . \Illuminate\Support\Facades\Artisan::output();
+        } else {
+            $lines[] = 'seed: izin verilmeyen seeder: ' . $seedClass;
+        }
     }
     return response(implode("\n", $lines), 200)->header('Content-Type', 'text/plain');
 });
