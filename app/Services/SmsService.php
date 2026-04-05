@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\RequestNotification;
 use App\Models\SistemAyar;
+use App\Models\SistemOlaySablon;
 use App\Models\SmsNotificationSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -101,10 +102,16 @@ class SmsService
      * Belirli bir olay icin SMS ayarlarindaki tum numaralara gonderir.
      * Zaman penceresi disindaysa bir sonraki acilis zamanina planlar.
      */
-    public function sendByEvent(string $event, ?int $requestId, string $message): void
+    public function sendByEvent(string $event, ?int $requestId, string $message, array $data = []): void
     {
         if (! SistemAyar::smsEnabled()) {
             return;
+        }
+
+        // DB'de özel SMS şablonu varsa kullan
+        $ozelSms = SistemOlaySablon::resolveSms($event, $data);
+        if ($ozelSms !== null) {
+            $message = $ozelSms;
         }
 
         $scheduledFor = $this->zamanPenceresindeMi() ? null : $this->sonrakiPencereAcilis();

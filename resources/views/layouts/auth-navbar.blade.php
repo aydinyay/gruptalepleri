@@ -31,6 +31,8 @@
                 $active = 'broadcast';
             } elseif (str_starts_with($routeName, 'superadmin.sms.raporlar')) {
                 $active = 'sms-raporlar';
+            } elseif (str_starts_with($routeName, 'superadmin.sistem.olaylar')) {
+                $active = 'sistem-olaylar';
             } elseif (str_starts_with($routeName, 'superadmin.sms.ayarlar')) {
                 $active = 'sms-ayarlar';
             } elseif (str_starts_with($routeName, 'superadmin.ai-kutlama')) {

@@ -217,6 +217,12 @@
                     'icon' => 'fas fa-chart-line',
                     'keys' => ['sms-raporlar'],
                 ],
+                [
+                    'label' => 'Sistem Olayları',
+                    'href'  => route('superadmin.sistem.olaylar'),
+                    'icon'  => 'fas fa-bolt',
+                    'keys'  => ['sistem-olaylar'],
+                ],
             ],
         ],
         [

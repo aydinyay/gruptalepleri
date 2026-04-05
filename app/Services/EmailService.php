@@ -6,6 +6,7 @@ use App\Models\BroadcastNotification;
 use App\Models\Request as TalepModel;
 use App\Models\RequestNotification;
 use App\Models\SistemAyar;
+use App\Models\SistemOlaySablon;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -18,11 +19,16 @@ class EmailService
     public function yeniTalep(int $requestId, string $gtpnr, string $agencyName, int $paxTotal, string $adminUrl): void
     {
         $subject = "🆕 Yeni Grup Talebi: {$gtpnr}";
-        $data    = compact('gtpnr', 'agencyName', 'paxTotal', 'adminUrl');
+        $varsData = ['gtpnr' => $gtpnr, 'acente_adi' => $agencyName, 'pax' => $paxTotal, 'link' => $adminUrl];
+        $ozel = SistemOlaySablon::resolveEmail('yeni_talep', $varsData);
 
         $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
         foreach ($alicilar as $user) {
-            $this->send($requestId, $user, $subject, 'emails.yeni_talep', $data);
+            if ($ozel) {
+                $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+            } else {
+                $this->send($requestId, $user, $subject, 'emails.yeni_talep', compact('gtpnr', 'agencyName', 'paxTotal', 'adminUrl'));
+            }
         }
     }
 
@@ -34,12 +40,19 @@ class EmailService
         $user = User::find($agencyUserId);
         if (! $user || ! $user->email) return;
 
-        $subject = "✈️ Teklifiniz Hazır: {$gtpnr}";
-        $data    = compact('gtpnr', 'airline', 'acenteUrl');
-        $this->send($requestId, $user, $subject, 'emails.teklif_eklendi', $data);
+        $subject  = "✈️ Teklifiniz Hazır: {$gtpnr}";
+        $varsData = ['gtpnr' => $gtpnr, 'havayolu' => $airline, 'link' => $acenteUrl];
+        $ozel     = SistemOlaySablon::resolveEmail('teklif_eklendi', $varsData);
+        $bladeData = compact('gtpnr', 'airline', 'acenteUrl');
+
+        if ($ozel) {
+            $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+        } else {
+            $this->send($requestId, $user, $subject, 'emails.teklif_eklendi', $bladeData);
+        }
 
         // Superadmin CC
-        $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.teklif_eklendi', $data);
+        $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.teklif_eklendi', $bladeData);
     }
 
     /**
@@ -47,12 +60,18 @@ class EmailService
      */
     public function teklifKabul(int $requestId, string $gtpnr, string $agencyName, string $airline, string $adminUrl): void
     {
-        $subject = "✅ Teklif Kabul Edildi: {$gtpnr}";
-        $data    = compact('gtpnr', 'agencyName', 'airline', 'adminUrl');
+        $subject  = "✅ Teklif Kabul Edildi: {$gtpnr}";
+        $varsData = ['gtpnr' => $gtpnr, 'acente_adi' => $agencyName, 'havayolu' => $airline, 'link' => $adminUrl];
+        $ozel     = SistemOlaySablon::resolveEmail('teklif_kabul', $varsData);
+        $bladeData = compact('gtpnr', 'agencyName', 'airline', 'adminUrl');
 
         $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
         foreach ($alicilar as $user) {
-            $this->send($requestId, $user, $subject, 'emails.teklif_kabul', $data);
+            if ($ozel) {
+                $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+            } else {
+                $this->send($requestId, $user, $subject, 'emails.teklif_kabul', $bladeData);
+            }
         }
     }
 
@@ -61,12 +80,18 @@ class EmailService
      */
     public function opsiyonUyarisi(int $requestId, string $gtpnr, string $airline, int $saatKaldi, string $opsiyonBitis, string $adminUrl): void
     {
-        $subject = "⚠️ Ödeme Vadesi Uyarısı: {$gtpnr} — {$saatKaldi} saat kaldı";
-        $data    = compact('gtpnr', 'airline', 'saatKaldi', 'opsiyonBitis', 'adminUrl');
+        $subject  = "⚠️ Ödeme Vadesi Uyarısı: {$gtpnr} — {$saatKaldi} saat kaldı";
+        $varsData = ['gtpnr' => $gtpnr, 'havayolu' => $airline, 'saat_kaldi' => $saatKaldi, 'bitis' => $opsiyonBitis, 'link' => $adminUrl];
+        $ozel     = SistemOlaySablon::resolveEmail('opsiyon_uyarisi', $varsData);
+        $bladeData = compact('gtpnr', 'airline', 'saatKaldi', 'opsiyonBitis', 'adminUrl');
 
         $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
         foreach ($alicilar as $user) {
-            $this->send($requestId, $user, $subject, 'emails.opsiyon_uyarisi', $data);
+            if ($ozel) {
+                $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+            } else {
+                $this->send($requestId, $user, $subject, 'emails.opsiyon_uyarisi', $bladeData);
+            }
         }
     }
 
@@ -75,9 +100,15 @@ class EmailService
      */
     public function hosgeldiniz(User $user, string $companyTitle, string $contactName, string $dashboardUrl): void
     {
-        $subject = "GrupTalepleri'ne Hoş Geldiniz — {$companyTitle}";
-        $data    = compact('companyTitle', 'contactName', 'dashboardUrl');
-        $this->send(null, $user, $subject, 'emails.hosgeldiniz', $data);
+        $subject  = "GrupTalepleri'ne Hoş Geldiniz — {$companyTitle}";
+        $varsData = ['sirket_adi' => $companyTitle, 'ad_soyad' => $contactName, 'link' => $dashboardUrl];
+        $ozel     = SistemOlaySablon::resolveEmail('hosgeldiniz', $varsData);
+
+        if ($ozel) {
+            $this->sendHtml(null, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+        } else {
+            $this->send(null, $user, $subject, 'emails.hosgeldiniz', compact('companyTitle', 'contactName', 'dashboardUrl'));
+        }
     }
 
     /**
@@ -85,12 +116,18 @@ class EmailService
      */
     public function yeniAcente(string $companyTitle, string $contactName, string $phone, string $email, string $adminUrl): void
     {
-        $subject = "🏢 Yeni Acente Kaydı: {$companyTitle}";
-        $data    = compact('companyTitle', 'contactName', 'phone', 'email', 'adminUrl');
+        $subject  = "🏢 Yeni Acente Kaydı: {$companyTitle}";
+        $varsData = ['sirket_adi' => $companyTitle, 'ad_soyad' => $contactName, 'telefon' => $phone, 'email' => $email, 'link' => $adminUrl];
+        $ozel     = SistemOlaySablon::resolveEmail('yeni_acente', $varsData);
+        $bladeData = compact('companyTitle', 'contactName', 'phone', 'email', 'adminUrl');
 
         $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
         foreach ($alicilar as $user) {
-            $this->send(null, $user, $subject, 'emails.yeni_acente', $data);
+            if ($ozel) {
+                $this->sendHtml(null, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+            } else {
+                $this->send(null, $user, $subject, 'emails.yeni_acente', $bladeData);
+            }
         }
     }
 
@@ -112,12 +149,19 @@ class EmailService
             'olumsuz'         => 'Olumsuz',
         ];
         $yeniDurumEtiket = $durumEtiket[$yeniDurum] ?? $yeniDurum;
-        $subject = "📋 Talep Durumu Güncellendi: {$gtpnr} → {$yeniDurumEtiket}";
-        $data    = compact('gtpnr', 'eskiDurum', 'yeniDurum', 'yeniDurumEtiket', 'acenteUrl');
-        $this->send($requestId, $user, $subject, 'emails.durum_degisti', $data);
+        $subject   = "📋 Talep Durumu Güncellendi: {$gtpnr} → {$yeniDurumEtiket}";
+        $varsData  = ['gtpnr' => $gtpnr, 'eski_durum' => $eskiDurum, 'yeni_durum' => $yeniDurumEtiket, 'link' => $acenteUrl];
+        $ozel      = SistemOlaySablon::resolveEmail('durum_degisti', $varsData);
+        $bladeData = compact('gtpnr', 'eskiDurum', 'yeniDurum', 'yeniDurumEtiket', 'acenteUrl');
+
+        if ($ozel) {
+            $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
+        } else {
+            $this->send($requestId, $user, $subject, 'emails.durum_degisti', $bladeData);
+        }
 
         // Superadmin CC
-        $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.durum_degisti', $data);
+        $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.durum_degisti', $bladeData);
     }
 
     /**
@@ -172,6 +216,60 @@ class EmailService
             'status'         => $status,
             'sent_at'        => now(),
         ]);
+    }
+
+    /**
+     * DB şablonundan oluşturulmuş HTML ile gönderim (view gerektirmez).
+     */
+    private function sendHtml(?int $requestId, User $user, string $subject, string $html): void
+    {
+        if (! SistemAyar::emailEnabled()) return;
+        if ($user->email_unsubscribed) return;
+
+        $adminEmailCopy = $user->role === 'acente' && SistemAyar::adminEmailCopyEnabled();
+        $adminEmail = 'destek@gruptalepleri.com';
+
+        // Unsubscribe footer
+        if ($user->id && $user->role === 'acente') {
+            $unsubscribeUrl = \URL::signedRoute('abonelik.confirm', ['user' => $user->id]);
+            $footer = '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;padding:12px 0 0;">
+<tr><td align="center" style="font-size:12px;color:#adb5bd;padding:12px 0 20px;">
+Adresinize gönderilen iletileri almak istemiyorsanız
+<a href="' . $unsubscribeUrl . '" style="color:#adb5bd;text-decoration:underline;">lütfen buraya tıklayın</a>.
+</td></tr></table>';
+            $html = str_replace('</body>', $footer . '</body>', $html);
+        }
+
+        $status = 'sent';
+        try {
+            Mail::html($html, function ($m) use ($user, $subject, $adminEmailCopy, $adminEmail) {
+                $m->to($user->email, $user->name)->subject($subject);
+                if ($adminEmailCopy) $m->bcc($adminEmail, 'GrupTalepleri Admin');
+                $m->bcc('aydinyay@gmail.com', 'Aydın Yaylacıklılar');
+            });
+        } catch (\Throwable $e) {
+            $status = 'failed';
+            Log::error('EmailService sendHtml hatası: ' . $e->getMessage(), ['to' => $user->email]);
+        }
+
+        RequestNotification::create([
+            'request_id'     => $requestId,
+            'channel'        => 'email',
+            'recipient'      => $user->role === 'acente' ? 'acente' : 'admin',
+            'recipient_name' => $user->name,
+            'phone'          => null,
+            'message'        => strip_tags($html),
+            'subject'        => $subject,
+            'status'         => $status,
+            'sent_at'        => now(),
+        ]);
+
+        if ($status === 'sent') {
+            (new NotificationService())->createForUser(
+                $user->id, 'email_sent', '📧 E-posta Gönderildi',
+                "\"" . $subject . "\" konulu e-posta gönderildi. Lütfen gelen kutunuzu kontrol edin.", null
+            );
+        }
     }
 
     /**
