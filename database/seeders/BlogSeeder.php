@@ -16,7 +16,7 @@ class BlogSeeder extends Seeder
         $charter    = BlogKategorisi::firstOrCreate(['slug' => 'charter-kiralama'],   ['ad' => 'Charter & Kiralama']);
         $operasyon  = BlogKategorisi::firstOrCreate(['slug' => 'seyahat-operasyonu'], ['ad' => 'Seyahat Operasyonu']);
 
-        $yazılar = [
+        $yazilar = [
             // ─── Grup Uçuş Rehberi ───────────────────────────────────────────
             [
                 'kategori_id'       => $grupUcus->id,
@@ -293,13 +293,13 @@ HTML,
             ],
         ];
 
-        foreach ($yazılar as $veri) {
+        foreach ($yazilar as $veri) {
             BlogYazisi::firstOrCreate(
                 ['slug' => $veri['slug']],
                 $veri
             );
         }
 
-        $this->command->info('Blog seederi tamamlandı: ' . count($yazılar) . ' yazı eklendi.');
+        $this->command->info('Blog seederi tamamlandı: ' . count($yazilar) . ' yazı eklendi.');
     }
 }
