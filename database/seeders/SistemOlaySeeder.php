@@ -16,7 +16,7 @@ class SistemOlaySeeder extends Seeder
                 'alici'       => 'acente',
                 'email_konu'  => null,
                 'email_govde' => null,
-                'sms_govde'   => null,
+                'sms_govde'   => '{gtpnr} numarali talebiniz icin teklif hazirlandi. Detaylar icin sisteme giris yapiniz.',
                 'degiskenler' => ['gtpnr', 'havayolu', 'link'],
             ],
             [
@@ -25,7 +25,7 @@ class SistemOlaySeeder extends Seeder
                 'alici'       => 'acente',
                 'email_konu'  => null,
                 'email_govde' => null,
-                'sms_govde'   => null,
+                'sms_govde'   => '{gtpnr} talebinizin durumu guncellendi: {yeni_durum}. Detaylar icin sisteme giris yapiniz.',
                 'degiskenler' => ['gtpnr', 'eski_durum', 'yeni_durum', 'link'],
             ],
             [

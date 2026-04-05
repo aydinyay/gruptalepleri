@@ -51,6 +51,13 @@ class EmailService
             $this->send($requestId, $user, $subject, 'emails.teklif_eklendi', $bladeData);
         }
 
+        // Acente SMS
+        if ($user->phone) {
+            $smsMsg = SistemOlaySablon::resolveSms('teklif_eklendi', $varsData)
+                ?? "{$gtpnr} numaralı talebiniz için teklif hazırlandı. Detaylar için sisteme giriş yapınız.";
+            (new SmsService())->send($requestId, 'acente', $user->name, $user->phone, $smsMsg);
+        }
+
         // Superadmin CC
         $this->ccSuperadmin($requestId, $subject . ' [CC: ' . $user->name . ']', 'emails.teklif_eklendi', $bladeData);
     }
@@ -172,6 +179,13 @@ class EmailService
             $this->sendHtml($requestId, $user, $ozel['konu'] ?? $subject, $ozel['html']);
         } else {
             $this->send($requestId, $user, $subject, 'emails.durum_degisti', $bladeData);
+        }
+
+        // Acente SMS
+        if ($user->phone) {
+            $smsMsg = SistemOlaySablon::resolveSms('durum_degisti', $varsData)
+                ?? "{$gtpnr} talebinizin durumu güncellendi: {$yeniDurumEtiket}. Detaylar için sisteme giriş yapınız.";
+            (new SmsService())->send($requestId, 'acente', $user->name, $user->phone, $smsMsg);
         }
 
         // Superadmin CC
