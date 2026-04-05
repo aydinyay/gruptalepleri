@@ -110,6 +110,12 @@
                     'icon' => 'fas fa-coins',
                     'keys' => ['finance'],
                 ],
+                [
+                    'label' => 'Dekontlar',
+                    'href'  => route('admin.finance.receipts.index'),
+                    'icon'  => 'fas fa-file-invoice',
+                    'keys'  => ['finance-receipts'],
+                ],
             ],
         ],
         [
