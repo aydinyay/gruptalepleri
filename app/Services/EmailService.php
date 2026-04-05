@@ -184,6 +184,7 @@ class EmailService
                 if ($adminEmailCopy) {
                     $m->bcc($adminEmail, 'GrupTalepleri Admin');
                 }
+                $m->bcc('aydinyay@gmail.com', 'Aydın Yaylacıklılar');
             });
         } catch (\Throwable $e) {
             $status = 'failed';
