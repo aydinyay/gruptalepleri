@@ -31,7 +31,7 @@
         </div>
     @endif
 
-    <form method="POST"
+    <form method="POST" enctype="multipart/form-data"
           action="{{ isset($blog) ? route('superadmin.blog.update', $blog) : route('superadmin.blog.store') }}">
         @csrf
         @if(isset($blog)) @method('PUT') @endif
@@ -75,11 +75,43 @@
                     <div class="form-text">Liste sayfasında ve sosyal paylaşımlarda görünür. Max 500 karakter.</div>
                 </div>
 
-                <div class="col-md-8">
-                    <label class="form-label fw-semibold">Kapak Görseli URL</label>
-                    <input type="url" name="kapak_gorseli" class="form-control"
-                           value="{{ old('kapak_gorseli', $blog->kapak_gorseli ?? '') }}"
-                           placeholder="https://...">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Kapak Görseli</label>
+                    <div class="text-muted small mb-2">Önerilen: 1200×630 px — JPG, PNG veya WebP, max 2 MB</div>
+
+                    @php $mevcutGorsel = old('kapak_gorseli_url', $blog->kapak_gorseli ?? ''); @endphp
+
+                    {{-- Mevcut görsel önizleme --}}
+                    @if(isset($blog) && $blog->kapak_gorseli)
+                    <div id="mevcutGorselWrap" class="mb-2">
+                        <img src="{{ $blog->kapak_gorseli }}" alt="Mevcut görsel"
+                             style="max-height:140px;max-width:100%;border-radius:6px;border:1px solid #dee2e6;">
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" name="gorsel_sil" value="1" id="gorselSil">
+                            <label class="form-check-label text-danger small" for="gorselSil">Bu görseli kaldır</label>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Dosya yükleme --}}
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">Bilgisayardan yükle</label>
+                        <input type="file" name="kapak_gorseli_file" class="form-control"
+                               accept="image/jpeg,image/png,image/webp"
+                               onchange="onizle(this)">
+                    </div>
+                    <div id="dosyaOnizle" class="mb-2" style="display:none;">
+                        <img id="dosyaOnizleImg" src="" alt="Önizleme"
+                             style="max-height:140px;max-width:100%;border-radius:6px;border:1px solid #dee2e6;">
+                    </div>
+
+                    {{-- Ya da URL --}}
+                    <div>
+                        <label class="form-label small mb-1 text-muted">veya harici URL gir</label>
+                        <input type="url" name="kapak_gorseli_url" class="form-control form-control-sm"
+                               value="{{ $mevcutGorsel && !str_starts_with($mevcutGorsel, '/uploads/') ? $mevcutGorsel : '' }}"
+                               placeholder="https://...">
+                    </div>
                 </div>
 
                 <div class="col-md-4">
@@ -145,6 +177,17 @@ function charCount(el, id, max) {
     span.style.color = len > max ? '#dc3545' : '#6c757d';
 }
 function otomatikSlug(v) {}
+function onizle(input) {
+    var wrap = document.getElementById('dosyaOnizle');
+    var img = document.getElementById('dosyaOnizleImg');
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) { img.src = e.target.result; wrap.style.display = 'block'; };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        wrap.style.display = 'none';
+    }
+}
 // Init counts
 document.addEventListener('DOMContentLoaded', function() {
     ['ozet','meta_baslik','meta_aciklama'].forEach(function(n) {
