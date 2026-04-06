@@ -46,20 +46,6 @@ class ModulePaymentController extends Controller
             abort(403);
         }
 
-        // Fatura bilgisi zorunluluğu: ödeme başlamadan önce vergi no + şirket ünvanı gerekli
-        if ($roleContext === 'acente') {
-            $acenteUser  = $request->user();
-            $rootUserId  = $acenteUser->parent_agency_id ?? $acenteUser->id;
-            $rootAgency  = \App\Models\Agency::where('user_id', $rootUserId)->first();
-
-            if (! $rootAgency?->tax_number || ! $rootAgency?->company_title) {
-                return back()->with('error',
-                    'Ödeme yapabilmek için fatura bilgilerinizi tamamlamanız gerekiyor. ' .
-                    'Lütfen profil sayfanızdaki Şirket/Fatura Bilgileri bölümünü doldurun.'
-                );
-            }
-        }
-
         [$remainingAmount, $currency] = $this->legacyRemainingAmount($legacyRequest);
         if ($remainingAmount <= 0.0001) {
             return back()->with('error', 'Bu talep icin kalan odeme bulunmuyor.');
@@ -143,14 +129,6 @@ class ModulePaymentController extends Controller
             abort(403);
         }
 
-        if ($roleContext === 'acente') {
-            $rootUserId = $request->user()->parent_agency_id ?? $request->user()->id;
-            $rootAgency = \App\Models\Agency::where('user_id', $rootUserId)->first();
-            if (! $rootAgency?->tax_number || ! $rootAgency?->company_title) {
-                return back()->with('error', 'Ödeme yapabilmek için fatura bilgilerinizi tamamlamanız gerekiyor. Lütfen profil sayfanızdaki Şirket/Fatura Bilgileri bölümünü doldurun.');
-            }
-        }
-
         $remainingAmount = round((float) $booking->remaining_amount, 2);
         if ($remainingAmount <= 0.0001) {
             return back()->with('error', 'Bu charter booking icin kalan odeme bulunmuyor.');
@@ -230,14 +208,6 @@ class ModulePaymentController extends Controller
 
         if ($roleContext === 'acente' && (int) ($booking->request?->user_id ?? 0) !== (int) $request->user()->id) {
             abort(403);
-        }
-
-        if ($roleContext === 'acente') {
-            $rootUserId = $request->user()->parent_agency_id ?? $request->user()->id;
-            $rootAgency = \App\Models\Agency::where('user_id', $rootUserId)->first();
-            if (! $rootAgency?->tax_number || ! $rootAgency?->company_title) {
-                return back()->with('error', 'Ödeme yapabilmek için fatura bilgilerinizi tamamlamanız gerekiyor. Lütfen profil sayfanızdaki Şirket/Fatura Bilgileri bölümünü doldurun.');
-            }
         }
 
         $remainingAmount = round((float) $booking->remaining_amount, 2);
