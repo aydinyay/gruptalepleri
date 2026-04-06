@@ -119,7 +119,9 @@
       "Bash(sed -n '480,495p' routes/web.php)",
       "Bash(sed -n '651,660p' routes/web.php)",
       "Bash(sed -n '900,910p' routes/web.php)",
-      "Bash(grep -n \"last_login\\\\|updated_at\\\\|created_at\\\\|requests_count\" database/migrations/2*users*)"
+      "Bash(grep -n \"last_login\\\\|updated_at\\\\|created_at\\\\|requests_count\" database/migrations/2*users*)",
+      "Bash(grep -n \"talep_yolculari\" /c/gruptalepleri/database/migrations/*.php)",
+      "Bash(grep -n \"adim\\\\|aktif_adim\" /c/gruptalepleri/database/migrations/*.php)"
     ],
     "defaultMode": "bypassPermissions"
   }

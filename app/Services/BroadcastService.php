@@ -135,18 +135,28 @@ class BroadcastService
     /**
      * Mesaj metnindeki {değişken} yer tutucularını kullanıcıya özel değerlerle değiştir.
      * Desteklenen değişkenler:
-     *   {acente_adi}     — Firma/acente adı
-     *   {yetkili_adi}    — Yetkili kişi adı
-     *   {ad}             — Kullanıcı adı (sisteme kayıtlı)
-     *   {platform_linki} — Dashboard URL
+     *   {acente_adi}        — Firma/acente adı
+     *   {yetkili_adi}       — Yetkili kişi adı
+     *   {ad}                — Kullanıcı adı (sisteme kayıtlı)
+     *   {platform_linki}    — Dashboard URL
+     *   {giris_linki}       — Giriş sayfası URL
+     *   {talep_ac_linki}    — Yeni talep oluşturma URL
+     *   {unsubscribe_linki} — Abonelik iptal URL (acente kullanıcıları için)
      */
     private function kisiselMesaj(string $metin, User $user): string
     {
+        $unsubscribeUrl = ($user->id && $user->role === 'acente')
+            ? \URL::signedRoute('abonelik.confirm', ['user' => $user->id])
+            : url('/');
+
         $degiskenler = [
-            '{acente_adi}'     => $user->agency?->company_title ?? $user->name,
-            '{yetkili_adi}'    => $user->agency?->contact_name ?? $user->name,
-            '{ad}'             => $user->name,
-            '{platform_linki}' => route('dashboard'),
+            '{acente_adi}'        => $user->agency?->company_title ?? $user->name,
+            '{yetkili_adi}'       => $user->agency?->contact_name ?? $user->name,
+            '{ad}'                => $user->name,
+            '{platform_linki}'    => route('dashboard'),
+            '{giris_linki}'       => route('login'),
+            '{talep_ac_linki}'    => url('/talep/olustur'),
+            '{unsubscribe_linki}' => $unsubscribeUrl,
         ];
 
         return str_replace(array_keys($degiskenler), array_values($degiskenler), $metin);

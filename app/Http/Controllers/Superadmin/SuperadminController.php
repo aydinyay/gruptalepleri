@@ -205,10 +205,13 @@ class SuperadminController extends Controller
 
         // Örnek değişken değerleriyle önizleme render et
         $ornek = [
-            '{acente_adi}'     => 'ÖRNEK TURİZM A.Ş.',
-            '{yetkili_adi}'    => 'Ahmet Yılmaz',
-            '{ad}'             => 'Ahmet Yılmaz',
-            '{platform_linki}' => route('dashboard'),
+            '{acente_adi}'        => 'ÖRNEK TURİZM A.Ş.',
+            '{yetkili_adi}'       => 'Ahmet Yılmaz',
+            '{ad}'                => 'Ahmet Yılmaz',
+            '{platform_linki}'    => route('dashboard'),
+            '{giris_linki}'       => route('login'),
+            '{talep_ac_linki}'    => url('/talep/olustur'),
+            '{unsubscribe_linki}' => '#',
         ];
 
         $body = str_replace(array_keys($ornek), array_values($ornek), $sablon->email_govde ?? $sablon->sms_govde ?? '');
@@ -223,6 +226,24 @@ class SuperadminController extends Controller
         ])->render();
 
         return response($html)->header('Content-Type', 'text/html');
+    }
+
+    public function uploadEmailImage(Request $request)
+    {
+        $this->assertSuperadmin();
+        $request->validate(['image' => 'required|image|mimes:jpeg,png,gif,webp|max:3072']);
+
+        $file     = $request->file('image');
+        $filename = uniqid('eml_') . '.' . $file->getClientOriginalExtension();
+        $dir      = public_path('uploads/email-images');
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $file->move($dir, $filename);
+
+        return response()->json(['url' => asset('uploads/email-images/' . $filename)]);
     }
 
     public function acenteToggle(Agency $agency)

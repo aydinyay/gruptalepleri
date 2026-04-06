@@ -593,6 +593,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::patch('/mesaj-sablonlari/{sablon}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonKaydet'])->name('mesaj.sablonlari.guncelle');
     Route::delete('/mesaj-sablonlari/{sablon}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonSil'])->name('mesaj.sablonlari.sil');
     Route::get('/mesaj-sablonlari/{sablon}/onizle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonOnizle'])->name('mesaj.sablonlari.onizle');
+    Route::post('/upload-email-image', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'uploadEmailImage'])->name('superadmin.upload-email-image');
 
     // Broadcast geçmişi & yetki yönetimi
     Route::get('/broadcast-gecmisi', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastGecmisi'])->name('broadcast.gecmisi');
