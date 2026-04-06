@@ -587,7 +587,7 @@
 
                         {{-- Butonlar --}}
                         <div class="d-grid d-md-flex gap-2">
-                            @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE && !in_array($talep->status, ['biletlendi', 'olumsuz', 'iade', 'iptal']))
+                            @if($teklif->durum === \App\Models\Offer::DURUM_BEKLEMEDE && !in_array($talep->status, ['biletlendi', 'olumsuz', 'iade', 'iptal', 'depozitoda']))
                             @php
                                 $btnMetin    = 'Kabul Et';
                                 $btnDisabled = false;
