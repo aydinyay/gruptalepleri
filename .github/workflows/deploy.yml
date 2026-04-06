@@ -33,7 +33,7 @@ jobs:
             if [ -f "$FILE" ]; then
               TMPFILE=$(mktemp)
               base64 -w 0 "$FILE" > "$TMPFILE"
-              RESP=$(curl -sf --max-time 90 --connect-timeout 30 --retry 3 --retry-delay 3 -X POST "$HOOK" \
+              RESP=$(curl -sf --max-time 300 --connect-timeout 30 --retry 2 --retry-delay 5 -X POST "$HOOK" \
                 -F "t=$TOKEN" \
                 -F "p=$FILE" \
                 -F "c=<$TMPFILE" 2>&1) || { echo "WARN: $FILE upload failed (curl $?)"; FAIL=$((FAIL+1)); rm -f "$TMPFILE"; continue; }
