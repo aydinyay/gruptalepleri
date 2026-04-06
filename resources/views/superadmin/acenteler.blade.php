@@ -332,9 +332,9 @@
                     <div id="secilenListeInfo" class="alert alert-info py-2 small mb-3"></div>
 
                     {{-- Şablondan yükle --}}
-                    @if($sablonlar->isNotEmpty())
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Şablondan Yükle <span class="text-muted">(opsiyonel)</span></label>
+                        @if(isset($sablonlar) && $sablonlar->isNotEmpty())
                         <select id="sablonSec" class="form-select form-select-sm">
                             <option value="">— Şablon seç —</option>
                             @foreach($sablonlar as $s)
@@ -346,8 +346,23 @@
                                 </option>
                             @endforeach
                         </select>
+                        @else
+                        <div class="d-flex align-items-center gap-2">
+                            <select class="form-select form-select-sm" disabled>
+                                <option>— Henüz şablon yok —</option>
+                            </select>
+                            <a href="{{ route('superadmin.mesaj.sablonlari') }}" target="_blank"
+                               class="btn btn-sm btn-outline-primary text-nowrap">
+                                <i class="fas fa-plus me-1"></i>Şablon Oluştur
+                            </a>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Önce <a href="{{ route('superadmin.mesaj.sablonlari') }}" target="_blank">Mesaj Şablonları</a> sayfasından şablon oluşturun.
+                            Migration çalıştırılmamışsa önce <a href="/migrate-run-2026" target="_blank">/migrate-run-2026</a> adresine gidin.
+                        </div>
+                        @endif
                     </div>
-                    @endif
 
                     <div class="row g-3">
                         <div class="col-12">
