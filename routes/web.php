@@ -218,6 +218,7 @@ Route::middleware(['auth'])->group(function () {
 
 // TÜRSAB sorgulama — kayıt sayfasında kullanılır, auth gerekmez
 Route::get('/tursab-sorgula', [\App\Http\Controllers\TursabController::class, 'sorgula'])->name('tursab.sorgula');
+Route::get('/kullanim-kosullari', fn() => view('sozlesme'))->name('sozlesme');
 
 Route::post('/transfer/payment/callback', [\App\Http\Controllers\Transfer\TransferCheckoutController::class, 'paymentCallback'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])

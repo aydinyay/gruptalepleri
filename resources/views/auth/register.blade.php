@@ -180,6 +180,10 @@
                 <button type="submit" class="btn-register">
                     <i class="fas fa-user-plus me-2"></i>Hesabımı Oluştur
                 </button>
+                <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);text-align:center;margin-top:10px;line-height:1.5;">
+                    Kaydınızı tamamlayarak <a href="{{ route('sozlesme') }}" target="_blank" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Üyelik Sözleşmesi ve Kullanım Koşulları</a>'nı
+                    okuduğunuzu ve kabul ettiğinizi onaylıyorsunuz.
+                </p>
             </div>
         </form>
 
