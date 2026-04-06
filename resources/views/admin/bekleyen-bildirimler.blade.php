@@ -7,6 +7,17 @@
     <title>Bekleyen Bildirimler</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bildirim-satir { display:flex; align-items:center; gap:5px; white-space:nowrap; margin-bottom:3px; }
+        .bildirim-satir:last-child { margin-bottom:0; }
+        .kanal-badge { display:inline-flex; align-items:center; gap:2px; font-size:.70rem; padding:1px 5px; border-radius:3px; }
+        .kanal-aktif-sms   { background:#198754; color:#fff; }
+        .kanal-aktif-email { background:#0d6efd; color:#fff; }
+        .kanal-aktif-push  { background:#fd7e14; color:#fff; }
+        .kanal-pasif       { background:#e9ecef; color:#adb5bd; text-decoration:line-through; }
+        .gecti-saat        { color:#dc3545; text-decoration:line-through; opacity:.65; }
+        .countdown-cell    { font-variant-numeric: tabular-nums; }
+    </style>
 </head>
 <body>
 
@@ -20,10 +31,13 @@
 
     <div class="d-flex align-items-center gap-2 mb-3">
         <h5 class="mb-0 fw-bold"><i class="fas fa-bell me-2 text-warning"></i>Bekleyen Bildirimler</h5>
-        <span class="text-muted small ms-1">{{ $simdi->format('d.m.Y H:i') }} itibarıyla · {{ $liste->count() }} kayıt</span>
-        <a href="{{ request()->url() }}" class="btn btn-sm btn-outline-secondary ms-auto">
-            <i class="fas fa-sync me-1"></i>Yenile
-        </a>
+        <span class="text-muted small ms-1" id="simdi-label">{{ $simdi->format('d.m.Y H:i') }} itibarıyla · {{ $liste->count() }} kayıt</span>
+        <span class="ms-auto d-flex align-items-center gap-2">
+            <span class="text-muted small"><i class="fas fa-circle-notch fa-spin fa-xs me-1 text-success"></i>Otomatik yenileme: <span id="reload-countdown">60</span>s</span>
+            <a href="{{ request()->url() }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-sync me-1"></i>Yenile
+            </a>
+        </span>
     </div>
 
     @if($liste->isEmpty())
@@ -36,44 +50,44 @@
             <table class="table table-sm align-middle mb-0" style="font-size:.82rem;">
                 <thead class="table-dark">
                     <tr>
-                        <th style="width:110px;">Tarih</th>
-                        <th style="width:100px;">Saat</th>
-                        <th style="width:80px;">Kalan</th>
+                        <th style="width:100px;">Vade Tarihi</th>
+                        <th style="width:55px;">Saat</th>
+                        <th style="width:75px;" class="countdown-cell">Kalan</th>
                         <th style="width:80px;">Tip</th>
                         <th style="width:110px;">GTPNR</th>
                         <th>Acente</th>
-                        <th>Tutar</th>
-                        <th>Gönderilecek</th>
+                        <th style="width:130px;">Tutar</th>
+                        <th>Bildirim Zamanları &amp; Kanallar</th>
                     </tr>
                 </thead>
                 <tbody>
                 @foreach($liste as $r)
                     @php
-                        $gecti    = $r['tarih']->isPast();
-                        $saatKaldi = (int) now()->diffInHours($r['tarih'], false);
+                        $gecti       = $r['tarih']->isPast();
+                        $saatKaldi   = (int) now()->diffInHours($r['tarih'], false);
                         $dakikaKaldi = (int) now()->diffInMinutes($r['tarih'], false);
-                        $kritik   = !$gecti && $saatKaldi <= 6;
-                        $yakin    = !$gecti && $saatKaldi <= 24;
+                        $kritik      = !$gecti && $saatKaldi <= 6;
+                        $yakin       = !$gecti && $saatKaldi <= 24;
 
                         $rowClass = match(true) {
-                            $gecti           => 'table-danger',
-                            $kritik          => 'table-warning',
-                            $yakin           => 'table-info',
-                            default          => '',
+                            $gecti  => 'table-danger',
+                            $kritik => 'table-warning',
+                            $yakin  => 'table-info',
+                            default => '',
                         };
 
                         $kalanMetin = match(true) {
-                            $gecti           => abs($saatKaldi) . 's geçti',
-                            $saatKaldi < 1   => $dakikaKaldi . ' dk',
-                            $saatKaldi < 24  => $saatKaldi . ' sa',
-                            default          => floor($saatKaldi / 24) . ' gün',
+                            $gecti          => abs($saatKaldi) . 's geçti',
+                            $saatKaldi < 1  => $dakikaKaldi . ' dk',
+                            $saatKaldi < 24 => $saatKaldi . ' sa',
+                            default         => floor($saatKaldi / 24) . ' gün',
                         };
 
                         $tipBadge = match($r['tip']) {
-                            'opsiyon'  => '<span class="badge bg-info text-dark">⏳ Opsiyon</span>',
-                            'odeme'    => '<span class="badge bg-success">💳 Ödeme</span>',
-                            'gecikti'  => '<span class="badge bg-danger">⚠️ Gecikti</span>',
-                            default    => '<span class="badge bg-secondary">' . $r['etiket'] . '</span>',
+                            'opsiyon' => '<span class="badge bg-info text-dark">⏳ Opsiyon</span>',
+                            'odeme'   => '<span class="badge bg-success">💳 Ödeme</span>',
+                            'gecikti' => '<span class="badge bg-danger">⚠️ Gecikti</span>',
+                            default   => '<span class="badge bg-secondary">' . e($r['etiket']) . '</span>',
                         };
 
                         $adminUrl = route('admin.requests.show', $r['gtpnr'] ?? '');
@@ -81,7 +95,7 @@
                     <tr class="{{ $rowClass }}">
                         <td class="fw-semibold">{{ $r['tarih']->format('d.m.Y') }}</td>
                         <td>{{ $r['tarih']->format('H:i') }}</td>
-                        <td>
+                        <td class="countdown-cell">
                             <span class="fw-bold {{ $gecti ? 'text-danger' : ($kritik ? 'text-warning' : '') }}">
                                 {{ $kalanMetin }}
                             </span>
@@ -96,7 +110,33 @@
                         </td>
                         <td>{{ $r['acente'] ?? '—' }}</td>
                         <td class="fw-semibold">{{ $r['detay'] }}</td>
-                        <td class="text-muted">{{ $r['gidecek'] }}</td>
+                        <td>
+                            @if($r['bildirimler']->isEmpty())
+                                <span class="text-muted">—</span>
+                            @else
+                                @foreach($r['bildirimler'] as $b)
+                                    <div class="bildirim-satir">
+                                        {{-- Gönderim saati --}}
+                                        <span class="{{ $b['gecti'] ? 'gecti-saat' : 'fw-semibold' }}" title="{{ $b['label'] }}">
+                                            {{ $b['saat']->format('d.m H:i') }}
+                                        </span>
+                                        @if($b['gecti'])
+                                            <i class="fas fa-check-circle fa-xs text-danger" title="Gönderildi / geçti"></i>
+                                        @endif
+                                        {{-- Kanal rozetleri --}}
+                                        <span class="kanal-badge {{ $b['email'] ? 'kanal-aktif-email' : 'kanal-pasif' }}" title="Email">
+                                            <i class="fas fa-envelope fa-xs"></i>
+                                        </span>
+                                        <span class="kanal-badge {{ $b['sms'] ? 'kanal-aktif-sms' : 'kanal-pasif' }}" title="SMS">
+                                            <i class="fas fa-sms fa-xs"></i>
+                                        </span>
+                                        <span class="kanal-badge {{ $b['push'] ? 'kanal-aktif-push' : 'kanal-pasif' }}" title="Push">
+                                            <i class="fas fa-bell fa-xs"></i>
+                                        </span>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -107,14 +147,31 @@
 
     <div class="mt-3 p-3 bg-light rounded small text-muted">
         <strong>Açıklama:</strong>
-        <span class="badge bg-info text-dark me-1">⏳ Opsiyon</span> Acente kararını bekliyor, vade öncesi SMS+Email gider. &nbsp;
-        <span class="badge bg-success me-1">💳 Ödeme</span> Ödeme vadesi, vade öncesi otomatik SMS+Email+Push gider. &nbsp;
-        <span class="badge bg-danger me-1">⚠️ Gecikti</span> Vade geçmiş, manuel müdahale gerekli.
+        <span class="badge bg-info text-dark me-1">⏳ Opsiyon</span> Acente kararını bekliyor. &nbsp;
+        <span class="badge bg-success me-1">💳 Ödeme</span> Ödeme vadesi. &nbsp;
+        <span class="badge bg-danger me-1">⚠️ Gecikti</span> Vade geçmiş, manuel müdahale gerekli. &nbsp;&nbsp;
+        Kanallar:
+        <span class="kanal-badge kanal-aktif-email ms-1"><i class="fas fa-envelope fa-xs"></i> Email</span>
+        <span class="kanal-badge kanal-aktif-sms ms-1"><i class="fas fa-sms fa-xs"></i> SMS</span>
+        <span class="kanal-badge kanal-aktif-push ms-1"><i class="fas fa-bell fa-xs"></i> Push</span>
+        — Opsiyon Uyarı Ayarları'ndan yönetilir.
     </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @include('admin.partials.theme-script')
+<script>
+    // 60 saniyede bir otomatik yenile
+    let countdown = 60;
+    const el = document.getElementById('reload-countdown');
+    setInterval(() => {
+        countdown--;
+        if (el) el.textContent = countdown;
+        if (countdown <= 0) {
+            window.location.reload();
+        }
+    }, 1000);
+</script>
 </body>
 </html>
