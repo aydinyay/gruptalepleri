@@ -8,13 +8,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        .bildirim-satir { display:flex; align-items:center; gap:5px; white-space:nowrap; margin-bottom:3px; }
+        .bildirim-satir { display:flex; align-items:center; gap:6px; white-space:nowrap; margin-bottom:4px; }
         .bildirim-satir:last-child { margin-bottom:0; }
-        .kanal-badge { display:inline-flex; align-items:center; gap:2px; font-size:.70rem; padding:1px 5px; border-radius:3px; }
+        .bildirim-saat  { font-size:.80rem; min-width:80px; font-variant-numeric:tabular-nums; }
+        .kanal-badge    { display:inline-flex; align-items:center; gap:3px; font-size:.75rem; font-weight:600; padding:2px 7px; border-radius:4px; letter-spacing:.02em; }
         .kanal-aktif-sms   { background:#198754; color:#fff; }
         .kanal-aktif-email { background:#0d6efd; color:#fff; }
         .kanal-aktif-push  { background:#fd7e14; color:#fff; }
-        .kanal-pasif       { background:#e9ecef; color:#adb5bd; text-decoration:line-through; }
+        .kanal-pasif       { background:#dee2e6; color:#adb5bd; }
         .gecti-saat        { color:#dc3545; text-decoration:line-through; opacity:.65; }
         .countdown-cell    { font-variant-numeric: tabular-nums; }
     </style>
@@ -117,22 +118,25 @@
                                 @foreach($r['bildirimler'] as $b)
                                     <div class="bildirim-satir">
                                         {{-- Gönderim saati --}}
-                                        <span class="{{ $b['gecti'] ? 'gecti-saat' : 'fw-semibold' }}" title="{{ $b['label'] }}">
+                                        <span class="bildirim-saat {{ $b['gecti'] ? 'gecti-saat' : 'fw-semibold' }}" title="{{ $b['label'] }}">
                                             {{ $b['saat']->format('d.m H:i') }}
                                         </span>
-                                        @if($b['gecti'])
-                                            <i class="fas fa-check-circle fa-xs text-danger" title="Gönderildi / geçti"></i>
-                                        @endif
                                         {{-- Kanal rozetleri --}}
-                                        <span class="kanal-badge {{ $b['email'] ? 'kanal-aktif-email' : 'kanal-pasif' }}" title="Email">
-                                            <i class="fas fa-envelope fa-xs"></i>
-                                        </span>
-                                        <span class="kanal-badge {{ $b['sms'] ? 'kanal-aktif-sms' : 'kanal-pasif' }}" title="SMS">
-                                            <i class="fas fa-sms fa-xs"></i>
-                                        </span>
-                                        <span class="kanal-badge {{ $b['push'] ? 'kanal-aktif-push' : 'kanal-pasif' }}" title="Push">
-                                            <i class="fas fa-bell fa-xs"></i>
-                                        </span>
+                                        @if($b['email'])
+                                            <span class="kanal-badge kanal-aktif-email"><i class="fas fa-envelope"></i> Email</span>
+                                        @endif
+                                        @if($b['sms'])
+                                            <span class="kanal-badge kanal-aktif-sms"><i class="fas fa-comment-sms"></i> SMS</span>
+                                        @endif
+                                        @if($b['push'])
+                                            <span class="kanal-badge kanal-aktif-push"><i class="fas fa-bell"></i> Push</span>
+                                        @endif
+                                        @if(!$b['email'] && !$b['sms'] && !$b['push'])
+                                            <span class="kanal-badge kanal-pasif">kanal yok</span>
+                                        @endif
+                                        @if($b['gecti'])
+                                            <i class="fas fa-check fa-xs text-success ms-1" title="Gönderildi / geçti"></i>
+                                        @endif
                                     </div>
                                 @endforeach
                             @endif
@@ -151,9 +155,9 @@
         <span class="badge bg-success me-1">💳 Ödeme</span> Ödeme vadesi. &nbsp;
         <span class="badge bg-danger me-1">⚠️ Gecikti</span> Vade geçmiş, manuel müdahale gerekli. &nbsp;&nbsp;
         Kanallar:
-        <span class="kanal-badge kanal-aktif-email ms-1"><i class="fas fa-envelope fa-xs"></i> Email</span>
-        <span class="kanal-badge kanal-aktif-sms ms-1"><i class="fas fa-sms fa-xs"></i> SMS</span>
-        <span class="kanal-badge kanal-aktif-push ms-1"><i class="fas fa-bell fa-xs"></i> Push</span>
+        <span class="kanal-badge kanal-aktif-email ms-1"><i class="fas fa-envelope"></i> Email</span>
+        <span class="kanal-badge kanal-aktif-sms ms-1"><i class="fas fa-comment-sms"></i> SMS</span>
+        <span class="kanal-badge kanal-aktif-push ms-1"><i class="fas fa-bell"></i> Push</span>
         — Opsiyon Uyarı Ayarları'ndan yönetilir.
     </div>
 
