@@ -31,6 +31,12 @@ class ModulePaymentController extends Controller
     public function startLegacy(Request $request, string $gtpnr): RedirectResponse
     {
         $roleContext = $this->resolveRoleContext($request);
+
+        // Çalışan yetki kontrolü
+        if ($roleContext === 'acente' && $request->user()->parent_agency_id) {
+            abort_unless($request->user()->canDo('odeme'), 403, 'Ödeme yapma yetkiniz yok.');
+        }
+
         $legacyRequest = LegacyRequest::query()
             ->where('gtpnr', $gtpnr)
             ->with(['offers', 'payments'])

@@ -14,8 +14,14 @@ use Illuminate\Support\Str;
 
 class FinanceReceiptController extends Controller
 {
+    use \App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
+
     public function store(Request $request): RedirectResponse
     {
+        $actor = $this->acenteActor();
+        if ($actor->parent_agency_id) {
+            abort_unless($actor->canDo('odeme'), 403, 'Dekont yükleme yetkiniz yok.');
+        }
         if (
             !Schema::hasTable('finance_records')
             || !Schema::hasTable('finance_transactions')

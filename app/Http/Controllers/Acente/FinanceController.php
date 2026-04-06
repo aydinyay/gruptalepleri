@@ -12,8 +12,14 @@ use Illuminate\Support\Facades\Schema;
 
 class FinanceController extends Controller
 {
+    use \App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
+
     public function index(Request $request)
     {
+        $actor = $this->acenteActor();
+        if ($actor->parent_agency_id) {
+            abort_unless($actor->canDo('finans'), 403, 'Finans sayfasına erişim yetkiniz yok.');
+        }
         $coreReady = Schema::hasTable('finance_records') && Schema::hasTable('finance_transactions');
 
         if (!$coreReady) {

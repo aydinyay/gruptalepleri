@@ -6,6 +6,7 @@
 @php
     $calisanlarFeatureReady = \Illuminate\Support\Facades\Schema::hasColumn('users', 'parent_agency_id');
     $isAcenteOwner = $calisanlarFeatureReady && auth()->user()?->isAcenteOwner();
+    $canFinans = !$calisanlarFeatureReady || auth()->user()?->canDo('finans') || $isAcenteOwner;
     $transferSupplierFeatureReady = \Illuminate\Support\Facades\Schema::hasTable('transfer_suppliers');
     $transferSupplier = null;
     $transferTermsVersion = 1;
@@ -129,7 +130,7 @@
                 ],
             ],
         ],
-        [
+        ...($canFinans ? [[
             'id' => 'finans',
             'label' => 'Finans',
             'icon' => 'fas fa-wallet',
@@ -142,7 +143,7 @@
                     'keys' => ['finance'],
                 ],
             ],
-        ],
+        ]] : []),
         [
             'id' => 'hesap',
             'label' => 'Hesap',

@@ -11,11 +11,26 @@
 <body>
 <x-navbar-acente active="calisanlar" />
 
-<div class="container-fluid px-4 py-4" style="max-width: 900px;">
+@php
+$yetkiPaketleri = [
+    'tam'       => ['talep', 'teklif', 'odeme', 'finans', 'yolcu'],
+    'operasyon' => ['talep', 'teklif', 'yolcu'],
+    'muhasebe'  => ['finans', 'odeme'],
+];
+$yetkiEtiketleri = [
+    'talep'   => ['label' => 'Talep', 'icon' => 'fas fa-clipboard-list'],
+    'teklif'  => ['label' => 'Teklif', 'icon' => 'fas fa-file-invoice'],
+    'yolcu'   => ['label' => 'Yolcu', 'icon' => 'fas fa-users'],
+    'odeme'   => ['label' => 'Ödeme', 'icon' => 'fas fa-credit-card'],
+    'finans'  => ['label' => 'Finans', 'icon' => 'fas fa-wallet'],
+];
+@endphp
+
+<div class="container-fluid px-4 py-4" style="max-width: 960px;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1"><i class="fas fa-users me-2 text-primary"></i>Çalışanlar</h4>
-            <p class="text-muted mb-0 small">Acente hesabınıza çalışan davet edin ve yetkilerini yönetin.</p>
+            <p class="text-muted mb-0 small">Çalışanlarınızın erişim yetkilerini yönetin.</p>
         </div>
     </div>
 
@@ -28,6 +43,42 @@
         </div>
     @endif
 
+    {{-- Yetki paketleri açıklama --}}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-semibold">Yetki Paketleri</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start ps-3">Paket</th>
+                            @foreach($yetkiEtiketleri as $key => $meta)
+                                <th><i class="{{ $meta['icon'] }} me-1"></i>{{ $meta['label'] }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(['tam' => 'Tam Erişim', 'operasyon' => 'Operasyon', 'muhasebe' => 'Muhasebe'] as $paket => $paketLabel)
+                        <tr>
+                            <td class="text-start ps-3 fw-semibold">{{ $paketLabel }}</td>
+                            @foreach($yetkiPaketleri[$paket] ?? [] as $dummy)@endforeach
+                            @foreach($yetkiEtiketleri as $key => $meta)
+                                <td>
+                                    @if(in_array($key, $yetkiPaketleri[$paket] ?? []))
+                                        <span class="text-success fw-bold"><i class="fas fa-check"></i></span>
+                                    @else
+                                        <span class="text-muted"><i class="fas fa-minus"></i></span>
+                                    @endif
+                                </td>
+                            @endforeach
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     {{-- Mevcut çalışanlar --}}
     <div class="card shadow-sm mb-4">
         <div class="card-header fw-semibold">Mevcut Çalışanlar ({{ $calisanlar->count() }})</div>
@@ -36,32 +87,50 @@
                 <p class="text-muted p-3 mb-0">Henüz çalışan yok. Aşağıdan davet gönderin.</p>
             @else
                 <div class="table-responsive">
-                    <table class="table table-sm mb-0">
+                    <table class="table table-sm mb-0 align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>İsim / Email</th>
-                                <th>Rol</th>
+                                <th>Çalışan</th>
+                                <th>Açık Yetkiler</th>
+                                <th>Paket</th>
                                 <th>Durum</th>
-                                <th>Son Giriş</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($calisanlar as $c)
+                            @php
+                                $paket = $c->acente_rolu ?? 'tam';
+                                $acikYetkiler = $yetkiPaketleri[$paket] ?? [];
+                            @endphp
                             <tr>
                                 <td>
                                     <div class="fw-semibold">{{ $c->davet_token ? '(Davet Bekleniyor)' : $c->name }}</div>
                                     <div class="text-muted small">{{ $c->email }}</div>
                                 </td>
                                 <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach($yetkiEtiketleri as $key => $meta)
+                                            @if(in_array($key, $acikYetkiler))
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                                    <i class="{{ $meta['icon'] }} me-1"></i>{{ $meta['label'] }}
+                                                </span>
+                                            @else
+                                                <span class="badge bg-light text-muted border small">
+                                                    <i class="{{ $meta['icon'] }} me-1"></i>{{ $meta['label'] }}
+                                                </span>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </td>
+                                <td>
                                     <form method="post" action="{{ route('acente.calisanlar.yetki', $c->id) }}" class="d-flex gap-1 align-items-center">
                                         @csrf @method('PATCH')
-                                        <select name="acente_rolu" class="form-select form-select-sm" style="min-width: 130px;">
+                                        <select name="acente_rolu" class="form-select form-select-sm" style="min-width: 130px;" onchange="this.form.submit()">
                                             @foreach(['tam' => 'Tam Erişim', 'operasyon' => 'Operasyon', 'muhasebe' => 'Muhasebe'] as $val => $lbl)
                                                 <option value="{{ $val }}" @selected($c->acente_rolu === $val)>{{ $lbl }}</option>
                                             @endforeach
                                         </select>
-                                        <button class="btn btn-sm btn-outline-secondary">Güncelle</button>
                                     </form>
                                 </td>
                                 <td>
@@ -71,7 +140,6 @@
                                         <span class="badge bg-success">Aktif</span>
                                     @endif
                                 </td>
-                                <td class="text-muted small">{{ $c->last_login_at ? \Carbon\Carbon::parse($c->last_login_at)->diffForHumans() : '—' }}</td>
                                 <td>
                                     <form method="post" action="{{ route('acente.calisanlar.sil', $c->id) }}" onsubmit="return confirm('Bu çalışanı silmek istediğinizden emin misiniz?')">
                                         @csrf @method('DELETE')
@@ -93,15 +161,15 @@
         <div class="card-body">
             <form method="post" action="{{ route('acente.calisanlar.davet') }}" class="row g-3">
                 @csrf
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <label class="form-label mb-1">Email Adresi</label>
                     <input type="email" name="email" class="form-control" required placeholder="calisan@firma.com" value="{{ old('email') }}">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <label class="form-label mb-1">Yetki Paketi</label>
                     <select name="acente_rolu" class="form-select" required>
-                        <option value="tam">Tam Erişim — Talep + Teklif + Ödeme + Finans</option>
-                        <option value="operasyon">Operasyon — Talep + Teklif</option>
+                        <option value="tam">Tam Erişim — Talep + Teklif + Ödeme + Finans + Yolcu</option>
+                        <option value="operasyon">Operasyon — Talep + Teklif + Yolcu</option>
                         <option value="muhasebe">Muhasebe — Finans + Ödeme</option>
                     </select>
                 </div>
@@ -109,15 +177,6 @@
                     <button class="btn btn-primary w-100">Davet Gönder</button>
                 </div>
             </form>
-
-            <div class="mt-3 p-3 bg-light rounded small">
-                <strong>Yetki Paketleri:</strong>
-                <ul class="mb-0 mt-1">
-                    <li><strong>Tam Erişim:</strong> Talep oluşturma, teklif kabul, ödeme yapma, finans görüntüleme</li>
-                    <li><strong>Operasyon:</strong> Talep oluşturma ve teklif kabul etme</li>
-                    <li><strong>Muhasebe:</strong> Finans ve ödeme sayfalarına erişim</li>
-                </ul>
-            </div>
         </div>
     </div>
 </div>
