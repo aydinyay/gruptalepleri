@@ -33,6 +33,7 @@
     }
 
     $kabulEdilenTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
+    $kabulLog          = $talep->logs->firstWhere('action', 'teklif_kabul_edildi');
     $ilkTeklif      = $kabulEdilenTeklif ?? $talep->offers->first();
     $toplamTutar    = $ilkTeklif?->total_price ?? 0;
     $toplamOdenen   = $talep->payments->where('status', 'alindi')->sum('amount');
@@ -549,7 +550,12 @@
                                 @if($teklif->airline_pnr)<span class="badge bg-primary" style="font-size:.7rem;">{{ $teklif->airline_pnr }}</span>@endif
                                 @if($teklif->flight_number)<span class="badge bg-secondary" style="font-size:.7rem;">{{ $teklif->flight_number }}</span>@endif
                                 @if($teklif->durum === \App\Models\Offer::DURUM_GIZLENDI)<span class="badge bg-warning text-dark" style="font-size:.7rem;"><i class="fas fa-eye-slash me-1"></i>Gizli</span>@endif
-                                @if($teklif->durum === \App\Models\Offer::DURUM_KABUL)<span class="badge bg-success" style="font-size:.7rem;"><i class="fas fa-check me-1"></i>Kabul Edildi</span>@endif
+                                @if($teklif->durum === \App\Models\Offer::DURUM_KABUL)
+                                    <span class="badge bg-success" style="font-size:.7rem;"><i class="fas fa-check me-1"></i>Kabul Edildi</span>
+                                    @if($kabulLog)
+                                        <span class="text-muted" style="font-size:.7rem;">{{ $kabulLog->user?->name ?? 'Sistem' }} · {{ $kabulLog->created_at->format('d.m.Y H:i') }}</span>
+                                    @endif
+                                @endif
                                 @if($teklif->durum === \App\Models\Offer::DURUM_REDDEDILDI)<span class="badge bg-secondary" style="font-size:.7rem;">Reddedildi</span>@endif
                             </div>
                             <div class="d-flex gap-1 flex-shrink-0">

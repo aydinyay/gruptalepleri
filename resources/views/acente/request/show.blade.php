@@ -83,6 +83,7 @@
 
     // Kabul edilen teklif varsa sadece onu göster, yoksa tüm beklemedeki ve fiyatlı teklifleri göster
     $kabulEdilenTeklif = $talep->offers->firstWhere('durum', \App\Models\Offer::DURUM_KABUL);
+    $kabulLog = $talep->logs->firstWhere('action', 'teklif_kabul_edildi');
     $gosterilecekTeklifler = $kabulEdilenTeklif
         ? $talep->offers->where('id', $kabulEdilenTeklif->id)
         : $talep->offers->whereIn('durum', [\App\Models\Offer::DURUM_BEKLEMEDE, \App\Models\Offer::DURUM_KABUL])->where('price_per_pax', '>', 0);
@@ -470,6 +471,12 @@
                                 <span class="badge bg-secondary">{{ $teklif->currency }}</span>
                                 @if($teklif->durum === \App\Models\Offer::DURUM_KABUL)
                                     <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Kabul Edildi</span>
+                                    @if($kabulLog)
+                                        <span class="text-muted small">
+                                            {{ $kabulLog->user?->name ?? 'Sistem' }}
+                                            · {{ $kabulLog->created_at->format('d.m.Y H:i') }}
+                                        </span>
+                                    @endif
                                 @endif
                             </div>
                         </div>
