@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('ip', 45)->nullable();
             $table->string('user_agent', 500)->nullable();
             $table->timestamp('triggered_at')->nullable();  // ilk tetiklenme zamanı
-            $table->unsignedSmallInt('hit_count')->default(0);
+            $table->smallInteger('hit_count')->unsigned()->default(0);
             $table->timestamps();
 
             $table->index(['broadcast_id', 'user_id']);
