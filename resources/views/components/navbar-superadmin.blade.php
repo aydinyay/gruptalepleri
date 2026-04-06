@@ -212,6 +212,12 @@
             'href' => route('superadmin.iletisim.hub'),
             'items' => [
                 [
+                    'label' => 'Bekleyen Bildirimler',
+                    'href'  => route('superadmin.bekleyen.bildirimler'),
+                    'icon'  => 'fas fa-bell',
+                    'keys'  => ['bekleyen-bildirimler'],
+                ],
+                [
                     'label' => 'Hizli Yanit',
                     'href' => route('superadmin.quick-reply.index'),
                     'icon' => 'fas fa-reply',

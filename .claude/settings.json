@@ -44,7 +44,22 @@
       "Read(//c/Users/Güneş Yaylacıklılar/.claude/plans/**)",
       "Bash(grep -n \"due_date\\\\|due_time\\\\|endOfDay\\\\|option_time\" app/Console/Commands/*.php)",
       "Bash(sed -i 's/class=\"col-md-2\"><label class=\"form-label small\">Teklif Geçerlilik Tarihi/class=\"col-md-4\"><label class=\"form-label small\">Geçerlilik Tarihi/' resources/views/admin/requests/show.blade.php)",
-      "Bash(sed -i 's/class=\"col-md-2\"><label class=\"form-label small\">Teklif Geçerlilik Saati <span class=\"text-danger\">\\\\*<\\\\/span>/class=\"col-md-4\"><label class=\"form-label small\">Geçerlilik Saati <span class=\"text-danger\">*zorunlu<\\\\/span>/' resources/views/admin/requests/show.blade.php)"
+      "Bash(sed -i 's/class=\"col-md-2\"><label class=\"form-label small\">Teklif Geçerlilik Saati <span class=\"text-danger\">\\\\*<\\\\/span>/class=\"col-md-4\"><label class=\"form-label small\">Geçerlilik Saati <span class=\"text-danger\">*zorunlu<\\\\/span>/' resources/views/admin/requests/show.blade.php)",
+      "Bash(php -l app/Http/Controllers/Admin/RequestController.php)",
+      "Bash(php -l resources/views/admin/requests/index.blade.php)",
+      "Bash(php -l app/Models/User.php)",
+      "Bash(php -l app/Models/RequestPayment.php)",
+      "Bash(php -l app/Http/Controllers/Superadmin/SistemOlayController.php)",
+      "Bash(grep \"auth\\(\\)->user\\(\\)\" /c/gruptalepleri/app/Http/Controllers/Acente/*.php)",
+      "Bash(grep -r \"\\\\$.*due_date\\\\|due_date\\\\.\" /c/gruptalepleri/resources/views --include=\"*.blade.php\")",
+      "Bash(grep -r \"\\\\$.*option_date\\\\|option_date\\\\.\" /c/gruptalepleri/resources/views --include=\"*.blade.php\")",
+      "Bash(grep -n 'protected $casts\\\\|'\\\\''due_date'\\\\''\\\\|'\\\\''option_date'\\\\''' /c/gruptalepleri/app/Models/RequestPayment.php /c/gruptalepleri/app/Models/Offer.php)",
+      "Bash(grep -n '$this->acenteActor\\(\\)' '/c/gruptalepleri/app/Http/Controllers/Acente/*.php')",
+      "Bash(grep -n \"canDo\\(\\)\" /c/gruptalepleri/app/Http/Controllers/Acente/*.php)",
+      "Bash(grep -n 'protected $casts\\\\|'\\\\''due_date'\\\\''\\\\|'\\\\''option_date'\\\\''\\\\|'\\\\''payment_date'\\\\''' /c/gruptalepleri/app/Models/RequestPayment.php /c/gruptalepleri/app/Models/Offer.php /c/gruptalepleri/app/Models/Request.php)",
+      "Bash(grep -rn \"\\\\$.*->due_date\\\\s*\\\\.\\\\s*\\\\|\\\\$.*->option_date\\\\s*\\\\.\" /c/gruptalepleri/resources/views --include=\"*.blade.php\")",
+      "Bash(grep -A 15 'protected $casts' /c/gruptalepleri/app/Models/RequestPayment.php)",
+      "Bash(grep -n \"ModulePaymentController\\\\|FinanceReceiptController\" /c/gruptalepleri/app/Http/Controllers/Acente/*.php)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"

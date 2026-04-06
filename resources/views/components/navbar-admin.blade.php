@@ -7,6 +7,12 @@
     $user = auth()->user();
     $communicationItems = [
         [
+            'label' => 'Bekleyen Bildirimler',
+            'href' => route('admin.bekleyen.bildirimler'),
+            'icon' => 'fas fa-bell',
+            'keys' => ['bekleyen-bildirimler'],
+        ],
+        [
             'label' => 'Hizli Yanit',
             'href' => route('admin.quick-reply.index'),
             'icon' => 'fas fa-reply',

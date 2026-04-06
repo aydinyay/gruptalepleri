@@ -252,6 +252,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         return view('superadmin.dashboard');
     })->name('dashboard');
 
+    Route::get('/bekleyen-bildirimler', [\App\Http\Controllers\Superadmin\BekleyenBildirimlerController::class, 'index'])->name('bekleyen.bildirimler');
+
     Route::get('/show-last-error', function () {
         $log = storage_path('logs/laravel.log');
         if (!file_exists($log)) return response('Log yok');
@@ -650,6 +652,8 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin')->name('adm
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+
+    Route::get('/bekleyen-bildirimler', [\App\Http\Controllers\Superadmin\BekleyenBildirimlerController::class, 'index'])->name('bekleyen.bildirimler');
 
     Route::get('/talepler/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'admin'])
         ->defaults('group', 'talepler')
