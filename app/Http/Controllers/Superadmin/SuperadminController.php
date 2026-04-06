@@ -98,7 +98,8 @@ class SuperadminController extends Controller
             $query->whereHas('user', fn($q) => $q->has('requests'));
         }
 
-        $acenteler = $query->get();
+        $perPage   = in_array((int) $request->input('per_page', 50), [50, 100, 250]) ? (int) $request->input('per_page', 50) : 50;
+        $acenteler = $query->paginate($perPage)->withQueryString();
 
         // Her acente için talep sayısını ekle
         $userIds = $acenteler->pluck('user_id')->filter()->values()->all();
@@ -126,7 +127,7 @@ class SuperadminController extends Controller
 
         $sablonlar = MesajSablon::orderBy('sablon_adi')->get(['id', 'sablon_adi', 'email_konu', 'email_govde', 'sms_govde', 'kanallar']);
 
-        return view('superadmin.acenteler', compact('acenteler', 'sablonlar'));
+        return view('superadmin.acenteler', compact('acenteler', 'sablonlar', 'perPage'));
     }
 
     public function topluMesajGonder(Request $request)

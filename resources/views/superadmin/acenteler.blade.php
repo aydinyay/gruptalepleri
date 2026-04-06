@@ -314,6 +314,25 @@
                 </tbody>
             </table>
         </div>
+
+        {{-- Sayfalama --}}
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Sayfa başı:</span>
+                <form method="GET" action="{{ route('superadmin.acenteler') }}" class="d-inline">
+                    @foreach(request()->except(['page','per_page']) as $k => $v)
+                        <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                    @endforeach
+                    <select name="per_page" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                        @foreach([50,100,250] as $pp)
+                            <option value="{{ $pp }}" {{ $perPage == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+                        @endforeach
+                    </select>
+                </form>
+                <span class="text-muted small">{{ $acenteler->total() }} acente</span>
+            </div>
+            <div>{{ $acenteler->links() }}</div>
+        </div>
     </div>
 
 </div>
