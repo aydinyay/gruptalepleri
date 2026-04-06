@@ -102,6 +102,15 @@
         </a>
         @endforeach
 
+        {{-- Opsiyonda hızlı filtresi --}}
+        <a href="{{ route('admin.requests.index', ['opsiyon' => '1']) }}"
+           class="btn btn-sm filter-btn btn-warning position-relative {{ request('opsiyon') == '1' ? 'opacity-100 fw-bold' : 'opacity-75' }}">
+            ⏳ Opsiyonda
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.58rem;">
+                {{ $opsiyonSayisi }}
+            </span>
+        </a>
+
         {{-- Tarih filtresi --}}
         <form method="GET" action="{{ route('admin.requests.index') }}" class="d-flex gap-1 ms-auto align-items-center">
             <input type="hidden" name="durum" value="{{ request('durum','') }}">
