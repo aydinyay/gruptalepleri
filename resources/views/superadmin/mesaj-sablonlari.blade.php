@@ -253,6 +253,46 @@
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 const UPLOAD_URL = '{{ route("superadmin.upload-email-image") }}';
 
+// ── Gizli file input — Jodit'in yerleşik upload'ını bypass et ────────
+const imgFileInput = document.createElement('input');
+imgFileInput.type = 'file';
+imgFileInput.accept = 'image/jpeg,image/png,image/gif,image/webp';
+imgFileInput.style.display = 'none';
+document.body.appendChild(imgFileInput);
+let activeJoditEditor = null;
+
+imgFileInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file || !activeJoditEditor) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', CSRF);
+    fetch(UPLOAD_URL, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.files && data.files[0]) {
+                activeJoditEditor.s.insertHTML(
+                    '<img src="' + data.files[0] + '" style="max-width:100%;height:auto;border-radius:4px;" />'
+                );
+            } else {
+                alert('Yükleme başarısız: ' + (data.message || 'Bilinmeyen hata'));
+            }
+        })
+        .catch(() => alert('Resim yüklenemedi. Tekrar deneyin.'));
+    this.value = '';
+});
+
+// Özel toolbar butonu
+Jodit.defaultOptions.controls.resimyukle = {
+    name: 'resimyukle',
+    icon: 'image',
+    tooltip: 'Resim Yükle (JPG/PNG/GIF/WebP, max 3MB)',
+    exec: function(editor) {
+        activeJoditEditor = editor;
+        imgFileInput.click();
+    }
+};
+
 // ── Jodit config ─────────────────────────────────────────────────────
 const joditConfig = {
     height: 380,
@@ -264,37 +304,11 @@ const joditConfig = {
         'outdent', 'indent', '|',
         'font', 'fontsize', 'brush', '|',
         'paragraph', '|',
-        'image', 'table', 'link', 'hr', '|',
+        'resimyukle', 'table', 'link', 'hr', '|',
         'left', 'center', 'right', 'justify', '|',
         'undo', 'redo', '|',
         'source', 'fullsize',
     ],
-    uploader: {
-        url: UPLOAD_URL,
-        format: 'json',
-        prepareData: function(fd) {
-            fd.append('_token', CSRF);
-            return fd;
-        },
-        isSuccess: (resp) => resp.error === 0,
-        getMsg: (resp) => resp.message || 'Yükleme hatası',
-        process: (resp) => ({
-            files: resp.files || [],
-            path: '',
-            baseurl: '',
-            error: resp.error,
-            msg: resp.message || '',
-        }),
-        defaultHandlerSuccess: function(data) {
-            if (data.files && data.files.length) {
-                data.files.forEach((url) => {
-                    this.j.s.insertHTML(
-                        '<img src="' + url + '" style="max-width:100%;height:auto;" />'
-                    );
-                });
-            }
-        },
-    },
     toolbarAdaptive: false,
     showCharsCounter: false,
     showWordsCounter: false,
