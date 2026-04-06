@@ -21,7 +21,7 @@
             </p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('acente.yolcular.sablon') }}" class="btn btn-sm btn-outline-secondary">
+            <a href="{{ route('yolcular.sablon') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-download me-1"></i>CSV Şablon İndir
             </a>
         </div>
@@ -75,7 +75,7 @@
                                 <td class="small">{{ $y->uyruk ?: '—' }}</td>
                                 <td class="small">{{ $y->cinsiyet ? ucfirst($y->cinsiyet) : '—' }}</td>
                                 <td>
-                                    <form method="post" action="{{ route('acente.yolcular.destroy', [$talep->gtpnr, $y->id]) }}" onsubmit="return confirm('Yolcuyu silmek istediğinizden emin misiniz?')">
+                                    <form method="post" action="{{ route('yolcular.destroy', [$talep->gtpnr, $y->id]) }}" onsubmit="return confirm('Yolcuyu silmek istediğinizden emin misiniz?')">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger py-0 px-2">Sil</button>
                                     </form>
@@ -95,7 +95,7 @@
             <div class="card shadow-sm h-100">
                 <div class="card-header fw-semibold">Yolcu Ekle (Tek Tek)</div>
                 <div class="card-body">
-                    <form method="post" action="{{ route('acente.yolcular.store', $talep->gtpnr) }}" class="row g-2">
+                    <form method="post" action="{{ route('yolcular.store', $talep->gtpnr) }}" class="row g-2">
                         @csrf
                         <div class="col-6">
                             <label class="form-label mb-1">Ad <span class="text-danger">*</span></label>
@@ -157,10 +157,10 @@
                         CSV şablonu indirin, doldurun ve yükleyin. Noktalı virgül (;) ayraç olarak kullanılır.
                         Ad ve soyad büyük harfe dönüştürülür.
                     </p>
-                    <a href="{{ route('acente.yolcular.sablon') }}" class="btn btn-sm btn-outline-secondary w-100 mb-3">
+                    <a href="{{ route('yolcular.sablon') }}" class="btn btn-sm btn-outline-secondary w-100 mb-3">
                         <i class="fas fa-download me-1"></i>CSV Şablon İndir
                     </a>
-                    <form method="post" action="{{ route('acente.yolcular.csv', $talep->gtpnr) }}" enctype="multipart/form-data">
+                    <form method="post" action="{{ route('yolcular.csv', $talep->gtpnr) }}" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-2">
                             <label class="form-label mb-1">CSV Dosyası</label>

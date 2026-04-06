@@ -852,7 +852,7 @@
                             <div class="fw-semibold"><i class="fas fa-users me-2 text-primary"></i>Yolcu Listesi</div>
                             <div class="text-muted small mt-1">Havayoluna iletilecek yolcu bilgilerini girin.</div>
                         </div>
-                        <a href="{{ route('acente.yolcular.index', $talep->gtpnr) }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('yolcular.index', $talep->gtpnr) }}" class="btn btn-sm btn-primary">
                             Yolcu Listesine Git →
                         </a>
                     </div>
