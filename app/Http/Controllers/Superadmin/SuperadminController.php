@@ -137,7 +137,7 @@ class SuperadminController extends Controller
             'secilen'   => 'required|array|min:1',
             'secilen.*' => 'integer|exists:users,id',
             'konu'      => 'nullable|string|max:255',
-            'mesaj'     => 'required|string|max:2000',
+            'mesaj'     => 'required|string|max:100000',
             'kanallar'  => 'nullable|array',
             'kanallar.*'=> 'in:email,sms,push',
         ]);
