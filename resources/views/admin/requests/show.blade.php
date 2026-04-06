@@ -296,13 +296,7 @@
                                 </td>
                                 <td class="text-muted" style="max-width:160px;white-space:normal;font-size:.72rem;">
                                     @if($notif->channel === 'email')
-                                        @php
-                                            // HTML email'den anlamlı metin çıkar: style/script bloklarını sil, sonra tag'leri temizle
-                                            $temizMetin = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $notif->message ?? '');
-                                            $temizMetin = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $temizMetin);
-                                            $temizMetin = trim(preg_replace('/\s+/', ' ', strip_tags($temizMetin)));
-                                        @endphp
-                                        {{ Str::limit($temizMetin, 80) ?: '(HTML email)' }}
+                                        {{ $notif->subject ? Str::limit($notif->subject, 60) : '(Email)' }}
                                     @else
                                         {{ Str::limit($notif->message ?? '', 80) }}
                                     @endif
