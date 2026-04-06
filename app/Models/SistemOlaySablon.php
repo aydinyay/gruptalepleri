@@ -32,6 +32,10 @@ class SistemOlaySablon extends Model
      */
     public static function resolveEmail(string $olayKodu, array $data): ?array
     {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('sistem_olay_sablonlari')) {
+            return null;
+        }
+
         $sablon = static::where('olay_kodu', $olayKodu)->first();
 
         if (!$sablon || !$sablon->email_aktif || !$sablon->email_govde) {
@@ -51,6 +55,10 @@ class SistemOlaySablon extends Model
      */
     public static function resolveSms(string $olayKodu, array $data): ?string
     {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('sistem_olay_sablonlari')) {
+            return null;
+        }
+
         $sablon = static::where('olay_kodu', $olayKodu)->first();
 
         if (!$sablon || !$sablon->sms_aktif || !$sablon->sms_govde) {
