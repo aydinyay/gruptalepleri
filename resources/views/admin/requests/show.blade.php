@@ -597,6 +597,15 @@
                                     ]) }})">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
+                                @if($teklif->durum === \App\Models\Offer::DURUM_KABUL)
+                                <form method="POST" action="{{ route('admin.requests.offer.geri-al', [$talep->gtpnr, $teklif->id]) }}"
+                                      onsubmit="return confirm('Teklif kabulünü geri almak istediğinizden emin misiniz?\nTeklif tekrar \"beklemede\" durumuna döner.')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-warning btn-sm py-0 px-2" style="font-size:.72rem;">
+                                        <i class="fas fa-undo me-1"></i>Kabulü Geri Al
+                                    </button>
+                                </form>
+                                @endif
                                 @if($teklif->durum !== \App\Models\Offer::DURUM_KABUL)
                                 <form method="POST" action="{{ route('admin.requests.offer.toggle', [$talep->gtpnr, $teklif->id]) }}">
                                     @csrf

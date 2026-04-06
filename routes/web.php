@@ -742,6 +742,7 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin')->name('adm
     Route::patch('/talepler/{gtpnr}/odeme/{payment}', [\App\Http\Controllers\Admin\RequestController::class, 'updatePayment'])->name('requests.payment.update');
     Route::patch('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'updateOffer'])->name('requests.offer.update');
     Route::post('/talepler/{gtpnr}/teklif/{offer}/toggle', [\App\Http\Controllers\Admin\RequestController::class, 'toggleOffer'])->name('requests.offer.toggle');
+    Route::post('/talepler/{gtpnr}/teklif/{offer}/geri-al', [\App\Http\Controllers\Admin\RequestController::class, 'geriAlOffer'])->name('requests.offer.geri-al');
     Route::delete('/talepler/{gtpnr}/teklif/{offer}', [\App\Http\Controllers\Admin\RequestController::class, 'deleteOffer'])->name('requests.offer.delete');
     Route::patch('/talepler/{gtpnr}', [\App\Http\Controllers\Admin\RequestController::class, 'updateRequest'])->name('requests.update');
     Route::get('/talepler/{gtpnr}/yolcular/export', function (string $gtpnr) {

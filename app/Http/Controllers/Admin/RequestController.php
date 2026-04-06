@@ -748,6 +748,29 @@ Ham veri:
         return back()->with('success', 'Teklif silindi.');
     }
 
+    public function geriAlOffer(Request $request, $gtpnr, $offer)
+    {
+        $talep  = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
+        $teklif = Offer::where('request_id', $talep->id)->findOrFail($offer);
+
+        if ($teklif->durum !== \App\Models\Offer::DURUM_KABUL) {
+            return back()->with('error', 'Bu teklif zaten kabul edilmiş değil.');
+        }
+
+        $teklif->update(['durum' => \App\Models\Offer::DURUM_BEKLEMEDE]);
+
+        RequestLog::create([
+            'request_id'  => $talep->id,
+            'action'      => 'teklif_kabul_geri_alindi',
+            'description' => ($teklif->airline ?? '—') . ' PNR:' . ($teklif->airline_pnr ?? '-') . ' — kabul geri alındı, teklif beklemede\'ye döndürüldü.',
+            'user_id'     => auth()->id(),
+        ]);
+
+        $talep->refreshAktifAdim();
+
+        return back()->with('success', 'Teklif kabulü geri alındı, durum "beklemede" olarak güncellendi.');
+    }
+
     public function toggleOffer(Request $request, $gtpnr, $offer)
     {
         $talep  = TalepModel::where('gtpnr', $gtpnr)->firstOrFail();
