@@ -112,7 +112,7 @@
                 return ['Opsiyonda', 'secondary', 'Opsiyon süresi henüz belirlenmedi'];
             }
             $dl   = \Carbon\Carbon::parse($opsiyonTeklif->option_date
-                    . ($opsiyonTeklif->option_time ? ' '.$opsiyonTeklif->option_time : ' 23:59:59'));
+                    . ($opsiyonTeklif->option_time ? ' '.$opsiyonTeklif->option_time : ' 15:59:59'));
             $diff = now()->diffInMinutes($dl, false);
             if ($diff <= 0)    return ['⚠️ Opsiyon Süresi Doldu', 'danger',   $dl->format('d.m.Y H:i').' — Yeni fiyat talep edin'];
             if ($diff <= 60)   return ['🚨 '.ceil($diff).' Dakika Kaldı', 'danger',  'Bu süre geçerse fiyat ve koltuk garantisi kaybolur.'];
@@ -478,7 +478,7 @@
                         @if(in_array($teklif->durum, [\App\Models\Offer::DURUM_BEKLEMEDE, \App\Models\Offer::DURUM_KABUL]) && $teklif->option_date)
                         @php
                             $hasDl  = (bool) $teklif->option_date;
-                            $dlTs   = $hasDl ? \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 23:59:59')) : null;
+                            $dlTs   = $hasDl ? \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 15:59:59')) : null;
                             $dlDiff = $dlTs ? now()->diffInMinutes($dlTs, false) : null;
                             $dlClass = !$hasDl ? 'belirsiz' : ($dlDiff <= 0 ? 'gecti' : ($dlDiff <= 60 ? 'kritik' : ($dlDiff <= 360 ? 'acil' : ($dlDiff <= 1440 ? 'dikkat' : 'normal'))));
                         @endphp
@@ -586,7 +586,7 @@
                                 $btnDisabled = false;
                                 $btnDlStr    = '—';
                                 if ($teklif->option_date) {
-                                    $btnDl    = \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 23:59:59'));
+                                    $btnDl    = \Carbon\Carbon::parse($teklif->option_date.($teklif->option_time ? ' '.$teklif->option_time : ' 15:59:59'));
                                     $btnDiff  = now()->diffInMinutes($btnDl, false);
                                     $btnDlStr = $btnDl->format('d.m.Y H:i');
                                     if ($btnDiff <= 0)   { $btnDisabled = true; $btnMetin = 'Opsiyon Süresi Doldu'; }

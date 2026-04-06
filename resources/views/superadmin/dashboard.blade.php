@@ -238,7 +238,7 @@
                 <div class="card-body p-3">
                     @foreach($odemeUyarilari as $odeme)
                     @php
-                        $dueTs = \Carbon\Carbon::parse($odeme->due_date . ' ' . ($odeme->due_time ?: '23:59:59'));
+                        $dueTs = \Carbon\Carbon::parse($odeme->due_date . ' ' . ($odeme->due_time ?: '15:59:59'));
                         $kalanSaatO = \Carbon\Carbon::now()->diffInHours($dueTs, false);
                         $renkO = $kalanSaatO <= 6 ? 'danger' : 'warning';
                     @endphp

@@ -657,7 +657,7 @@ class SuperadminController extends Controller
 
                     $hasOptDate = $kabulTeklif && !empty($kabulTeklif->option_date);
                     $dueDate = $hasOptDate
-                        ? \Carbon\Carbon::parse($kabulTeklif->option_date . ($kabulTeklif->option_time ? ' ' . $kabulTeklif->option_time : ' 23:59:59'))
+                        ? \Carbon\Carbon::parse($kabulTeklif->option_date . ($kabulTeklif->option_time ? ' ' . $kabulTeklif->option_time : ' 15:59:59'))
                         : null;
 
                     if ($kabulTeklif && $kabulTeklif->deposit_amount > 0 && !$depozitoVar) {

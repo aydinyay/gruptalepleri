@@ -253,7 +253,7 @@ class RequestController extends Controller
         if ($teklif->deposit_amount && $teklif->deposit_amount > 0) {
             $hasOptionDate = !empty($teklif->option_date);
             $dueDate = $hasOptionDate
-                ? \Carbon\Carbon::parse($teklif->option_date . ($teklif->option_time ? ' ' . $teklif->option_time : ' 23:59:59'))
+                ? \Carbon\Carbon::parse($teklif->option_date . ($teklif->option_time ? ' ' . $teklif->option_time : ' 15:59:59'))
                 : null;
             \App\Models\RequestPayment::create([
                 'request_id'   => $talep->id,

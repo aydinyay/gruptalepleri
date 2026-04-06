@@ -139,7 +139,7 @@
         if ($kabulTeklif?->option_date) {
             $deadlineDt = \Carbon\Carbon::parse(
                 $kabulTeklif->option_date .
-                ($kabulTeklif->option_time ? ' '.$kabulTeklif->option_time : ' 23:59:59')
+                ($kabulTeklif->option_time ? ' '.$kabulTeklif->option_time : ' 15:59:59')
             );
         } elseif ($aktifAdim === 'karar_bekleniyor') {
             $opsOffer = $talep->offers
@@ -149,7 +149,7 @@
             if ($opsOffer) {
                 $deadlineDt = \Carbon\Carbon::parse(
                     $opsOffer->option_date .
-                    ($opsOffer->option_time ? ' '.$opsOffer->option_time : ' 23:59:59')
+                    ($opsOffer->option_time ? ' '.$opsOffer->option_time : ' 15:59:59')
                 );
             }
         }
