@@ -1120,4 +1120,4 @@ setInterval(opsiyonCountdown, 60000);
     'turaiOzetler'        => [],
 ])
 </body>
-</html>
+</html> 

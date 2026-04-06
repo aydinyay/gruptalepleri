@@ -979,3 +979,4 @@ Ham veri:
             ->with('success', $gtpnr . ' numaralı talep silindi.');
     }
 }
+ 
