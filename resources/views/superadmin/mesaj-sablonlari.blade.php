@@ -280,11 +280,20 @@ const joditConfig = {
         getMsg: (resp) => resp.message || 'Yükleme hatası',
         process: (resp) => ({
             files: resp.files || [],
-            path: resp.path || '',
-            baseurl: resp.baseurl || '',
+            path: '',
+            baseurl: '',
             error: resp.error,
             msg: resp.message || '',
         }),
+        defaultHandlerSuccess: function(data) {
+            if (data.files && data.files.length) {
+                data.files.forEach((url) => {
+                    this.j.s.insertHTML(
+                        '<img src="' + url + '" style="max-width:100%;height:auto;" />'
+                    );
+                });
+            }
+        },
     },
     toolbarAdaptive: false,
     showCharsCounter: false,
