@@ -15,9 +15,19 @@
     <div class="d-flex align-items-center gap-2 mb-3">
         <h5 class="mb-0 fw-bold"><i class="fas fa-file-alt me-2 text-primary"></i>Mesaj Şablonları</h5>
         <span class="text-muted small ms-1">{{ $sablonlar->count() }} şablon</span>
-        <button class="btn btn-sm btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#yeniSablonModal">
-            <i class="fas fa-plus me-1"></i>Yeni Şablon
-        </button>
+        <div class="ms-auto d-flex gap-2">
+            <div class="alert alert-info py-1 px-2 mb-0 small">
+                <strong>Kullanılabilir değişkenler:</strong>
+                <code class="ms-1">{acente_adi}</code>
+                <code class="ms-1">{yetkili_adi}</code>
+                <code class="ms-1">{ad}</code>
+                <code class="ms-1">{platform_linki}</code>
+                <span class="text-muted ms-1">— gönderimde otomatik kişiselleştirilir</span>
+            </div>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#yeniSablonModal">
+                <i class="fas fa-plus me-1"></i>Yeni Şablon
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -50,6 +60,11 @@
                             @endforeach
                         </div>
                         <div class="ms-auto d-flex gap-2">
+                            <a href="{{ route('superadmin.mesaj.sablonlari.onizle', $sablon) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-eye me-1"></i>Önizle
+                            </a>
                             <button class="btn btn-sm btn-outline-secondary"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#sablon-{{ $sablon->id }}">

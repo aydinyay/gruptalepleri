@@ -32,6 +32,7 @@ class User extends Authenticatable
         'davet_token',
         'davet_expires_at',
         'last_login_at',
+        'bildirim_sms',
     ];
 
     /**
@@ -55,6 +56,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'davet_expires_at'  => 'datetime',
             'last_login_at'     => 'datetime',
+            'bildirim_sms'      => 'boolean',
             'password' => 'hashed',
         ];
     }

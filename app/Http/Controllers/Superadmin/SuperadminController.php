@@ -199,6 +199,32 @@ class SuperadminController extends Controller
         return back()->with('success', 'Şablon silindi.');
     }
 
+    public function mesajSablonOnizle(MesajSablon $sablon)
+    {
+        $this->assertSuperadmin();
+
+        // Örnek değişken değerleriyle önizleme render et
+        $ornek = [
+            '{acente_adi}'     => 'ÖRNEK TURİZM A.Ş.',
+            '{yetkili_adi}'    => 'Ahmet Yılmaz',
+            '{ad}'             => 'Ahmet Yılmaz',
+            '{platform_linki}' => route('dashboard'),
+        ];
+
+        $body = str_replace(array_keys($ornek), array_values($ornek), $sablon->email_govde ?? $sablon->sms_govde ?? '');
+
+        // email/broadcast layout ile render
+        $html = view('emails.broadcast', [
+            'title'          => str_replace(array_keys($ornek), array_values($ornek), $sablon->sablon_adi),
+            'body'           => $body,
+            'emoji'          => '📧',
+            'sender'         => auth()->user()->name,
+            'unsubscribeUrl' => null,
+        ])->render();
+
+        return response($html)->header('Content-Type', 'text/html');
+    }
+
     public function acenteToggle(Agency $agency)
     {
         $agency->update(['is_active' => !$agency->is_active]);

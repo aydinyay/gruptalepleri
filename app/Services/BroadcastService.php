@@ -40,13 +40,17 @@ class BroadcastService
         $pushTitle = ($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $broadcast->title;
 
         foreach ($kullanicilar as $user) {
+            // Kullanıcıya özel değişken listesi
+            $kisiselMesaj = $this->kisiselMesaj($broadcast->message, $user);
+            $kisiselTitle = $this->kisiselMesaj($broadcast->title, $user);
+
             // Push bildirimi (uygulama içi bildirim zili)
             if (in_array('push', $activeChannels, true)) {
                 $ns->createForUser(
                     $user->id,
                     'broadcast',
-                    $pushTitle,
-                    $broadcast->message,
+                    ($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $kisiselTitle,
+                    $kisiselMesaj,
                     null,
                     $broadcast->id
                 );
@@ -56,15 +60,18 @@ class BroadcastService
             if (in_array('sms', $activeChannels, true)) {
                 $phone = $user->agency?->phone ?? null;
                 if ($phone) {
-                    $mesaj = ($broadcast->emoji ? $broadcast->emoji . ' ' : '')
-                        . $broadcast->title . "\n" . $broadcast->message;
-                    $sms->send(null, $user->role === 'acente' ? 'acente' : 'admin', $user->name, $phone, $mesaj);
+                    $smsMesaj = ($broadcast->emoji ? $broadcast->emoji . ' ' : '')
+                        . $kisiselTitle . "\n" . $kisiselMesaj;
+                    $sms->send(null, $user->role === 'acente' ? 'acente' : 'admin', $user->name, $phone, $smsMesaj);
                 }
             }
 
-            // E-posta
+            // E-posta (kişiselleştirilmiş broadcast klonu ile)
             if (in_array('email', $activeChannels, true)) {
-                $email->broadcastEmail($user, $broadcast);
+                $kisiselBroadcast = clone $broadcast;
+                $kisiselBroadcast->title   = $kisiselTitle;
+                $kisiselBroadcast->message = $kisiselMesaj;
+                $email->broadcastEmail($user, $kisiselBroadcast);
             }
         }
 
@@ -123,6 +130,26 @@ class BroadcastService
                 $broadcast->id
             );
         }
+    }
+
+    /**
+     * Mesaj metnindeki {değişken} yer tutucularını kullanıcıya özel değerlerle değiştir.
+     * Desteklenen değişkenler:
+     *   {acente_adi}     — Firma/acente adı
+     *   {yetkili_adi}    — Yetkili kişi adı
+     *   {ad}             — Kullanıcı adı (sisteme kayıtlı)
+     *   {platform_linki} — Dashboard URL
+     */
+    private function kisiselMesaj(string $metin, User $user): string
+    {
+        $degiskenler = [
+            '{acente_adi}'     => $user->agency?->company_title ?? $user->name,
+            '{yetkili_adi}'    => $user->agency?->contact_name ?? $user->name,
+            '{ad}'             => $user->name,
+            '{platform_linki}' => route('dashboard'),
+        ];
+
+        return str_replace(array_keys($degiskenler), array_values($degiskenler), $metin);
     }
 
     /**

@@ -41,6 +41,14 @@ class SmsService
             return false;
         }
 
+        // Acente'ye gönderilen SMS'lerde bildirim_sms tercihini kontrol et
+        if ($recipient === 'acente') {
+            $acenteUser = \App\Models\User::where('phone', $phone)->first();
+            if ($acenteUser && ($acenteUser->bildirim_sms ?? true) === false) {
+                return false;
+            }
+        }
+
         $notification = RequestNotification::create([
             'request_id' => $requestId,
             'channel' => 'sms',

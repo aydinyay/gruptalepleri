@@ -592,6 +592,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/mesaj-sablonlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonKaydet'])->name('mesaj.sablonlari.kaydet');
     Route::patch('/mesaj-sablonlari/{sablon}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonKaydet'])->name('mesaj.sablonlari.guncelle');
     Route::delete('/mesaj-sablonlari/{sablon}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonSil'])->name('mesaj.sablonlari.sil');
+    Route::get('/mesaj-sablonlari/{sablon}/onizle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonOnizle'])->name('mesaj.sablonlari.onizle');
 
     // Broadcast geçmişi & yetki yönetimi
     Route::get('/broadcast-gecmisi', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastGecmisi'])->name('broadcast.gecmisi');
@@ -916,6 +917,7 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/profil', [\App\Http\Controllers\Acente\ProfileController::class, 'edit'])->name('profil');
     Route::put('/profil', [\App\Http\Controllers\Acente\ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/sifre', [\App\Http\Controllers\Acente\ProfileController::class, 'updatePassword'])->name('profil.sifre');
+    Route::put('/profil/bildirim', [\App\Http\Controllers\Acente\ProfileController::class, 'updateBildirim'])->name('profil.bildirim');
 
     Route::get('/talep/yolcu-sablon', [\App\Http\Controllers\Acente\YolcuController::class, 'sablonIndir'])->name('yolcular.sablon');
     Route::get('/talep/{gtpnr}/yolcular', [\App\Http\Controllers\Acente\YolcuController::class, 'index'])->name('yolcular.index');

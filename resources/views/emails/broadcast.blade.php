@@ -28,11 +28,17 @@
   <div class="body">
     <div class="emoji-block">{{ $emoji }}</div>
     <div class="title">{{ $title }}</div>
-    <div class="message">{{ $body }}</div>
+    <div class="message">{!! nl2br(e($body)) !!}</div>
     <div class="sender">Gönderen: <strong>{{ $sender }}</strong></div>
   </div>
   <div class="footer">
     Bu e-posta GrupTalepleri platformu tarafından gönderilmiştir.
+    @if(!empty($unsubscribeUrl))
+    <br><br>
+    <a href="{{ $unsubscribeUrl }}" style="color:#adb5bd;font-size:0.75rem;">
+      E-posta bildirimlerini almak istemiyorsanız buraya tıklayın
+    </a>
+    @endif
   </div>
 </div>
 </body>

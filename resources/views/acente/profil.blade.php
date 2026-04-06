@@ -57,6 +57,14 @@
             <i class="fas fa-check-circle me-2"></i>{{ session('success_sifre') }}
         </div>
     @endif
+    @if(session('success_bildirim'))
+        <div class="alert-success-custom mb-3">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success_bildirim') }}
+        </div>
+    @endif
+    @if($errors->has('bildirim'))
+        <div class="alert alert-danger mb-3">{{ $errors->first('bildirim') }}</div>
+    @endif
 
     {{-- KİŞİSEL BİLGİLER --}}
     <div class="card mb-4">
@@ -171,6 +179,52 @@
                 <div class="mt-4 text-start text-md-end">
                     <button type="submit" class="btn btn-save w-100 w-md-auto">
                         <i class="fas fa-key me-2"></i>Şifremi Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- BİLDİRİM TERCİHLERİ --}}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-bell section-icon me-2"></i> Bildirim Tercihleri
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{{ route('acente.profil.bildirim') }}">
+                @csrf
+                @method('PUT')
+
+                <p class="text-muted small mb-3">
+                    Hangi kanallardan bildirim almak istediğinizi seçin. En az bir kanal aktif olmalıdır.
+                </p>
+
+                <div class="d-flex flex-column gap-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="bildirim_email" name="bildirim_email" value="1"
+                               {{ !$user->email_unsubscribed ? 'checked' : '' }}>
+                        <label class="form-check-label" for="bildirim_email">
+                            <i class="fas fa-envelope text-primary me-1"></i>
+                            <strong>E-posta Bildirimleri</strong>
+                            <span class="text-muted small d-block">Teklifler, ödemeler ve önemli güncellemeler email ile gönderilir.</span>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="bildirim_sms" name="bildirim_sms" value="1"
+                               {{ $user->bildirim_sms ? 'checked' : '' }}>
+                        <label class="form-check-label" for="bildirim_sms">
+                            <i class="fas fa-sms text-success me-1"></i>
+                            <strong>SMS Bildirimleri</strong>
+                            <span class="text-muted small d-block">Acil durum ve onay bildirimleri SMS ile iletilir.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-start text-md-end">
+                    <button type="submit" class="btn btn-save w-100 w-md-auto">
+                        <i class="fas fa-save me-2"></i>Tercihleri Kaydet
                     </button>
                 </div>
             </form>

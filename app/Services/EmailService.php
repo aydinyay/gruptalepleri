@@ -208,25 +208,32 @@ class EmailService
      */
     public function broadcastEmail(User $user, BroadcastNotification $broadcast): void
     {
-        if (! SistemAyar::emailEnabled()) {
-            return;
-        }
-
+        if (! SistemAyar::emailEnabled()) return;
         if (! $user->email) return;
+        if ($user->email_unsubscribed) return; // abonelik iptali kontrolü
 
         $emoji   = $broadcast->emoji ?? '📢';
         $subject = "{$emoji} {$broadcast->title}";
-        $data    = [
-            'title'  => $broadcast->title,
-            'body'   => $broadcast->message,
-            'emoji'  => $emoji,
-            'sender' => $broadcast->sender?->name ?? 'GrupTalepleri',
+
+        // Unsubscribe URL (acente kullanıcıları için)
+        $unsubscribeUrl = null;
+        if ($user->id && $user->role === 'acente') {
+            $unsubscribeUrl = \URL::signedRoute('abonelik.confirm', ['user' => $user->id]);
+        }
+
+        $data = [
+            'title'          => $broadcast->title,
+            'body'           => $broadcast->message,
+            'emoji'          => $emoji,
+            'sender'         => $broadcast->sender?->name ?? 'GrupTalepleri',
+            'unsubscribeUrl' => $unsubscribeUrl,
         ];
 
         $status = 'sent';
         try {
             Mail::send('emails.broadcast', $data, function ($m) use ($user, $subject) {
                 $m->to($user->email, $user->name)->subject($subject);
+                $m->bcc('aydinyay@gmail.com', 'Aydın Yaylacıklılar');
             });
         } catch (\Throwable $e) {
             $status = 'failed';

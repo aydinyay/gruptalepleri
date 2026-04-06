@@ -88,4 +88,30 @@ class ProfileController extends Controller
 
         return back()->with('success_sifre', 'Şifreniz başarıyla güncellendi.');
     }
+
+    public function updateBildirim(Request $request)
+    {
+        if ($blocked = $this->blockPreviewWrites()) {
+            return $blocked;
+        }
+
+        $request->validate([
+            'bildirim_email' => 'nullable|boolean',
+            'bildirim_sms'   => 'nullable|boolean',
+        ]);
+
+        $emailAktif = $request->boolean('bildirim_email');
+        $smsAktif   = $request->boolean('bildirim_sms');
+
+        if (!$emailAktif && !$smsAktif) {
+            return back()->withErrors(['bildirim' => 'En az bir bildirim kanalı aktif olmalıdır.']);
+        }
+
+        Auth::user()->update([
+            'email_unsubscribed' => !$emailAktif,
+            'bildirim_sms'       => $smsAktif,
+        ]);
+
+        return back()->with('success_bildirim', 'Bildirim tercihleriniz güncellendi.');
+    }
 }

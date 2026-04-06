@@ -727,6 +727,22 @@
                         <strong>{{ number_format($kalanTutar,0) }} {{ $muhCurrency }}</strong>
                     </div>
 
+                    {{-- Fatura bilgisi uyarısı --}}
+                    @php
+                        $acenteRootId   = auth()->user()->parent_agency_id ?? auth()->id();
+                        $acenteAgency   = \App\Models\Agency::where('user_id', $acenteRootId)->first();
+                        $faturaEksik    = !$acenteAgency?->tax_number || !$acenteAgency?->company_title;
+                    @endphp
+                    @if($faturaEksik && $kalanTutar > 0)
+                        <div class="alert alert-warning py-2 small mt-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Fatura bilgileriniz eksik.</strong>
+                            Ödeme yapabilmek için
+                            <a href="{{ route('acente.profil') }}" class="fw-bold">profil sayfanızdan</a>
+                            Vergi No ve Şirket Ünvanı alanlarını doldurun.
+                        </div>
+                    @endif
+
                     {{-- KK ile ödeme — sadece admin açtıysa görünür --}}
                     @if($kalanTutar > 0 && $kabulEdilenTeklif?->kk_enabled)
                         <form method="POST" action="{{ route('acente.requests.gateway-payment.start', $talep->gtpnr) }}" class="mt-2">
