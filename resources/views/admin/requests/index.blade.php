@@ -52,11 +52,12 @@
                 <input type="hidden" name="tarih_bitis" value="{{ request('tarih_bitis','') }}">
                 <input type="hidden" name="teklif" value="{{ request('teklif','') }}">
                 <input type="hidden" name="opsiyon" value="{{ request('opsiyon','') }}">
+                <input type="hidden" name="adim" value="{{ request('adim','') }}">
                 <input type="text" name="q" value="{{ request('q') }}"
                        class="form-control form-control-sm search-input"
                        placeholder="GTPNR, acente, tel ara..." style="width:230px;">
                 <button class="btn btn-warning btn-sm">Ara</button>
-                @if(request()->hasAny(['q','durum','tarih_baslangic','tarih_bitis','teklif','opsiyon']))
+                @if(request()->hasAny(['q','durum','tarih_baslangic','tarih_bitis','teklif','opsiyon','adim']))
                 <a href="{{ route('admin.requests.index') }}" class="btn btn-sm btn-outline-secondary" title="Filtreyi temizle">
                     <i class="fas fa-times"></i>
                 </a>
@@ -111,12 +112,40 @@
             </span>
         </a>
 
+        {{-- Aktif adım bazlı hızlı filtreler --}}
+        <a href="{{ route('admin.requests.index', ['adim' => 'odeme_plani_bekleniyor']) }}"
+           class="btn btn-sm filter-btn btn-purple position-relative {{ request('adim') === 'odeme_plani_bekleniyor' ? 'opacity-100 fw-bold' : 'opacity-75' }}"
+           style="background:#6f42c1;color:#fff;" title="Acente teklifi kabul etti, ödeme planı bekleniyor">
+            📋 Kabul / Plan Bekl.
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.58rem;">
+                {{ $adimSayilari['odeme_plani_bekleniyor'] ?? 0 }}
+            </span>
+        </a>
+
+        <a href="{{ route('admin.requests.index', ['adim' => 'odeme_bekleniyor']) }}"
+           class="btn btn-sm filter-btn position-relative {{ request('adim') === 'odeme_bekleniyor' ? 'opacity-100 fw-bold' : 'opacity-75' }}"
+           style="background:#fd7e14;color:#fff;" title="Ödeme planı var, ödeme bekleniyor (gecikti + devam dahil)">
+            💳 Ödeme Bekliyor
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.58rem;">
+                {{ $odemeSayisi }}
+            </span>
+        </a>
+
+        <a href="{{ route('admin.requests.index', ['adim' => 'biletleme_bekleniyor']) }}"
+           class="btn btn-sm filter-btn btn-success position-relative {{ request('adim') === 'biletleme_bekleniyor' ? 'opacity-100 fw-bold' : 'opacity-75' }}">
+            ✈️ Biletleme
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.58rem;">
+                {{ $adimSayilari['biletleme_bekleniyor'] ?? 0 }}
+            </span>
+        </a>
+
         {{-- Tarih filtresi --}}
         <form method="GET" action="{{ route('admin.requests.index') }}" class="d-flex gap-1 ms-auto align-items-center">
             <input type="hidden" name="durum" value="{{ request('durum','') }}">
             <input type="hidden" name="q" value="{{ request('q','') }}">
             <input type="hidden" name="teklif" value="{{ request('teklif','') }}">
             <input type="hidden" name="opsiyon" value="{{ request('opsiyon','') }}">
+            <input type="hidden" name="adim" value="{{ request('adim','') }}">
             <input type="date" name="tarih_baslangic" class="form-control form-control-sm search-input" value="{{ request('tarih_baslangic') }}" style="width:130px;" title="Başlangıç">
             <input type="date" name="tarih_bitis" class="form-control form-control-sm search-input" value="{{ request('tarih_bitis') }}" style="width:130px;" title="Bitiş">
             <button class="btn btn-sm btn-outline-secondary filter-btn"><i class="fas fa-calendar-alt"></i></button>

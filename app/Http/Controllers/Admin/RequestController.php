@@ -83,6 +83,16 @@ class RequestController extends Controller
             });
         }
 
+        if ($request->filled('adim')) {
+            $adim = $request->input('adim');
+            if ($adim === 'odeme_bekleniyor') {
+                // Ödeme bekliyor + gecikti + kısmi alındı devam ediyor
+                $query->whereIn('aktif_adim', ['odeme_bekleniyor', 'odeme_gecikti', 'odeme_alindi_devam']);
+            } else {
+                $query->where('aktif_adim', $adim);
+            }
+        }
+
         // Sıralama: opsiyonda filtresi aktifse yakın opsiyon tarihi, aksi hâlde yeni talep önce
         if ((int) $request->input('opsiyon') === 1) {
             $query->orderByRaw("(
@@ -115,7 +125,18 @@ class RequestController extends Controller
                 )
             )->count();
 
-        return view('admin.requests.index', compact('talepler', 'durumSayilari', 'aktifSayisi', 'opsiyonSayisi'));
+        $adimSayilari = TalepModel::whereNotIn('status', $this->pasifStatusler)
+            ->selectRaw('aktif_adim, count(*) as toplam')
+            ->groupBy('aktif_adim')
+            ->pluck('toplam', 'aktif_adim');
+
+        $odemeSayisi = ($adimSayilari['odeme_bekleniyor'] ?? 0)
+                     + ($adimSayilari['odeme_gecikti'] ?? 0)
+                     + ($adimSayilari['odeme_alindi_devam'] ?? 0);
+
+        return view('admin.requests.index', compact(
+            'talepler', 'durumSayilari', 'aktifSayisi', 'opsiyonSayisi', 'adimSayilari', 'odemeSayisi'
+        ));
     }
 
     public function create()
