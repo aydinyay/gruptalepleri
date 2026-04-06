@@ -42,7 +42,9 @@
       "Read(//^Route::middleware/**)",
       "Read(//c/gruptalepleri/**)",
       "Read(//c/Users/Güneş Yaylacıklılar/.claude/plans/**)",
-      "Bash(grep -n \"due_date\\\\|due_time\\\\|endOfDay\\\\|option_time\" app/Console/Commands/*.php)"
+      "Bash(grep -n \"due_date\\\\|due_time\\\\|endOfDay\\\\|option_time\" app/Console/Commands/*.php)",
+      "Bash(sed -i 's/class=\"col-md-2\"><label class=\"form-label small\">Teklif Geçerlilik Tarihi/class=\"col-md-4\"><label class=\"form-label small\">Geçerlilik Tarihi/' resources/views/admin/requests/show.blade.php)",
+      "Bash(sed -i 's/class=\"col-md-2\"><label class=\"form-label small\">Teklif Geçerlilik Saati <span class=\"text-danger\">\\\\*<\\\\/span>/class=\"col-md-4\"><label class=\"form-label small\">Geçerlilik Saati <span class=\"text-danger\">*zorunlu<\\\\/span>/' resources/views/admin/requests/show.blade.php)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"

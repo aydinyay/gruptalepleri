@@ -602,11 +602,11 @@
                                                 <label class="form-label small mb-1">Özel gün</label>
                                                 <input type="text" name="event_name" value="{{ $campaign->event_name }}" class="form-control form-control-sm" required>
                                             </div>
-                                            <div class="col-6 col-lg-2">
+                                            <div class="col-6 col-lg-3">
                                                 <label class="form-label small mb-1">Tarih</label>
                                                 <input type="date" name="event_date" value="{{ $campaign->event_date?->format('Y-m-d') }}" class="form-control form-control-sm">
                                             </div>
-                                            <div class="col-6 col-lg-2">
+                                            <div class="col-6 col-lg-3">
                                                 <label class="form-label small mb-1">Kategori</label>
                                                 <input type="text" name="category" value="{{ $campaign->category }}" class="form-control form-control-sm">
                                             </div>

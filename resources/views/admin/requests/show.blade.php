@@ -964,8 +964,8 @@
                         <div class="col-md-4"><label class="form-label small">Maliyet</label><input type="number" name="cost_price" id="e-cost" class="form-control form-control-sm" step="0.01"></div>
                         <div class="col-md-4"><label class="form-label small">Dep. % <span class="text-muted fw-normal" id="e-dep-pct-hint"></span></label><input type="number" name="deposit_rate" id="e-deposit-rate" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e')"></div>
                         <div class="col-md-4"><label class="form-label small">Dep. Tutarı <span class="text-muted fw-normal" id="e-dep-amt-hint"></span></label><input type="number" name="deposit_amount" id="e-deposit-amount" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e', true)"></div>
-                        <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Tarihi <span class="text-danger" title="Girilmezse acente tarafında süre bilgisi gösterilmez">*önerilir</span></label><input type="date" name="option_date" id="e-option-date" class="form-control form-control-sm"></div>
-                        <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Saati <span class="text-danger">*</span></label><input type="time" name="option_time" id="e-option-time" class="form-control form-control-sm" required></div>
+                        <div class="col-md-4"><label class="form-label small">Geçerlilik Tarihi <span class="text-danger" title="Girilmezse acente tarafında süre bilgisi gösterilmez">*önerilir</span></label><input type="date" name="option_date" id="e-option-date" class="form-control form-control-sm"></div>
+                        <div class="col-md-4"><label class="form-label small">Geçerlilik Saati <span class="text-danger">*zorunlu</span></label><input type="time" name="option_time" id="e-option-time" class="form-control form-control-sm" required></div>
                         <div class="col-12"><label class="form-label small">Teklif Notu (acenteye görünür)</label><textarea name="offer_text" id="e-offer-text" class="form-control form-control-sm" rows="2"></textarea></div>
                         <div class="col-12"><label class="form-label small text-muted">Tedarikçi / İç Referans (gizli)</label><input type="text" name="supplier_reference" id="e-supplier-ref" class="form-control form-control-sm"></div>
                     </div>
@@ -1011,14 +1011,14 @@
                         <div class="col-6"><label class="form-label small fw-bold">Gönderen</label><input type="text" name="sender_masked" id="od_sender" class="form-control form-control-sm"></div>
                         <div class="col-6"><label class="form-label small fw-bold">Hesap</label><input type="text" name="account_masked" id="od_account" class="form-control form-control-sm"></div>
                         <div class="col-6"><label class="form-label small fw-bold">Tutar</label><input type="number" name="amount" id="od_amount" class="form-control form-control-sm" step="0.01" required></div>
-                        <div class="col-3"><label class="form-label small fw-bold">Birim</label>
+                        <div class="col-4"><label class="form-label small fw-bold">Birim</label>
                             <select name="currency" id="od_currency" class="form-select form-select-sm">
                                 <option value="TRY">TRY</option><option value="USD">USD</option><option value="EUR">EUR</option>
                             </select>
                         </div>
-                        <div class="col-3"><label class="form-label small fw-bold">Ödeme Tarihi</label><input type="date" name="payment_date" id="od_date" class="form-control form-control-sm"></div>
-                        <div class="col-4"><label class="form-label small fw-bold">Son Ödeme Tarihi</label><input type="date" name="due_date" id="od_due_date" class="form-control form-control-sm"><div class="form-text" style="font-size:.65rem;">Bekleniyor ise son tarih</div></div>
-                        <div class="col-2"><label class="form-label small fw-bold">Son Ödeme Saati</label><input type="time" name="due_time" id="od_due_time" class="form-control form-control-sm"></div>
+                        <div class="col-6"><label class="form-label small fw-bold">Ödeme Tarihi</label><input type="date" name="payment_date" id="od_date" class="form-control form-control-sm"></div>
+                        <div class="col-6"><label class="form-label small fw-bold">Son Ödeme Tarihi</label><input type="date" name="due_date" id="od_due_date" class="form-control form-control-sm"><div class="form-text" style="font-size:.65rem;">Bekleniyor ise son tarih</div></div>
+                        <div class="col-6"><label class="form-label small fw-bold">Son Ödeme Saati</label><input type="time" name="due_time" id="od_due_time" class="form-control form-control-sm"></div>
                     </div>
                 </div>
                 <div class="modal-footer py-2">

@@ -21,27 +21,27 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label mb-1">Taksit Adedi</label>
                 <input type="number" min="1" max="24" name="installment_count" value="2" class="form-control form-control-sm" required>
             </div>
-            <div class="col-md-2">
-                <label class="form-label mb-1">Ilk Vade</label>
+            <div class="col-6 col-md-3">
+                <label class="form-label mb-1">İlk Vade</label>
                 <input type="date" name="first_due_date" class="form-control form-control-sm" required>
             </div>
-            <div class="col-md-2">
-                <label class="form-label mb-1">Ara Gun</label>
+            <div class="col-6 col-md-2">
+                <label class="form-label mb-1">Ara Gün</label>
                 <input type="number" min="1" max="365" name="interval_days" value="30" class="form-control form-control-sm">
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <label class="form-label mb-1">Toplam Tutar</label>
-                <input type="number" min="0.01" step="0.01" name="total_amount" class="form-control form-control-sm" placeholder="Bos = kalan">
+                <input type="number" min="0.01" step="0.01" name="total_amount" class="form-control form-control-sm" placeholder="Boş = kalan">
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <label class="form-label mb-1">Kur</label>
                 <input type="text" name="currency" value="TRY" maxlength="8" class="form-control form-control-sm" required>
             </div>
-            <div class="col-md-8">
+            <div class="col-12 col-md-10">
                 <label class="form-label mb-1">Not</label>
                 <input type="text" name="note" class="form-control form-control-sm" maxlength="2000">
             </div>
