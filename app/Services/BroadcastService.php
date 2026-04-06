@@ -65,10 +65,9 @@ class BroadcastService
 
             // Email — tracking token'ları üret, pixel + tracked linkler ekle
             if (in_array('email', $activeChannels, true)) {
-                $kisiselMesajHtml          = $this->kisiselMesaj($broadcast->message, $user, $broadcast->id, true);
                 $kisiselBroadcast          = clone $broadcast;
                 $kisiselBroadcast->title   = $kisiselTitle;
-                $kisiselBroadcast->message = $this->injectTracking($kisiselMesajHtml, $broadcast->id, $user->id);
+                $kisiselBroadcast->message = $this->injectTracking($kisiselMesaj, $broadcast->id, $user->id);
 
                 $email->broadcastEmail($user, $kisiselBroadcast, $broadcast->id);
             }
@@ -185,38 +184,22 @@ class BroadcastService
     /**
      * Değişken yerine koyma — her kullanıcı için kişiselleştirilmiş URL'ler dahil.
      */
-    private function kisiselMesaj(string $metin, User $user, int $broadcastId = 0, bool $html = false): string
+    private function kisiselMesaj(string $metin, User $user, int $broadcastId = 0): string
     {
         $unsubscribeUrl = ($user->id && $user->role === 'acente')
             ? \URL::signedRoute('abonelik.confirm', ['user' => $user->id])
             : url('/');
 
-        if ($html) {
-            $link = fn(string $url, string $label = '') =>
-                '<a href="' . $url . '" style="color:#e94560;text-decoration:underline;">' . ($label ?: $url) . '</a>';
-
-            $degiskenler = [
-                '{acente_adi}'         => $user->agency?->company_title ?? $user->name,
-                '{yetkili_adi}'        => $user->agency?->contact_name ?? $user->name,
-                '{ad}'                 => $user->name,
-                '{platform_linki}'     => $link(url('/')),
-                '{giris_linki}'        => $link(route('login')),
-                '{talep_ac_linki}'     => $link(url('/talep/olustur')),
-                '{sifre_yenile_linki}' => $link(route('password.request')),
-                '{unsubscribe_linki}'  => $link($unsubscribeUrl, 'Aboneliği İptal Et'),
-            ];
-        } else {
-            $degiskenler = [
-                '{acente_adi}'         => $user->agency?->company_title ?? $user->name,
-                '{yetkili_adi}'        => $user->agency?->contact_name ?? $user->name,
-                '{ad}'                 => $user->name,
-                '{platform_linki}'     => url('/'),
-                '{giris_linki}'        => route('login'),
-                '{talep_ac_linki}'     => url('/talep/olustur'),
-                '{sifre_yenile_linki}' => route('password.request'),
-                '{unsubscribe_linki}'  => $unsubscribeUrl,
-            ];
-        }
+        $degiskenler = [
+            '{acente_adi}'         => $user->agency?->company_title ?? $user->name,
+            '{yetkili_adi}'        => $user->agency?->contact_name ?? $user->name,
+            '{ad}'                 => $user->name,
+            '{platform_linki}'     => url('/'),
+            '{giris_linki}'        => route('login'),
+            '{talep_ac_linki}'     => url('/talep/olustur'),
+            '{sifre_yenile_linki}' => route('password.request'),
+            '{unsubscribe_linki}'  => $unsubscribeUrl,
+        ];
 
         return str_replace(array_keys($degiskenler), array_values($degiskenler), $metin);
     }

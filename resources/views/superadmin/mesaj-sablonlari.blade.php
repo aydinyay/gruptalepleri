@@ -321,7 +321,9 @@ function initJodit(id) {
     if (editors[id]) return;
     const el = document.getElementById(id);
     if (!el) return;
-    editors[id] = Jodit.make(el, joditConfig);
+    const ed = Jodit.make(el, joditConfig);
+    editors[id] = ed;
+    ed.events.on('focus', () => { activeJoditEditor = ed; });
 }
 
 // Collapse açılınca init
@@ -356,10 +358,27 @@ initSmsCounter('sms-{{ $sablon->id }}', 'sc-{{ $sablon->id }}');
 @endforeach
 initSmsCounter('sms-yeni', 'sc-yeni');
 
-// ── Değişken kopyala ──────────────────────────────────────────────────
+// ── Değişken ekle / kopyala ───────────────────────────────────────────
 const copyToast = new bootstrap.Toast(document.getElementById('copyToast'), { delay: 1500 });
 function copyVar(el) {
-    navigator.clipboard.writeText(el.textContent.trim()).then(() => copyToast.show());
+    const varText = el.textContent.trim();
+    const isLink  = el.classList.contains('link-var');
+
+    if (activeJoditEditor) {
+        if (isLink) {
+            // Link değişkeni: <a href="{var}"> olarak ekle — backend href içindeki variable'ı değiştirir
+            activeJoditEditor.s.insertHTML(
+                '<a href="' + varText + '" style="color:#e94560;text-decoration:underline;">' + varText + '</a>'
+            );
+        } else {
+            activeJoditEditor.s.insertHTML(varText);
+        }
+        copyToast.show();
+        return;
+    }
+
+    // Editör aktif değilse panoya kopyala
+    navigator.clipboard.writeText(varText).then(() => copyToast.show());
 }
 </script>
 </body>
