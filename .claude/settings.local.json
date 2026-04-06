@@ -113,7 +113,13 @@
       "Bash(grep -r \"durum.*guncelle\\\\|statusUpdate\\\\|durumGuncelle\\\\|status.*update\\\\|E-posta gönder\\\\|Bildirim gönderilmeyecek\" c:/gruptalepleri/app --include=*.php -l)",
       "Bash(curl -sf \"https://gruptalepleri.com/gitfix.php?t=grt2026fix\")",
       "Bash(grep -n Opsiyonda c:/gruptalepleri/**/*.blade.php c:/gruptalepleri/**/*.php)",
-      "Bash(grep -rn \"Opsiyon süresi\\\\|opsiyon süresi\" c:/gruptalepleri --include=*.blade.php --include=*.php)"
+      "Bash(grep -rn \"Opsiyon süresi\\\\|opsiyon süresi\" c:/gruptalepleri --include=*.blade.php --include=*.php)",
+      "Bash(grep -r \"route\\(\" c:/gruptalepleri/resources/views/acente/request/ c:/gruptalepleri/resources/views/admin/request*)",
+      "Bash(grep -l \"geriAlOffer\\\\|deletePayment\\\\|deleteOffer\" c:/gruptalepleri/app/Services/*.php c:/gruptalepleri/app/Services/*/*.php)",
+      "Bash(sed -n '480,495p' routes/web.php)",
+      "Bash(sed -n '651,660p' routes/web.php)",
+      "Bash(sed -n '900,910p' routes/web.php)",
+      "Bash(grep -n \"last_login\\\\|updated_at\\\\|created_at\\\\|requests_count\" database/migrations/2*users*)"
     ],
     "defaultMode": "bypassPermissions"
   }

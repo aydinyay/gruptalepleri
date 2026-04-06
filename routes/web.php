@@ -585,6 +585,13 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/acenteler/{agency}/iade-badge', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteIadeBadgeToggle'])->name('acenteler.iade-badge');
     Route::post('/acenteler/{agency}/broadcast-yetki', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteBroadcastYetkiToggle'])->name('acenteler.broadcast-yetki');
     Route::post('/acenteler/{agency}/transfer-tedarikci', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'acenteTransferSupplierToggle'])->name('acenteler.transfer-supplier-toggle');
+    Route::post('/acenteler/toplu-mesaj', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'topluMesajGonder'])->name('acenteler.toplu-mesaj');
+
+    // Mesaj Şablonları
+    Route::get('/mesaj-sablonlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonlari'])->name('mesaj.sablonlari');
+    Route::post('/mesaj-sablonlari', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonKaydet'])->name('mesaj.sablonlari.kaydet');
+    Route::patch('/mesaj-sablonlari/{sablon}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonKaydet'])->name('mesaj.sablonlari.guncelle');
+    Route::delete('/mesaj-sablonlari/{sablon}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'mesajSablonSil'])->name('mesaj.sablonlari.sil');
 
     // Broadcast geçmişi & yetki yönetimi
     Route::get('/broadcast-gecmisi', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'broadcastGecmisi'])->name('broadcast.gecmisi');

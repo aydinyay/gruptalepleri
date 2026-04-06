@@ -59,7 +59,8 @@
       "Bash(grep -n 'protected $casts\\\\|'\\\\''due_date'\\\\''\\\\|'\\\\''option_date'\\\\''\\\\|'\\\\''payment_date'\\\\''' /c/gruptalepleri/app/Models/RequestPayment.php /c/gruptalepleri/app/Models/Offer.php /c/gruptalepleri/app/Models/Request.php)",
       "Bash(grep -rn \"\\\\$.*->due_date\\\\s*\\\\.\\\\s*\\\\|\\\\$.*->option_date\\\\s*\\\\.\" /c/gruptalepleri/resources/views --include=\"*.blade.php\")",
       "Bash(grep -A 15 'protected $casts' /c/gruptalepleri/app/Models/RequestPayment.php)",
-      "Bash(grep -n \"ModulePaymentController\\\\|FinanceReceiptController\" /c/gruptalepleri/app/Http/Controllers/Acente/*.php)"
+      "Bash(grep -n \"ModulePaymentController\\\\|FinanceReceiptController\" /c/gruptalepleri/app/Http/Controllers/Acente/*.php)",
+      "Bash(grep -E \"\\\\.php$\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"

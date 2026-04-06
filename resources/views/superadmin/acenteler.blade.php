@@ -99,17 +99,44 @@
         </div>
     </div>
 
-    {{-- ARAMA ÇUBUĞU --}}
-    <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-        <div class="input-group" style="max-width:360px;">
+    {{-- ARAMA + FİLTRE ÇUBUĞU --}}
+    <form method="GET" action="{{ route('superadmin.acenteler') }}" class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+        <div class="input-group" style="max-width:320px;">
             <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
             <input type="text" id="searchInput" class="form-control"
                    placeholder="Firma adı, yetkili, telefon, e-posta, TURSAB...">
-            <button class="btn btn-outline-secondary" id="clearSearch" title="Temizle" style="display:none;">
+            <button class="btn btn-outline-secondary" id="clearSearch" title="Temizle" type="button" style="display:none;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
+        <select name="giris_filtre" class="form-select form-select-sm" style="max-width:190px;" onchange="this.form.submit()">
+            <option value="" {{ request('giris_filtre') === '' || !request('giris_filtre') ? 'selected' : '' }}>Tüm Acenteler</option>
+            <option value="30" {{ request('giris_filtre') == '30' ? 'selected' : '' }}>30+ gün giriş yok</option>
+            <option value="60" {{ request('giris_filtre') == '60' ? 'selected' : '' }}>60+ gün giriş yok</option>
+            <option value="90" {{ request('giris_filtre') == '90' ? 'selected' : '' }}>90+ gün giriş yok</option>
+            <option value="hic" {{ request('giris_filtre') === 'hic' ? 'selected' : '' }}>Hiç giriş yapmadı</option>
+        </select>
+        <select name="talep_filtre" class="form-select form-select-sm" style="max-width:160px;" onchange="this.form.submit()">
+            <option value="" {{ !request('talep_filtre') ? 'selected' : '' }}>Tüm Acenteler</option>
+            <option value="0" {{ request('talep_filtre') === '0' ? 'selected' : '' }}>Hiç talep yok</option>
+            <option value="1" {{ request('talep_filtre') === '1' ? 'selected' : '' }}>En az 1 talep</option>
+        </select>
+        @if(request('giris_filtre') || request('talep_filtre'))
+            <a href="{{ route('superadmin.acenteler') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times me-1"></i>Filtreyi Temizle
+            </a>
+        @endif
         <span id="searchResult" class="text-muted small"></span>
+    </form>
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-sm btn-outline-primary" id="tumunuSec" type="button">
+            <i class="fas fa-check-square me-1"></i>Tümünü Seç
+        </button>
+        <button class="btn btn-sm btn-primary" id="mesajGonderBtn" type="button"
+                data-bs-toggle="modal" data-bs-target="#topluMesajModal" style="display:none;">
+            <i class="fas fa-paper-plane me-1"></i>Seçililere Mesaj Gönder
+            (<span id="secilenSayi">0</span>)
+        </button>
     </div>
 
     <div class="card shadow-sm">
@@ -117,12 +144,15 @@
             <table class="table table-hover mb-0" id="acenteTable">
                 <thead class="table-light">
                     <tr>
+                        <th style="width:36px;"><input type="checkbox" id="checkAll" class="form-check-input"></th>
                         <th>Firma</th>
                         <th>Yetkili</th>
                         <th>Telefon</th>
                         <th>E-posta</th>
                         <th>TURSAB</th>
                         <th>Kayıt</th>
+                        <th>Son Giriş</th>
+                        <th>Talep</th>
                         <th>Rol</th>
                         <th>Durum</th>
                         <th>Transfer</th>
@@ -132,6 +162,12 @@
                 <tbody>
                     @forelse($acenteler as $acente)
                     <tr data-search="{{ strtolower($acente->company_title . ' ' . $acente->tourism_title . ' ' . $acente->contact_name . ' ' . $acente->phone . ' ' . $acente->email . ' ' . $acente->tursab_no) }}">
+                        <td>
+                            @if($acente->user_id)
+                                <input type="checkbox" class="form-check-input acente-check"
+                                       value="{{ $acente->user_id }}">
+                            @endif
+                        </td>
                         <td>
                             <div class="fw-bold">{{ $acente->company_title }}</div>
                             @if($acente->tourism_title)
@@ -143,6 +179,18 @@
                         <td class="text-muted">{{ $acente->email }}</td>
                         <td>{{ $acente->tursab_no ?? '—' }}</td>
                         <td class="text-muted">{{ $acente->created_at->format('d.m.Y') }}</td>
+                        <td class="text-muted small">
+                            @if($acente->user?->last_login_at)
+                                <span title="{{ $acente->user->last_login_at->format('d.m.Y H:i') }}">
+                                    {{ $acente->user->last_login_at->diffForHumans() }}
+                                </span>
+                            @else
+                                <span class="text-danger">Hiç girmedi</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">{{ $acente->requests_count ?? 0 }}</span>
+                        </td>
                         <td>
                             <span class="role-badge role-{{ $acente->user?->role ?? 'acente' }}">
                                 {{ strtoupper($acente->user?->role ?? 'acente') }}
@@ -260,7 +308,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="text-center text-muted py-4">Henüz acente yok.</td>
+                        <td colspan="13" class="text-center text-muted py-4">Henüz acente yok.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -268,6 +316,79 @@
         </div>
     </div>
 
+</div>
+
+{{-- TOPLU MESAJ MODAL --}}
+<div class="modal fade" id="topluMesajModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('superadmin.acenteler.toplu-mesaj') }}" id="topluMesajForm">
+                @csrf
+                <div class="modal-header" style="background:#1a1a2e;">
+                    <h5 class="modal-title text-white"><i class="fas fa-paper-plane me-2" style="color:#e94560;"></i>Seçili Acentelere Mesaj Gönder</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="secilenListeInfo" class="alert alert-info py-2 small mb-3"></div>
+
+                    {{-- Şablondan yükle --}}
+                    @if($sablonlar->isNotEmpty())
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Şablondan Yükle <span class="text-muted">(opsiyonel)</span></label>
+                        <select id="sablonSec" class="form-select form-select-sm">
+                            <option value="">— Şablon seç —</option>
+                            @foreach($sablonlar as $s)
+                                <option value="{{ $s->id }}"
+                                        data-konu="{{ $s->email_konu }}"
+                                        data-mesaj="{{ $s->email_govde ?: $s->sms_govde }}"
+                                        data-kanallar="{{ implode(',', $s->kanallar ?? []) }}">
+                                    {{ $s->sablon_adi }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Konu <span class="text-muted">(email için)</span></label>
+                            <input type="text" name="konu" id="tm_konu" class="form-control form-control-sm" placeholder="Email konu satırı">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Mesaj <span class="text-danger">*</span></label>
+                            <textarea name="mesaj" id="tm_mesaj" class="form-control form-control-sm" rows="6"
+                                      required placeholder="Mesaj içeriği..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Kanallar <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="kanallar[]" value="email" id="tm-email" checked>
+                                    <label class="form-check-label" for="tm-email"><i class="fas fa-envelope text-primary me-1"></i>Email</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="kanallar[]" value="sms" id="tm-sms">
+                                    <label class="form-check-label" for="tm-sms"><i class="fas fa-comment-sms text-success me-1"></i>SMS</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="kanallar[]" value="push" id="tm-push">
+                                    <label class="form-check-label" for="tm-push"><i class="fas fa-bell text-warning me-1"></i>Push</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Seçili user_id'ler buraya JS ile eklenecek --}}
+                    <div id="secilenHiddenInputs"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-paper-plane me-1"></i>Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {{-- DÜZENLEME MODAL --}}
@@ -476,6 +597,74 @@ async function tursabDavetGonder(eposta, acenteUnvani, belgeNo, btn) {
 // Enter tuşu ile arama
 document.getElementById('tursab-q').addEventListener('keydown', e => { if(e.key==='Enter') tursabAra(); });
 document.getElementById('tursab-il').addEventListener('keydown', e => { if(e.key==='Enter') tursabAra(); });
+
+// ── CHECKBOX SEÇİM & TOPLU MESAJ ────────────────────────────────────────────
+const mesajBtn      = document.getElementById('mesajGonderBtn');
+const secilenSayi   = document.getElementById('secilenSayi');
+const checkAll      = document.getElementById('checkAll');
+const tumunuSecBtn  = document.getElementById('tumunuSec');
+
+function updateSecilenCount() {
+    const checks = document.querySelectorAll('.acente-check:checked');
+    const n = checks.length;
+    secilenSayi.textContent = n;
+    mesajBtn.style.display = n > 0 ? '' : 'none';
+}
+
+document.querySelectorAll('.acente-check').forEach(cb => {
+    cb.addEventListener('change', updateSecilenCount);
+});
+
+checkAll.addEventListener('change', function() {
+    document.querySelectorAll('.acente-check').forEach(cb => cb.checked = this.checked);
+    updateSecilenCount();
+});
+
+tumunuSecBtn.addEventListener('click', function() {
+    const all = document.querySelectorAll('.acente-check');
+    const anyUnchecked = Array.from(all).some(cb => !cb.checked);
+    all.forEach(cb => cb.checked = anyUnchecked);
+    checkAll.checked = anyUnchecked;
+    updateSecilenCount();
+});
+
+// Modal açılınca seçilenleri hidden input'lara ekle
+document.getElementById('topluMesajModal').addEventListener('show.bs.modal', function() {
+    const checks = document.querySelectorAll('.acente-check:checked');
+    const hiddenDiv = document.getElementById('secilenHiddenInputs');
+    const infoDiv   = document.getElementById('secilenListeInfo');
+
+    hiddenDiv.innerHTML = '';
+    checks.forEach(cb => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = 'secilen[]';
+        inp.value = cb.value;
+        hiddenDiv.appendChild(inp);
+    });
+    infoDiv.textContent = checks.length + ' acente seçili.';
+});
+
+// Şablondan yükle
+const sablonSec = document.getElementById('sablonSec');
+if (sablonSec) {
+    sablonSec.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt || !opt.value) return;
+
+        const konu  = opt.dataset.konu  || '';
+        const mesaj = opt.dataset.mesaj || '';
+        const kanallar = (opt.dataset.kanallar || '').split(',').filter(Boolean);
+
+        document.getElementById('tm_konu').value  = konu;
+        document.getElementById('tm_mesaj').value = mesaj;
+
+        ['email', 'sms', 'push'].forEach(k => {
+            const cb = document.getElementById('tm-' + k);
+            if (cb) cb.checked = kanallar.includes(k);
+        });
+    });
+}
 </script>
 </body>
 </html>

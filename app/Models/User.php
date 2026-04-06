@@ -31,6 +31,7 @@ class User extends Authenticatable
         'acente_rolu',
         'davet_token',
         'davet_expires_at',
+        'last_login_at',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'davet_expires_at'  => 'datetime',
+            'last_login_at'     => 'datetime',
             'password' => 'hashed',
         ];
     }

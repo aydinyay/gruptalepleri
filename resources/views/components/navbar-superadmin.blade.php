@@ -82,6 +82,12 @@
                     'keys' => ['kampanya-acenteler'],
                 ],
                 [
+                    'label' => 'Mesaj Şablonları',
+                    'href'  => route('superadmin.mesaj.sablonlari'),
+                    'icon'  => 'fas fa-file-alt',
+                    'keys'  => ['mesaj-sablonlari'],
+                ],
+                [
                     'label' => 'Şablonlar',
                     'href'  => route('superadmin.sablonlar.index'),
                     'icon'  => 'fas fa-file-code',

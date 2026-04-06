@@ -49,6 +49,25 @@
         </div>
     @endif
 
+    @if(isset($sablonlar) && $sablonlar->isNotEmpty())
+    <div class="card mb-3 border-primary">
+        <div class="card-body py-2">
+            <div class="section-label mb-2">Şablondan Yükle</div>
+            <select id="sablonSec" class="form-select form-select-sm">
+                <option value="">— Şablon seç (opsiyonel) —</option>
+                @foreach($sablonlar as $s)
+                    <option value="{{ $s->id }}"
+                            data-title="{{ $s->sablon_adi }}"
+                            data-mesaj="{{ $s->email_govde ?: $s->sms_govde }}"
+                            data-kanallar="{{ implode(',', $s->kanallar ?? []) }}">
+                        {{ $s->sablon_adi }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+    @endif
+
     <form method="POST" action="{{ route('admin.broadcast.store') }}">
         @csrf
 
@@ -362,6 +381,30 @@ document.addEventListener('DOMContentLoaded', function () {
     emojiInput.addEventListener('input', syncPreview);
     titleInput.addEventListener('input', syncPreview);
     msgInput.addEventListener('input', syncPreview);
+
+    // ── Şablondan Yükle ─────────────────────────────────────────────────────
+    const sablonSec = document.getElementById('sablonSec');
+    if (sablonSec) {
+        sablonSec.addEventListener('change', function() {
+            const opt = this.selectedOptions[0];
+            if (!opt || !opt.value) return;
+
+            const mesaj   = opt.dataset.mesaj   || '';
+            const title   = opt.dataset.title   || '';
+            const kanallar = (opt.dataset.kanallar || '').split(',').filter(Boolean);
+
+            if (title && titleInput)  titleInput.value  = title;
+            if (mesaj && msgInput)    msgInput.value    = mesaj;
+
+            // Kanal checkboxlarını güncelle
+            document.querySelectorAll('input[name="channels[]"]').forEach(cb => {
+                cb.checked = kanallar.includes(cb.value);
+            });
+
+            updateChannelCards();
+            syncPreview();
+        });
+    }
 
     // ── İlk yükleme ─────────────────────────────────────────────────────────
     updateChannelCards();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BroadcastNotification;
+use App\Models\MesajSablon;
 use App\Models\SistemAyar;
 use App\Models\User;
 use App\Services\BroadcastService;
@@ -28,7 +29,8 @@ class BroadcastController extends Controller
         abort_unless(auth()->user()->can_send_broadcast, 403);
 
         $kullanicilar = User::with('agency')->orderBy('name')->get(['id', 'name', 'email', 'role']);
-        return view('admin.broadcast.create', compact('kullanicilar'));
+        $sablonlar = MesajSablon::orderBy('sablon_adi')->get(['id', 'sablon_adi', 'email_konu', 'email_govde', 'sms_govde', 'kanallar']);
+        return view('admin.broadcast.create', compact('kullanicilar', 'sablonlar'));
     }
 
     public function store(Request $request)

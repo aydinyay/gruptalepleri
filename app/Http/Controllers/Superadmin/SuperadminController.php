@@ -7,6 +7,7 @@ use App\Models\AiCelebrationCampaign;
 use App\Models\Agency;
 use App\Models\BroadcastNotification;
 use App\Models\KullaniciBildirimi;
+use App\Models\MesajSablon;
 use App\Models\OpsiyonUyariAyar;
 use App\Models\RequestNotification;
 use App\Models\SistemAyar;
@@ -14,6 +15,7 @@ use App\Models\SmsNotificationSetting;
 use App\Models\TransferSupplier;
 use App\Models\User;
 use App\Services\AiCelebrationService;
+use App\Services\BroadcastService;
 use App\Services\SmsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -71,16 +73,49 @@ class SuperadminController extends Controller
 
     // ── ACENTELER ────────────────────────────────────────────────────────────
 
-    public function acenteler()
+    public function acenteler(Request $request)
     {
-        $acenteler = Agency::with('user')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Agency::with('user')
+            ->orderBy('created_at', 'desc');
+
+        // Giriş filtresi
+        $girisFiltre = $request->input('giris_filtre');
+        if ($girisFiltre === 'hic') {
+            $query->whereHas('user', fn($q) => $q->whereNull('last_login_at'));
+        } elseif (is_numeric($girisFiltre) && $girisFiltre > 0) {
+            $gun = (int) $girisFiltre;
+            $query->whereHas('user', fn($q) => $q->where(fn($q2) =>
+                $q2->whereNull('last_login_at')
+                   ->orWhere('last_login_at', '<', now()->subDays($gun))
+            ));
+        }
+
+        // Talep filtresi
+        $talepFiltre = $request->input('talep_filtre');
+        if ($talepFiltre === '0') {
+            $query->whereHas('user', fn($q) => $q->doesntHave('requests'));
+        } elseif ($talepFiltre === '1') {
+            $query->whereHas('user', fn($q) => $q->has('requests'));
+        }
+
+        $acenteler = $query->get();
+
+        // Her acente için talep sayısını ekle
+        $userIds = $acenteler->pluck('user_id')->filter()->values()->all();
+        $talepSayilari = User::whereIn('id', $userIds)
+            ->withCount('requests')
+            ->get()
+            ->keyBy('id')
+            ->map(fn($u) => $u->requests_count);
+
+        $acenteler->each(function (Agency $agency) use ($talepSayilari): void {
+            $agency->setAttribute('requests_count', $talepSayilari->get($agency->user_id, 0));
+        });
 
         $supplierByUserId = collect();
         if (Schema::hasTable('transfer_suppliers')) {
             $supplierByUserId = TransferSupplier::query()
-                ->whereIn('user_id', $acenteler->pluck('user_id')->filter()->values()->all())
+                ->whereIn('user_id', $userIds)
                 ->get()
                 ->keyBy('user_id');
         }
@@ -89,7 +124,79 @@ class SuperadminController extends Controller
             $agency->setRelation('transferSupplier', $supplierByUserId->get($agency->user_id));
         });
 
-        return view('superadmin.acenteler', compact('acenteler'));
+        $sablonlar = MesajSablon::orderBy('sablon_adi')->get(['id', 'sablon_adi', 'email_konu', 'email_govde', 'sms_govde', 'kanallar']);
+
+        return view('superadmin.acenteler', compact('acenteler', 'sablonlar'));
+    }
+
+    public function topluMesajGonder(Request $request)
+    {
+        $this->assertSuperadmin();
+
+        $validated = $request->validate([
+            'secilen'   => 'required|array|min:1',
+            'secilen.*' => 'integer|exists:users,id',
+            'konu'      => 'nullable|string|max:255',
+            'mesaj'     => 'required|string|max:2000',
+            'kanallar'  => 'nullable|array',
+            'kanallar.*'=> 'in:email,sms,push',
+        ]);
+
+        $kanallar = $validated['kanallar'] ?? ['email'];
+
+        $broadcast = BroadcastNotification::create([
+            'title'           => $validated['konu'] ?: 'Duyuru',
+            'message'         => $validated['mesaj'],
+            'target'          => 'secili',
+            'target_user_ids' => $validated['secilen'],
+            'channels'        => $kanallar,
+            'status'          => 'draft',
+            'sender_id'       => auth()->id(),
+        ]);
+
+        (new BroadcastService())->send($broadcast);
+
+        return back()->with('success', count($validated['secilen']) . ' acenteye mesaj gönderildi.');
+    }
+
+    // ── MESAJ ŞABLONLARI ─────────────────────────────────────────────────────
+
+    public function mesajSablonlari()
+    {
+        $this->assertSuperadmin();
+        $sablonlar = MesajSablon::orderBy('sablon_adi')->get();
+        return view('superadmin.mesaj-sablonlari', compact('sablonlar'));
+    }
+
+    public function mesajSablonKaydet(Request $request, ?MesajSablon $sablon = null)
+    {
+        $this->assertSuperadmin();
+
+        $validated = $request->validate([
+            'sablon_adi'  => 'required|string|max:150',
+            'email_konu'  => 'nullable|string|max:255',
+            'email_govde' => 'nullable|string',
+            'sms_govde'   => 'nullable|string|max:500',
+            'kanallar'    => 'nullable|array',
+            'kanallar.*'  => 'in:email,sms,push',
+        ]);
+
+        $validated['kanallar'] = $validated['kanallar'] ?? [];
+
+        if ($sablon && $sablon->exists) {
+            $sablon->update($validated);
+            return back()->with('success', 'Şablon güncellendi.');
+        }
+
+        MesajSablon::create($validated);
+        return back()->with('success', 'Şablon oluşturuldu.');
+    }
+
+    public function mesajSablonSil(MesajSablon $sablon)
+    {
+        $this->assertSuperadmin();
+        $sablon->delete();
+        return back()->with('success', 'Şablon silindi.');
     }
 
     public function acenteToggle(Agency $agency)
