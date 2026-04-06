@@ -254,17 +254,25 @@ class RequestController extends Controller
 
         $acenteUrl = route('acente.requests.show', $talep->gtpnr);
 
-        if ($request->boolean('notify_push_acente') && $talep->user_id) {
-            (new NotificationService())->durumDegisti($talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
-        }
+        try {
+            if ($request->boolean('notify_push_acente') && $talep->user_id) {
+                (new NotificationService())->durumDegisti($talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
+            }
 
-        if ($request->boolean('notify_sms_acente') && $talep->phone) {
-            $smsMsg = $talep->gtpnr . ' numaralı talebinizin durumu güncellendi: ' . $yeniDurum . '. Detaylar için sisteme giriş yapınız.';
-            (new SmsService())->send($talep->id, 'acente', (string) $talep->agency_name, (string) $talep->phone, $smsMsg);
-        }
+            if ($request->boolean('notify_sms_acente') && $talep->phone) {
+                $smsMsg = $talep->gtpnr . ' numaralı talebinizin durumu güncellendi: ' . $yeniDurum . '. Detaylar için sisteme giriş yapınız.';
+                (new SmsService())->send($talep->id, 'acente', (string) $talep->agency_name, (string) $talep->phone, $smsMsg);
+            }
 
-        if ($request->boolean('notify_email_acente') && $talep->user_id) {
-            (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
+            if ($request->boolean('notify_email_acente') && $talep->user_id) {
+                (new EmailService())->durumDegisti($talep->id, $talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('updateStatus bildirim hatasi: ' . $e->getMessage(), [
+                'gtpnr' => $talep->gtpnr,
+                'file'  => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return back()->with('success', 'Durum guncellendi.')->with('warning', 'Bildirim gönderilemedi: ' . $e->getMessage());
         }
 
         return back()->with('success', 'Durum guncellendi.');
@@ -325,21 +333,28 @@ class RequestController extends Controller
         $acenteUrl = route('acente.requests.show', $talep->gtpnr);
 
         // Bildirimler — sadece admin tarafından seçilenler gönderilir
-        if ($request->boolean('notify_push_acente') && $talep->user_id) {
-            (new NotificationService())->teklifEklendi($talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
-        }
+        try {
+            if ($request->boolean('notify_push_acente') && $talep->user_id) {
+                (new NotificationService())->teklifEklendi($talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
+            }
 
-        if ($request->boolean('notify_sms_acente') && $talep->phone) {
-            $smsMsg = $talep->gtpnr . ' numaralı talebiniz için yeni bir fiyat teklifi hazırlandı. Teklifinizi görüntülemek için sisteme giriş yapınız.';
-            (new SmsService())->send($talep->id, 'acente', (string) $talep->agency_name, (string) $talep->phone, $smsMsg);
-        }
+            if ($request->boolean('notify_sms_acente') && $talep->phone) {
+                $smsMsg = $talep->gtpnr . ' numaralı talebiniz için yeni bir fiyat teklifi hazırlandı. Teklifinizi görüntülemek için sisteme giriş yapınız.';
+                (new SmsService())->send($talep->id, 'acente', (string) $talep->agency_name, (string) $talep->phone, $smsMsg);
+            }
 
-        if ($request->boolean('notify_sms_admin')) {
-            (new SmsService())->sendByEvent('offer_added', $talep->id, $talep->gtpnr . ' teklif eklendi: ' . $request->airline . ' — ' . $request->price_per_pax . ' ' . $currency . '/kişi');
-        }
+            if ($request->boolean('notify_sms_admin')) {
+                (new SmsService())->sendByEvent('offer_added', $talep->id, $talep->gtpnr . ' teklif eklendi: ' . $request->airline . ' — ' . $request->price_per_pax . ' ' . $currency . '/kişi');
+            }
 
-        if ($request->boolean('notify_email_acente') && $talep->user_id) {
-            (new EmailService())->teklifEklendi($talep->id, $talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
+            if ($request->boolean('notify_email_acente') && $talep->user_id) {
+                (new EmailService())->teklifEklendi($talep->id, $talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('storeOffer bildirim hatasi: ' . $e->getMessage(), [
+                'gtpnr' => $talep->gtpnr,
+                'file'  => $e->getFile() . ':' . $e->getLine(),
+            ]);
         }
 
         $successMsg = 'Teklif eklendi.';
