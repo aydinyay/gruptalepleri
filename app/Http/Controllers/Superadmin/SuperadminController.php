@@ -260,11 +260,11 @@ class SuperadminController extends Controller
 
         $url = asset('uploads/email-images/' . $filename);
 
-        // Jodit uploader format
+        // Jodit uploader format — baseurl boş, files zaten tam URL
         return response()->json([
             'files'   => [$url],
-            'path'    => 'uploads/email-images/',
-            'baseurl' => asset('/'),
+            'path'    => '',
+            'baseurl' => '',
             'error'   => 0,
             'message' => '',
         ]);
