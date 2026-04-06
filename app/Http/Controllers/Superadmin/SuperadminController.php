@@ -208,7 +208,7 @@ class SuperadminController extends Controller
             '{acente_adi}'        => 'ÖRNEK TURİZM A.Ş.',
             '{yetkili_adi}'       => 'Ahmet Yılmaz',
             '{ad}'                => 'Ahmet Yılmaz',
-            '{platform_linki}'    => route('dashboard'),
+            '{platform_linki}'    => url('/'),
             '{giris_linki}'         => route('login'),
             '{talep_ac_linki}'      => url('/talep/olustur'),
             '{sifre_yenile_linki}'  => route('password.request'),

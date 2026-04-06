@@ -153,7 +153,7 @@ class BroadcastService
             '{acente_adi}'          => $user->agency?->company_title ?? $user->name,
             '{yetkili_adi}'         => $user->agency?->contact_name ?? $user->name,
             '{ad}'                  => $user->name,
-            '{platform_linki}'      => route('dashboard'),
+            '{platform_linki}'      => url('/'),
             '{giris_linki}'         => route('login'),
             '{talep_ac_linki}'      => url('/talep/olustur'),
             '{sifre_yenile_linki}'  => route('password.request'),
