@@ -67,10 +67,10 @@
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <span class="email-logo-text" style="font-family:'Segoe UI',Arial,sans-serif;font-size:21px;font-weight:900;color:#e94560;letter-spacing:0.3px;">✈ Grup</span><span class="email-logo-text" style="font-family:'Segoe UI',Arial,sans-serif;font-size:21px;font-weight:900;color:#ffffff;letter-spacing:0.3px;">Talepleri</span>
+                    <a href="{{ url('/') }}" style="text-decoration:none;"><span class="email-logo-text" style="font-family:'Segoe UI',Arial,sans-serif;font-size:21px;font-weight:900;color:#e94560;letter-spacing:0.3px;">✈ Grup</span><span class="email-logo-text" style="font-family:'Segoe UI',Arial,sans-serif;font-size:21px;font-weight:900;color:#ffffff;letter-spacing:0.3px;">Talepleri</span></a>
                   </td>
                   <td align="right" valign="middle" class="email-tagline">
-                    <span style="font-family:'Segoe UI',Arial,sans-serif;font-size:9px;font-weight:700;color:#4d6082;letter-spacing:2.5px;text-transform:uppercase;">GRUP SEYAHATİ PLATFORMU</span>
+                    <a href="{{ url('/') }}" style="text-decoration:none;"><span style="font-family:'Segoe UI',Arial,sans-serif;font-size:9px;font-weight:700;color:#4d6082;letter-spacing:2.5px;text-transform:uppercase;">GRUP SEYAHATİ PLATFORMU</span></a>
                   </td>
                 </tr>
               </table>
@@ -135,10 +135,10 @@
 
         {{-- Footer Logo --}}
         <p style="margin:0 0 4px;">
-          <span style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:900;color:#1a1a2e;">✈ Grup</span><span style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:900;color:#e94560;">Talepleri</span>
+          <a href="{{ url('/') }}" style="text-decoration:none;"><span style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:900;color:#1a1a2e;">✈ Grup</span><span style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:900;color:#e94560;">Talepleri</span></a>
         </p>
         <p style="margin:0 0 20px;font-family:'Segoe UI',Arial,sans-serif;font-size:9px;font-weight:700;color:#9ca3af;letter-spacing:2px;text-transform:uppercase;">
-          TÜRKİYE'NİN GRUP SEYAHATİ PLATFORMU
+          <a href="{{ url('/') }}" style="text-decoration:none;color:#9ca3af;">TÜRKİYE'NİN GRUP SEYAHATİ PLATFORMU</a>
         </p>
 
         {{-- Footer Links --}}
