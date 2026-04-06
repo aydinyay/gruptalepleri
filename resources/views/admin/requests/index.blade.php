@@ -258,13 +258,16 @@
 (function() {
     let lastTs = new Date().toISOString();
 
-    function pushToast(gtpnr, acente) {
+    function pushToast(gtpnr, acente, url) {
         const id  = 'toast-' + Date.now();
+        const bodyContent = url
+            ? `<a href="${url}" class="text-white text-decoration-none d-block">🆕 Yeni talep: <strong>${gtpnr}</strong><br><small>${acente}</small></a>`
+            : `🆕 Yeni talep: <strong>${gtpnr}</strong><br><small>${acente}</small>`;
         const html = `
-        <div id="${id}" class="toast align-items-center text-bg-success border-0 mb-2" role="alert" data-bs-delay="8000">
+        <div id="${id}" class="toast align-items-center text-bg-success border-0 mb-2" role="alert" data-bs-delay="8000" style="${url ? 'cursor:pointer;' : ''}">
             <div class="d-flex">
-                <div class="toast-body">
-                    🆕 Yeni talep: <strong>${gtpnr}</strong><br><small>${acente}</small>
+                <div class="toast-body" style="flex:1;">
+                    ${bodyContent}
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
@@ -280,7 +283,10 @@
             .then(r => r.json())
             .then(data => {
                 if (data.talepler && data.talepler.length > 0) {
-                    data.talepler.forEach(t => pushToast(t.gtpnr, t.agency_name));
+                    data.talepler.forEach(t => {
+                        const url = t.gtpnr ? '/admin/talepler/' + t.gtpnr : null;
+                        pushToast(t.gtpnr, t.agency_name, url);
+                    });
                 }
                 lastTs = data.ts;
             })
