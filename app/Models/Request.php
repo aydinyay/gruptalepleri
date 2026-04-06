@@ -223,14 +223,22 @@ class Request extends Model
             RequestPayment::STATUS_TASLAK,
             RequestPayment::STATUS_AKTIF,
             RequestPayment::STATUS_GECIKTI,
+            'bekleniyor', // eski enum değeri — geriye uyumluluk
         ])->count();
         $alinanCount = $payments->where('status', RequestPayment::STATUS_ALINDI)->count();
 
         $aktifPmt = $payments->firstWhere('is_active', true);
-        $odemeGecikti = $aktifPmt
-            && $aktifPmt->due_date
-            && $aktifPmt->due_date->isPast()
-            && in_array($aktifPmt->status, [RequestPayment::STATUS_AKTIF, RequestPayment::STATUS_GECIKTI]);
+        $odemeGecikti = false;
+        if ($aktifPmt && $aktifPmt->due_date && in_array($aktifPmt->status, [RequestPayment::STATUS_AKTIF, RequestPayment::STATUS_GECIKTI])) {
+            $dueCutoff = $aktifPmt->due_date->copy()->startOfDay();
+            if ($aktifPmt->due_time) {
+                [$dh, $dm, $ds] = array_pad(explode(':', $aktifPmt->due_time), 3, '0');
+                $dueCutoff->setTime((int) $dh, (int) $dm, (int) $ds);
+            } else {
+                $dueCutoff->endOfDay();
+            }
+            $odemeGecikti = $dueCutoff->isPast();
+        }
 
         if ($odemeGecikti) {
             $odemeDurumu = self::ODEME_GECIKTI;

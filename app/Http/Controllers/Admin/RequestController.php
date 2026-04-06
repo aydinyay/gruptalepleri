@@ -733,6 +733,16 @@ Ham veri:
             return back()->with('error', 'Kabul edilmiş teklif silinemez.');
         }
 
+        // Bu teklife bağlı ödeme kayıtlarını finans sistemiyle birlikte temizle
+        $orphanOdemeler = $talep->payments()
+            ->where('offer_id', $teklif->id)
+            ->where('status', '!=', RequestPayment::STATUS_ALINDI)
+            ->get();
+        foreach ($orphanOdemeler as $o) {
+            app(FinanceSyncService::class)->deleteBySource('request_payment', (int) $o->id);
+            $o->delete();
+        }
+
         $desc = ($teklif->airline ?? '—') . ' PNR:' . ($teklif->airline_pnr ?? '-') . ' teklifi silindi';
         $teklif->delete();
 
@@ -764,8 +774,20 @@ Ham veri:
             $talep->update(['status' => \App\Models\Request::STATUS_FIYATLANDIRILDI]);
         }
 
-        // Aktif ödeme planını pasife al — kabul geri alındığında ödeme planı da sıfırlanmalı
-        $talep->payments()->where('is_active', true)->update(['is_active' => false, 'status' => 'iptal']);
+        // Kabul otomatik oluşturulan ödemeleri sil (henüz alınmamışsa)
+        $autoOdemeler = $talep->payments()
+            ->where('offer_id', $teklif->id)
+            ->where('status', '!=', RequestPayment::STATUS_ALINDI)
+            ->get();
+        foreach ($autoOdemeler as $o) {
+            app(FinanceSyncService::class)->deleteBySource('request_payment', (int) $o->id);
+            $o->delete();
+        }
+        // Manuel eklenmiş aktif ödemeleri taslağa çek
+        $talep->payments()
+            ->whereNull('offer_id')
+            ->where('is_active', true)
+            ->update(['is_active' => false, 'status' => RequestPayment::STATUS_TASLAK]);
 
         RequestLog::create([
             'request_id'  => $talep->id,

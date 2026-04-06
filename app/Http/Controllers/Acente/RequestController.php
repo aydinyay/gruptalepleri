@@ -208,25 +208,64 @@ class RequestController extends Controller
 
         $teklif = $talep->offers()->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)->findOrFail($offer);
 
-        // Beklemedeki diğer teklifleri reddet (gizlendi olanlar gizlendi kalır)
-        $talep->offers()->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)->update(['durum' => \App\Models\Offer::DURUM_REDDEDILDI]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($talep, $teklif) {
+            // Beklemedeki diğer teklifleri reddet (gizlendi olanlar gizlendi kalır)
+            $talep->offers()->where('durum', \App\Models\Offer::DURUM_BEKLEMEDE)->update(['durum' => \App\Models\Offer::DURUM_REDDEDILDI]);
 
-        // Bu teklifi kabul et
-        $teklif->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
+            // Bu teklifi kabul et
+            $teklif->update(['durum' => \App\Models\Offer::DURUM_KABUL]);
 
-        // Talep durumunu güncelle
-        $talep->update(['status' => 'depozitoda']);
+            // Talep durumunu güncelle
+            $talep->update(['status' => 'depozitoda']);
 
-        RequestLog::create([
-            'request_id'  => $talep->id,
-            'action'      => 'teklif_kabul_edildi',
-            'description' => ($teklif->airline ?? '—') . ' — ' . number_format($teklif->price_per_pax, 0) . ' ' . $teklif->currency . '/kişi teklifi acente tarafından kabul edildi.',
-            'user_id'     => auth()->id(),
-        ]);
+            RequestLog::create([
+                'request_id'  => $talep->id,
+                'action'      => 'teklif_kabul_edildi',
+                'description' => ($teklif->airline ?? '—') . ' — ' . number_format($teklif->price_per_pax, 0) . ' ' . $teklif->currency . '/kişi teklifi acente tarafından kabul edildi.',
+                'user_id'     => auth()->id(),
+            ]);
+
+            // Reddedilen tekliflere ait ödeme kayıtlarını finans sistemiyle birlikte sil
+            $reddedilenOdemeler = $talep->payments()
+                ->whereNotNull('offer_id')
+                ->where('offer_id', '!=', $teklif->id)
+                ->get();
+
+            foreach ($reddedilenOdemeler as $odeme) {
+                app(\App\Services\Finance\FinanceSyncService::class)
+                    ->deleteBySource('request_payment', (int) $odeme->id);
+                $odeme->delete();
+            }
+
+            // Depozito ödeme kaydını otomatik oluştur
+            // option_date varsa due_date olarak kullan ve aktif yap; yoksa taslak bırak
+            if ($teklif->deposit_amount && $teklif->deposit_amount > 0) {
+                $hasOptionDate = !empty($teklif->option_date);
+                $dueDate = $hasOptionDate
+                    ? \Carbon\Carbon::parse($teklif->option_date . ($teklif->option_time ? ' ' . $teklif->option_time : ' 15:59:59'))
+                    : null;
+                \App\Models\RequestPayment::create([
+                    'request_id'   => $talep->id,
+                    'offer_id'     => $teklif->id,
+                    'sequence'     => 1,
+                    'payment_type' => 'depozito',
+                    'amount'       => $teklif->deposit_amount,
+                    'currency'     => $teklif->currency,
+                    'due_date'     => $dueDate,
+                    'due_time'     => $hasOptionDate ? ($teklif->option_time ? substr($teklif->option_time, 0, 5) : null) : null,
+                    'status'       => $hasOptionDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK,
+                    'is_active'    => $hasOptionDate,
+                    'created_by'   => null,
+                ]);
+            }
+
+            // aktif_adim ve odeme_durumu'nu güncelle
+            $talep->refreshAktifAdim();
+        });
 
         $url = route('admin.requests.show', $talep->gtpnr);
 
-        // Push bildirimi
+        // Push bildirimi (transaction dışında — side effects)
         (new NotificationService())->teklifKabulEdildi($talep->gtpnr, $talep->agency_name, $teklif->airline ?? '—', $url);
 
         // SMS
@@ -235,43 +274,6 @@ class RequestController extends Controller
 
         // Email
         (new EmailService())->teklifKabul($talep->id, $talep->gtpnr, $talep->agency_name, $teklif->airline ?? '—', $url);
-
-        // Reddedilen tekliflere ait ödeme kayıtlarını finans sistemiyle birlikte sil
-        $reddedilenOdemeler = $talep->payments()
-            ->whereNotNull('offer_id')
-            ->where('offer_id', '!=', $teklif->id)
-            ->get();
-
-        foreach ($reddedilenOdemeler as $odeme) {
-            app(\App\Services\Finance\FinanceSyncService::class)
-                ->deleteBySource('request_payment', (int) $odeme->id);
-            $odeme->delete();
-        }
-
-        // Depozito ödeme kaydını otomatik oluştur
-        // option_date varsa due_date olarak kullan ve aktif yap; yoksa taslak bırak
-        if ($teklif->deposit_amount && $teklif->deposit_amount > 0) {
-            $hasOptionDate = !empty($teklif->option_date);
-            $dueDate = $hasOptionDate
-                ? \Carbon\Carbon::parse($teklif->option_date . ($teklif->option_time ? ' ' . $teklif->option_time : ' 15:59:59'))
-                : null;
-            \App\Models\RequestPayment::create([
-                'request_id'   => $talep->id,
-                'offer_id'     => $teklif->id,
-                'sequence'     => 1,
-                'payment_type' => 'depozito',
-                'amount'       => $teklif->deposit_amount,
-                'currency'     => $teklif->currency,
-                'due_date'     => $dueDate,
-                'due_time'     => $hasOptionDate ? ($teklif->option_time ? substr($teklif->option_time, 0, 5) : null) : null,
-                'status'       => $hasOptionDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK,
-                'is_active'    => $hasOptionDate,
-                'created_by'   => null,
-            ]);
-        }
-
-        // aktif_adim ve odeme_durumu'nu güncelle
-        $talep->refreshAktifAdim();
 
         return back()->with('success', 'Teklif kabul edildi. Ödeme planınız aşağıda görüntülenmektedir.');
     }
