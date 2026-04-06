@@ -209,9 +209,10 @@ class SuperadminController extends Controller
             '{yetkili_adi}'       => 'Ahmet Yılmaz',
             '{ad}'                => 'Ahmet Yılmaz',
             '{platform_linki}'    => route('dashboard'),
-            '{giris_linki}'       => route('login'),
-            '{talep_ac_linki}'    => url('/talep/olustur'),
-            '{unsubscribe_linki}' => '#',
+            '{giris_linki}'         => route('login'),
+            '{talep_ac_linki}'      => url('/talep/olustur'),
+            '{sifre_yenile_linki}'  => route('password.request'),
+            '{unsubscribe_linki}'   => '#',
         ];
 
         $body = str_replace(array_keys($ornek), array_values($ornek), $sablon->email_govde ?? $sablon->sms_govde ?? '');
@@ -243,7 +244,16 @@ class SuperadminController extends Controller
 
         $file->move($dir, $filename);
 
-        return response()->json(['url' => asset('uploads/email-images/' . $filename)]);
+        $url = asset('uploads/email-images/' . $filename);
+
+        // Jodit uploader format
+        return response()->json([
+            'files'   => [$url],
+            'path'    => 'uploads/email-images/',
+            'baseurl' => asset('/'),
+            'error'   => 0,
+            'message' => '',
+        ]);
     }
 
     public function acenteToggle(Agency $agency)

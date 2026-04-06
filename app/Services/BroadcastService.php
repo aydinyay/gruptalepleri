@@ -150,13 +150,14 @@ class BroadcastService
             : url('/');
 
         $degiskenler = [
-            '{acente_adi}'        => $user->agency?->company_title ?? $user->name,
-            '{yetkili_adi}'       => $user->agency?->contact_name ?? $user->name,
-            '{ad}'                => $user->name,
-            '{platform_linki}'    => route('dashboard'),
-            '{giris_linki}'       => route('login'),
-            '{talep_ac_linki}'    => url('/talep/olustur'),
-            '{unsubscribe_linki}' => $unsubscribeUrl,
+            '{acente_adi}'          => $user->agency?->company_title ?? $user->name,
+            '{yetkili_adi}'         => $user->agency?->contact_name ?? $user->name,
+            '{ad}'                  => $user->name,
+            '{platform_linki}'      => route('dashboard'),
+            '{giris_linki}'         => route('login'),
+            '{talep_ac_linki}'      => url('/talep/olustur'),
+            '{sifre_yenile_linki}'  => route('password.request'),
+            '{unsubscribe_linki}'   => $unsubscribeUrl,
         ];
 
         return str_replace(array_keys($degiskenler), array_values($degiskenler), $metin);
