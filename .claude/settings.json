@@ -36,7 +36,15 @@
       "Bash(curl -s \"https://gruptalepleri.com/deploy-run.php?key=gtp2026deploy&action=log\")",
       "Bash(curl -s -X POST https://gruptalepleri.com/gitfix.php -F key=gtp2026deploy -F path=app/Services/EmailService.php -F file=@app/Services/EmailService.php)",
       "Bash(curl -s \"https://gruptalepleri.com/deploy-run.php?key=gtp2026deploy&action=git-update&branch=main\")",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(curl -s \"https://gruptalepleri.com/deploy-run.php?key=gtp2026deploy&action=clear-views\")",
+      "Bash(curl -s \"https://gruptalepleri.com/\")",
+      "Read(//^Route::middleware/**)",
+      "Read(//c/gruptalepleri/**)",
+      "Read(//c/Users/Güneş Yaylacıklılar/.claude/plans/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"
     ]
   }
 }

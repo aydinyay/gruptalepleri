@@ -258,9 +258,9 @@ class RequestController extends Controller
             (new NotificationService())->durumDegisti($talep->user_id, $talep->gtpnr, $eskiDurum, $yeniDurum, $acenteUrl);
         }
 
-        if ($request->boolean('notify_sms_acente')) {
+        if ($request->boolean('notify_sms_acente') && $talep->phone) {
             $smsMsg = $talep->gtpnr . ' numaralı talebinizin durumu güncellendi: ' . $yeniDurum . '. Detaylar için sisteme giriş yapınız.';
-            (new SmsService())->send($talep->id, 'acente', $talep->agency_name, $talep->phone, $smsMsg);
+            (new SmsService())->send($talep->id, 'acente', (string) $talep->agency_name, (string) $talep->phone, $smsMsg);
         }
 
         if ($request->boolean('notify_email_acente') && $talep->user_id) {
@@ -329,9 +329,9 @@ class RequestController extends Controller
             (new NotificationService())->teklifEklendi($talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);
         }
 
-        if ($request->boolean('notify_sms_acente')) {
+        if ($request->boolean('notify_sms_acente') && $talep->phone) {
             $smsMsg = $talep->gtpnr . ' numaralı talebiniz için yeni bir fiyat teklifi hazırlandı. Teklifinizi görüntülemek için sisteme giriş yapınız.';
-            (new SmsService())->send($talep->id, 'acente', $talep->agency_name, $talep->phone, $smsMsg);
+            (new SmsService())->send($talep->id, 'acente', (string) $talep->agency_name, (string) $talep->phone, $smsMsg);
         }
 
         if ($request->boolean('notify_sms_admin')) {
