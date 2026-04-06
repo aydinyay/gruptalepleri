@@ -70,7 +70,7 @@ class DashboardController extends Controller
             if ($t->aktif_adim === 'odeme_gecikti') {
                 $turaiOzetler[] = '⚠️ <strong>' . $t->gtpnr . '</strong> gecikmiş ödeme';
             } elseif ($aktifPayment?->due_date) {
-                $saatKaldi = \Carbon\Carbon::parse($aktifPayment->due_date)->diffInHours(now(), false);
+                $saatKaldi = \Carbon\Carbon::parse($aktifPayment->due_date . ' ' . ($aktifPayment->due_time ?: '23:59:59'))->diffInHours(now(), false);
                 if ($saatKaldi < 0 && $saatKaldi > -48) {
                     $turaiOzetler[] = '⏰ <strong>' . $t->gtpnr . '</strong> 48 saat içinde ödeme vadesi';
                 }

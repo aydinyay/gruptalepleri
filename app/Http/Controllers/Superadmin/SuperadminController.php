@@ -669,6 +669,7 @@ class SuperadminController extends Controller
                             'amount'       => $kabulTeklif->deposit_amount,
                             'currency'     => $kabulTeklif->currency,
                             'due_date'     => $dueDate,
+                            'due_time'     => $hasOptDate ? ($kabulTeklif->option_time ? substr($kabulTeklif->option_time, 0, 5) : null) : null,
                             'status'       => $hasOptDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK,
                             'is_active'    => $hasOptDate,
                             'created_by'   => auth()->id(),
@@ -686,6 +687,7 @@ class SuperadminController extends Controller
                         if ($taslakDepozito) {
                             $taslakDepozito->update([
                                 'due_date'  => $dueDate,
+                                'due_time'  => $kabulTeklif->option_time ? substr($kabulTeklif->option_time, 0, 5) : null,
                                 'status'    => \App\Models\RequestPayment::STATUS_AKTIF,
                                 'is_active' => true,
                             ]);

@@ -263,6 +263,7 @@ class RequestController extends Controller
                 'amount'       => $teklif->deposit_amount,
                 'currency'     => $teklif->currency,
                 'due_date'     => $dueDate,
+                'due_time'     => $hasOptionDate ? ($teklif->option_time ? substr($teklif->option_time, 0, 5) : null) : null,
                 'status'       => $hasOptionDate ? \App\Models\RequestPayment::STATUS_AKTIF : \App\Models\RequestPayment::STATUS_TASLAK,
                 'is_active'    => $hasOptionDate,
                 'created_by'   => null,

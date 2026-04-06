@@ -235,7 +235,7 @@
                         <tbody>
                             @foreach($odemeUyarilari as $odeme)
                             @php
-                                $dueTs = \Carbon\Carbon::parse($odeme->due_date)->endOfDay();
+                                $dueTs = \Carbon\Carbon::parse($odeme->due_date . ' ' . ($odeme->due_time ?: '23:59:59'));
                                 $kalanSaniyeO = \Carbon\Carbon::now()->diffInSeconds($dueTs, false);
                                 $kalanSaatO = $kalanSaniyeO / 3600;
                                 $renkO = $kalanSaatO <= 6 ? 'danger' : ($kalanSaatO <= 24 ? 'warning' : 'success');

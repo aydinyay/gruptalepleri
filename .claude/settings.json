@@ -41,7 +41,8 @@
       "Bash(curl -s \"https://gruptalepleri.com/\")",
       "Read(//^Route::middleware/**)",
       "Read(//c/gruptalepleri/**)",
-      "Read(//c/Users/Güneş Yaylacıklılar/.claude/plans/**)"
+      "Read(//c/Users/Güneş Yaylacıklılar/.claude/plans/**)",
+      "Bash(grep -n \"due_date\\\\|due_time\\\\|endOfDay\\\\|option_time\" app/Console/Commands/*.php)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"
