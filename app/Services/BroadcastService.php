@@ -127,43 +127,56 @@ class BroadcastService
      */
     private function injectTracking(string $html, int $broadcastId, int $userId): string
     {
-        // 1. Click tracking: href="http..." → tracked redirect
+        // 1. Click tracking: mevcut href="http..." linklerini tracked URL'e çevir
         $html = preg_replace_callback(
             '/href=["\']((https?:\/\/[^"\']+))["\']/',
             function (array $m) use ($broadcastId, $userId): string {
                 $original = $m[1];
                 $token    = BroadcastEmailTrack::makeToken($broadcastId, $userId, 'click', $original);
-
                 BroadcastEmailTrack::firstOrCreate(
                     ['token' => $token],
-                    [
-                        'broadcast_id'    => $broadcastId,
-                        'user_id'         => $userId,
-                        'type'            => 'click',
-                        'destination_url' => $original,
-                    ]
+                    ['broadcast_id' => $broadcastId, 'user_id' => $userId, 'type' => 'click', 'destination_url' => $original]
                 );
-
-                $trackedUrl = route('email.track.click', $token);
-                return 'href="' . $trackedUrl . '"';
+                return 'href="' . route('email.track.click', $token) . '"';
             },
             $html
         );
 
-        // 2. Open pixel: gövde sonuna invisible 1×1 img ekle
+        // 2. Düz metin URL'leri otomatik linked <a> tag'a çevir (text node içindeki https?:// )
+        $html = preg_replace_callback(
+            '/>([^<]+)</U',
+            function (array $m) use ($broadcastId, $userId): string {
+                $text = $m[1];
+                if (! preg_match('/https?:\/\//', $text)) {
+                    return '>' . $text . '<';
+                }
+                $linked = preg_replace_callback(
+                    '/(https?:\/\/[^\s<>"\']+)/',
+                    function (array $inner) use ($broadcastId, $userId): string {
+                        $url   = rtrim($inner[1], '.,;:!?)');
+                        $token = BroadcastEmailTrack::makeToken($broadcastId, $userId, 'click', $url);
+                        BroadcastEmailTrack::firstOrCreate(
+                            ['token' => $token],
+                            ['broadcast_id' => $broadcastId, 'user_id' => $userId, 'type' => 'click', 'destination_url' => $url]
+                        );
+                        $tracked = route('email.track.click', $token);
+                        return '<a href="' . $tracked . '" style="color:#e94560;text-decoration:underline;">' . $url . '</a>';
+                    },
+                    $text
+                );
+                return '>' . $linked . '<';
+            },
+            $html
+        );
+
+        // 3. Open pixel — gövde sonuna 1×1 görünmez resim
         $openToken = BroadcastEmailTrack::makeToken($broadcastId, $userId, 'open');
         BroadcastEmailTrack::firstOrCreate(
             ['token' => $openToken],
-            [
-                'broadcast_id' => $broadcastId,
-                'user_id'      => $userId,
-                'type'         => 'open',
-            ]
+            ['broadcast_id' => $broadcastId, 'user_id' => $userId, 'type' => 'open']
         );
-
         $pixelUrl = route('email.track.open', $openToken);
-        $pixel    = '<img src="' . $pixelUrl . '" width="1" height="1" style="display:block;border:0;" alt="">';
-        $html    .= $pixel;
+        $html    .= '<img src="' . $pixelUrl . '" width="1" height="1" style="display:block;border:0;" alt="">';
 
         return $html;
     }
