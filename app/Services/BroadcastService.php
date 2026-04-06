@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BroadcastEmailTrack;
 use App\Models\BroadcastNotification;
 use App\Models\SistemAyar;
 use App\Models\User;
@@ -10,7 +11,6 @@ class BroadcastService
 {
     /**
      * Broadcast'i seçili kanallara gönder.
-     * channels: ['push', 'sms', 'email'] — en az biri olmalı.
      */
     public function send(BroadcastNotification $broadcast): void
     {
@@ -22,8 +22,8 @@ class BroadcastService
         $channels     = $broadcast->channels ?? ['push'];
         $activeChannels = array_values(array_filter($channels, function (string $channel): bool {
             return match ($channel) {
-                'push' => SistemAyar::pushEnabled(),
-                'sms' => SistemAyar::smsEnabled(),
+                'push'  => SistemAyar::pushEnabled(),
+                'sms'   => SistemAyar::smsEnabled(),
                 'email' => SistemAyar::emailEnabled(),
                 default => false,
             };
@@ -37,14 +37,11 @@ class BroadcastService
         $sms   = new SmsService();
         $email = new EmailService();
 
-        $pushTitle = ($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $broadcast->title;
-
         foreach ($kullanicilar as $user) {
-            // Kullanıcıya özel değişken listesi
-            $kisiselMesaj = $this->kisiselMesaj($broadcast->message, $user);
-            $kisiselTitle = $this->kisiselMesaj($broadcast->title, $user);
+            $kisiselMesaj = $this->kisiselMesaj($broadcast->message, $user, $broadcast->id);
+            $kisiselTitle = $this->kisiselMesaj($broadcast->title, $user, $broadcast->id);
 
-            // Push bildirimi (uygulama içi bildirim zili)
+            // Push
             if (in_array('push', $activeChannels, true)) {
                 $ns->createForUser(
                     $user->id,
@@ -56,7 +53,7 @@ class BroadcastService
                 );
             }
 
-            // SMS — acentenin agency.phone alanını kullan
+            // SMS
             if (in_array('sms', $activeChannels, true)) {
                 $phone = $user->agency?->phone ?? null;
                 if ($phone) {
@@ -66,12 +63,13 @@ class BroadcastService
                 }
             }
 
-            // E-posta (kişiselleştirilmiş broadcast klonu ile)
+            // Email — tracking token'ları üret, pixel + tracked linkler ekle
             if (in_array('email', $activeChannels, true)) {
-                $kisiselBroadcast = clone $broadcast;
+                $kisiselBroadcast          = clone $broadcast;
                 $kisiselBroadcast->title   = $kisiselTitle;
-                $kisiselBroadcast->message = $kisiselMesaj;
-                $email->broadcastEmail($user, $kisiselBroadcast);
+                $kisiselBroadcast->message = $this->injectTracking($kisiselMesaj, $broadcast->id, $user->id);
+
+                $email->broadcastEmail($user, $kisiselBroadcast, $broadcast->id);
             }
         }
 
@@ -83,18 +81,15 @@ class BroadcastService
             'sent_count' => $sentCount,
         ]);
 
-        $pushTitle = ($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $broadcast->title;
-
-        // Superadmin'ler: gönderen hariç, gerçek içeriği + özet birlikte al
+        // Superadmin özet bildirimleri
         $superadminler = User::where('role', 'superadmin')->get();
         foreach ($superadminler as $sa) {
-            // Bell: gerçek broadcast içeriği
             if (! in_array('push', $activeChannels, true) || $kullanicilar->contains('id', $sa->id)) {
-                // Zaten listede var, sadece özet yeter
+                // zaten listede, ekstra push yok
             } else {
+                $pushTitle = ($broadcast->emoji ? $broadcast->emoji . ' ' : '') . $broadcast->title;
                 $ns->createForUser($sa->id, 'broadcast', $pushTitle, $broadcast->message, null, $broadcast->id);
             }
-            // Her durumda gönderim özeti de ekle
             $ns->createForUser(
                 $sa->id,
                 'broadcast',
@@ -103,22 +98,17 @@ class BroadcastService
                 null,
                 $broadcast->id
             );
-
-            // SMS CC (superadmin'e broadcast SMS kopyası)
             if (in_array('sms', $activeChannels, true) && $sa->phone) {
                 $mesaj = ($broadcast->emoji ? $broadcast->emoji . ' ' : '')
                     . $broadcast->title . "\n" . $broadcast->message
-                    . "\n[CC Kopya — {$sentCount} kişiye gönderildi]";
+                    . "\n[CC — {$sentCount} kişiye gönderildi]";
                 $sms->send(null, 'superadmin', $sa->name, $sa->phone, $mesaj);
             }
-
-            // Email CC (superadmin'e broadcast email kopyası)
-            if (in_array('email', $activeChannels, true) && !$kullanicilar->contains('id', $sa->id)) {
+            if (in_array('email', $activeChannels, true) && ! $kullanicilar->contains('id', $sa->id)) {
                 $email->broadcastEmail($sa, $broadcast);
             }
         }
 
-        // Gönderen admin ise kendisine özet bildir (superadmin zaten üstte)
         $sender = User::find($broadcast->sender_id);
         if ($sender && $sender->role === 'admin') {
             $ns->createForUser(
@@ -133,31 +123,69 @@ class BroadcastService
     }
 
     /**
-     * Mesaj metnindeki {değişken} yer tutucularını kullanıcıya özel değerlerle değiştir.
-     * Desteklenen değişkenler:
-     *   {acente_adi}        — Firma/acente adı
-     *   {yetkili_adi}       — Yetkili kişi adı
-     *   {ad}                — Kullanıcı adı (sisteme kayıtlı)
-     *   {platform_linki}    — Dashboard URL
-     *   {giris_linki}       — Giriş sayfası URL
-     *   {talep_ac_linki}    — Yeni talep oluşturma URL
-     *   {unsubscribe_linki} — Abonelik iptal URL (acente kullanıcıları için)
+     * Email gövdesine open pixel ekler, tüm http(s) linklerini tracked URL'e çevirir.
      */
-    private function kisiselMesaj(string $metin, User $user): string
+    private function injectTracking(string $html, int $broadcastId, int $userId): string
+    {
+        // 1. Click tracking: href="http..." → tracked redirect
+        $html = preg_replace_callback(
+            '/href=["\']((https?:\/\/[^"\']+))["\']/',
+            function (array $m) use ($broadcastId, $userId): string {
+                $original = $m[1];
+                $token    = BroadcastEmailTrack::makeToken($broadcastId, $userId, 'click', $original);
+
+                BroadcastEmailTrack::firstOrCreate(
+                    ['token' => $token],
+                    [
+                        'broadcast_id'    => $broadcastId,
+                        'user_id'         => $userId,
+                        'type'            => 'click',
+                        'destination_url' => $original,
+                    ]
+                );
+
+                $trackedUrl = route('email.track.click', $token);
+                return 'href="' . $trackedUrl . '"';
+            },
+            $html
+        );
+
+        // 2. Open pixel: gövde sonuna invisible 1×1 img ekle
+        $openToken = BroadcastEmailTrack::makeToken($broadcastId, $userId, 'open');
+        BroadcastEmailTrack::firstOrCreate(
+            ['token' => $openToken],
+            [
+                'broadcast_id' => $broadcastId,
+                'user_id'      => $userId,
+                'type'         => 'open',
+            ]
+        );
+
+        $pixelUrl = route('email.track.open', $openToken);
+        $pixel    = '<img src="' . $pixelUrl . '" width="1" height="1" style="display:block;border:0;" alt="">';
+        $html    .= $pixel;
+
+        return $html;
+    }
+
+    /**
+     * Değişken yerine koyma — her kullanıcı için kişiselleştirilmiş URL'ler dahil.
+     */
+    private function kisiselMesaj(string $metin, User $user, int $broadcastId = 0): string
     {
         $unsubscribeUrl = ($user->id && $user->role === 'acente')
             ? \URL::signedRoute('abonelik.confirm', ['user' => $user->id])
             : url('/');
 
         $degiskenler = [
-            '{acente_adi}'          => $user->agency?->company_title ?? $user->name,
-            '{yetkili_adi}'         => $user->agency?->contact_name ?? $user->name,
-            '{ad}'                  => $user->name,
-            '{platform_linki}'      => url('/'),
-            '{giris_linki}'         => route('login'),
-            '{talep_ac_linki}'      => url('/talep/olustur'),
-            '{sifre_yenile_linki}'  => route('password.request'),
-            '{unsubscribe_linki}'   => $unsubscribeUrl,
+            '{acente_adi}'         => $user->agency?->company_title ?? $user->name,
+            '{yetkili_adi}'        => $user->agency?->contact_name ?? $user->name,
+            '{ad}'                 => $user->name,
+            '{platform_linki}'     => url('/'),
+            '{giris_linki}'        => route('login'),
+            '{talep_ac_linki}'     => url('/talep/olustur'),
+            '{sifre_yenile_linki}' => route('password.request'),
+            '{unsubscribe_linki}'  => $unsubscribeUrl,
         ];
 
         return str_replace(array_keys($degiskenler), array_values($degiskenler), $metin);

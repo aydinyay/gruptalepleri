@@ -246,6 +246,10 @@ Route::match(['GET', 'POST'], '/payment/paynkolay/fail', [\App\Http\Controllers\
 Route::middleware(['auth'])->get('/payment/paynkolay/simulate/{reference}', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'paynkolaySimulate'])
     ->name('payment.paynkolay.simulate');
 
+// Email tracking — public (auth olmadan, email clientlardan erişilir)
+Route::get('/et/o/{token}', [\App\Http\Controllers\EmailTrackController::class, 'openPixel'])->name('email.track.open');
+Route::get('/et/c/{token}', [\App\Http\Controllers\EmailTrackController::class, 'clickRedirect'])->name('email.track.click');
+
 // Superadmin
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', function () {

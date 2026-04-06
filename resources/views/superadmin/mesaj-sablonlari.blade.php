@@ -271,24 +271,21 @@ const joditConfig = {
     ],
     uploader: {
         url: UPLOAD_URL,
-        headers: { 'X-CSRF-TOKEN': CSRF },
-        filesVariableName: () => 'image',
+        format: 'json',
+        prepareData: function(fd) {
+            fd.append('_token', CSRF);
+            return fd;
+        },
         isSuccess: (resp) => resp.error === 0,
-        getMsg: (resp) => resp.message || 'Hata',
+        getMsg: (resp) => resp.message || 'Yükleme hatası',
         process: (resp) => ({
             files: resp.files || [],
             path: resp.path || '',
             baseurl: resp.baseurl || '',
             error: resp.error,
-            msg: resp.message,
+            msg: resp.message || '',
         }),
-        defaultHandlerSuccess: function(data) {
-            if (data.files && data.files.length) {
-                this.j.s.insertImage(data.files[0]);
-            }
-        },
     },
-    filebrowser: { ajax: { url: UPLOAD_URL } },
     toolbarAdaptive: false,
     showCharsCounter: false,
     showWordsCounter: false,

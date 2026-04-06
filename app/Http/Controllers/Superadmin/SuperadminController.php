@@ -232,9 +232,23 @@ class SuperadminController extends Controller
     public function uploadEmailImage(Request $request)
     {
         $this->assertSuperadmin();
-        $request->validate(['image' => 'required|image|mimes:jpeg,png,gif,webp|max:3072']);
 
-        $file     = $request->file('image');
+        // Jodit files[0] veya standard 'image' alanını kabul et
+        $file = $request->file('image')
+            ?? (is_array($request->file('files')) ? collect($request->file('files'))->first() : null);
+
+        if (! $file || ! $file->isValid()) {
+            return response()->json(['error' => 1, 'message' => 'Geçerli bir dosya bulunamadı.'], 422);
+        }
+
+        if (! in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+            return response()->json(['error' => 1, 'message' => 'Sadece JPG, PNG, GIF, WebP yüklenebilir.'], 422);
+        }
+
+        if ($file->getSize() > 3 * 1024 * 1024) {
+            return response()->json(['error' => 1, 'message' => 'Maksimum dosya boyutu 3 MB.'], 422);
+        }
+
         $filename = uniqid('eml_') . '.' . $file->getClientOriginalExtension();
         $dir      = public_path('uploads/email-images');
 
@@ -373,9 +387,27 @@ class SuperadminController extends Controller
             ->orderByDesc('created_at')
             ->paginate(30);
 
+        $broadcastIds = $duyurular->pluck('id');
+
+        // Açılış ve tıklama istatistikleri (sadece ilk tetiklenme sayılır)
+        $trackStats = \App\Models\BroadcastEmailTrack::whereIn('broadcast_id', $broadcastIds)
+            ->whereNotNull('triggered_at')
+            ->selectRaw('broadcast_id, type, COUNT(*) as cnt')
+            ->groupBy('broadcast_id', 'type')
+            ->get()
+            ->groupBy('broadcast_id')
+            ->map(function ($rows) {
+                $result = ['opens' => 0, 'clicks' => 0];
+                foreach ($rows as $row) {
+                    if ($row->type === 'open')  $result['opens']  = (int) $row->cnt;
+                    if ($row->type === 'click') $result['clicks'] = (int) $row->cnt;
+                }
+                return $result;
+            });
+
         $adminler = User::whereIn('role', ['admin', 'superadmin'])->get();
 
-        return view('superadmin.broadcast-gecmisi', compact('duyurular', 'adminler'));
+        return view('superadmin.broadcast-gecmisi', compact('duyurular', 'adminler', 'trackStats'));
     }
 
     // ── SMS AYARLARI ──────────────────────────────────────────────────────────

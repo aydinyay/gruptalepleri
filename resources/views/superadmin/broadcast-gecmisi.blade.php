@@ -100,6 +100,8 @@
                         <th>Hedef</th>
                         <th>Kanallar</th>
                         <th class="text-center">Alıcı</th>
+                        <th class="text-center" title="Kaç kişi emaili açtı">📬 Açtı</th>
+                        <th class="text-center" title="Kaç kişi bir linke tıkladı">🔗 Tıkladı</th>
                         <th>Durum</th>
                         <th>Tarih</th>
                         <th></th>
@@ -126,6 +128,29 @@
                             @endforeach
                         </td>
                         <td class="text-center fw-bold">{{ $d->sent_count }}</td>
+                        <td class="text-center">
+                            @if($d->sent_count > 0 && isset($trackStats[$d->id]))
+                                @php $opens = $trackStats[$d->id]['opens'] ?? 0; @endphp
+                                <span class="{{ $opens > 0 ? 'text-success fw-bold' : 'text-muted' }}">
+                                    {{ $opens }}
+                                </span>
+                                @if($opens > 0 && $d->sent_count > 0)
+                                    <div class="text-muted" style="font-size:0.68rem;">%{{ round($opens / $d->sent_count * 100) }}</div>
+                                @endif
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @if($d->sent_count > 0 && isset($trackStats[$d->id]))
+                                @php $clicks = $trackStats[$d->id]['clicks'] ?? 0; @endphp
+                                <span class="{{ $clicks > 0 ? 'text-primary fw-bold' : 'text-muted' }}">
+                                    {{ $clicks }}
+                                </span>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td>
                             <span class="badge" style="background:{{ $d->statusColor() }};">{{ $d->statusLabel() }}</span>
                             @if($d->scheduled_at && $d->status === 'scheduled')
