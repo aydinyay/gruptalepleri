@@ -759,6 +759,14 @@ Ham veri:
 
         $teklif->update(['durum' => \App\Models\Offer::DURUM_BEKLEMEDE]);
 
+        // Talep durumunu fiyatlandirildi'ye geri döndür (acceptOffer depozitoda yapmıştı)
+        if (in_array($talep->status, ['depozitoda', \App\Models\Request::STATUS_DEPOZITODA])) {
+            $talep->update(['status' => \App\Models\Request::STATUS_FIYATLANDIRILDI]);
+        }
+
+        // Aktif ödeme planını pasife al — kabul geri alındığında ödeme planı da sıfırlanmalı
+        $talep->payments()->where('is_active', true)->update(['is_active' => false, 'status' => 'iptal']);
+
         RequestLog::create([
             'request_id'  => $talep->id,
             'action'      => 'teklif_kabul_geri_alindi',
