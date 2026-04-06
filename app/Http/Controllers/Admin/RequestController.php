@@ -815,6 +815,7 @@ Ham veri:
             'currency'       => $request->currency ?? 'TRY',
             'payment_date'   => $request->payment_date,
             'due_date'       => $dueDate,
+            'due_time'       => $request->due_time ?: null,
             'status'         => $yeniStatus,
             'is_active'      => $yeniIsActive,
         ]);

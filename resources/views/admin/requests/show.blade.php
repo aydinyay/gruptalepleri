@@ -447,8 +447,8 @@
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small">Teklif Geçerlilik Saati</label>
-                                    <input type="time" name="option_time" id="f-option-time" class="form-control form-control-sm">
+                                    <label class="form-label small">Teklif Geçerlilik Saati <span class="text-danger">*zorunlu</span></label>
+                                    <input type="time" name="option_time" id="f-option-time" class="form-control form-control-sm" required>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label small">Teklif Notu <span class="text-muted fw-normal">(acenteye görünür)</span></label>
@@ -852,14 +852,14 @@
                                     @elseif($odeme->status === 'aktif')
                                         <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekleniyor</span>
                                         @if($odeme->due_date)
-                                            <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}</span>
+                                            <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}{{ $odeme->due_time ? ' ' . substr($odeme->due_time, 0, 5) : '' }}</span>
                                         @endif
                                     @elseif($odeme->status === 'taslak')
                                         <span class="badge bg-warning text-dark" style="font-size:.68rem;">⏳ Bekleniyor</span>
                                     @elseif($odeme->status === 'gecikti')
                                         <span class="badge bg-danger" style="font-size:.68rem;">⚠ Gecikti</span>
                                         @if($odeme->due_date)
-                                            <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}</span>
+                                            <span class="text-muted" style="font-size:.72rem;">Son: {{ $odeme->due_date->format('d.m.Y') }}{{ $odeme->due_time ? ' ' . substr($odeme->due_time, 0, 5) : '' }}</span>
                                         @endif
                                     @elseif($odeme->status === 'iade')
                                         <span class="badge bg-danger" style="font-size:.68rem;">İade</span>
@@ -907,7 +907,8 @@
                                         {{ json_encode($odeme->sender_masked) }}, {{ json_encode($odeme->account_masked) }},
                                         {{ $odeme->amount }}, '{{ $odeme->currency }}',
                                         '{{ $odeme->payment_date?->format('Y-m-d') }}', '{{ $odeme->status }}',
-                                        '{{ $odeme->due_date?->format('Y-m-d') }}'
+                                        '{{ $odeme->due_date?->format('Y-m-d') }}',
+                                        '{{ $odeme->due_time ? substr($odeme->due_time, 0, 5) : '' }}'
                                     )">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -964,7 +965,7 @@
                         <div class="col-md-4"><label class="form-label small">Dep. % <span class="text-muted fw-normal" id="e-dep-pct-hint"></span></label><input type="number" name="deposit_rate" id="e-deposit-rate" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e')"></div>
                         <div class="col-md-4"><label class="form-label small">Dep. Tutarı <span class="text-muted fw-normal" id="e-dep-amt-hint"></span></label><input type="number" name="deposit_amount" id="e-deposit-amount" class="form-control form-control-sm" step="0.01" oninput="depHesapla('e', true)"></div>
                         <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Tarihi <span class="text-danger" title="Girilmezse acente tarafında süre bilgisi gösterilmez">*önerilir</span></label><input type="date" name="option_date" id="e-option-date" class="form-control form-control-sm"></div>
-                        <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Saati</label><input type="time" name="option_time" id="e-option-time" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="form-label small">Teklif Geçerlilik Saati <span class="text-danger">*</span></label><input type="time" name="option_time" id="e-option-time" class="form-control form-control-sm" required></div>
                         <div class="col-12"><label class="form-label small">Teklif Notu (acenteye görünür)</label><textarea name="offer_text" id="e-offer-text" class="form-control form-control-sm" rows="2"></textarea></div>
                         <div class="col-12"><label class="form-label small text-muted">Tedarikçi / İç Referans (gizli)</label><input type="text" name="supplier_reference" id="e-supplier-ref" class="form-control form-control-sm"></div>
                     </div>
@@ -1016,7 +1017,8 @@
                             </select>
                         </div>
                         <div class="col-3"><label class="form-label small fw-bold">Ödeme Tarihi</label><input type="date" name="payment_date" id="od_date" class="form-control form-control-sm"></div>
-                        <div class="col-6"><label class="form-label small fw-bold">Son Ödeme Tarihi (due_date)</label><input type="date" name="due_date" id="od_due_date" class="form-control form-control-sm"><div class="form-text" style="font-size:.65rem;">Bekleniyor ise son tarih</div></div>
+                        <div class="col-4"><label class="form-label small fw-bold">Son Ödeme Tarihi</label><input type="date" name="due_date" id="od_due_date" class="form-control form-control-sm"><div class="form-text" style="font-size:.65rem;">Bekleniyor ise son tarih</div></div>
+                        <div class="col-2"><label class="form-label small fw-bold">Son Ödeme Saati</label><input type="time" name="due_time" id="od_due_time" class="form-control form-control-sm"></div>
                     </div>
                 </div>
                 <div class="modal-footer py-2">
@@ -1362,7 +1364,7 @@ function teklifDuzenle(id, data) {
 const odemeDuzenleModal = new bootstrap.Modal(document.getElementById('odemeDuzenleModal'));
 const odemeDuzenleForm  = document.getElementById('odemeDuzenleForm');
 
-function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, amount, currency, date, status, dueDate) {
+function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, amount, currency, date, status, dueDate, dueTime) {
     odemeDuzenleForm.action = url;
     document.getElementById('od_sequence').value  = sequence || 1;
     document.getElementById('od_type').value      = type     || 'depozito';
@@ -1375,6 +1377,7 @@ function odemeDuzenle(id, url, sequence, type, method, bank, sender, account, am
     document.getElementById('od_date').value      = date     || '';
     document.getElementById('od_status').value    = (status === 'alindi' || status === 'iade') ? status : 'bekleniyor';
     document.getElementById('od_due_date').value  = dueDate  || '';
+    document.getElementById('od_due_time').value  = dueTime  || '';
     odemeDuzenleModal.show();
 }
 
