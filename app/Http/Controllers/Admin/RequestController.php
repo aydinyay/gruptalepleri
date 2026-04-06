@@ -34,8 +34,7 @@ class RequestController extends Controller
         $query = TalepModel::with([
                 'user', 'segments', 'offers',
                 'payments' => fn($q) => $q->where('is_active', true),
-            ])
-            ->orderBy('id', 'desc');
+            ]);
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -84,6 +83,18 @@ class RequestController extends Controller
             });
         }
 
+        // Sıralama: opsiyonda filtresi aktifse yakın opsiyon tarihi, aksi hâlde yeni talep önce
+        if ((int) $request->input('opsiyon') === 1) {
+            $query->orderByRaw("(
+                SELECT MIN(CONCAT(option_date, ' ', COALESCE(option_time, '15:59:59')))
+                FROM offers
+                WHERE offers.request_id = requests.id
+                  AND offers.option_date IS NOT NULL
+            ) ASC");
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
         $talepler = $query->paginate(20)->withQueryString();
 
         $durumSayilari = TalepModel::selectRaw('status, count(*) as toplam')
@@ -92,7 +103,19 @@ class RequestController extends Controller
 
         $aktifSayisi = TalepModel::whereNotIn('status', $this->pasifStatusler)->count();
 
-        return view('admin.requests.index', compact('talepler', 'durumSayilari', 'aktifSayisi'));
+        $simdiSaat = now()->format('H:i:s');
+        $opsiyonSayisi = TalepModel::whereNotIn('status', $this->pasifStatusler)
+            ->whereHas('offers', fn($q) => $q->whereNotNull('option_date')
+                ->where(fn($aq) => $aq
+                    ->whereDate('option_date', '>', today())
+                    ->orWhere(fn($tq) => $tq
+                        ->whereDate('option_date', today())
+                        ->where(fn($q2) => $q2->whereNull('option_time')->orWhere('option_time', '>=', $simdiSaat))
+                    )
+                )
+            )->count();
+
+        return view('admin.requests.index', compact('talepler', 'durumSayilari', 'aktifSayisi', 'opsiyonSayisi'));
     }
 
     public function create()
