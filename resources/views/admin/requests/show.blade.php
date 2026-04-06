@@ -252,10 +252,16 @@
             {{-- SMS & Email Bildirimleri --}}
             @if($talep->notifications->isNotEmpty())
             <div class="card">
-                <div class="card-header py-2 fw-semibold d-flex justify-content-between">
+                <div class="card-header py-2 fw-semibold d-flex justify-content-between align-items-center"
+                     role="button" data-bs-toggle="collapse" data-bs-target="#notif-collapse"
+                     aria-expanded="false" style="cursor:pointer;">
                     <span>📲 SMS & Email Bildirimleri</span>
-                    <span class="badge bg-secondary">{{ $talep->notifications->count() }}</span>
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary">{{ $talep->notifications->count() }}</span>
+                        <i class="fas fa-chevron-down fa-xs text-muted"></i>
+                    </span>
                 </div>
+                <div class="collapse" id="notif-collapse">
                 <div class="card-body p-0">
                     <table class="table table-sm table-hover mb-0 small">
                         <thead class="table-light">
@@ -295,6 +301,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
             @endif
