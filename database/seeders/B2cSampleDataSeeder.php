@@ -3,249 +3,57 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class B2cSampleDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── Kategoriler ────────────────────────────────────────────────
-        $cats = [
-            ['name'=>'Havalimanı Transferi', 'slug'=>'transfer',        'icon'=>'bi-car-front-fill',   'sort'=>1],
-            ['name'=>'Özel Jet & Charter',   'slug'=>'ozel-jet',        'icon'=>'bi-airplane-fill',    'sort'=>2],
-            ['name'=>'Helikopter',           'slug'=>'helikopter',      'icon'=>'bi-helicopter',       'sort'=>3],
-            ['name'=>'Dinner Cruise',        'slug'=>'dinner-cruise',   'icon'=>'bi-water',            'sort'=>4],
-            ['name'=>'Yat Kiralama',         'slug'=>'yat-kiralama',    'icon'=>'bi-tsunami',          'sort'=>5],
-            ['name'=>'Yurt İçi Turlar',      'slug'=>'yurt-ici-turlar', 'icon'=>'bi-map-fill',         'sort'=>6],
-            ['name'=>'Yurt Dışı Turlar',     'slug'=>'yurt-disi-turlar','icon'=>'bi-globe-americas',   'sort'=>7],
-            ['name'=>'Vize Hizmetleri',      'slug'=>'vize',            'icon'=>'bi-passport',         'sort'=>8],
-        ];
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('catalog_items')->truncate();
+        DB::table('catalog_categories')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        $catIds = [];
-        foreach ($cats as $cat) {
-            // Zaten varsa güncelle, yoksa ekle
-            DB::table('catalog_categories')->updateOrInsert(
-                ['slug' => $cat['slug']],
-                [
-                    'parent_id'  => null,
-                    'name'       => $cat['name'],
-                    'icon'       => $cat['icon'],
-                    'is_active'  => true,
-                    'sort_order' => $cat['sort'],
-                    'updated_at' => now(),
-                    'created_at' => now(),
-                ]
-            );
-            $catIds[$cat['slug']] = DB::table('catalog_categories')->where('slug', $cat['slug'])->value('id');
-        }
+        // ── Kategoriler ────────────────────────────────────────────────
+        DB::table('catalog_categories')->insert([
+            ['id'=>1,  'parent_id'=>null, 'name'=>'Havalimanı Transferi',  'slug'=>'havalimani-transferi',  'description'=>'Türkiye genelinde havalimanı karşılama ve özel araç transfer çözümleri sunan bu kategori, bireysel ve grup ulaşım ihtiyaçlarına profesyonel yanıt verir.',        'icon'=>'bi-car-front-fill',    'cover_image'=>null,'is_active'=>1,'sort_order'=>10,'meta_title'=>'Havalimanı Transferi Hizmetleri | gruprezervasyonlari.com',       'meta_description'=>'İstanbul, Antalya, İzmir ve diğer destinasyonlarda VIP ve özel havalimanı transfer hizmetlerini kolayca planlayın.',            'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>2,  'parent_id'=>null, 'name'=>'Özel Jet & Charter',    'slug'=>'ozel-jet-charter',      'description'=>'İş, turizm ve özel organizasyonlar için Türkiye çıkışlı esnek özel jet ve charter uçuş çözümlerini kapsar.',                                                 'icon'=>'bi-airplane-fill',     'cover_image'=>null,'is_active'=>1,'sort_order'=>20,'meta_title'=>'Özel Jet ve Charter Uçuşları | gruprezervasyonlari.com',          'meta_description'=>'Türkiye ve Avrupa arasında özel jet, charter uçuş ve helikopter organizasyonları için teklif alın.',                       'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>3,  'parent_id'=>null, 'name'=>'Deniz & Eğlence',       'slug'=>'deniz-eglence',         'description'=>'Boğaz turları, dinner cruise programları, yat kiralama ve deniz üstünde özel etkinlik alternatiflerini bir araya getirir.',                                    'icon'=>'bi-water',             'cover_image'=>null,'is_active'=>1,'sort_order'=>30,'meta_title'=>'Deniz ve Eğlence Turları | gruprezervasyonlari.com',              'meta_description'=>'Boğaz dinner cruise, yat kiralama ve özel deniz etkinlikleri için Türkiye\'ye özel seçenekleri inceleyin.',                'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>4,  'parent_id'=>null, 'name'=>'Yurt İçi Turlar',       'slug'=>'yurt-ici-turlar',       'description'=>'Kültür, doğa, şehir ve deneyim odaklı Türkiye içi turlar için farklı süre ve içeriklerde rezervasyon seçenekleri sunar.',                                     'icon'=>'bi-map-fill',          'cover_image'=>null,'is_active'=>1,'sort_order'=>40,'meta_title'=>'Yurt İçi Turlar | gruprezervasyonlari.com',                        'meta_description'=>'Kapadokya, Pamukkale, Efes, Antalya ve daha birçok destinasyonda yurt içi tur seçeneklerini keşfedin.',                   'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>5,  'parent_id'=>null, 'name'=>'Yurt Dışı Turlar',      'slug'=>'yurt-disi-turlar',      'description'=>'Avrupa başta olmak üzere popüler destinasyonlara yönelik planlı, özel ve grup odaklı yurt dışı tur programlarını içerir.',                                    'icon'=>'bi-globe-americas',    'cover_image'=>null,'is_active'=>1,'sort_order'=>50,'meta_title'=>'Yurt Dışı Turlar | gruprezervasyonlari.com',                       'meta_description'=>'Avrupa ve yakın destinasyonlara grup, kültür ve şehir odaklı yurt dışı tur seçenekleri için teklif alın.',                 'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>6,  'parent_id'=>null, 'name'=>'Konaklama',             'slug'=>'konaklama',             'description'=>'Şehir otelleri, resort tesisler ve grup konaklamaları için farklı segmentlerde profesyonel rezervasyon desteği sağlar.',                                       'icon'=>'bi-building',          'cover_image'=>null,'is_active'=>1,'sort_order'=>60,'meta_title'=>'Konaklama Seçenekleri | gruprezervasyonlari.com',                  'meta_description'=>'İstanbul, Kapadokya, Bodrum ve diğer bölgelerde grup ve özel konaklama talepleriniz için başvuru oluşturun.',              'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>7,  'parent_id'=>null, 'name'=>'Vize Hizmetleri',       'slug'=>'vize-hizmetleri',       'description'=>'Schengen ve farklı ülke vize süreçlerinde evrak hazırlığı, randevu ve başvuru takibi için danışmanlık sağlar.',                                               'icon'=>'bi-passport',          'cover_image'=>null,'is_active'=>1,'sort_order'=>70,'meta_title'=>'Vize Hizmetleri | gruprezervasyonlari.com',                        'meta_description'=>'Schengen ve diğer vize başvurularınız için evrak kontrolü, danışmanlık ve başvuru desteği alın.',                         'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>8,  'parent_id'=>3,    'name'=>'Dinner Cruise',          'slug'=>'dinner-cruise',         'description'=>'İstanbul Boğazı başta olmak üzere akşam yemeği, müzik ve manzara deneyimini birleştiren tekne programlarını kapsar.',                                         'icon'=>'bi-cup-hot-fill',      'cover_image'=>null,'is_active'=>1,'sort_order'=>10,'meta_title'=>'Dinner Cruise Turları | gruprezervasyonlari.com',                  'meta_description'=>'İstanbul Boğazı\'nda yemekli tekne turları, Türk gecesi programları ve özel akşam organizasyonlarını inceleyin.',          'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>9,  'parent_id'=>3,    'name'=>'Yat Kiralama',           'slug'=>'yat-kiralama',          'description'=>'Günlük, saatlik ve özel organizasyonlara uygun yat ve gulet kiralama çözümlerini Türkiye kıyıları için sunar.',                                               'icon'=>'bi-tsunami',           'cover_image'=>null,'is_active'=>1,'sort_order'=>20,'meta_title'=>'Yat Kiralama Hizmetleri | gruprezervasyonlari.com',                'meta_description'=>'Bodrum, Çeşme, Fethiye ve İstanbul çıkışlı yat kiralama ve özel deniz organizasyonları için teklif alın.',                'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>10, 'parent_id'=>2,    'name'=>'Helikopter Turu',        'slug'=>'helikopter',            'description'=>'Şehir manzarası, özel transfer ve deneyim odaklı kısa süreli helikopter uçuşlarını bir araya getirir.',                                                      'icon'=>'bi-helicopter',        'cover_image'=>null,'is_active'=>1,'sort_order'=>10,'meta_title'=>'Helikopter Turu ve Transferleri | gruprezervasyonlari.com',       'meta_description'=>'İstanbul ve özel rotalarda helikopter turu, VIP ulaşım ve manzaralı uçuş seçenekleri için başvurun.',                     'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>11, 'parent_id'=>4,    'name'=>'Kapadokya Turları',      'slug'=>'kapadokya',             'description'=>'Peribacaları, yeraltı şehirleri, vadiler ve balon deneyimi ile Kapadokya odaklı tur programlarını içerir.',                                                  'icon'=>'bi-mountain',          'cover_image'=>null,'is_active'=>1,'sort_order'=>10,'meta_title'=>'Kapadokya Turları | gruprezervasyonlari.com',                     'meta_description'=>'Kapadokya\'da balon turu, konaklama ve bölge gezilerini içeren özel ve grup tur seçeneklerini keşfedin.',                  'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>12, 'parent_id'=>7,    'name'=>'Schengen Vize',          'slug'=>'schengen-vize',         'description'=>'Schengen bölgesi için evrak hazırlama, randevu planlama ve başvuru sürecini kolaylaştıran danışmanlık hizmetlerini kapsar.',                                  'icon'=>'bi-file-earmark-text', 'cover_image'=>null,'is_active'=>1,'sort_order'=>10,'meta_title'=>'Schengen Vize Danışmanlığı | gruprezervasyonlari.com',            'meta_description'=>'Schengen vizesi için evrak kontrolü, danışmanlık ve randevu desteğini tek noktadan alın.',                                'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+        ]);
 
         // ── Catalog Items ──────────────────────────────────────────────
-        $items = [
-            // Dinner Cruise
-            [
-                'category_slug'    => 'dinner-cruise',
-                'product_type'     => 'leisure',
-                'title'            => 'İstanbul: Türk Gecesi Gösterisi ile Boğazda Akşam Yemeği Gezisi',
-                'short_desc'       => 'Eşsiz Boğaz manzarası eşliğinde Türk mutfağı ve canlı gösteri.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 1284,
-                'currency'         => 'TRY',
-                'destination_city' => 'İstanbul',
-                'duration_hours'   => 3,
-                'min_pax'          => 1,
-                'max_pax'          => 500,
-                'rating_avg'       => 4.6,
-                'review_count'     => 2040,
-                'is_featured'      => true,
-            ],
-            [
-                'category_slug'    => 'dinner-cruise',
-                'product_type'     => 'leisure',
-                'title'            => 'İstanbul: Boğaz Gün Batımı Yat Turu & Açık Büfe',
-                'short_desc'       => 'Gün batımında lüks yatla Boğaz turu ve açık büfe akşam yemeği.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 1850,
-                'currency'         => 'TRY',
-                'destination_city' => 'İstanbul',
-                'duration_hours'   => 4,
-                'min_pax'          => 2,
-                'rating_avg'       => 4.8,
-                'review_count'     => 876,
-                'is_featured'      => true,
-            ],
-            // Yat Kiralama
-            [
-                'category_slug'    => 'yat-kiralama',
-                'product_type'     => 'leisure',
-                'title'            => 'Bodrum: Günlük Özel Yat Turu & Mavi Yolculuk',
-                'short_desc'       => 'Bodrum koylarında özel yat ile unutulmaz bir gün.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 850,
-                'currency'         => 'TRY',
-                'destination_city' => 'Bodrum',
-                'duration_hours'   => 8,
-                'min_pax'          => 4,
-                'max_pax'          => 12,
-                'rating_avg'       => 4.9,
-                'review_count'     => 523,
-                'is_featured'      => true,
-            ],
-            [
-                'category_slug'    => 'yat-kiralama',
-                'product_type'     => 'leisure',
-                'title'            => 'Göcek: 7 Gece 8 Gün Mavi Tur — Özel Gulet',
-                'short_desc'       => 'Göcek\'ten Fethiye\'ye uzanan eşsiz mavi yolculuk.',
-                'pricing_type'     => 'quote',
-                'base_price'       => null,
-                'currency'         => 'EUR',
-                'destination_city' => 'Göcek',
-                'duration_days'    => 8,
-                'min_pax'          => 6,
-                'max_pax'          => 16,
-                'rating_avg'       => 4.7,
-                'review_count'     => 91,
-                'is_featured'      => false,
-            ],
-            // Charter
-            [
-                'category_slug'    => 'ozel-jet',
-                'product_type'     => 'charter',
-                'title'            => 'İstanbul - Antalya Özel Jet Kiralama',
-                'short_desc'       => 'Hızlı, konforlu ve özel özel jet transferi.',
-                'pricing_type'     => 'quote',
-                'base_price'       => null,
-                'currency'         => 'USD',
-                'destination_city' => 'İstanbul',
-                'duration_hours'   => 1,
-                'min_pax'          => 1,
-                'max_pax'          => 8,
-                'rating_avg'       => 4.8,
-                'review_count'     => 137,
-                'is_featured'      => true,
-            ],
-            // Helikopter
-            [
-                'category_slug'    => 'helikopter',
-                'product_type'     => 'charter',
-                'title'            => 'İstanbul: Helikopterle Boğaz Panorama Turu',
-                'short_desc'       => '15 dakikalık helikopter turu ile İstanbul\'u kuşbakışı görün.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 4200,
-                'currency'         => 'TRY',
-                'destination_city' => 'İstanbul',
-                'duration_hours'   => 1,
-                'min_pax'          => 1,
-                'max_pax'          => 4,
-                'rating_avg'       => 4.9,
-                'review_count'     => 312,
-                'is_featured'      => false,
-            ],
-            // Transfer
-            [
-                'category_slug'    => 'transfer',
-                'product_type'     => 'transfer',
-                'title'            => 'İstanbul Havalimanı (İST) — Taksim / Şişli Özel Transfer',
-                'short_desc'       => 'Güvenli ve konforlu havalimanı karşılama & transfer.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 450,
-                'currency'         => 'TRY',
-                'destination_city' => 'İstanbul',
-                'duration_hours'   => 1,
-                'min_pax'          => 1,
-                'max_pax'          => 7,
-                'rating_avg'       => 4.5,
-                'review_count'     => 1823,
-                'is_featured'      => false,
-            ],
-            // Yurt İçi Tur
-            [
-                'category_slug'    => 'yurt-ici-turlar',
-                'product_type'     => 'tour',
-                'title'            => 'Kapadokya: Gün Doğarken Sıcak Hava Balonu Uçuşu',
-                'short_desc'       => 'Kapadokya\'nın büyülü vadileri üzerinde şafak vaktinde balon turu.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 5351,
-                'currency'         => 'TRY',
-                'destination_city' => 'Nevşehir',
-                'duration_hours'   => 3,
-                'min_pax'          => 1,
-                'max_pax'          => 20,
-                'rating_avg'       => 5.0,
-                'review_count'     => 5045,
-                'is_featured'      => true,
-            ],
-            [
-                'category_slug'    => 'yurt-ici-turlar',
-                'product_type'     => 'tour',
-                'title'            => 'Efes & Şirince: Tam Gün Tarihi Tur (Kuşadası\'ndan)',
-                'short_desc'       => 'Antik Efes şehri ve büyüleyici Şirince köyünü keşfedin.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 980,
-                'currency'         => 'TRY',
-                'destination_city' => 'Kuşadası',
-                'duration_hours'   => 8,
-                'min_pax'          => 1,
-                'rating_avg'       => 4.7,
-                'review_count'     => 2341,
-                'is_featured'      => false,
-            ],
-            // Yurt Dışı Tur
-            [
-                'category_slug'    => 'yurt-disi-turlar',
-                'product_type'     => 'tour',
-                'title'            => 'Dubai: 5 Gece 6 Gün Tam Paket — Burj Khalifa & Safari',
-                'short_desc'       => 'Dubai\'nin simge mekanları, çöl safarisi ve lüks konaklama.',
-                'pricing_type'     => 'fixed',
-                'base_price'       => 18500,
-                'currency'         => 'TRY',
-                'destination_city' => 'Dubai',
-                'duration_days'    => 6,
-                'min_pax'          => 2,
-                'rating_avg'       => 4.6,
-                'review_count'     => 418,
-                'is_featured'      => true,
-            ],
-        ];
+        DB::table('catalog_items')->insert([
+            ['id'=>1,  'category_id'=>1,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'transfer','reference_type'=>null,'reference_id'=>null,'title'=>'İstanbul Havalimanı → Taksim ve Şişli Bölgesi: VIP Karşılama Transferi',         'slug'=>'istanbul-havalimani-taksim-sisli-vip-karsilama',         'short_desc'=>'Havalimanında karşılama, bagaj desteği ve Taksim ile Şişli bölgesindeki otellere konforlu VIP araç transferi.',                                  'full_desc'=>'İstanbul şehir otellerine hızlı ve düzenli ulaşım isteyen misafirler için ideal bir transfer çözümüdür. Profesyonel sürücü, uçuş takibi, havalimanı çıkışında karşılama ve belirlenen adrese özel araç ile ulaşım hizmete dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>1450.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>2, 'min_pax'=>1,'max_pax'=>6,  'sort_order'=>10, 'rating_avg'=>4.80,'review_count'=>2140,'meta_title'=>'İstanbul Havalimanı Taksim VIP Transfer | gruprezervasyonlari.com',        'meta_description'=>'İstanbul Havalimanı\'ndan Taksim ve Şişli bölgesine VIP karşılama ve özel araç transfer hizmeti için hemen rezervasyon yapın.',          'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>2,  'category_id'=>1,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'transfer','reference_type'=>null,'reference_id'=>null,'title'=>'Antalya Havalimanı → Lara ve Kundu Otelleri: Özel Minivan Transfer',              'slug'=>'antalya-havalimani-lara-kundu-ozel-minivan-transfer',    'short_desc'=>'Antalya Havalimanı karşılama, geniş bagaj alanına sahip özel minivan ve Lara ile Kundu bölgesindeki otellere direkt ulaşım.',                     'full_desc'=>'Antalya tatiline konforlu başlamak isteyen yolcular için planlanmış özel bir transfer hizmetidir. Karşılama, özel minivan araç, sürücü hizmeti ve otel önüne kadar direkt bırakma pakete dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>1800.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Antalya','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>1, 'min_pax'=>1,'max_pax'=>8,  'sort_order'=>20, 'rating_avg'=>4.74,'review_count'=>1685,'meta_title'=>'Antalya Havalimanı Lara Kundu Transferi | gruprezervasyonlari.com',       'meta_description'=>'Antalya Havalimanı\'ndan Lara ve Kundu otellerine özel minivan transfer ile konforlu ulaşım sağlayın.',                                     'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>3,  'category_id'=>1,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'transfer','reference_type'=>null,'reference_id'=>null,'title'=>'İzmir Adnan Menderes Havalimanı → Çeşme Otelleri: Özel Transfer',                 'slug'=>'izmir-havalimani-cesme-ozel-transfer',                   'short_desc'=>'Adnan Menderes Havalimanı karşılama, özel araç tahsisi ve Çeşme bölgesindeki otellere kapıdan kapıya ulaşım.',                                   'full_desc'=>'Çeşme ve Alaçatı çevresindeki otellere ulaşımı kolaylaştıran özel transfer hizmeti. Karşılama, özel araç, sürücü hizmeti ve belirlenen adrese direkt bırakma dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>2450.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İzmir','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>2, 'min_pax'=>1,'max_pax'=>5,  'sort_order'=>30, 'rating_avg'=>4.67,'review_count'=>920, 'meta_title'=>'İzmir Havalimanı Çeşme Özel Transfer | gruprezervasyonlari.com',          'meta_description'=>'İzmir Adnan Menderes Havalimanı\'ndan Çeşme otellerine özel araç transfer rezervasyonu oluşturun.',                                        'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>4,  'category_id'=>1,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'transfer','reference_type'=>null,'reference_id'=>null,'title'=>'Trabzon Havalimanı → Uzungöl ve Yayla Bölgesi: Özel Araç Transferi',              'slug'=>'trabzon-havalimani-uzungol-yayla-ozel-transfer',         'short_desc'=>'Trabzon Havalimanı karşılama, bölge şartlarına uygun araç ve Uzungöl ile çevre yaylalara özel transfer.',                                       'full_desc'=>'Karadeniz bölgesinde konforlu ve güvenli ulaşım arayan misafirler için hazırlanmış transfer hizmeti. Havalimanı karşılama, rota planlaması ve belirlenen konaklama noktasına kadar ulaşım dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>3200.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Trabzon','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>3, 'min_pax'=>1,'max_pax'=>6,  'sort_order'=>40, 'rating_avg'=>4.72,'review_count'=>611, 'meta_title'=>'Trabzon Havalimanı Uzungöl Transferi | gruprezervasyonlari.com',         'meta_description'=>'Trabzon Havalimanı\'ndan Uzungöl ve yayla bölgesine özel araç transfer hizmeti ile yolculuğunuzu planlayın.',                               'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>5,  'category_id'=>2,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'charter','reference_type'=>null,'reference_id'=>null,'title'=>'Özel Jet Kiralama: İstanbul → Paris (Gidiş-Dönüş)',                              'slug'=>'ozel-jet-istanbul-paris-gidis-donus',                   'short_desc'=>'Türkiye çıkışlı özel jet planlaması, esnek saatlendirme ve tam uçuş operasyon koordinasyonu.',                                                  'full_desc'=>'Zamanını verimli kullanmak isteyen iş insanları ve özel gruplar için güçlü bir çözüm. Uygun jet seçimi, slot ve rota koordinasyonu ile özel uçuş organizasyonu dahildir. Fiyat tarih ve yolcu sayısına göre özel tekliflendirilir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'EUR','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>8,  'sort_order'=>50, 'rating_avg'=>4.86,'review_count'=>188, 'meta_title'=>'İstanbul Paris Özel Jet Kiralama | gruprezervasyonlari.com',            'meta_description'=>'İstanbul çıkışlı Paris özel jet ve charter uçuşları için esnek planlama ve teklif alın.',                                                  'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>6,  'category_id'=>2,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'charter','reference_type'=>null,'reference_id'=>null,'title'=>'Özel Jet Kiralama: Bodrum → Milano',                                              'slug'=>'ozel-jet-bodrum-milano',                                 'short_desc'=>'Bodrum çıkışlı özel jet uçuş planlaması, kişiselleştirilmiş rota ve terminal süreçlerinde hızlı geçiş desteği.',                                'full_desc'=>'Tarifeli uçuşlara bağlı kalmadan seyahat etmek isteyen misafirler için tasarlanmış. Uçak tipi seçimi, uluslararası operasyon koordinasyonu ve özel uçuş planlaması dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'EUR','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Bodrum','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>7,  'sort_order'=>60, 'rating_avg'=>4.71,'review_count'=>94,  'meta_title'=>'Bodrum Milano Özel Jet Charter | gruprezervasyonlari.com',              'meta_description'=>'Bodrum çıkışlı Milano özel jet uçuşları için esnek charter planlaması ve fiyat teklifi talep edin.',                                      'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>7,  'category_id'=>10, 'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'charter','reference_type'=>null,'reference_id'=>null,'title'=>'İstanbul Üzeri Helikopter Deneyimi: Boğaz ve Tarihi Yarımada Uçuşu',              'slug'=>'istanbul-helikopter-bogaz-tarihi-yarimada',              'short_desc'=>'Boğaz hattı ve Tarihi Yarımada manzaralı helikopter uçuşu, kısa süreli özel deneyim ve profesyonel operasyon planlaması.',                      'full_desc'=>'İstanbul\'u farklı bir açıdan görmek isteyen misafirler için prestijli bir deneyim. Uçuş planlaması, helikopter organizasyonu ve belirlenen rota üzerinden panoramik uçuş dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'EUR','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>1, 'min_pax'=>1,'max_pax'=>4,  'sort_order'=>70, 'rating_avg'=>4.64,'review_count'=>126, 'meta_title'=>'İstanbul Helikopter Turu ve Özel Uçuş | gruprezervasyonlari.com',       'meta_description'=>'İstanbul Boğazı ve Tarihi Yarımada üzerinde helikopter deneyimi için özel uçuş talebi oluşturun.',                                         'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>8,  'category_id'=>8,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'leisure','reference_type'=>null,'reference_id'=>null,'title'=>'İstanbul: Türk Gecesi Gösterili Boğaz Dinner Cruise',                             'slug'=>'istanbul-turk-gecesi-bogaz-dinner-cruise',               'short_desc'=>'Boğaz hattında akşam yemeği, sahne gösterileri, müzik ve İstanbul siluetine karşı tekne deneyimi.',                                             'full_desc'=>'İstanbul akşamlarını unutulmaz hale getiren en güçlü deneyimlerden biri. Tekne turu, akşam yemeği, Türk gecesi gösterileri ve Boğaz boyunca manzara seyri dahildir. Özel gün kutlamaları ve kurumsal davetler için de tercih edilir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>2450.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>1,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>4, 'min_pax'=>2,'max_pax'=>100,'sort_order'=>80, 'rating_avg'=>4.78,'review_count'=>2875,'meta_title'=>'İstanbul Boğaz Dinner Cruise | gruprezervasyonlari.com',                'meta_description'=>'Türk gecesi gösterili İstanbul Boğaz dinner cruise programı ile yemekli tekne turu rezervasyonu yapın.',                                   'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>9,  'category_id'=>9,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'leisure','reference_type'=>null,'reference_id'=>null,'title'=>'Bodrum Çıkışlı: 10 Kişilik Motoryat Kiralama ve Koylar Rotası',                   'slug'=>'bodrum-motoryat-kiralama-koylar-rotasi',                 'short_desc'=>'Günlük motoryat kullanımı, Bodrum koylarında rota planlaması ve özel organizasyona uygun tekne deneyimi.',                                       'full_desc'=>'Bodrum\'da kalabalıktan uzak, tamamen size ait bir deniz günü geçirmek isteyenler için öne çıkan hizmet. Kaptan hizmeti, rota danışmanlığı ve özel gün planlaması dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'EUR','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Bodrum','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>8, 'min_pax'=>2,'max_pax'=>10, 'sort_order'=>90, 'rating_avg'=>4.73,'review_count'=>404, 'meta_title'=>'Bodrum Motoryat Kiralama | gruprezervasyonlari.com',                    'meta_description'=>'Bodrum çıkışlı günlük motoryat kiralama ve özel koy rotaları için teklif alın.',                                                           'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>10, 'category_id'=>9,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'leisure','reference_type'=>null,'reference_id'=>null,'title'=>'İzmir Çeşme Marina: 8 Kişilik Gulet Kiralama (Günlük)',                           'slug'=>'cesme-marina-gulet-kiralama-gunluk',                     'short_desc'=>'Çeşme Marina çıkışlı günlük gulet kiralama, yüzme molaları ve özel kullanıma uygun rota planı.',                                                 'full_desc'=>'Çeşme çevresindeki koyları özel bir tekneyle gezmek isteyenler için esnek bir alternatif. Günlük kullanım, kaptan hizmeti ve standart rota planlaması dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'EUR','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İzmir','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>8, 'min_pax'=>2,'max_pax'=>8,  'sort_order'=>100,'rating_avg'=>4.69,'review_count'=>356, 'meta_title'=>'Çeşme Gulet Kiralama Günlük | gruprezervasyonlari.com',                'meta_description'=>'Çeşme Marina çıkışlı günlük gulet kiralama ve özel rota planlaması için teklif isteyin.',                                                  'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>11, 'category_id'=>3,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'leisure','reference_type'=>null,'reference_id'=>null,'title'=>'Fethiye: 12 Adalar Günübirlik Tekne Turu ve Yüzme Molaları',                      'slug'=>'fethiye-12-adalar-gunubirlik-tekne-turu',                'short_desc'=>'Fethiye çıkışlı tekne turu, gün boyu koy gezisi, yüzme molaları ve bölgenin en sevilen duraklarını tek programda sunar.',                        'full_desc'=>'Fethiye kıyılarında günübirlik deniz keyfi yaşamak isteyenler için klasik bir rota. Tekne turu, koylarda yüzme molaları ve gün boyu deniz deneyimi dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>1350.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Fethiye','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>7, 'min_pax'=>1,'max_pax'=>40, 'sort_order'=>110,'rating_avg'=>4.61,'review_count'=>1435,'meta_title'=>'Fethiye Günübirlik Tekne Turu | gruprezervasyonlari.com',               'meta_description'=>'Fethiye 12 Adalar günübirlik tekne turu ve yüzme molaları ile yaz tatilinizi planlayın.',                                                  'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>12, 'category_id'=>11, 'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'tour',  'reference_type'=>null,'reference_id'=>null,'title'=>'Kapadokya 3 Gece 4 Gün: Balon Seyri, Vadiler ve Yeraltı Şehri Turu',              'slug'=>'kapadokya-3-gece-4-gun-balon-vadiler-yeralti',           'short_desc'=>'Bölge otel konaklaması, vadiler gezisi, yeraltı şehri ziyareti ve balon uçuşu organizasyon desteğini tek programda sunar.',                      'full_desc'=>'Kapadokya\'yı kısa sürede dolu dolu yaşamak isteyen misafirler için dengeli bir program. Konaklama, bölge gezisi, vadiler, seyir noktaları ve sabah balon operasyonu dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>4850.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Kapadokya','destination_country'=>'Türkiye','duration_days'=>4,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>20, 'sort_order'=>120,'rating_avg'=>4.84,'review_count'=>1298,'meta_title'=>'Kapadokya 3 Gece 4 Gün Turu | gruprezervasyonlari.com',               'meta_description'=>'Kapadokya\'da balon seyri, vadiler ve yeraltı şehri içeren 3 gece 4 gün tur programını inceleyin.',                                        'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>13, 'category_id'=>4,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'tour',  'reference_type'=>null,'reference_id'=>null,'title'=>'Pamukkale ve Efes: 2 Gün 1 Gece Kültür Turu',                                     'slug'=>'pamukkale-efes-2-gun-1-gece-kultur-turu',                'short_desc'=>'Travertenler, antik kent gezisi, bölge ulaşımı ve planlı kültür rotası tek programda sunulur.',                                                  'full_desc'=>'Ege\'nin iki güçlü kültür noktasını tek seyahatte görmek isteyenler için verimli bir tur. Pamukkale travertenleri, Efes Antik Kenti ve bir gecelik konaklama dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>2750.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İzmir','destination_country'=>'Türkiye','duration_days'=>2,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>30, 'sort_order'=>130,'rating_avg'=>4.58,'review_count'=>884, 'meta_title'=>'Pamukkale Efes Kültür Turu | gruprezervasyonlari.com',               'meta_description'=>'Pamukkale ve Efes\'i kapsayan 2 gün 1 gece kültür turu ile kısa ama zengin bir rota planlayın.',                                            'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>14, 'category_id'=>4,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'tour',  'reference_type'=>null,'reference_id'=>null,'title'=>'Antalya: Rafting, Jeep Safari ve Doğa Deneyimi',                                  'slug'=>'antalya-rafting-jeep-safari-doga-deneyimi',              'short_desc'=>'Nehirde rafting, doğa rotasında jeep safari ve gün boyu aktif program akışı. Macera ile açık hava deneyimi aynı pakette.',                       'full_desc'=>'Adrenalin ve doğa deneyimini tek günde yaşamak isteyenler için hareketli bir program. Rafting organizasyonu, bölge içi aktivite koordinasyonu ve gün boyu operasyon dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>1650.00,'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Antalya','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>9, 'min_pax'=>1,'max_pax'=>24, 'sort_order'=>140,'rating_avg'=>4.66,'review_count'=>1762,'meta_title'=>'Antalya Rafting ve Jeep Safari | gruprezervasyonlari.com',             'meta_description'=>'Antalya\'da rafting, jeep safari ve doğa turunu bir arada sunan günlük program için rezervasyon yapın.',                                     'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>15, 'category_id'=>5,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'tour',  'reference_type'=>null,'reference_id'=>null,'title'=>'İstanbul Çıkışlı Balkanlar Turu: Belgrad, Saraybosna ve Üsküp',                   'slug'=>'istanbul-balkanlar-turu-belgrad-saraybosna-uskup',       'short_desc'=>'Şehir geçişleri, programlı gezi akışı ve çok duraklı Balkan rota planlaması. Vize durumuna göre seyahat kurgusu hazırlanır.',                    'full_desc'=>'Birden fazla Balkan şehrini tek organizasyonda görmek isteyen gezginler için ideal rota. Şehirler arası planlama, tur akışı ve konaklama kurgusu dahildir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'EUR','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>4,'duration_hours'=>null,'min_pax'=>2,'max_pax'=>40, 'sort_order'=>150,'rating_avg'=>4.63,'review_count'=>517, 'meta_title'=>'Balkanlar Turu İstanbul Çıkışlı | gruprezervasyonlari.com',           'meta_description'=>'Belgrad, Saraybosna ve Üsküp duraklı İstanbul çıkışlı Balkanlar turu için teklif isteyin.',                                                'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>16, 'category_id'=>6,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'hotel', 'reference_type'=>null,'reference_id'=>null,'title'=>'Kapadokya Mağara Oteli: Balon Manzaralı Konaklama Talebi',                        'slug'=>'kapadokya-magara-oteli-balon-manzarali-konaklama',       'short_desc'=>'Bölgeye uygun mağara otel seçenekleri, oda alternatifleri ve seyahat tarihine göre talep bazlı konaklama planlaması.',                           'full_desc'=>'Kapadokya\'da doğru oteli seçmek seyahat deneyimini doğrudan etkiler. Tarihlerinize ve beklentinize uygun tesis alternatifleri değerlendirilir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'request','base_price'=>null,   'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Kapadokya','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>6,  'sort_order'=>160,'rating_avg'=>4.77,'review_count'=>690, 'meta_title'=>'Kapadokya Mağara Oteli Konaklama Talebi | gruprezervasyonlari.com','meta_description'=>'Kapadokya\'da balon manzaralı mağara oteller için müsaitlik ve konaklama talebi oluşturun.',                                          'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>17, 'category_id'=>6,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'hotel', 'reference_type'=>null,'reference_id'=>null,'title'=>'İstanbul Şehir Oteli: Grup Konaklama ve Toplantı Salonu Talebi',                   'slug'=>'istanbul-grup-otel-konaklama-toplanti-salonu',           'short_desc'=>'İstanbul merkezli otel alternatifleri, grup oda planlaması ve ihtiyaç halinde toplantı salonu seçenekleri.',                                    'full_desc'=>'İstanbul\'da grup konaklaması planlayan şirketler ve etkinlik ekipleri için esnek çözüm. Otel sınıfı, lokasyon ve toplantı salonu ihtiyacına göre alternatifler hazırlanır.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'request','base_price'=>null,   'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>null,'min_pax'=>8,'max_pax'=>120,'sort_order'=>170,'rating_avg'=>4.55,'review_count'=>512, 'meta_title'=>'İstanbul Grup Otel Konaklama Talebi | gruprezervasyonlari.com',       'meta_description'=>'İstanbul\'da grup konaklama ve toplantı salonlu şehir oteli alternatifleri için başvuru yapın.',                                           'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>18, 'category_id'=>12, 'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'visa',  'reference_type'=>null,'reference_id'=>null,'title'=>'Schengen Vize Danışmanlığı: Evrak Kontrolü ve Randevu Süreci',                    'slug'=>'schengen-vize-danismanligi-evrak-randevu',               'short_desc'=>'Başvuru evraklarının ön kontrolü, randevu süreci yönlendirmesi ve dosya hazırlığında danışmanlık desteği.',                                      'full_desc'=>'Schengen vize başvurularında profesyonel yönlendirme önemlidir. Evrak kontrolü, başvuru akışı ve randevu yönlendirmesi dahildir. Sürecin düzenli ve eksiksiz yürütülmesi hedeflenir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>950.00, 'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>4,  'sort_order'=>180,'rating_avg'=>4.70,'review_count'=>1450,'meta_title'=>'Schengen Vize Danışmanlığı | gruprezervasyonlari.com',                 'meta_description'=>'Schengen vizesi için evrak kontrolü ve randevu danışmanlığı hizmetini online başvuru ile alın.',                                           'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>19, 'category_id'=>7,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'visa',  'reference_type'=>null,'reference_id'=>null,'title'=>'Turistik Vize Başvuru Desteği: Pasaport, Evrak ve Seyahat Dosyası',               'slug'=>'turistik-vize-basvuru-destegi-pasaport-evrak',           'short_desc'=>'Turistik amaçlı başvurular için evrak listesi yönlendirmesi, dosya düzenleme desteği ve başvuru öncesi kontrol hizmeti.',                        'full_desc'=>'Yurt dışı seyahatlerinde doğru evrak kurgusu kritik önemdedir. Pasaport uygunluğu, temel evrak listesi ve seyahat planı uyumu konusunda destek verilir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'fixed', 'base_price'=>650.00, 'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'Ankara','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>null,'min_pax'=>1,'max_pax'=>3,  'sort_order'=>190,'rating_avg'=>4.42,'review_count'=>638, 'meta_title'=>'Turistik Vize Başvuru Desteği | gruprezervasyonlari.com',              'meta_description'=>'Turistik vize başvurularınız için pasaport, evrak ve seyahat dosyası hazırlık desteği alın.',                                             'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+            ['id'=>20, 'category_id'=>3,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'other', 'reference_type'=>null,'reference_id'=>null,'title'=>'Kurumsal Etkinlik Paketi: Boğaz Teknesi, Transfer ve Akşam Organizasyonu',        'slug'=>'kurumsal-etkinlik-bogaz-teknesi-transfer-aksam',         'short_desc'=>'Tekne organizasyonu, misafir transferleri, akşam programı akışı ve kurumsal etkinlik ihtiyaçlarına özel planlama.',                              'full_desc'=>'Kurumsal misafir ağırlaması ve özel davet organizasyonlarında tüm hizmetleri tek noktadan yönetmek isteyenler için. Tekne seçimi, transfer planlaması ve akşam akışı birlikte koordine edilir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>5, 'min_pax'=>20,'max_pax'=>300,'sort_order'=>200,'rating_avg'=>4.68,'review_count'=>274, 'meta_title'=>'Kurumsal Boğaz Etkinlik Paketi | gruprezervasyonlari.com',            'meta_description'=>'Boğaz teknesi, transfer ve akşam organizasyonunu bir arada sunan kurumsal etkinlik paketi için teklif alın.',                               'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
+        ]);
 
-        foreach ($items as $item) {
-            $slug = Str::slug($item['title']);
-            // Zaten varsa atla
-            if (DB::table('catalog_items')->where('slug', $slug)->exists()) continue;
-
-            DB::table('catalog_items')->insert([
-                'category_id'      => $catIds[$item['category_slug']] ?? null,
-                'owner_type'       => 'platform',
-                'supplier_id'      => null,
-                'product_type'     => $item['product_type'],
-                'title'            => $item['title'],
-                'slug'             => $slug,
-                'short_desc'       => $item['short_desc'] ?? null,
-                'full_desc'        => null,
-                'cover_image'      => null,
-                'pricing_type'     => $item['pricing_type'],
-                'base_price'       => $item['base_price'] ?? null,
-                'currency'         => $item['currency'] ?? 'TRY',
-                'destination_city' => $item['destination_city'] ?? null,
-                'destination_country' => $item['destination_country'] ?? 'Türkiye',
-                'duration_days'    => $item['duration_days'] ?? null,
-                'duration_hours'   => $item['duration_hours'] ?? null,
-                'min_pax'          => $item['min_pax'] ?? 1,
-                'max_pax'          => $item['max_pax'] ?? null,
-                'is_active'        => true,
-                'is_featured'      => $item['is_featured'] ?? false,
-                'is_published'     => true,
-                'published_at'     => now(),
-                'sort_order'       => 0,
-                'rating_avg'       => $item['rating_avg'] ?? 0,
-                'review_count'     => $item['review_count'] ?? 0,
-                'meta_title'       => $item['title'],
-                'meta_description' => $item['short_desc'] ?? null,
-                'created_at'       => now(),
-                'updated_at'       => now(),
-            ]);
-        }
-
-        $this->command->info('✓ ' . count($cats) . ' kategori, ' . count($items) . ' ürün eklendi.');
+        $this->command->info('✓ 12 kategori, 20 ürün eklendi (eski veriler temizlendi).');
     }
 }
