@@ -386,9 +386,9 @@
 <section class="gyg-hero" style="padding:0;">
     <div class="gyg-hero-bg"></div>
     <div class="gyg-hero-content">
-        <p style="color:rgba(255,255,255,.7);font-size:.9rem;text-transform:uppercase;letter-spacing:.15em;font-weight:600;margin-bottom:.75rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
-        <h1>Keşfedin, karşılaştırın,<br>rezervasyon yapın.</h1>
-        <p class="hero-sub">10.000+ deneyim · Anlık onay · Ücretsiz iptal</p>
+        <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
+        <h1>Hayalindeki seyahati<br>grupla yaşa.</h1>
+        <p class="hero-sub">Transfer'den charter'a, dinner cruise'dan yat kiralama'ya — hepsi burada.</p>
 
         <div class="gyg-search-wrap">
             <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
@@ -454,6 +454,34 @@
         </div>
     </div>
 </section>
+
+{{-- ════════════════════════════════════════════════════════════════
+     SOSYAL KANIT ŞERİDİ
+════════════════════════════════════════════════════════════════ --}}
+<div class="gyg-trust-strip">
+    <div class="inner">
+        <div class="gyg-trust-item">
+            <i class="bi bi-people-fill"></i>
+            <span><strong>14.000+</strong> memnun müşteri</span>
+        </div>
+        <div class="gyg-trust-item">
+            <i class="bi bi-star-fill" style="color:#f4a418;"></i>
+            <span><strong>4.8 / 5</strong> ortalama puan</span>
+        </div>
+        <div class="gyg-trust-item">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span><strong>Ücretsiz iptal</strong> 24 saat öncesine kadar</span>
+        </div>
+        <div class="gyg-trust-item">
+            <i class="bi bi-shield-check-fill"></i>
+            <span><strong>Güvenli ödeme</strong> SSL korumalı</span>
+        </div>
+        <div class="gyg-trust-item">
+            <i class="bi bi-headset"></i>
+            <span><strong>7/24</strong> müşteri desteği</span>
+        </div>
+    </div>
+</div>
 
 {{-- ════════════════════════════════════════════════════════════════
      KATEGORİ PILLS
@@ -586,34 +614,29 @@
 </section>
 
 {{-- ════════════════════════════════════════════════════════════════
-     GÜVEN ŞERİDİ
+     NASIL ÇALIŞIR — 3 adım
 ════════════════════════════════════════════════════════════════ --}}
-<div class="gyg-trust-strip">
+<div class="gyg-how-it-works">
     <div class="container" style="max-width:1280px;">
-        <div class="row g-4">
-            <div class="col-6 col-md-3">
-                <div class="gyg-trust-item">
-                    <i class="bi bi-shield-check"></i>
-                    <div><strong>Güvenli Ödeme</strong><span>256-bit SSL şifreleme ile korunan ödemeler</span></div>
-                </div>
+        <div style="text-align:center;margin-bottom:2rem;">
+            <h2 style="font-size:1.6rem;font-weight:800;color:#1a202c;margin-bottom:.4rem;">Nasıl Çalışır?</h2>
+            <p style="color:#718096;font-size:.95rem;">3 adımda rezervasyon tamamla</p>
+        </div>
+        <div class="gyg-steps">
+            <div class="gyg-step">
+                <div class="gyg-step-num">1</div>
+                <h4>Keşfet &amp; Karşılaştır</h4>
+                <p>Transfer, tur, charter, yat kiralama ve daha fazlasını kategorilere göre filtrele. Puan, fiyat ve özelliklerle karşılaştır.</p>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="gyg-trust-item">
-                    <i class="bi bi-arrow-counterclockwise"></i>
-                    <div><strong>Ücretsiz İptal</strong><span>Çoğu turda 24 saat öncesine kadar</span></div>
-                </div>
+            <div class="gyg-step">
+                <div class="gyg-step-num">2</div>
+                <h4>Seç &amp; Teklif Al</h4>
+                <p>Sabit fiyatlı hizmetleri sepete ekle, teklif bazlı hizmetler için ücretsiz fiyat talebi oluştur. 4 saat içinde yanıt.</p>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="gyg-trust-item">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                    <div><strong>Anlık Onay</strong><span>Rezervasyonunuz hemen onaylanır</span></div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="gyg-trust-item">
-                    <i class="bi bi-headset"></i>
-                    <div><strong>7/24 Destek</strong><span>Seyahatiniz boyunca yanınızdayız</span></div>
-                </div>
+            <div class="gyg-step">
+                <div class="gyg-step-num">3</div>
+                <h4>Rezervasyon Yap</h4>
+                <p>Güvenli ödeme, anında onay. Rezervasyon bilgileri e-posta ile iletilir. İptal hakkın saklı.</p>
             </div>
         </div>
     </div>

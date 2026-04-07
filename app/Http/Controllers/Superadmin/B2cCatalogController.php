@@ -143,8 +143,7 @@ class B2cCatalogController extends Controller
         }
 
         if ($request->hasFile('cover_image_file')) {
-            $validated['cover_image'] = $request->file('cover_image_file')
-                ->store('catalog', 'public');
+            $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
         CatalogItem::create($validated);
@@ -169,12 +168,12 @@ class B2cCatalogController extends Controller
         }
 
         if ($request->hasFile('cover_image_file')) {
-            // Eski görseli sil
-            if ($item->cover_image) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($item->cover_image);
+            // Eski görseli sil (sadece local dosyaysa)
+            if ($item->cover_image && !str_starts_with($item->cover_image, 'http')) {
+                $oldPath = public_path('uploads/' . $item->cover_image);
+                if (file_exists($oldPath)) @unlink($oldPath);
             }
-            $validated['cover_image'] = $request->file('cover_image_file')
-                ->store('catalog', 'public');
+            $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
         $item->update($validated);
@@ -218,6 +217,22 @@ class B2cCatalogController extends Controller
     }
 
     // ── Private helpers ───────────────────────────────────────────────────
+
+    private function saveCoverImage(Request $request): string
+    {
+        $file = $request->file('cover_image_file');
+        $ext  = strtolower($file->getClientOriginalExtension()) ?: 'jpg';
+        $name = 'catalog/' . Str::random(32) . '.' . $ext;
+        $dest = public_path('uploads/' . dirname($name));
+
+        if (!is_dir($dest)) {
+            mkdir($dest, 0755, true);
+        }
+
+        $file->move($dest, basename($name));
+
+        return $name; // örn: "catalog/AbCdEfGh12345678.jpg"
+    }
 
     private function validateCatalogItem(Request $request, ?int $ignoreId = null): array
     {

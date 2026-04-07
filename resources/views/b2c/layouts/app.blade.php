@@ -444,6 +444,216 @@
             .gyg-hamburger { display: flex; }
             section { padding: 2.5rem 0; }
         }
+
+        /* ═══════════════════════════════════════════════════════
+           ÜRÜN KARTLARI (gyg-pcard) — global, tüm sayfalarda
+        ═══════════════════════════════════════════════════════ */
+        .gyg-products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        @@media (max-width: 1100px) { .gyg-products-grid { grid-template-columns: repeat(3, 1fr); } }
+        @@media (max-width: 720px)  { .gyg-products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+        @@media (max-width: 480px)  { .gyg-products-grid { grid-template-columns: 1fr; } }
+
+        .gyg-pcard {
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07);
+            text-decoration: none;
+            color: var(--gr-text);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .gyg-pcard:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,.14);
+            color: var(--gr-text);
+            text-decoration: none;
+        }
+        .gyg-pcard-img {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .gyg-pcard-img img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform .4s ease;
+        }
+        .gyg-pcard:hover .gyg-pcard-img img { transform: scale(1.05); }
+        .img-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: rgba(255,255,255,.5);
+        }
+        .gyg-pcard-heart {
+            position: absolute; top: 10px; right: 10px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,.9); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .9rem; color: #718096; cursor: pointer;
+            transition: color .15s, background .15s;
+            z-index: 2;
+        }
+        .gyg-pcard-heart:hover { color: #e53e3e; background: #fff; }
+        .gyg-pcard-badge {
+            position: absolute; bottom: 10px; left: 10px;
+            background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+            color: #fff; font-size: .75rem; font-weight: 600;
+            padding: 3px 10px; border-radius: 50px; z-index: 2;
+        }
+        .gyg-pcard-tag {
+            position: absolute; top: 10px; left: 10px;
+            font-size: .7rem; font-weight: 700; text-transform: uppercase;
+            padding: 3px 10px; border-radius: 50px; z-index: 2;
+        }
+        .gyg-pcard-tag.popular  { background: #FF5533; color: #fff; }
+        .gyg-pcard-tag.featured { background: #f4a418; color: #fff; }
+        .gyg-pcard-body {
+            padding: 14px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .gyg-pcard-cat {
+            font-size: .75rem; font-weight: 600; color: var(--gr-muted);
+            text-transform: uppercase; letter-spacing: .04em;
+            margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .gyg-pcard-title {
+            font-size: .93rem; font-weight: 600; color: var(--gr-text);
+            line-height: 1.4; margin-bottom: 6px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .gyg-pcard-stars { color: #f4a418; font-size: .85rem; }
+        .gyg-pcard-rating { font-weight: 700; font-size: .85rem; }
+        .gyg-pcard-reviews { color: var(--gr-muted); font-size: .82rem; }
+        .gyg-pcard-price-label { font-size: .75rem; color: var(--gr-muted); margin-top: auto; padding-top: 8px; }
+        .gyg-pcard-price { font-size: 1.05rem; font-weight: 800; color: var(--gr-text); margin-bottom: 10px; }
+        .gyg-pcard-cta {
+            display: block; width: 100%;
+            background: var(--gr-accent); color: #fff !important;
+            font-weight: 700; font-size: .85rem;
+            padding: 10px 0; border-radius: 8px;
+            text-align: center; text-decoration: none !important;
+            border: none; cursor: pointer;
+            transition: background .15s;
+            margin-top: auto;
+        }
+        .gyg-pcard-cta:hover { background: #e04420; }
+        .gyg-pcard-cta.outline {
+            background: transparent;
+            border: 2px solid var(--gr-primary);
+            color: var(--gr-primary) !important;
+        }
+        .gyg-pcard-cta.outline:hover { background: var(--gr-primary); color: #fff !important; }
+
+        /* Bölüm başlık + "tümünü gör" satırı */
+        .gyg-section-head {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            margin-bottom: 20px; flex-wrap: wrap; gap: 8px;
+        }
+        .gyg-section-head h2 { font-size: 1.5rem; font-weight: 800; color: var(--gr-text); margin: 0; }
+        .gyg-section-head p  { color: var(--gr-muted); font-size: .9rem; margin: 4px 0 0; }
+        .gyg-see-all {
+            font-size: .88rem; font-weight: 600; color: var(--gr-primary);
+            text-decoration: none; white-space: nowrap;
+        }
+        .gyg-see-all:hover { text-decoration: underline; }
+
+        /* Breadcrumb (global) */
+        .gyg-breadcrumb {
+            background: #f8f9fc; border-bottom: 1px solid #e5e5e5;
+            padding: 10px 0; font-size: .85rem; color: var(--gr-muted);
+        }
+        .gyg-breadcrumb a { color: var(--gr-muted); text-decoration: none; }
+        .gyg-breadcrumb a:hover { color: var(--gr-primary); text-decoration: underline; }
+        .gyg-breadcrumb .sep { margin: 0 6px; }
+
+        /* Aktif filtre chip */
+        .filter-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--gr-primary); color: #fff;
+            font-size: .8rem; font-weight: 600;
+            padding: 4px 12px; border-radius: 50px;
+            text-decoration: none;
+        }
+        .filter-chip .chip-x { cursor: pointer; opacity: .7; }
+        .filter-chip .chip-x:hover { opacity: 1; }
+
+        /* Güven şeridi */
+        .gyg-trust-strip {
+            background: #f0f5ff;
+            border-top: 1px solid #dce8ff;
+            border-bottom: 1px solid #dce8ff;
+            padding: 14px 0;
+        }
+        .gyg-trust-strip .inner {
+            max-width: 1280px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: center;
+            flex-wrap: wrap; gap: 8px 32px;
+        }
+        .gyg-trust-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: .85rem; font-weight: 500; color: #2d5282; white-space: nowrap;
+        }
+        .gyg-trust-item i { font-size: 1rem; color: #2b6cb0; }
+
+        /* Nasıl çalışır */
+        .gyg-how-it-works {
+            background: var(--gr-light);
+            padding: 3rem 0;
+        }
+        .gyg-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        @@media (max-width: 640px) { .gyg-steps { grid-template-columns: 1fr; gap: 20px; } }
+        .gyg-step {
+            text-align: center; padding: 24px 16px;
+        }
+        .gyg-step-num {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: var(--gr-primary); color: #fff;
+            font-size: 1.2rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px;
+        }
+        .gyg-step h4 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+        .gyg-step p  { font-size: .88rem; color: var(--gr-muted); line-height: 1.6; margin: 0; }
+
+        /* Mobil sticky CTA bar */
+        .mobile-sticky-cta {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+            padding: 12px 16px;
+            z-index: 900;
+            box-shadow: 0 -4px 16px rgba(0,0,0,.1);
+        }
+        @@media (max-width: 1024px) { .mobile-sticky-cta { display: flex; align-items: center; gap: 12px; } }
+        .mobile-sticky-cta .msc-price { font-size: 1.1rem; font-weight: 800; flex-shrink: 0; }
+        .mobile-sticky-cta .msc-label { font-size: .72rem; color: var(--gr-muted); }
+        .mobile-sticky-cta .msc-btn {
+            flex: 1; background: var(--gr-accent); color: #fff !important;
+            font-weight: 700; font-size: .95rem;
+            padding: 13px; border-radius: 10px;
+            text-align: center; text-decoration: none !important;
+            border: none; cursor: pointer;
+        }
+        /* Ürün detay sayfasında mobil padding */
+        .product-mobile-pad { padding-bottom: 0; }
+        @@media (max-width: 1024px) { .product-mobile-pad { padding-bottom: 80px; } }
     </style>
 
     @stack('head_styles')

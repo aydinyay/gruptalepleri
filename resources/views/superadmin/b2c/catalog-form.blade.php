@@ -220,7 +220,7 @@
                         <div class="card border-0 shadow-sm p-4 mb-3">
                             <div class="section-title mt-0">Kapak Görseli</div>
                             @if(isset($item) && $item->cover_image)
-                            <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('storage/'.$item->cover_image) }}" class="img-fluid rounded mb-2" style="max-height:180px;object-fit:cover;" alt="Kapak">
+                            <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('uploads/'.$item->cover_image) }}" class="img-fluid rounded mb-2" style="max-height:180px;object-fit:cover;" alt="Kapak">
                             @endif
 
                             <div class="mb-2">

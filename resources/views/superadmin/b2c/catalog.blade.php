@@ -91,7 +91,7 @@
                 <tr>
                     <td>
                         @if($item->cover_image)
-                            <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('storage/'.$item->cover_image) }}" class="thumb" alt="">
+                            <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('uploads/'.$item->cover_image) }}" class="thumb" alt="">
                         @else
                             <div class="thumb-placeholder"><i class="fas fa-image"></i></div>
                         @endif
