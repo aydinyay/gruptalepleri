@@ -28,6 +28,66 @@ use Illuminate\Support\Facades\Route;
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('b2c.home');
 
+// ── Arama Autocomplete API ─────────────────────────────────────────────────
+Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {
+    $q = trim($request->get('q', ''));
+    $results = ['popular' => [], 'items' => []];
+
+    if (strlen($q) < 2) {
+        // Boş/kısa sorgu → popüler destinasyonlar + kategoriler
+        $results['popular'] = [
+            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'İstanbul',  'sub'=>'Türkiye'],
+            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Antalya',   'sub'=>'Türkiye'],
+            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Bodrum',    'sub'=>'Türkiye'],
+            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Kapadokya', 'sub'=>'Türkiye'],
+            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Marmaris',  'sub'=>'Türkiye'],
+            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Dubai',     'sub'=>'BAE'],
+        ];
+    } else {
+        // Ürün ara
+        $items = \App\Models\B2C\CatalogItem::published()
+            ->where(fn($qb) => $qb->where('title', 'like', "%{$q}%")
+                ->orWhere('destination_city', 'like', "%{$q}%"))
+            ->with('category')
+            ->limit(5)
+            ->get(['id','title','slug','product_type','destination_city','base_price','currency','pricing_type']);
+
+        foreach ($items as $item) {
+            $typeIcons = ['transfer'=>'bi-car-front-fill','charter'=>'bi-airplane-fill','leisure'=>'bi-water','tour'=>'bi-map-fill','hotel'=>'bi-building','visa'=>'bi-passport','other'=>'bi-grid'];
+            $results['items'][] = [
+                'type'  => 'product',
+                'icon'  => $typeIcons[$item->product_type] ?? 'bi-grid',
+                'label' => $item->title,
+                'sub'   => $item->destination_city ?? ($item->category->name ?? ''),
+                'url'   => route('b2c.product.show', $item->slug),
+                'price' => $item->pricing_type === 'fixed' && $item->base_price
+                    ? number_format($item->base_price, 0, ',', '.') . ' ' . $item->currency
+                    : null,
+            ];
+        }
+
+        // Şehir eşleşmesi
+        $cities = \App\Models\B2C\CatalogItem::published()
+            ->where('destination_city', 'like', "%{$q}%")
+            ->whereNotNull('destination_city')
+            ->selectRaw('destination_city, COUNT(*) as cnt')
+            ->groupBy('destination_city')
+            ->limit(3)
+            ->get();
+
+        foreach ($cities as $c) {
+            $results['popular'][] = [
+                'type'  => 'city',
+                'icon'  => 'bi-geo-alt-fill',
+                'label' => $c->destination_city,
+                'sub'   => $c->cnt . ' aktivite',
+            ];
+        }
+    }
+
+    return response()->json($results);
+})->name('b2c.api.search-suggest')->middleware('throttle:60,1');
+
 // ── Hizmet Kategorileri ────────────────────────────────────────────────────
 Route::get('/hizmetler', [CatalogController::class, 'index'])->name('b2c.catalog.index');
 Route::get('/hizmetler/{slug}', [CatalogController::class, 'category'])->name('b2c.catalog.category');
@@ -56,6 +116,17 @@ Route::post('/tedarikci-ol', [SupplierApplyController::class, 'store'])
 // ── Hakkımızda / Statik Sayfalar ───────────────────────────────────────────
 Route::get('/hakkimizda', fn () => view('b2c.static.hakkimizda'))->name('b2c.hakkimizda');
 Route::get('/iletisim', fn () => view('b2c.static.iletisim'))->name('b2c.iletisim');
+Route::post('/iletisim', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'name'    => 'required|string|max:100',
+        'email'   => 'required|email|max:150',
+        'phone'   => 'nullable|string|max:30',
+        'subject' => 'required|string|max:100',
+        'message' => 'required|string|max:2000',
+    ]);
+    // TODO: mail gönder veya DB'ye kaydet
+    return back()->with('contact_success', true);
+})->name('b2c.iletisim.post')->middleware('throttle:5,1');
 Route::get('/kvkk', fn () => view('b2c.static.kvkk'))->name('b2c.kvkk');
 Route::get('/gizlilik-politikasi', fn () => view('b2c.static.gizlilik'))->name('b2c.gizlilik');
 Route::get('/mesafeli-satis-sozlesmesi', fn () => view('b2c.static.mesafeli-satis'))->name('b2c.mesafeli-satis');
