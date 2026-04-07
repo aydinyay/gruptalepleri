@@ -37,6 +37,8 @@ class CatalogItem extends Model
         'min_pax',
         'max_pax',
         'sort_order',
+        'rating_avg',
+        'review_count',
         'meta_title',
         'meta_description',
     ];

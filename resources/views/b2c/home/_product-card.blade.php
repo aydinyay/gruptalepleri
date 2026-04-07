@@ -69,6 +69,24 @@ $bg    = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,#2a
 
         <div class="card-title-grt">{{ $item->title }}</div>
 
+        {{-- Yıldız puanlaması --}}
+        @if(($item->rating_avg ?? 0) > 0)
+        <div class="d-flex align-items-center gap-1 mb-2" style="font-size:.82rem;">
+            <span style="color:#f4a418;letter-spacing:-.05em;">
+                @for($s=1;$s<=5;$s++)
+                    @if($s <= floor($item->rating_avg))★
+                    @elseif($s - $item->rating_avg < 1)★
+                    @else☆
+                    @endif
+                @endfor
+            </span>
+            <span style="font-weight:700;color:#2d3748;">{{ number_format($item->rating_avg,1) }}</span>
+            @if(($item->review_count ?? 0) > 0)
+            <span style="color:#718096;">({{ number_format($item->review_count, 0, ',', '.') }})</span>
+            @endif
+        </div>
+        @endif
+
         <div class="d-flex justify-content-between align-items-end mt-2">
             @if($item->pricing_type === 'fixed' && $item->base_price)
                 <div>

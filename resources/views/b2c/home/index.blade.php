@@ -8,18 +8,54 @@
 /* ── Hero ── */
 .grt-hero {
     position: relative;
-    min-height: 520px;
+    min-height: 560px;
     display: flex;
-    align-items: center;
-    background: linear-gradient(135deg,#0c1f3d 0%,#1a3c6b 50%,#0e4d6b 100%);
+    align-items: flex-start;
+    padding-top: 4rem;
     overflow: hidden;
+    /* Arka plan görseli varsa üstten CSS değişkeni ile gelir, yoksa gradient */
+    background: var(--hero-bg, linear-gradient(135deg,#0c1f3d 0%,#1a3c6b 50%,#0e4d6b 100%));
+    background-size: cover !important;
+    background-position: center !important;
 }
-.grt-hero::before {
+.grt-hero.has-image::after {
     content:'';
     position:absolute;inset:0;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='rgba(255,255,255,0.03)' stroke-width='1'/%3E%3C/svg%3E") repeat;
-    opacity:.5;
+    background: linear-gradient(to bottom, rgba(5,20,45,.72) 0%, rgba(5,20,45,.55) 60%, rgba(5,20,45,.80) 100%);
+    z-index:0;
 }
+.grt-hero .hero-inner { position:relative;z-index:1;width:100%; }
+
+/* Hero Featured Cards */
+.grt-hero-card {
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 14px;
+    overflow: hidden;
+    display:flex;
+    transition: transform .2s, box-shadow .2s;
+    text-decoration:none;color:inherit;
+    cursor:pointer;
+}
+.grt-hero-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.3); }
+.grt-hero-card .hc-img {
+    width: 90px; min-height: 90px;
+    object-fit:cover;flex-shrink:0;
+    background:linear-gradient(135deg,#1a4d8a,#0e6b8a);
+    display:flex;align-items:center;justify-content:center;
+    font-size:2rem;color:rgba(255,255,255,.4);
+}
+.grt-hero-card .hc-body { padding:.75rem 1rem;flex:1; }
+.grt-hero-card .hc-title { font-weight:700;font-size:.88rem;color:#fff;line-height:1.3;margin-bottom:.35rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.grt-hero-card .hc-meta { font-size:.75rem;color:rgba(255,255,255,.65);margin-bottom:.3rem; }
+.grt-hero-card .hc-rating { display:flex;align-items:center;gap:.3rem;margin-bottom:.3rem; }
+.grt-hero-card .hc-stars { color:#f4a418;font-size:.8rem;letter-spacing:-.05em; }
+.grt-hero-card .hc-score { font-weight:700;font-size:.82rem;color:#fff; }
+.grt-hero-card .hc-rcount { font-size:.75rem;color:rgba(255,255,255,.55); }
+.grt-hero-card .hc-price-label { font-size:.7rem;color:rgba(255,255,255,.6); }
+.grt-hero-card .hc-price { font-weight:800;font-size:.95rem;color:#fff; }
 .grt-search-box {
     background:#fff;
     border-radius:50px;
@@ -185,13 +221,21 @@
 @section('content')
 
 {{-- ═══════════════════════════════════════════════════════════════════════
-     HERO — Arama Çubuğu
+     HERO — Arama Çubuğu + Featured Cards
+     Hero arka planı için: public/images/b2c-hero.jpg dosyasını yükleyin
 ═══════════════════════════════════════════════════════════════════════ --}}
-<section class="grt-hero py-0">
-    <div class="container py-5 position-relative">
-        <div class="text-center mb-5">
-            <h1 class="text-white fw-800 mb-3" style="font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.2;">
-                Yapılacak şeyleri keşfedin ve<br>
+@php
+$heroImage = public_path('images/b2c-hero.jpg');
+$hasHeroImage = file_exists($heroImage);
+$heroStyle = $hasHeroImage
+    ? 'style="--hero-bg: url(\'' . asset('images/b2c-hero.jpg') . '\')"'
+    : '';
+@endphp
+<section class="grt-hero py-0 {{ $hasHeroImage ? 'has-image' : '' }}" {!! $heroStyle !!}>
+    <div class="container hero-inner pb-4">
+        <div class="text-center mb-4 pt-2">
+            <h1 class="text-white fw-800 mb-3" style="font-size:clamp(1.7rem,4vw,2.6rem);line-height:1.2;">
+                Keşfedin, karşılaştırın,<br>
                 <span style="color:var(--gr-accent);">rezervasyon yapın</span>
             </h1>
         </div>
@@ -209,7 +253,7 @@
         </form>
 
         {{-- Popüler aramalar --}}
-        <div class="text-center mt-3">
+        <div class="text-center mt-3 mb-4">
             <span style="color:rgba(255,255,255,.55);font-size:.85rem;">Popüler:</span>
             @foreach(['İstanbul Dinner Cruise','Kapadokya Turu','Özel Jet','Yat Kiralama','Havalimanı Transferi'] as $tag)
             <a href="{{ route('b2c.catalog.index', ['q' => $tag]) }}"
@@ -218,6 +262,94 @@
                 {{ $tag }}
             </a>
             @endforeach
+        </div>
+
+        {{-- Hero Featured Cards --}}
+        @php
+        $heroCards = $featuredItems->isNotEmpty()
+            ? $featuredItems->take(2)
+            : collect([
+                (object)[
+                    'title'           => 'İstanbul: Türk Gecesi Gösterisi ile Boğazda Akşam Yemeği Gezisi',
+                    'product_type'    => 'leisure',
+                    'duration_hours'  => 3,
+                    'cover_image'     => null,
+                    'rating_avg'      => 4.6,
+                    'review_count'    => 2040,
+                    'base_price'      => 1284,
+                    'currency'        => 'TRY',
+                    'pricing_type'    => 'fixed',
+                    'slug'            => 'dinner-cruise',
+                    'destination_city'=> 'İstanbul',
+                ],
+                (object)[
+                    'title'           => 'İstanbul: Üst Açık Otobüsle Şehir Turu & Panoramik Boğaz Gezisi',
+                    'product_type'    => 'tour',
+                    'duration_hours'  => 4,
+                    'cover_image'     => null,
+                    'rating_avg'      => 4.3,
+                    'review_count'    => 890,
+                    'base_price'      => 650,
+                    'currency'        => 'TRY',
+                    'pricing_type'    => 'fixed',
+                    'slug'            => 'istanbul-sehir-turu',
+                    'destination_city'=> 'İstanbul',
+                ],
+            ]);
+        $typeIcons = ['transfer'=>'bi-car-front-fill','charter'=>'bi-airplane-fill','leisure'=>'bi-water','tour'=>'bi-map-fill','hotel'=>'bi-building','visa'=>'bi-passport','other'=>'bi-grid'];
+        @endphp
+
+        <div style="max-width:780px;margin:0 auto;">
+            <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:.6rem;font-weight:500;">
+                <i class="bi bi-clock-history me-1"></i>Öne Çıkan Deneyimler
+            </div>
+            <div class="row g-2">
+                @foreach($heroCards as $hc)
+                @php
+                $hcIcon = $typeIcons[$hc->product_type] ?? 'bi-grid';
+                $hcSlug = $hc->slug ?? 'dinner-cruise';
+                $hcRating = $hc->rating_avg ?? 0;
+                $hcReviews = $hc->review_count ?? 0;
+                $hcPrice = $hc->base_price ?? 0;
+                $hcHours = $hc->duration_hours ?? null;
+                $hcCity = $hc->destination_city ?? '';
+                @endphp
+                <div class="col-md-6">
+                    <a href="{{ route('b2c.product.show', $hcSlug) }}" class="grt-hero-card">
+                        @if(isset($hc->cover_image) && $hc->cover_image)
+                            <img src="{{ asset('storage/'.$hc->cover_image) }}" class="hc-img" alt="{{ $hc->title }}">
+                        @else
+                            <div class="hc-img"><i class="bi {{ $hcIcon }}"></i></div>
+                        @endif
+                        <div class="hc-body">
+                            <div class="hc-title">{{ $hc->title }}</div>
+                            <div class="hc-meta">
+                                Sıra beklemeden giriş
+                                @if($hcHours) · {{ $hcHours }} saat @endif
+                                @if($hcCity) · {{ $hcCity }} @endif
+                            </div>
+                            @if($hcRating > 0)
+                            <div class="hc-rating">
+                                <span class="hc-stars">
+                                    @for($s=1;$s<=5;$s++)
+                                        @if($s <= floor($hcRating))★@elseif($s - $hcRating < 1)½@else☆@endif
+                                    @endfor
+                                </span>
+                                <span class="hc-score">{{ number_format($hcRating,1) }}</span>
+                                @if($hcReviews > 0)
+                                <span class="hc-rcount">({{ number_format($hcReviews, 0, ',', '.') }})</span>
+                                @endif
+                            </div>
+                            @endif
+                            @if($hcPrice > 0)
+                            <div class="hc-price-label">Başlangıç fiyatı</div>
+                            <div class="hc-price">{{ number_format($hcPrice, 0, ',', '.') }} {{ $hc->currency ?? 'TRY' }}</div>
+                            @endif
+                        </div>
+                    </a>
+                </div>
+                @endforeach
+            </div>
         </div>
     </div>
 </section>
