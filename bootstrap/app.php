@@ -16,12 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
-        then: function () {
-            // B2C route'ları her istekte yüklenir; DomainRouter middleware'i
-            // runtime'da hangi route'ların aktif olacağını kontrol eder.
-            Route::middleware('web')
-                ->group(base_path('routes/b2c.php'));
-        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

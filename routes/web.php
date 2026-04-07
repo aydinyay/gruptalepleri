@@ -325,7 +325,7 @@ Route::get('/', function () {
     ];
 
     return view('welcome', compact('stats', 'sirket'));
-})->name('b2c.home');
+});
 
 // SEO odakli landing sayfasi (public)
 Route::get('/grup-talepleri', function () {
@@ -1160,3 +1160,6 @@ Route::post('/abonelik/misafir-iptal/{token}',      [\App\Http\Controllers\Email
 Route::post('/abonelik/misafir-baslat/{token}',     [\App\Http\Controllers\EmailAboneController::class, 'baslatOnayla'])->name('abone.baslat.onayla');
 
 require __DIR__.'/auth.php';
+
+// B2C route'ları web.php'den SONRA yüklenir — sıra sorunu bu şekilde çözülür
+require __DIR__.'/b2c.php';
