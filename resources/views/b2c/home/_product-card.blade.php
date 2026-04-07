@@ -1,87 +1,96 @@
-{{--
-    B2C Ürün Kartı — Partial
-    Kullanım: @include('b2c.home._product-card', ['item' => $item])
---}}
-<div class="gr-card h-100 bg-white">
-    {{-- Görsel --}}
-    <div style="position:relative;overflow:hidden;height:200px;">
+@php
+$typeIcons = [
+    'transfer'  => 'bi-car-front-fill',
+    'charter'   => 'bi-airplane-fill',
+    'leisure'   => 'bi-water',
+    'tour'      => 'bi-map-fill',
+    'hotel'     => 'bi-building',
+    'visa'      => 'bi-passport',
+    'other'     => 'bi-grid',
+];
+$typeLabels = [
+    'transfer'  => 'Transfer',
+    'charter'   => 'Charter & Uçuş',
+    'leisure'   => 'Deniz & Eğlence',
+    'tour'      => 'Tur',
+    'hotel'     => 'Otel',
+    'visa'      => 'Vize',
+    'other'     => 'Diğer',
+];
+$typeColors = [
+    'transfer'  => 'linear-gradient(135deg,#1a3c6b,#2a5298)',
+    'charter'   => 'linear-gradient(135deg,#0c3547,#1a6b8a)',
+    'leisure'   => 'linear-gradient(135deg,#0e4d6b,#1a7a8a)',
+    'tour'      => 'linear-gradient(135deg,#1e4d1e,#2d7a2d)',
+    'hotel'     => 'linear-gradient(135deg,#4d1e1e,#8a2d2d)',
+    'visa'      => 'linear-gradient(135deg,#3d1a6b,#6b2a8a)',
+    'other'     => 'linear-gradient(135deg,#1a3c6b,#2a5298)',
+];
+$icon  = $typeIcons[$item->product_type]  ?? 'bi-grid';
+$label = $typeLabels[$item->product_type] ?? 'Hizmet';
+$bg    = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,#2a5298)';
+@endphp
+
+<a href="{{ route('b2c.product.show', $item->slug) }}" class="grt-product-card">
+    <div class="position-relative">
         @if($item->cover_image)
             <img src="{{ asset('storage/' . $item->cover_image) }}"
-                 alt="{{ $item->title }}"
-                 style="width:100%;height:100%;object-fit:cover;">
+                 alt="{{ $item->title }}" class="card-img">
         @else
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--gr-primary),#2a5298);display:flex;align-items:center;justify-content:center;">
-                <i class="bi bi-image text-white" style="font-size:2.5rem;opacity:.4;"></i>
+            <div class="card-img-placeholder" style="background: {{ $bg }};">
+                <i class="bi {{ $icon }}"></i>
             </div>
         @endif
 
-        {{-- Ürün tipi rozeti --}}
-        <span class="badge-type" style="position:absolute;top:12px;left:12px;">
-            {{ match($item->product_type) {
-                'transfer' => 'Transfer',
-                'charter'  => 'Charter',
-                'leisure'  => 'Deniz & Eğlence',
-                'tour'     => 'Tur Paketi',
-                'hotel'    => 'Konaklama',
-                'visa'     => 'Vize',
-                default    => 'Hizmet',
-            } }}
-        </span>
-
-        {{-- Öne çıkan rozeti --}}
-        @if($item->is_featured)
-        <span style="position:absolute;top:12px;right:12px;background:var(--gr-accent);color:#fff;font-size:.72rem;font-weight:600;padding:.25rem .6rem;border-radius:4px;">
-            <i class="bi bi-star-fill me-1"></i>Öne Çıkan
-        </span>
-        @endif
-    </div>
-
-    {{-- İçerik --}}
-    <div class="card-body p-3 d-flex flex-column">
-        {{-- Destinasyon --}}
-        @if($item->destination_city)
-        <div style="font-size:.8rem;color:var(--gr-muted);" class="mb-1">
-            <i class="bi bi-geo-alt me-1"></i>{{ $item->destination_city }}
-            @if($item->destination_country) · {{ $item->destination_country }} @endif
-        </div>
-        @endif
-
-        <h5 class="fw-700 mb-1" style="font-size:.97rem;color:var(--gr-text);">{{ $item->title }}</h5>
-
-        @if($item->short_desc)
-        <p style="font-size:.84rem;color:var(--gr-muted);" class="mb-2 flex-grow-1">
-            {{ Str::limit($item->short_desc, 90) }}
-        </p>
-        @else
-        <div class="flex-grow-1"></div>
-        @endif
-
-        {{-- Süre --}}
-        @if($item->duration_days || $item->duration_hours)
-        <div style="font-size:.8rem;color:var(--gr-muted);" class="mb-2">
-            <i class="bi bi-clock me-1"></i>
-            @if($item->duration_days) {{ $item->duration_days }} gün @endif
-            @if($item->duration_hours) {{ $item->duration_hours }} saat @endif
-        </div>
-        @endif
-
-        {{-- Fiyat ve CTA --}}
-        <div class="d-flex justify-content-between align-items-center mt-auto pt-2"
-             style="border-top:1px solid var(--gr-border);">
-            <div>
-                @if($item->base_price && $item->pricing_type === 'fixed')
-                    <div class="pricing-label">Başlangıç fiyatı</div>
-                    <div class="price-value">{{ $item->formatted_price }}</div>
-                @elseif($item->pricing_type === 'quote')
-                    <div class="price-value" style="font-size:1rem;">Fiyat sorunuz</div>
-                @else
-                    <div class="price-value" style="font-size:1rem;">Talep oluşturun</div>
-                @endif
-            </div>
-            <a href="{{ route('b2c.product.show', $item->slug) }}"
-               class="btn btn-sm btn-gr-primary px-3">
-                {{ $item->pricing_label }} <i class="bi bi-arrow-right ms-1"></i>
-            </a>
+        <div class="img-overlay">
+            @if($item->destination_city)
+            <span style="color:rgba(255,255,255,.85);font-size:.78rem;">
+                <i class="bi bi-geo-alt-fill me-1"></i>{{ $item->destination_city }}
+            </span>
+            @else
+            <span></span>
+            @endif
+            @if($item->is_featured)
+            <span class="badge" style="background:var(--gr-accent);font-size:.72rem;">Öne Çıkan</span>
+            @endif
         </div>
     </div>
-</div>
+
+    <div class="card-body-grt">
+        <div class="card-cat-badge">
+            <i class="bi {{ $icon }}"></i>{{ $label }}
+            @if($item->duration_hours || $item->duration_days)
+            &nbsp;·&nbsp;
+            @if($item->duration_days) {{ $item->duration_days }} gün
+            @elseif($item->duration_hours) {{ $item->duration_hours }} saat
+            @endif
+            @endif
+        </div>
+
+        <div class="card-title-grt">{{ $item->title }}</div>
+
+        <div class="d-flex justify-content-between align-items-end mt-2">
+            @if($item->pricing_type === 'fixed' && $item->base_price)
+                <div>
+                    <div class="card-price-label">kişi başı itibaren</div>
+                    <div class="card-price">
+                        {{ number_format($item->base_price, 0, ',', '.') }}
+                        <span style="font-size:.8rem;font-weight:500;">{{ $item->currency ?? 'TL' }}</span>
+                    </div>
+                </div>
+            @elseif($item->pricing_type === 'quote')
+                <div>
+                    <div class="card-price-label">Fiyat için</div>
+                    <div class="card-cta">Teklif Alın <i class="bi bi-arrow-right"></i></div>
+                </div>
+            @else
+                <div>
+                    <div class="card-price-label">Talep üzerine</div>
+                    <div class="card-cta">Bilgi Alın <i class="bi bi-arrow-right"></i></div>
+                </div>
+            @endif
+
+            <i class="bi bi-heart" style="color:var(--gr-muted);font-size:1.1rem;"></i>
+        </div>
+    </div>
+</a>
