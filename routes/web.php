@@ -64,6 +64,17 @@ Route::get('/migrate-run-2026', function () {
             $lines[] = 'seed: izin verilmeyen seeder: ' . $seedClass;
         }
     }
+    // Kaynak dosya içeriği kontrol
+    if (request('debug') === 'src') {
+        $f = resource_path('views/b2c/home/index.blade.php');
+        $lines2 = file($f);
+        $snippet = '';
+        for ($i = 370; $i <= 382; $i++) {
+            $snippet .= ($i+1) . ': ' . ($lines2[$i] ?? '');
+        }
+        return response("FILE_MTIME: " . date('Y-m-d H:i:s', filemtime($f)) . "\n" . $snippet, 200)->header('Content-Type', 'text/plain');
+    }
+
     // B2C hata testi
     if (request('debug') === 'b2c') {
         try {
