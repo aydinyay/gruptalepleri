@@ -102,6 +102,7 @@
 @endpush
 
 @section('content')
+
 <div class="auth-wrap">
 
     {{-- Sol panel: marka --}}
@@ -185,8 +186,8 @@
                 <button type="submit" class="auth-submit">Ücretsiz Kayıt Ol</button>
 
                 <p style="text-align:center;font-size:.78rem;color:#a0aec0;margin:12px 0 0;">
-                    Kayıt olarak <a href="{{ route('b2c.static.kvkk') }}" target="_blank" style="color:#718096;">Gizlilik Politikası</a>'nı
-                    ve <a href="{{ route('b2c.static.mesafeli-satis') }}" target="_blank" style="color:#718096;">Kullanım Koşulları</a>'nı kabul etmiş olursunuz.
+                    Kayıt olarak <a href="{{ route('b2c.kvkk') }}" target="_blank" style="color:#718096;">Gizlilik Politikası</a>'nı
+                    ve <a href="{{ route('b2c.mesafeli-satis') }}" target="_blank" style="color:#718096;">Kullanım Koşulları</a>'nı kabul etmiş olursunuz.
                 </p>
             </form>
 
