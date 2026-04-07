@@ -416,43 +416,58 @@ $heroStyle = $hasHeroImage
             @endforeach
         </div>
         @else
-        {{-- Placeholder kartlar (henüz ürün eklenmemiş) --}}
+        {{-- Placeholder kartlar — DB'ye ürün eklenince bunlar kaybolur --}}
+        @php
+        $sampleCards = [
+            ['icon'=>'bi-water',       'cat'=>'Dinner Cruise',     'city'=>'İstanbul', 'slug'=>'dinner-cruise',   'title'=>'İstanbul: Türk Gecesi Gösterisi ile Boğazda Akşam Yemeği', 'price'=>1284, 'hours'=>3,  'rating'=>4.6, 'reviews'=>2040, 'quote'=>false, 'color'=>0],
+            ['icon'=>'bi-airplane',    'cat'=>'Charter & Uçuş',   'city'=>'İstanbul', 'slug'=>'ozel-jet',        'title'=>'İstanbul - Antalya Özel Jet Kiralama',                      'price'=>0,    'hours'=>2,  'rating'=>4.8, 'reviews'=>137,  'quote'=>true,  'color'=>1],
+            ['icon'=>'bi-tsunami',     'cat'=>'Yat Kiralama',      'city'=>'Bodrum',   'slug'=>'yat-kiralama',    'title'=>'Bodrum: Günlük Özel Yat Turu & Mavi Yolculuk',              'price'=>850,  'hours'=>8,  'rating'=>4.9, 'reviews'=>523,  'quote'=>false, 'color'=>2],
+            ['icon'=>'bi-map-fill',    'cat'=>'Tur',               'city'=>'Nevşehir', 'slug'=>'yurt-ici-turlar', 'title'=>'Kapadokya: Gün Doğarken Sıcak Hava Balonu Uçuşu',          'price'=>5351, 'hours'=>3,  'rating'=>5.0, 'reviews'=>5045, 'quote'=>false, 'color'=>3],
+        ];
+        @endphp
         <div class="row g-3">
-            @foreach([
-                ['bi-water','Dinner Cruise','İstanbul','dinner-cruise','Akşam Yemeği & Boğaz Turu','350'],
-                ['bi-airplane','Özel Jet Kiralama','İstanbul','ozel-jet','İstanbul - Antalya Özel Uçuş','quote'],
-                ['bi-tsunami','Yat Kiralama','Bodrum','yat-kiralama','Bodrum Günlük Yat Turu','850'],
-                ['bi-map','Kapadokya Turu','Nevşehir','yurt-ici-turlar','2 Gece 3 Gün Kapadokya','2400'],
-            ] as $i => $p)
+            @foreach($sampleCards as $p)
             <div class="col-sm-6 col-lg-3">
-                <a href="{{ route('b2c.catalog.category', $p[3]) }}" class="grt-product-card">
+                <a href="{{ route('b2c.catalog.category', $p['slug']) }}" class="grt-product-card">
                     <div class="position-relative">
-                        <div class="card-img-placeholder dest-color-{{ $i }}">
-                            <i class="bi {{ $p[0] }}"></i>
+                        <div class="card-img-placeholder dest-color-{{ $p['color'] }}">
+                            <i class="bi {{ $p['icon'] }}"></i>
                         </div>
                         <div class="img-overlay">
-                            <span style="color:rgba(255,255,255,.8);font-size:.78rem;">
-                                <i class="bi bi-geo-alt-fill me-1"></i>{{ $p[2] }}
+                            <span style="color:rgba(255,255,255,.85);font-size:.78rem;">
+                                <i class="bi bi-geo-alt-fill me-1"></i>{{ $p['city'] }}
                             </span>
                         </div>
                     </div>
                     <div class="card-body-grt">
                         <div class="card-cat-badge">
-                            <i class="bi {{ $p[0] }}"></i>{{ $p[1] }}
+                            <i class="bi {{ $p['icon'] }}"></i>{{ $p['cat'] }}
+                            &nbsp;·&nbsp;{{ $p['hours'] }} saat
                         </div>
-                        <div class="card-title-grt">{{ $p[4] }}</div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            @if($p[5] === 'quote')
+                        <div class="card-title-grt">{{ $p['title'] }}</div>
+
+                        {{-- Yıldız puanlaması --}}
+                        <div class="d-flex align-items-center gap-1 mb-2" style="font-size:.82rem;">
+                            <span style="color:#f4a418;">
+                                @for($s=1;$s<=5;$s++){{ $s <= round($p['rating']) ? '★' : '☆' }}@endfor
+                            </span>
+                            <span style="font-weight:700;color:#2d3748;">{{ $p['rating'] }}</span>
+                            <span style="color:#718096;">({{ number_format($p['reviews'],0,',','.') }})</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-end">
+                            @if($p['quote'])
                             <div>
-                                <div class="card-price-label">Başlangıç fiyatı</div>
+                                <div class="card-price-label">Fiyat için</div>
                                 <div class="card-cta">Teklif Alın <i class="bi bi-arrow-right"></i></div>
                             </div>
                             @else
                             <div>
-                                <div class="card-price-label">kişi başı itibaren</div>
-                                <div class="card-price">{{ number_format($p[5]) }} TL</div>
+                                <div class="card-price-label">Başlangıç fiyatı</div>
+                                <div class="card-price">{{ number_format($p['price'],0,',','.') }} TRY</div>
                             </div>
                             @endif
+                            <i class="bi bi-heart" style="color:#718096;font-size:1.1rem;"></i>
                         </div>
                     </div>
                 </a>
