@@ -35,27 +35,34 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
+        // Hero kartları — öne çıkan ilk 2
+        $heroItems = $featuredItems->take(2);
+
         // Destinasyonlar — hangi şehirlerde ürün var
-        $destinations = CatalogItem::published()
+        $destinationCities = CatalogItem::published()
             ->whereNotNull('destination_city')
-            ->selectRaw('destination_city, destination_country, COUNT(*) as item_count')
-            ->groupBy('destination_city', 'destination_country')
-            ->orderByDesc('item_count')
-            ->limit(6)
+            ->selectRaw('destination_city, COUNT(*) as cnt')
+            ->groupBy('destination_city')
+            ->orderByDesc('cnt')
+            ->limit(5)
             ->get();
 
-        // Son blog yazıları (mevcut tablo — scopeYayinda: durum='yayinda' ve yayinlanma_tarihi <= now())
-        $blogPosts = BlogYazisi::yayinda()
-            ->with('kategori')
-            ->latest('yayinlanma_tarihi')
-            ->limit(3)
-            ->get();
+        // Son blog yazıları
+        try {
+            $blogPosts = BlogYazisi::yayinda()
+                ->latest('yayinlanma_tarihi')
+                ->limit(3)
+                ->get();
+        } catch (\Exception $e) {
+            $blogPosts = collect();
+        }
 
         return view('b2c.home.index', compact(
             'categories',
             'featuredItems',
+            'heroItems',
             'latestItems',
-            'destinations',
+            'destinationCities',
             'blogPosts',
         ));
     }
