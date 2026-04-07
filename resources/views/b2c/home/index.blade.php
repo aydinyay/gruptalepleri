@@ -14,12 +14,16 @@
     display: flex;
     align-items: center;
     overflow: hidden;
-    background: linear-gradient(135deg, #0f2444 0%, #1a3c6b 50%, #1e4d8c 100%);
+    background: {{ $heroBgColor }};
 }
 .gyg-hero-bg {
     position: absolute;
     inset: 0;
+    @if($heroBgImage)
+    background-image: url('{{ $heroBgImage }}');
+    @else
     background-image: url('{{ asset("images/b2c-hero.jpg") }}');
+    @endif
     background-size: cover;
     background-position: center;
     opacity: .35;
@@ -175,30 +179,42 @@
 /* Hero öne çıkan kartlar */
 .gyg-hero-cards {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     justify-content: center;
     margin-top: 2.5rem;
     flex-wrap: wrap;
 }
 .gyg-hero-card {
-    background: rgba(255,255,255,.12);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 16px;
-    padding: 16px;
-    width: 260px;
+    background: #fff;
+    border-radius: 12px;
+    width: 500px;
+    max-width: calc(50% - 8px);
     text-align: left;
     text-decoration: none;
-    transition: transform .2s, background .2s;
-    color: #fff;
+    transition: transform .2s, box-shadow .2s;
+    color: #1a202c;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
 }
-.gyg-hero-card:hover { transform: translateY(-4px); background: rgba(255,255,255,.2); color: #fff; }
-.gyg-hero-card .hc-cat { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .75; margin-bottom: 6px; }
-.gyg-hero-card .hc-title { font-weight: 700; font-size: .92rem; line-height: 1.4; margin-bottom: 8px; }
-.gyg-hero-card .hc-meta { font-size: .78rem; opacity: .75; margin-bottom: 8px; }
-.gyg-hero-card .hc-stars { color: #f4a418; font-size: .85rem; }
-.gyg-hero-card .hc-price { font-weight: 800; font-size: 1.1rem; }
-.gyg-hero-card .hc-price-label { font-size: .72rem; opacity: .75; }
+.gyg-hero-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.25); color: #1a202c; }
+.gyg-hero-card .hc-img {
+    width: 150px;
+    min-width: 150px;
+    background: #e8eef5 center/cover no-repeat;
+    flex-shrink: 0;
+}
+.gyg-hero-card .hc-body { padding: 14px 16px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.gyg-hero-card .hc-cat { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #718096; margin-bottom: 5px; }
+.gyg-hero-card .hc-title { font-weight: 700; font-size: .9rem; line-height: 1.4; margin-bottom: 6px; color: #1a202c; }
+.gyg-hero-card .hc-meta { font-size: .78rem; color: #718096; margin-bottom: 8px; }
+.gyg-hero-card .hc-stars { color: #f4a418; font-size: .82rem; }
+.gyg-hero-card .hc-price { font-weight: 800; font-size: 1.05rem; color: #1a202c; }
+.gyg-hero-card .hc-price-label { font-size: .7rem; color: #718096; }
+@@media (max-width: 680px) {
+    .gyg-hero-card { max-width: 100%; width: 100%; }
+    .gyg-hero-card .hc-img { width: 110px; min-width: 110px; }
+}
 
 /* ═══════════════════════════════════════════════════════
    KATEGORİ PILLS — sticky
@@ -427,28 +443,38 @@
         @endphp
         <div class="gyg-hero-cards">
             @foreach($heroDisplay as $hi)
+            @php
+                $hiImg = isset($hi->cover_image) && $hi->cover_image
+                    ? (str_starts_with($hi->cover_image, 'http') ? $hi->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $hi->cover_image)
+                    : null;
+            @endphp
             <a href="{{ route('b2c.product.show', $hi->slug) }}" class="gyg-hero-card">
-                <div class="hc-cat">{{ optional($hi->category)->name ?? ucfirst($hi->product_type) }}</div>
-                <div class="hc-title">{{ Str::limit($hi->title, 55) }}</div>
-                <div class="hc-meta">
-                    @if($hi->duration_hours) {{ $hi->duration_hours }} saat · @endif
-                    {{ $hi->destination_city ?? 'Türkiye' }}
+                <div class="hc-img" @if($hiImg) style="background-image:url('{{ $hiImg }}')" @endif></div>
+                <div class="hc-body">
+                    <div>
+                        <div class="hc-cat">{{ optional($hi->category)->name ?? ucfirst($hi->product_type) }}</div>
+                        <div class="hc-title">{{ Str::limit($hi->title, 60) }}</div>
+                        <div class="hc-meta">
+                            @if($hi->duration_hours) {{ $hi->duration_hours }} saat · @endif
+                            {{ $hi->destination_city ?? 'Türkiye' }}
+                        </div>
+                        @if($hi->rating_avg > 0)
+                        <div style="margin-bottom:6px;">
+                            <span class="hc-stars">{!! str_repeat('★', (int)floor($hi->rating_avg)) !!}</span>
+                            <span style="font-size:.82rem;font-weight:700;color:#1a202c;"> {{ number_format($hi->rating_avg,1) }}</span>
+                            @if($hi->review_count > 0)<span style="font-size:.75rem;color:#718096;"> ({{ number_format($hi->review_count,0,',','.') }})</span>@endif
+                        </div>
+                        @endif
+                    </div>
+                    <div>
+                        <div class="hc-price-label">Başlangıç fiyatı</div>
+                        @if($hi->pricing_type === 'fixed' && $hi->base_price)
+                            <div class="hc-price">{{ number_format($hi->base_price,0,',','.') }} {{ $hi->currency }}</div>
+                        @else
+                            <div class="hc-price" style="font-size:.9rem;">Fiyat Al</div>
+                        @endif
+                    </div>
                 </div>
-                @if($hi->rating_avg > 0)
-                <div class="mb-1">
-                    <span class="hc-stars">
-                        {!! str_repeat('★', (int)floor($hi->rating_avg)) . ($hi->rating_avg - floor($hi->rating_avg) >= 0.5 ? '★' : '') . str_repeat('☆', 5 - (int)ceil($hi->rating_avg)) !!}
-                    </span>
-                    <span style="font-size:.82rem;font-weight:700;"> {{ number_format($hi->rating_avg,1) }}</span>
-                    @if($hi->review_count > 0)<span style="font-size:.78rem;opacity:.75;">({{ number_format($hi->review_count,0,',','.') }})</span>@endif
-                </div>
-                @endif
-                <div class="hc-price-label">Başlangıç fiyatı</div>
-                @if($hi->pricing_type === 'fixed' && $hi->base_price)
-                    <div class="hc-price">{{ number_format($hi->base_price,0,',','.') }} {{ $hi->currency }}</div>
-                @else
-                    <div class="hc-price" style="font-size:.9rem;font-weight:600;">Fiyat Al</div>
-                @endif
             </a>
             @endforeach
         </div>

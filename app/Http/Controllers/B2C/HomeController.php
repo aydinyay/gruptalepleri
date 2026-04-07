@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
 use App\Models\BlogYazisi;
+use App\Models\SistemAyar;
 
 class HomeController extends Controller
 {
@@ -57,6 +58,9 @@ class HomeController extends Controller
             $blogPosts = collect();
         }
 
+        $heroBgColor = SistemAyar::get('b2c_hero_bg_color', 'linear-gradient(135deg, #0f2444 0%, #1a3c6b 50%, #1e4d8c 100%)');
+        $heroBgImage = SistemAyar::get('b2c_hero_bg_image', '');
+
         return view('b2c.home.index', compact(
             'categories',
             'featuredItems',
@@ -64,6 +68,8 @@ class HomeController extends Controller
             'latestItems',
             'destinationCities',
             'blogPosts',
+            'heroBgColor',
+            'heroBgImage',
         ));
     }
 }
