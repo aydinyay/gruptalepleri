@@ -13,7 +13,7 @@ class CatalogController extends Controller
     {
         $categories = CatalogCategory::active()->rootCategories()->ordered()->get();
 
-        $query = CatalogItem::published()->with('category')->ordered();
+        $query = CatalogItem::published()->with('category');
 
         if ($type = $request->get('tip')) {
             $query->where('product_type', $type);
@@ -24,6 +24,15 @@ class CatalogController extends Controller
         if ($pricing = $request->get('fiyat')) {
             $query->where('pricing_type', $pricing);
         }
+        if ($q = trim($request->get('q', ''))) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('title', 'like', "%{$q}%")
+                    ->orWhere('destination_city', 'like', "%{$q}%")
+                    ->orWhere('short_desc', 'like', "%{$q}%");
+            });
+        }
+
+        $this->applySorting($query, $request->get('sirala'));
 
         $items = $query->paginate(12)->withQueryString();
 
@@ -37,32 +46,50 @@ class CatalogController extends Controller
         return view('b2c.catalog.index', compact('categories', 'items', 'cities'));
     }
 
-    public function category(string $slug)
+    public function category(Request $request, string $slug)
     {
         $category = CatalogCategory::where('slug', $slug)->where('is_active', true)->firstOrFail();
 
-        $items = CatalogItem::published()
+        $query = CatalogItem::published()
             ->where('category_id', $category->id)
-            ->with('category')
-            ->ordered()
-            ->paginate(12);
+            ->with('category');
+
+        $this->applySorting($query, $request->get('sirala'));
+
+        $items = $query->paginate(12)->withQueryString();
 
         $subcategories = $category->children()->active()->ordered()->withCount(['publishedItems'])->get();
 
         return view('b2c.catalog.category', compact('category', 'items', 'subcategories'));
     }
 
-    public function destination(string $slug)
+    public function destination(Request $request, string $slug)
     {
-        // slug'ı okunabilir şehir adına çevir
         $city = str_replace('-', ' ', $slug);
 
-        $items = CatalogItem::published()
+        $query = CatalogItem::published()
             ->whereRaw('LOWER(destination_city) LIKE ?', [strtolower($city) . '%'])
-            ->with('category')
-            ->ordered()
-            ->paginate(12);
+            ->with('category');
+
+        if ($type = $request->get('tip')) {
+            $query->where('product_type', $type);
+        }
+
+        $this->applySorting($query, $request->get('sirala'));
+
+        $items = $query->paginate(12)->withQueryString();
 
         return view('b2c.catalog.destination', compact('city', 'items', 'slug'));
+    }
+
+    private function applySorting($query, ?string $sort): void
+    {
+        match ($sort) {
+            'puan'    => $query->orderByDesc('rating_avg')->orderByDesc('review_count'),
+            'fiyat_a' => $query->orderBy('base_price'),
+            'fiyat_d' => $query->orderByDesc('base_price'),
+            'yeni'    => $query->latest(),
+            default   => $query->ordered(),
+        };
     }
 }
