@@ -127,7 +127,18 @@ Route::get('/migrate-run-2026', function () {
         } catch (\Throwable $e) {
             $lines[] = 'b2c_product ERROR: ' . $e->getMessage();
             $lines[] = 'FILE: ' . $e->getFile() . ':' . $e->getLine();
-            $lines[] = 'TRACE: ' . implode("\n", array_slice(explode("\n", $e->getTraceAsString()), 0, 10));
+            $compiledFile = $e->getFile();
+            if (file_exists($compiledFile)) {
+                $compiledLines = file($compiledFile);
+                $errLine = $e->getLine();
+                $start = max(0, $errLine - 20);
+                $end   = min(count($compiledLines), $errLine + 3);
+                $snippet = '';
+                for ($i = $start; $i < $end; $i++) {
+                    $snippet .= ($i+1) . ': ' . $compiledLines[$i];
+                }
+                $lines[] = 'COMPILED SNIPPET:' . "\n" . $snippet;
+            }
         }
     }
 
