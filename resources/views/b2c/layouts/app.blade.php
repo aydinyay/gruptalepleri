@@ -290,6 +290,59 @@
         }
         .gyg-cta-btn:hover { background: #e04420; color: #fff !important; }
 
+        /* ── Profil Dropdown (GYG stili) ── */
+        .gyg-profile-wrap { position: relative; }
+        .gyg-profile-panel {
+            display: none;
+            position: absolute;
+            top: calc(var(--nav-height) - 4px);
+            right: 0;
+            width: 280px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.15);
+            border: 1px solid #e5e5e5;
+            z-index: 1100;
+            overflow: hidden;
+        }
+        .gyg-profile-wrap.open .gyg-profile-panel { display: block; }
+        .gyg-profile-panel .pp-title {
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 16px 20px 8px;
+            color: #1a202c;
+        }
+        .gyg-profile-panel .pp-login-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            text-decoration: none;
+            color: #1a202c;
+            transition: background .15s;
+        }
+        .gyg-profile-panel .pp-login-row:hover { background: #f8f9fc; }
+        .gyg-profile-panel .pp-login-row i { font-size: 1.3rem; color: #4a5568; }
+        .gyg-profile-panel .pp-login-row span { font-size: .93rem; font-weight: 500; }
+        .gyg-profile-panel .pp-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            font-size: .9rem;
+            color: #1a202c;
+            text-decoration: none;
+            border-bottom: 1px solid #f7f7f7;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .gyg-profile-panel .pp-row:hover { background: #f8f9fc; }
+        .gyg-profile-panel .pp-row .pp-left { display: flex; align-items: center; gap: 12px; }
+        .gyg-profile-panel .pp-row i.pp-icon { font-size: 1.1rem; color: #4a5568; }
+        .gyg-profile-panel .pp-row .pp-right { display: flex; align-items: center; gap: 6px; color: #718096; font-size: .82rem; }
+        .gyg-profile-panel .pp-row .pp-right i { font-size: .75rem; }
+
         /* ── Mobil hamburger ── */
         .gyg-hamburger {
             display: none;
@@ -604,18 +657,71 @@
                 <i class="bi bi-globe"></i>
                 <span>TR / TRY ₺</span>
             </button>
-            {{-- Profil --}}
-            @auth('b2c')
-                <a href="{{ route('b2c.account.index') }}" class="gyg-icon-btn" title="Hesabım">
-                    <i class="bi bi-person-circle"></i>
-                    <span>Profilim</span>
-                </a>
-            @else
-                <a href="{{ route('b2c.auth.login') }}" class="gyg-icon-btn" title="Giriş Yap">
-                    <i class="bi bi-person"></i>
+            {{-- Profil Dropdown (GYG stili) --}}
+            <div class="gyg-profile-wrap" id="gygProfileWrap">
+                <button class="gyg-icon-btn" id="gygProfileBtn" type="button">
+                    @auth('b2c')
+                        <i class="bi bi-person-circle"></i>
+                    @else
+                        <i class="bi bi-person"></i>
+                    @endauth
                     <span>Profil</span>
-                </a>
-            @endauth
+                </button>
+                <div class="gyg-profile-panel" id="gygProfilePanel">
+                    <div class="pp-title">Profil</div>
+                    @auth('b2c')
+                        <a href="{{ route('b2c.account.index') }}" class="pp-login-row">
+                            <i class="bi bi-person-circle"></i>
+                            <div>
+                                <div style="font-weight:600;font-size:.93rem;">{{ auth('b2c')->user()->name }}</div>
+                                <div style="font-size:.8rem;color:#718096;">Hesabıma Git</div>
+                            </div>
+                        </a>
+                        <a href="{{ route('b2c.account.orders.index') }}" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-bag pp-icon"></i> Siparişlerim</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                        <a href="{{ route('b2c.account.profile.edit') }}" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-pencil pp-icon"></i> Profil Düzenle</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                        <a href="{{ route('b2c.iletisim') }}" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-headset pp-icon"></i> Destek</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                        <form action="{{ route('b2c.auth.logout') }}" method="POST" style="padding:10px 20px 14px;border-top:1px solid #f0f0f0;">
+                            @csrf
+                            <button type="submit" style="background:none;border:none;color:#e53e3e;font-size:.9rem;cursor:pointer;padding:0;width:100%;text-align:left;display:flex;align-items:center;gap:10px;">
+                                <i class="bi bi-box-arrow-right" style="font-size:1.1rem;"></i> Çıkış Yap
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('b2c.auth.login') }}" class="pp-login-row">
+                            <i class="bi bi-person-circle"></i>
+                            <div>
+                                <div style="font-weight:600;font-size:.93rem;">Oturum açın veya kaydolun</div>
+                                <div style="font-size:.8rem;color:#718096;">Rezervasyonlarınıza erişin</div>
+                            </div>
+                        </a>
+                        <a href="#" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-bell pp-icon"></i> Güncellemeler</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                        <a href="#" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-sun pp-icon"></i> Görünüm</div>
+                            <div class="pp-right"><span style="font-size:.8rem;">Her zaman aydınlık</span><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                        <a href="{{ route('b2c.iletisim') }}" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-headset pp-icon"></i> Destek</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                        <a href="#" class="pp-row" style="border-bottom:none;">
+                            <div class="pp-left"><i class="bi bi-phone pp-icon"></i> Uygulamayı İndir</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
+                    @endauth
+                </div>
+            </div>
             {{-- CTA --}}
             <a href="{{ route('b2c.catalog.index') }}" class="gyg-cta-btn">
                 <i class="bi bi-search" style="margin-right:5px;"></i>Keşfet
@@ -838,6 +944,24 @@ function toggleMobileSection(head) {
     document.querySelectorAll('.gyg-mobile-section-body').forEach(b => b.classList.remove('open'));
     if (!isOpen) body.classList.add('open');
 }
+
+// ── Profil dropdown ──────────────────────────────────────────────────────
+(function() {
+    const wrap = document.getElementById('gygProfileWrap');
+    const btn  = document.getElementById('gygProfileBtn');
+    if (!wrap || !btn) return;
+
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        wrap.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!wrap.contains(e.target)) {
+            wrap.classList.remove('open');
+        }
+    });
+})();
 </script>
 @stack('scripts')
 </body>

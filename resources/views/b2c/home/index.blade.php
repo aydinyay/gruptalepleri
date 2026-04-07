@@ -110,6 +110,68 @@
 }
 .gyg-hero-tag:hover { background: rgba(255,255,255,.3); color: #fff; }
 
+/* Arama öneri dropdown */
+.gyg-search-wrap {
+    position: relative;
+    max-width: 680px;
+    margin: 0 auto 2rem;
+}
+.gyg-search-wrap .gyg-search-box {
+    margin: 0;
+}
+.gyg-suggest-box {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18);
+    border: 1px solid #e5e5e5;
+    z-index: 500;
+    overflow: hidden;
+}
+.gyg-suggest-box.visible { display: block; }
+.gyg-suggest-section-title {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #718096;
+    padding: 14px 16px 6px;
+}
+.gyg-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #1a202c;
+    transition: background .12s;
+}
+.gyg-suggest-item:hover, .gyg-suggest-item.focused { background: #f8f9fc; }
+.gyg-suggest-item-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #edf2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: #4a5568;
+}
+.gyg-suggest-item-icon.city { background: #ebf8ff; color: #3182ce; }
+.gyg-suggest-item-icon.product { background: #faf5ff; color: #805ad5; }
+.gyg-suggest-item-text { flex: 1; min-width: 0; }
+.gyg-suggest-item-label { font-size: .92rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gyg-suggest-item-sub { font-size: .8rem; color: #718096; }
+.gyg-suggest-item-price { font-size: .8rem; font-weight: 600; color: #1a3c6b; white-space: nowrap; }
+.gyg-suggest-divider { height: 1px; background: #f0f0f0; margin: 4px 0; }
+
 /* Hero öne çıkan kartlar */
 .gyg-hero-cards {
     display: flex;
@@ -328,15 +390,18 @@
         <h1>Keşfedin, karşılaştırın,<br>rezervasyon yapın.</h1>
         <p class="hero-sub">10.000+ deneyim · Anlık onay · Ücretsiz iptal</p>
 
-        <form action="{{ route('b2c.catalog.index') }}" method="GET">
-            <div class="gyg-search-box">
-                <i class="bi bi-search" style="color:#a0aec0;font-size:1.1rem;flex-shrink:0;"></i>
-                <input type="text" name="q" placeholder="Aktivite, tur veya destinasyon ara..." autocomplete="off">
-                <button type="submit" class="gyg-search-btn">
-                    <i class="bi bi-search"></i> Ara
-                </button>
-            </div>
-        </form>
+        <div class="gyg-search-wrap">
+            <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
+                <div class="gyg-search-box">
+                    <i class="bi bi-search" style="color:#a0aec0;font-size:1.1rem;flex-shrink:0;"></i>
+                    <input type="text" id="heroSearchInput" name="q" placeholder="Aktivite, tur veya destinasyon ara..." autocomplete="off">
+                    <button type="submit" class="gyg-search-btn">
+                        <i class="bi bi-search"></i> Ara
+                    </button>
+                </div>
+            </form>
+            <div class="gyg-suggest-box" id="heroSuggestBox"></div>
+        </div>
 
         <div class="gyg-hero-tags">
             <span>Popüler:</span>
@@ -722,3 +787,113 @@
 </section>
 
 @endsection
+
+@push('scripts')
+<script>
+// ── Hero Arama Autocomplete ──────────────────────────────────────────────
+(function() {
+    const input   = document.getElementById('heroSearchInput');
+    const box     = document.getElementById('heroSuggestBox');
+    const apiUrl  = '{{ route("b2c.api.search-suggest") }}';
+    let fetchTimer = null;
+    let activeFocus = -1;
+
+    if (!input || !box) return;
+
+    function renderItems(data) {
+        box.innerHTML = '';
+        const popular = data.popular || [];
+        const items   = data.items   || [];
+        if (!popular.length && !items.length) { box.classList.remove('visible'); return; }
+
+        if (popular.length) {
+            const t = document.createElement('div');
+            t.className = 'gyg-suggest-section-title';
+            t.textContent = input.value.trim().length < 2 ? 'Öneriler' : 'Şehirler';
+            box.appendChild(t);
+            popular.forEach(p => box.appendChild(makeItem(p, 'city')));
+        }
+        if (items.length) {
+            if (popular.length) {
+                const div = document.createElement('div');
+                div.className = 'gyg-suggest-divider';
+                box.appendChild(div);
+            }
+            const t2 = document.createElement('div');
+            t2.className = 'gyg-suggest-section-title';
+            t2.textContent = 'Ürünler';
+            box.appendChild(t2);
+            items.forEach(it => box.appendChild(makeItem(it, 'product')));
+        }
+        box.classList.add('visible');
+        activeFocus = -1;
+    }
+
+    function makeItem(d, type) {
+        const a = document.createElement(d.url ? 'a' : 'div');
+        a.className = 'gyg-suggest-item';
+        if (d.url) a.href = d.url;
+        else {
+            a.style.cursor = 'pointer';
+            a.addEventListener('click', () => {
+                input.value = d.label;
+                document.getElementById('heroSearchForm').submit();
+            });
+        }
+        a.innerHTML = `
+            <div class="gyg-suggest-item-icon ${type}"><i class="bi ${d.icon}"></i></div>
+            <div class="gyg-suggest-item-text">
+                <div class="gyg-suggest-item-label">${d.label}</div>
+                ${d.sub ? `<div class="gyg-suggest-item-sub">${d.sub}</div>` : ''}
+            </div>
+            ${d.price ? `<div class="gyg-suggest-item-price">${d.price}</div>` : ''}
+        `;
+        return a;
+    }
+
+    function fetchSuggestions(q) {
+        fetch(apiUrl + '?q=' + encodeURIComponent(q))
+            .then(r => r.json())
+            .then(renderItems)
+            .catch(() => {});
+    }
+
+    input.addEventListener('focus', () => {
+        fetchSuggestions(input.value.trim());
+    });
+
+    input.addEventListener('input', () => {
+        clearTimeout(fetchTimer);
+        const q = input.value.trim();
+        fetchTimer = setTimeout(() => fetchSuggestions(q), 200);
+    });
+
+    // Klavye navigasyonu
+    input.addEventListener('keydown', (e) => {
+        const rows = box.querySelectorAll('.gyg-suggest-item');
+        if (!rows.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeFocus = Math.min(activeFocus + 1, rows.length - 1);
+            rows.forEach((r,i) => r.classList.toggle('focused', i === activeFocus));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeFocus = Math.max(activeFocus - 1, -1);
+            rows.forEach((r,i) => r.classList.toggle('focused', i === activeFocus));
+        } else if (e.key === 'Escape') {
+            box.classList.remove('visible');
+        } else if (e.key === 'Enter' && activeFocus >= 0) {
+            e.preventDefault();
+            rows[activeFocus].click();
+        }
+    });
+
+    // Dışarı tıkla kapat
+    document.addEventListener('click', (e) => {
+        if (!input.closest('.gyg-search-wrap').contains(e.target)) {
+            box.classList.remove('visible');
+        }
+    });
+})();
+</script>
+@endpush
