@@ -67,10 +67,13 @@ Route::get('/migrate-run-2026', function () {
     // B2C hata testi
     if (request('debug') === 'b2c') {
         try {
-            $result = app()->make(\App\Http\Controllers\B2C\HomeController::class)->index();
-            $lines[] = 'b2c_home: OK — ' . strlen($result->getContent()) . ' bytes';
+            $view = app()->make(\App\Http\Controllers\B2C\HomeController::class)->index();
+            $html = $view->render();
+            $lines[] = 'b2c_home: OK — ' . strlen($html) . ' bytes';
         } catch (\Throwable $e) {
-            $lines[] = 'b2c_home ERROR: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+            $lines[] = 'b2c_home ERROR: ' . $e->getMessage();
+            $lines[] = 'FILE: ' . $e->getFile() . ':' . $e->getLine();
+            $lines[] = 'TRACE: ' . substr($e->getTraceAsString(), 0, 800);
         }
     }
 
