@@ -30,7 +30,7 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 5rem; color: rgba(255,255,255,.3);
 }
-@media (max-width: 768px) { .product-hero { height: 240px; } }
+@@media (max-width: 768px) { .product-hero { height: 240px; } }
 
 /* ── Layout ── */
 .product-layout {
@@ -43,7 +43,7 @@
     padding-top: 32px;
     padding-bottom: 48px;
 }
-@media (max-width: 1024px) { .product-layout { grid-template-columns: 1fr; } }
+@@media (max-width: 1024px) { .product-layout { grid-template-columns: 1fr; } }
 
 /* ── Sol: İçerik ── */
 .product-category-badge {
@@ -65,7 +65,7 @@
     line-height: 1.25;
     margin-bottom: 12px;
 }
-@media (max-width: 768px) { .product-title { font-size: 1.5rem; } }
+@@media (max-width: 768px) { .product-title { font-size: 1.5rem; } }
 
 .product-meta-row {
     display: flex;
@@ -103,7 +103,7 @@
     gap: 12px;
     margin-top: 8px;
 }
-@media (max-width: 480px) { .product-highlights { grid-template-columns: 1fr; } }
+@@media (max-width: 480px) { .product-highlights { grid-template-columns: 1fr; } }
 
 .product-highlight-item {
     display: flex;
@@ -201,8 +201,8 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
 }
-@media (max-width: 768px) { .related-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .related-grid { grid-template-columns: 1fr; } }
+@@media (max-width: 768px) { .related-grid { grid-template-columns: repeat(2, 1fr); } }
+@@media (max-width: 480px) { .related-grid { grid-template-columns: 1fr; } }
 </style>
 @endpush
 
