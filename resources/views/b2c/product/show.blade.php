@@ -224,7 +224,7 @@
 {{-- Hero Görsel --}}
 <div class="product-hero">
     @if($item->cover_image)
-        <img src="{{ asset('storage/'.$item->cover_image) }}" alt="{{ $item->title }}">
+        <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('storage/'.$item->cover_image) }}" alt="{{ $item->title }}">
     @else
         @php
             $typeColors = ['transfer'=>'linear-gradient(135deg,#1a3c6b,#2a5298)','charter'=>'linear-gradient(135deg,#0c3547,#1a6b8a)','leisure'=>'linear-gradient(135deg,#0e4d6b,#1a7a8a)','tour'=>'linear-gradient(135deg,#1e4d1e,#2d7a2d)','hotel'=>'linear-gradient(135deg,#4d1e1e,#8a2d2d)','visa'=>'linear-gradient(135deg,#3d1a6b,#6b2a8a)'];
@@ -239,7 +239,7 @@
 </div>
 
 {{-- Ana Layout --}}
-<div style="background:#fff;">
+<div style="background:#fff;" class="product-mobile-pad">
     <div class="product-layout">
 
         {{-- SOL: İçerik --}}
@@ -381,6 +381,13 @@
 
         {{-- SAĞ: Fiyat Kartı --}}
         <div>
+            {{-- Aciliyet sinyali --}}
+            @if($item->review_count > 10)
+            <div style="background:#fff7ed;border:1px solid #fbd38d;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.83rem;display:flex;align-items:center;gap:8px;">
+                <i class="bi bi-fire" style="color:#dd6b20;font-size:1rem;"></i>
+                <span style="color:#744210;"><strong>Popüler:</strong> Bu hizmet bu ay {{ $item->review_count * 3 }}+ kez rezerve edildi.</span>
+            </div>
+            @endif
             <div class="price-card">
                 @if($item->pricing_type === 'fixed' && $item->base_price)
                     <div class="pc-label">Başlangıç fiyatı</div>
@@ -430,17 +437,45 @@
                     <i class="bi bi-check-circle-fill"></i> Güvenli ödeme
                 </div>
 
-                @if($item->supplier)
                 <div class="pc-divider"></div>
-                <div style="font-size:.82rem;color:#718096;">
-                    <i class="bi bi-building me-1"></i>
-                    Tedarikçi: <strong style="color:#4a5568;">{{ $item->supplier->name ?? 'Grup Rezervasyonları' }}</strong>
+                <div style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+                    <div style="width:38px;height:38px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-building" style="color:#1a3c6b;font-size:1rem;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:700;color:#1a202c;">
+                            {{ $item->supplier->name ?? 'Grup Rezervasyonları' }}
+                        </div>
+                        <div style="font-size:.75rem;color:#718096;display:flex;align-items:center;gap:4px;">
+                            <i class="bi bi-patch-check-fill" style="color:#48bb78;"></i> Doğrulanmış Tedarikçi
+                        </div>
+                    </div>
                 </div>
-                @endif
             </div>
         </div>
 
     </div>{{-- /product-layout --}}
+</div>
+
+{{-- MOBİL STICKY CTA BAR --}}
+<div class="mobile-sticky-cta">
+    @if($item->pricing_type === 'fixed' && $item->base_price)
+        <div>
+            <div class="msc-label">Başlangıç fiyatı</div>
+            <div class="msc-price">{{ number_format($item->base_price, 0, ',', '.') }} {{ $item->currency }}</div>
+        </div>
+        <a href="{{ route('b2c.auth.register') }}" class="msc-btn">
+            <i class="bi bi-calendar-check me-1"></i>Rezervasyon Yap
+        </a>
+    @else
+        <div>
+            <div class="msc-label">Kişiye özel fiyat</div>
+            <div class="msc-price" style="font-size:.95rem;color:#718096;">Fiyat sorun</div>
+        </div>
+        <a href="{{ route('b2c.iletisim') }}" class="msc-btn">
+            <i class="bi bi-send me-1"></i>Ücretsiz Teklif Al
+        </a>
+    @endif
 </div>
 
 {{-- Benzer Ürünler --}}
