@@ -794,7 +794,7 @@
 (function() {
     const input   = document.getElementById('heroSearchInput');
     const box     = document.getElementById('heroSuggestBox');
-    const apiUrl  = '{{ route("b2c.api.search-suggest") }}';
+    const apiUrl  = '/api/search-suggest';
     let fetchTimer = null;
     let activeFocus = -1;
 

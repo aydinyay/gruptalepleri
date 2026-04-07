@@ -44,6 +44,14 @@ Route::get('/migrate-run-2026', function () {
         $lines[] = 'config:clear SKIP: ' . $e->getMessage();
     }
 
+    // Route cache temizle
+    try {
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        $lines[] = 'route:clear: OK';
+    } catch (\Throwable $e) {
+        $lines[] = 'route:clear SKIP: ' . $e->getMessage();
+    }
+
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $lines[] = 'migrate: ' . \Illuminate\Support\Facades\Artisan::output();
