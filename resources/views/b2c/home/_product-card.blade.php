@@ -72,14 +72,7 @@ $bg    = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,#2a
         {{-- Yıldız puanlaması --}}
         @if(($item->rating_avg ?? 0) > 0)
         <div class="d-flex align-items-center gap-1 mb-2" style="font-size:.82rem;">
-            <span style="color:#f4a418;letter-spacing:-.05em;">
-                @for($s=1;$s<=5;$s++)
-                    @if($s <= floor($item->rating_avg))★
-                    @elseif($s - $item->rating_avg < 1)★
-                    @else☆
-                    @endif
-                @endfor
-            </span>
+            <span style="color:#f4a418;letter-spacing:-.05em;">{!! str_repeat('★', (int)floor($item->rating_avg)) . ($item->rating_avg - floor($item->rating_avg) >= 0.5 ? '★' : '') . str_repeat('☆', 5 - (int)ceil($item->rating_avg)) !!}</span>
             <span style="font-weight:700;color:#2d3748;">{{ number_format($item->rating_avg,1) }}</span>
             @if(($item->review_count ?? 0) > 0)
             <span style="color:#718096;">({{ number_format($item->review_count, 0, ',', '.') }})</span>

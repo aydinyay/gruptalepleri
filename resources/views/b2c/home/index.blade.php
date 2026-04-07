@@ -372,7 +372,7 @@
                 @if($hi->rating_avg > 0)
                 <div class="mb-1">
                     <span class="hc-stars">
-                        @for($s=1;$s<=5;$s++)@if($s<=floor($hi->rating_avg))★@elseif($s-$hi->rating_avg<1)★@else☆@endif@endfor
+                        {!! str_repeat('★', (int)floor($hi->rating_avg)) . ($hi->rating_avg - floor($hi->rating_avg) >= 0.5 ? '★' : '') . str_repeat('☆', 5 - (int)ceil($hi->rating_avg)) !!}
                     </span>
                     <span style="font-size:.82rem;font-weight:700;"> {{ number_format($hi->rating_avg,1) }}</span>
                     @if($hi->review_count > 0)<span style="font-size:.78rem;opacity:.75;">({{ number_format($hi->review_count,0,',','.') }})</span>@endif
@@ -498,7 +498,7 @@
                         @if($ph['rating'] > 0)
                         <div class="d-flex align-items-center gap-1">
                             <span class="gyg-pcard-stars">
-                                @for($s=1;$s<=5;$s++)@if($s<=floor($ph['rating']))★@elseif($s-$ph['rating']<1)★@else☆@endif@endfor
+                                {!! str_repeat('★', (int)floor($ph['rating'])) . ($ph['rating'] - floor($ph['rating']) >= 0.5 ? '★' : '') . str_repeat('☆', 5 - (int)ceil($ph['rating'])) !!}
                             </span>
                             <span class="gyg-pcard-rating">{{ number_format($ph['rating'],1) }}</span>
                             <span class="gyg-pcard-reviews">({{ number_format($ph['reviews'],0,',','.') }})</span>
