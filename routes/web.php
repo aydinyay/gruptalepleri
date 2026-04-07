@@ -12,15 +12,30 @@ use Illuminate\Support\Facades\Route;
 // ── Git Pull (deploy, token korumalı) ──
 Route::get('/git-pull-2026', function () {
     if (request('t') !== 'grtdeploy2026') abort(403);
-    $output = [];
-    $code = 0;
-    exec('cd ' . base_path() . ' && git pull origin main 2>&1', $output, $code);
-    $text = implode("\n", $output);
-    // View cache temizle
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    return response("Exit code: $code\n\n$text\n\n--- Cache & View temizlendi ---", 200)
-        ->header('Content-Type', 'text/plain');
+    $lines = [];
+
+    // exec() var mı?
+    if (!function_exists('exec') || in_array('exec', array_map('trim', explode(',', ini_get('disable_functions'))))) {
+        $lines[] = 'exec: DISABLED';
+    } else {
+        $lines[] = 'exec: available';
+        $output = [];
+        $code = -1;
+        try {
+            @exec('cd ' . base_path() . ' && git pull origin main 2>&1', $output, $code);
+        } catch (\Throwable $e) {
+            $lines[] = 'exec exception: ' . $e->getMessage();
+        }
+        $lines[] = 'exit code: ' . $code;
+        $lines[] = implode("\n", $output);
+    }
+
+    // Cache temizle
+    try { \Illuminate\Support\Facades\Artisan::call('view:clear');   $lines[] = 'view:clear: OK'; } catch (\Throwable $e) { $lines[] = 'view:clear ERR: ' . $e->getMessage(); }
+    try { \Illuminate\Support\Facades\Artisan::call('route:clear');  $lines[] = 'route:clear: OK'; } catch (\Throwable $e) { $lines[] = 'route:clear ERR: ' . $e->getMessage(); }
+    try { \Illuminate\Support\Facades\Artisan::call('cache:clear');  $lines[] = 'cache:clear: OK'; } catch (\Throwable $e) { $lines[] = 'cache:clear ERR: ' . $e->getMessage(); }
+
+    return response(implode("\n", $lines), 200)->header('Content-Type', 'text/plain');
 });
 
 // ── Migration + Seeder çalıştırıcı (token korumalı) ──
