@@ -12,7 +12,7 @@ class ProductController extends Controller
     {
         $item = CatalogItem::published()
             ->where('slug', $slug)
-            ->with(['category', 'supplier.agency'])
+            ->with(['category', 'supplier'])
             ->firstOrFail();
 
         // Aynı kategoriden benzer ürünler
