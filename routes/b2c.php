@@ -26,8 +26,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ── Ana Sayfa — web.php üzerinden yönetilir (domain kontrolü orada) ───────
-// '/' route'u web.php'dedir; B2C domain tespiti orada yapılır.
-Route::get('/', [HomeController::class, 'index'])->name('b2c.home');
+// '/' route'u web.php'dedir; b2c.home ismi oradan verilir.
 
 // ── Arama Autocomplete API ─────────────────────────────────────────────────
 Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {

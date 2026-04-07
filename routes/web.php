@@ -325,7 +325,7 @@ Route::get('/', function () {
     ];
 
     return view('welcome', compact('stats', 'sirket'));
-});
+})->name('b2c.home');
 
 // SEO odakli landing sayfasi (public)
 Route::get('/grup-talepleri', function () {
