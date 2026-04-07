@@ -112,20 +112,10 @@
         <p class="auth-brand-sub">
             Transfer'den charter'a, dinner cruise'dan tur paketlerine — Türkiye'nin en kapsamlı grup seyahat platformuna hoş geldiniz.
         </p>
-        @foreach([
-            ['bi-shield-check-fill',  'Güvenli Ödeme',         '3D Secure altyapısı ile korumalı işlemler'],
-            ['bi-clock-fill',         '7/24 Destek',           'Operasyon ekibimiz her zaman yanınızda'],
-            ['bi-star-fill',          '4.8/5 Müşteri Puanı',   '14.000+ memnun müşteri değerlendirmesi'],
-            ['bi-arrow-counterclockwise', 'Ücretsiz İptal',    'Koşullara göre esnek iptal seçenekleri'],
-        ] as [$icon, $title, $desc])
-        <div class="auth-benefit">
-            <i class="bi {{ $icon }}"></i>
-            <div>
-                <div style="font-weight:600;">{{ $title }}</div>
-                <div style="font-size:.82rem;opacity:.7;">{{ $desc }}</div>
-            </div>
-        </div>
-        @endforeach
+        <div class="auth-benefit"><i class="bi bi-shield-check-fill"></i><div><div style="font-weight:600;">Güvenli Ödeme</div><div style="font-size:.82rem;opacity:.7;">3D Secure altyapısı ile korumalı işlemler</div></div></div>
+        <div class="auth-benefit"><i class="bi bi-clock-fill"></i><div><div style="font-weight:600;">7/24 Destek</div><div style="font-size:.82rem;opacity:.7;">Operasyon ekibimiz her zaman yanınızda</div></div></div>
+        <div class="auth-benefit"><i class="bi bi-star-fill"></i><div><div style="font-weight:600;">4.8/5 Müşteri Puanı</div><div style="font-size:.82rem;opacity:.7;">14.000+ memnun müşteri değerlendirmesi</div></div></div>
+        <div class="auth-benefit"><i class="bi bi-arrow-counterclockwise"></i><div><div style="font-weight:600;">Ücretsiz İptal</div><div style="font-size:.82rem;opacity:.7;">Koşullara göre esnek iptal seçenekleri</div></div></div>
     </div>
 
     {{-- Sağ panel: form --}}

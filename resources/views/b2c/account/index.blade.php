@@ -202,17 +202,10 @@
                 <i class="bi bi-lightning-fill"></i> Hızlı Eylemler
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
-                @foreach([
-                    [route('b2c.catalog.index'),        'bi-grid-fill',       'Hizmet Ara'],
-                    [route('b2c.catalog.index', ['tip'=>'transfer']), 'bi-car-front-fill', 'Transfer'],
-                    [route('b2c.catalog.index', ['tip'=>'charter']),  'bi-airplane-fill',  'Charter'],
-                    [route('b2c.catalog.index', ['tip'=>'leisure']),  'bi-water',          'Deniz & Eğlence'],
-                ] as [$url, $icon, $label])
-                <a href="{{ $url }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;transition:border-color .12s,background .12s;">
-                    <i class="bi {{ $icon }}" style="color:#1a3c6b;font-size:1rem;"></i>
-                    {{ $label }}
-                </a>
-                @endforeach
+                <a href="{{ route('b2c.catalog.index') }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-grid-fill" style="color:#1a3c6b;font-size:1rem;"></i> Hizmet Ara</a>
+                <a href="{{ route('b2c.catalog.index', ['tip'=>'transfer']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-car-front-fill" style="color:#1a3c6b;font-size:1rem;"></i> Transfer</a>
+                <a href="{{ route('b2c.catalog.index', ['tip'=>'charter']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-airplane-fill" style="color:#1a3c6b;font-size:1rem;"></i> Charter</a>
+                <a href="{{ route('b2c.catalog.index', ['tip'=>'leisure']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-water" style="color:#1a3c6b;font-size:1rem;"></i> Deniz & Eğlence</a>
             </div>
         </div>
 

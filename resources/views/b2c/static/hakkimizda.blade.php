@@ -57,17 +57,10 @@
 {{-- İstatistikler --}}
 <div style="background:#f7f9fc;padding:32px 0;">
     <div class="about-stat-grid">
-        @foreach([
-            ['14.000+', 'Mutlu Müşteri'],
-            ['4.8/5',   'Ortalama Puan'],
-            ['50+',     'Hizmet Kategorisi'],
-            ['7/24',    'Müşteri Desteği'],
-        ] as [$num, $label])
-        <div class="about-stat-box">
-            <div class="about-stat-num">{{ $num }}</div>
-            <div class="about-stat-label">{{ $label }}</div>
-        </div>
-        @endforeach
+        <div class="about-stat-box"><div class="about-stat-num">14.000+</div><div class="about-stat-label">Mutlu Müşteri</div></div>
+        <div class="about-stat-box"><div class="about-stat-num">4.8/5</div><div class="about-stat-label">Ortalama Puan</div></div>
+        <div class="about-stat-box"><div class="about-stat-num">50+</div><div class="about-stat-label">Hizmet Kategorisi</div></div>
+        <div class="about-stat-box"><div class="about-stat-num">7/24</div><div class="about-stat-label">Müşteri Desteği</div></div>
     </div>
 </div>
 
@@ -83,20 +76,10 @@
 
     <h2 style="font-size:1.4rem;font-weight:800;color:#1a202c;margin-top:36px;margin-bottom:16px;">Değerlerimiz</h2>
     <div class="about-value-grid">
-        @foreach([
-            ['bi-shield-check-fill', 'Güvenilirlik',    'Her rezervasyon onaylanmış, denetlenmiş tedarikçilerden gelir.'],
-            ['bi-transparency',      'Şeffaflık',       'Gizli ücret yok. Fiyat gördüğünüz fiyattır.'],
-            ['bi-headset',           'Destek',          '7/24 operasyon desteği ile her an yanınızdayız.'],
-            ['bi-star-fill',         'Kalite',          'Her hizmet kalite standartlarımıza uygun denetlenir.'],
-        ] as [$icon, $title, $desc])
-        <div class="about-value-item">
-            <i class="bi {{ $icon }}"></i>
-            <div>
-                <div style="font-weight:700;color:#1a202c;margin-bottom:3px;">{{ $title }}</div>
-                <div style="font-size:.87rem;color:#718096;line-height:1.5;">{{ $desc }}</div>
-            </div>
-        </div>
-        @endforeach
+        <div class="about-value-item"><i class="bi bi-shield-check-fill"></i><div><div style="font-weight:700;color:#1a202c;margin-bottom:3px;">Güvenilirlik</div><div style="font-size:.87rem;color:#718096;line-height:1.5;">Her rezervasyon onaylanmış, denetlenmiş tedarikçilerden gelir.</div></div></div>
+        <div class="about-value-item"><i class="bi bi-eye-fill"></i><div><div style="font-weight:700;color:#1a202c;margin-bottom:3px;">Şeffaflık</div><div style="font-size:.87rem;color:#718096;line-height:1.5;">Gizli ücret yok. Fiyat gördüğünüz fiyattır.</div></div></div>
+        <div class="about-value-item"><i class="bi bi-headset"></i><div><div style="font-weight:700;color:#1a202c;margin-bottom:3px;">Destek</div><div style="font-size:.87rem;color:#718096;line-height:1.5;">7/24 operasyon desteği ile her an yanınızdayız.</div></div></div>
+        <div class="about-value-item"><i class="bi bi-star-fill"></i><div><div style="font-weight:700;color:#1a202c;margin-bottom:3px;">Kalite</div><div style="font-size:.87rem;color:#718096;line-height:1.5;">Her hizmet kalite standartlarımıza uygun denetlenir.</div></div></div>
     </div>
 
     <div style="margin-top:40px;text-align:center;">

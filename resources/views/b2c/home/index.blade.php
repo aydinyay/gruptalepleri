@@ -498,20 +498,14 @@
             </a>
             @endforeach
         @else
-            @foreach([
-                ['bi-car-front-fill','Havalimanı Transferi','transfer'],
-                ['bi-airplane-fill','Özel Jet & Charter','ozel-jet'],
-                ['bi-helicopter','Helikopter','helikopter'],
-                ['bi-water','Dinner Cruise','dinner-cruise'],
-                ['bi-tsunami','Yat Kiralama','yat-kiralama'],
-                ['bi-map-fill','Yurt İçi Turlar','yurt-ici-turlar'],
-                ['bi-globe-americas','Yurt Dışı Turlar','yurt-disi-turlar'],
-                ['bi-passport','Vize','vize'],
-            ] as [$icon,$name,$slug])
-            <a href="{{ route('b2c.catalog.category', $slug) }}" class="gyg-pill">
-                <i class="bi {{ $icon }}"></i> {{ $name }}
-            </a>
-            @endforeach
+            <a href="{{ route('b2c.catalog.category', 'transfer') }}" class="gyg-pill"><i class="bi bi-car-front-fill"></i> Havalimanı Transferi</a>
+            <a href="{{ route('b2c.catalog.category', 'ozel-jet') }}" class="gyg-pill"><i class="bi bi-airplane-fill"></i> Özel Jet & Charter</a>
+            <a href="{{ route('b2c.catalog.category', 'helikopter') }}" class="gyg-pill"><i class="bi bi-helicopter"></i> Helikopter</a>
+            <a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}" class="gyg-pill"><i class="bi bi-water"></i> Dinner Cruise</a>
+            <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" class="gyg-pill"><i class="bi bi-tsunami"></i> Yat Kiralama</a>
+            <a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-pill"><i class="bi bi-map-fill"></i> Yurt İçi Turlar</a>
+            <a href="{{ route('b2c.catalog.category', 'yurt-disi-turlar') }}" class="gyg-pill"><i class="bi bi-globe-americas"></i> Yurt Dışı Turlar</a>
+            <a href="{{ route('b2c.catalog.category', 'vize') }}" class="gyg-pill"><i class="bi bi-passport"></i> Vize</a>
         @endif
     </div>
 </div>
@@ -716,18 +710,24 @@
                 </a>
                 @endforeach
             @else
-                @foreach([
-                    ['bi-buildings-fill','Şehir Rehberi','linear-gradient(135deg,#1a3c6b,#2a5298)','İstanbul\'u keşfet: En kapsamlı seyahat rehberi','istanbul'],
-                    ['bi-sun-fill','Destinasyon','linear-gradient(135deg,#c05621,#dd6b20)','Antalya\'yı keşfet: Sahil tatili için tam rehber','antalya'],
-                    ['bi-cloud-fill','Doğa & Kültür','linear-gradient(135deg,#6b2d1a,#9c4221)','Kapadokya seyahat rehberi: Peri bacaları ve balon turları','kapadokya'],
-                ] as [$icon,$cat,$bg,$title,$tag])
-                <a href="{{ route('b2c.blog.index') }}?tag={{ $tag }}" class="gyg-blog-card">
-                    <div class="blog-thumb" style="background:{{ $bg }};"><i class="bi {{ $icon }}"></i></div>
-                    <div class="blog-cat">{{ $cat }}</div>
-                    <div class="blog-title">{{ $title }}</div>
+                <a href="{{ route('b2c.blog.index') }}?tag=istanbul" class="gyg-blog-card">
+                    <div class="blog-thumb" style="background:linear-gradient(135deg,#1a3c6b,#2a5298);"><i class="bi bi-buildings-fill"></i></div>
+                    <div class="blog-cat">Şehir Rehberi</div>
+                    <div class="blog-title">İstanbul'u keşfet: En kapsamlı seyahat rehberi</div>
                     <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
                 </a>
-                @endforeach
+                <a href="{{ route('b2c.blog.index') }}?tag=antalya" class="gyg-blog-card">
+                    <div class="blog-thumb" style="background:linear-gradient(135deg,#c05621,#dd6b20);"><i class="bi bi-sun-fill"></i></div>
+                    <div class="blog-cat">Destinasyon</div>
+                    <div class="blog-title">Antalya'yı keşfet: Sahil tatili için tam rehber</div>
+                    <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
+                </a>
+                <a href="{{ route('b2c.blog.index') }}?tag=kapadokya" class="gyg-blog-card">
+                    <div class="blog-thumb" style="background:linear-gradient(135deg,#6b2d1a,#9c4221);"><i class="bi bi-cloud-fill"></i></div>
+                    <div class="blog-cat">Doğa & Kültür</div>
+                    <div class="blog-title">Kapadokya seyahat rehberi: Peri bacaları ve balon turları</div>
+                    <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
+                </a>
             @endif
         </div>
     </div>

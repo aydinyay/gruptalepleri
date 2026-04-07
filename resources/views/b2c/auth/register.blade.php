@@ -115,20 +115,10 @@
         <p class="auth-brand-sub">
             Kayıt olmak 1 dakikadan az sürer. Sipariş takibi, özel teklifler ve erken erişim fırsatları için hemen katılın.
         </p>
-        @foreach([
-            ['bi-gift-fill',           'Hoş Geldin Avantajı',    'İlk rezervasyonunuzda özel fiyat fırsatı'],
-            ['bi-bag-check-fill',      'Sipariş Takibi',         'Tüm rezervasyonlarınızı tek yerden yönetin'],
-            ['bi-bell-fill',           'Erken Erişim',           'Kampanyaları ve yeni hizmetleri ilk siz görün'],
-            ['bi-shield-check-fill',   'Güvenli & Korumalı',     'Kişisel verileriniz KVKK kapsamında korunur'],
-        ] as [$icon, $title, $desc])
-        <div class="auth-benefit">
-            <i class="bi {{ $icon }}"></i>
-            <div>
-                <div style="font-weight:600;">{{ $title }}</div>
-                <div style="opacity:.7;">{{ $desc }}</div>
-            </div>
-        </div>
-        @endforeach
+        <div class="auth-benefit"><i class="bi bi-gift-fill"></i><div><div style="font-weight:600;">Hoş Geldin Avantajı</div><div style="opacity:.7;">İlk rezervasyonunuzda özel fiyat fırsatı</div></div></div>
+        <div class="auth-benefit"><i class="bi bi-bag-check-fill"></i><div><div style="font-weight:600;">Sipariş Takibi</div><div style="opacity:.7;">Tüm rezervasyonlarınızı tek yerden yönetin</div></div></div>
+        <div class="auth-benefit"><i class="bi bi-bell-fill"></i><div><div style="font-weight:600;">Erken Erişim</div><div style="opacity:.7;">Kampanyaları ve yeni hizmetleri ilk siz görün</div></div></div>
+        <div class="auth-benefit"><i class="bi bi-shield-check-fill"></i><div><div style="font-weight:600;">Güvenli & Korumalı</div><div style="opacity:.7;">Kişisel verileriniz KVKK kapsamında korunur</div></div></div>
     </div>
 
     {{-- Sağ panel: form --}}
