@@ -658,6 +658,27 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::post('/kategoriler',                  [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriStore'])->name('kategori.store');
         Route::delete('/kategoriler/{kategori}',     [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriDestroy'])->name('kategori.destroy');
     });
+
+    // B2C Vitrin Yönetimi (gruprezervasyonlari.com)
+    Route::prefix('b2c')->name('b2c.')->group(function () {
+        Route::get('/dashboard',            [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'dashboard'])->name('dashboard');
+        // Kategoriler
+        Route::get('/kategoriler',          [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categories'])->name('categories');
+        Route::get('/kategoriler/yeni',     [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryCreate'])->name('categories.create');
+        Route::post('/kategoriler',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryStore'])->name('categories.store');
+        Route::get('/kategoriler/{category}/duzenle', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryEdit'])->name('categories.edit');
+        Route::put('/kategoriler/{category}',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryUpdate'])->name('categories.update');
+        // Ürün Kataloğu
+        Route::get('/katalog',              [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalog'])->name('catalog');
+        Route::get('/katalog/yeni',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogCreate'])->name('catalog.create');
+        Route::post('/katalog',             [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogStore'])->name('catalog.store');
+        Route::get('/katalog/{item}/duzenle', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogEdit'])->name('catalog.edit');
+        Route::put('/katalog/{item}',        [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogUpdate'])->name('catalog.update');
+        Route::post('/katalog/{item}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogTogglePublish'])->name('catalog.toggle-publish');
+        // Tedarikçi Başvuruları
+        Route::get('/tedarikci-basvurulari',  [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplications'])->name('supplier-apps');
+        Route::patch('/tedarikci-basvurulari/{app}', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplicationUpdate'])->name('supplier-apps.update');
+    });
 });
 
 // Admin

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\B2C\B2cUser;
 
 return [
 
@@ -42,6 +43,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // B2C vitrin guard — gruprezervasyonlari.com müşterileri için
+        // B2B (web) guard'dan tamamen bağımsız; session cookie adı da farklı.
+        'b2c' => [
+            'driver' => 'session',
+            'provider' => 'b2c_users',
+        ],
     ],
 
     /*
@@ -62,15 +70,17 @@ return [
     */
 
     'providers' => [
+        // B2B kullanıcılar (acente, admin, superadmin)
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // B2C müşteriler (gruprezervasyonlari.com son kullanıcılar)
+        'b2c_users' => [
+            'driver' => 'eloquent',
+            'model' => B2cUser::class,
+        ],
     ],
 
     /*
@@ -96,6 +106,13 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        'b2c_users' => [
+            'provider' => 'b2c_users',
+            'table' => 'b2c_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

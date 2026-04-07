@@ -3,8 +3,11 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureTransferSupplierAccess;
+use App\Http\Middleware\EnsureB2CAuth;
+use App\Http\Middleware\DomainRouter;
 use App\Http\Middleware\VisitorTracker;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -12,12 +15,21 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function () {
+            // B2C route'ları her istekte yüklenir; DomainRouter middleware'i
+            // runtime'da hangi route'ların aktif olacağını kontrol eder.
+            Route::middleware('web')
+                ->group(base_path('routes/b2c.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => EnsureUserHasRole::class,
-            'transfer_supplier' => EnsureTransferSupplierAccess::class,
+            'role'             => EnsureUserHasRole::class,
+            'transfer_supplier'=> EnsureTransferSupplierAccess::class,
+            'b2c_auth'         => EnsureB2CAuth::class,
         ]);
+        // DomainRouter en başa eklenir: session cookie'yi route yüklenmeden önce ayarlar
+        $middleware->prependToGroup('web', DomainRouter::class);
         $middleware->appendToGroup('web', VisitorTracker::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

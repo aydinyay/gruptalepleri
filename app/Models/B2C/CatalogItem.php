@@ -1,0 +1,127 @@
+<?php
+
+namespace App\Models\B2C;
+
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+
+class CatalogItem extends Model
+{
+    protected $table = 'catalog_items';
+
+    protected $fillable = [
+        'category_id',
+        'owner_type',
+        'supplier_id',
+        'product_type',
+        'reference_type',
+        'reference_id',
+        'title',
+        'slug',
+        'short_desc',
+        'full_desc',
+        'cover_image',
+        'gallery_json',
+        'pricing_type',
+        'base_price',
+        'currency',
+        'is_active',
+        'is_featured',
+        'is_published',
+        'published_at',
+        'destination_city',
+        'destination_country',
+        'duration_days',
+        'duration_hours',
+        'min_pax',
+        'max_pax',
+        'sort_order',
+        'meta_title',
+        'meta_description',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'gallery_json'  => 'array',
+            'is_active'     => 'boolean',
+            'is_featured'   => 'boolean',
+            'is_published'  => 'boolean',
+            'published_at'  => 'datetime',
+            'base_price'    => 'decimal:2',
+            'sort_order'    => 'integer',
+        ];
+    }
+
+    // ── Scope'lar ──────────────────────────────────────────────────────────
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('is_published', true)->where('is_active', true);
+    }
+
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeOfType(Builder $query, string $type): Builder
+    {
+        return $query->where('product_type', $type);
+    }
+
+    public function scopeInCity(Builder $query, string $city): Builder
+    {
+        return $query->where('destination_city', $city);
+    }
+
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('sort_order')->orderBy('title');
+    }
+
+    // ── İlişkiler ──────────────────────────────────────────────────────────
+
+    public function category()
+    {
+        return $this->belongsTo(CatalogCategory::class, 'category_id');
+    }
+
+    /** Tedarikçi acente — gruptalepleri.com'daki B2B user */
+    public function supplier()
+    {
+        return $this->belongsTo(User::class, 'supplier_id');
+    }
+
+    // ── Erişimciler ────────────────────────────────────────────────────────
+
+    public function getUrlAttribute(): string
+    {
+        return route('b2c.product.show', $this->slug);
+    }
+
+    public function getFormattedPriceAttribute(): ?string
+    {
+        if ($this->base_price === null) {
+            return null;
+        }
+
+        return number_format((float) $this->base_price, 0, ',', '.') . ' ' . $this->currency;
+    }
+
+    public function getPricingLabelAttribute(): string
+    {
+        return match ($this->pricing_type) {
+            'fixed'   => 'Hemen Al',
+            'quote'   => 'Fiyat Al',
+            'request' => 'Talep Oluştur',
+            default   => 'İncele',
+        };
+    }
+
+    public function getIsOwnedByPlatformAttribute(): bool
+    {
+        return $this->owner_type === 'platform';
+    }
+}
