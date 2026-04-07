@@ -25,7 +25,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 <a href="{{ route('b2c.product.show', $item->slug) }}" class="gyg-pcard">
     <div class="gyg-pcard-img">
         @if($item->cover_image)
-            @php $imgSrc = str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('uploads/' . $item->cover_image); @endphp
+            @php $imgSrc = str_starts_with($item->cover_image, 'http') ? $item->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $item->cover_image; @endphp
             <img src="{{ $imgSrc }}" alt="{{ $item->title }}" loading="lazy">
         @else
             <div class="img-placeholder" style="background:{{ $bg }};">

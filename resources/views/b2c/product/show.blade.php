@@ -224,7 +224,7 @@
 {{-- Hero Görsel --}}
 <div class="product-hero">
     @if($item->cover_image)
-        <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('uploads/'.$item->cover_image) }}" alt="{{ $item->title }}">
+        <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $item->cover_image }}" alt="{{ $item->title }}">
     @else
         @php
             $typeColors = ['transfer'=>'linear-gradient(135deg,#1a3c6b,#2a5298)','charter'=>'linear-gradient(135deg,#0c3547,#1a6b8a)','leisure'=>'linear-gradient(135deg,#0e4d6b,#1a7a8a)','tour'=>'linear-gradient(135deg,#1e4d1e,#2d7a2d)','hotel'=>'linear-gradient(135deg,#4d1e1e,#8a2d2d)','visa'=>'linear-gradient(135deg,#3d1a6b,#6b2a8a)'];
