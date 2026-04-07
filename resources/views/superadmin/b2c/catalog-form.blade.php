@@ -150,7 +150,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Meta Açıklama</label>
-                                <textarea name="meta_desc" class="form-control" rows="2" maxlength="250">{{ old('meta_desc', $item->meta_desc ?? '') }}</textarea>
+                                <textarea name="meta_description" class="form-control" rows="2" maxlength="250">{{ old('meta_description', $item->meta_description ?? '') }}</textarea>
                             </div>
 
                         </div>

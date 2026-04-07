@@ -238,7 +238,7 @@ class B2cSampleDataSeeder extends Seeder
                 'rating_avg'       => $item['rating_avg'] ?? 0,
                 'review_count'     => $item['review_count'] ?? 0,
                 'meta_title'       => $item['title'],
-                'meta_desc'        => $item['short_desc'] ?? null,
+                'meta_description' => $item['short_desc'] ?? null,
                 'created_at'       => now(),
                 'updated_at'       => now(),
             ]);
