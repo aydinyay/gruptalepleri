@@ -24,17 +24,20 @@ class B2cSampleDataSeeder extends Seeder
 
         $catIds = [];
         foreach ($cats as $cat) {
-            $id = DB::table('catalog_categories')->insertGetId([
-                'parent_id'  => null,
-                'name'       => $cat['name'],
-                'slug'       => $cat['slug'],
-                'icon'       => $cat['icon'],
-                'is_active'  => true,
-                'sort_order' => $cat['sort'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $catIds[$cat['slug']] = $id;
+            // Zaten varsa güncelle, yoksa ekle
+            DB::table('catalog_categories')->updateOrInsert(
+                ['slug' => $cat['slug']],
+                [
+                    'parent_id'  => null,
+                    'name'       => $cat['name'],
+                    'icon'       => $cat['icon'],
+                    'is_active'  => true,
+                    'sort_order' => $cat['sort'],
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+            $catIds[$cat['slug']] = DB::table('catalog_categories')->where('slug', $cat['slug'])->value('id');
         }
 
         // ── Catalog Items ──────────────────────────────────────────────
@@ -207,9 +210,8 @@ class B2cSampleDataSeeder extends Seeder
 
         foreach ($items as $item) {
             $slug = Str::slug($item['title']);
-            // Slug benzersizliği
-            $existing = DB::table('catalog_items')->where('slug', $slug)->exists();
-            if ($existing) $slug .= '-' . rand(100, 999);
+            // Zaten varsa atla
+            if (DB::table('catalog_items')->where('slug', $slug)->exists()) continue;
 
             DB::table('catalog_items')->insert([
                 'category_id'      => $catIds[$item['category_slug']] ?? null,
