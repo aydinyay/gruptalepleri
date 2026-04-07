@@ -116,6 +116,20 @@ Route::get('/migrate-run-2026', function () {
         return response("FILE_MTIME: " . date('Y-m-d H:i:s', filemtime($f)) . "\n" . $snippet, 200)->header('Content-Type', 'text/plain');
     }
 
+    // show.blade.php dosyasını yaz
+    if (request('debug') === 'writefile') {
+        $target = resource_path('views/b2c/product/show.blade.php');
+        $content = base64_decode(request('b64'));
+        if ($content && strlen($content) > 100) {
+            file_put_contents($target, $content);
+            // compiled cache temizle
+            foreach (glob(storage_path('framework/views/*.php')) as $f) @unlink($f);
+            $lines[] = 'WRITTEN: ' . strlen($content) . ' bytes to ' . $target;
+        } else {
+            $lines[] = 'ERROR: b64 param missing or too short';
+        }
+    }
+
     // B2C ürün hata testi
     if (request('debug') === 'product') {
         $slug = request('slug', 'istanbul-havalimani-taksim-sisli-vip-karsilama');
