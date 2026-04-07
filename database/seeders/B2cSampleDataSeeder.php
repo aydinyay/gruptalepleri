@@ -54,6 +54,34 @@ class B2cSampleDataSeeder extends Seeder
             ['id'=>20, 'category_id'=>3,  'owner_type'=>'platform','supplier_id'=>null,'product_type'=>'other', 'reference_type'=>null,'reference_id'=>null,'title'=>'Kurumsal Etkinlik Paketi: Boğaz Teknesi, Transfer ve Akşam Organizasyonu',        'slug'=>'kurumsal-etkinlik-bogaz-teknesi-transfer-aksam',         'short_desc'=>'Tekne organizasyonu, misafir transferleri, akşam programı akışı ve kurumsal etkinlik ihtiyaçlarına özel planlama.',                              'full_desc'=>'Kurumsal misafir ağırlaması ve özel davet organizasyonlarında tüm hizmetleri tek noktadan yönetmek isteyenler için. Tekne seçimi, transfer planlaması ve akşam akışı birlikte koordine edilir.','cover_image'=>null,'gallery_json'=>null,'pricing_type'=>'quote',  'base_price'=>null,   'currency'=>'TRY','is_active'=>1,'is_featured'=>0,'is_published'=>1,'published_at'=>'2025-01-15 10:00:00','destination_city'=>'İstanbul','destination_country'=>'Türkiye','duration_days'=>null,'duration_hours'=>5, 'min_pax'=>20,'max_pax'=>300,'sort_order'=>200,'rating_avg'=>4.68,'review_count'=>274, 'meta_title'=>'Kurumsal Boğaz Etkinlik Paketi | gruprezervasyonlari.com',            'meta_description'=>'Boğaz teknesi, transfer ve akşam organizasyonunu bir arada sunan kurumsal etkinlik paketi için teklif alın.',                               'created_at'=>'2025-01-15 10:00:00','updated_at'=>'2025-01-15 10:00:00'],
         ]);
 
+        // ── Kapak görselleri (picsum.photos — deterministik, ücretsiz) ──────
+        $photos = [
+            1  => 'https://picsum.photos/seed/istanbul-transfer/800/500',   // transfer İstanbul
+            2  => 'https://picsum.photos/seed/antalya-airport/800/500',     // transfer Antalya
+            3  => 'https://picsum.photos/seed/izmir-cesme/800/500',         // transfer İzmir
+            4  => 'https://picsum.photos/seed/trabzon-mountain/800/500',    // transfer Trabzon
+            5  => 'https://picsum.photos/seed/private-jet-paris/800/500',   // jet İstanbul-Paris
+            6  => 'https://picsum.photos/seed/jet-charter-bodrum/800/500',  // jet Bodrum-Milano
+            7  => 'https://picsum.photos/seed/helicopter-istanbul/800/500', // helikopter İstanbul
+            8  => 'https://picsum.photos/seed/bosphorus-dinner/800/500',    // dinner cruise
+            9  => 'https://picsum.photos/seed/bodrum-yacht/800/500',        // motoryat Bodrum
+            10 => 'https://picsum.photos/seed/cesme-gulet/800/500',         // gulet Çeşme
+            11 => 'https://picsum.photos/seed/fethiye-boat/800/500',        // tekne Fethiye
+            12 => 'https://picsum.photos/seed/cappadocia-balloon/800/500',  // Kapadokya balon
+            13 => 'https://picsum.photos/seed/pamukkale-efes/800/500',      // Pamukkale Efes
+            14 => 'https://picsum.photos/seed/antalya-rafting/800/500',     // rafting Antalya
+            15 => 'https://picsum.photos/seed/balkan-tour/800/500',         // Balkanlar turu
+            16 => 'https://picsum.photos/seed/cappadocia-cave-hotel/800/500', // mağara otel
+            17 => 'https://picsum.photos/seed/istanbul-hotel/800/500',      // İstanbul otel
+            18 => 'https://picsum.photos/seed/schengen-visa/800/500',       // Schengen vize
+            19 => 'https://picsum.photos/seed/passport-travel/800/500',     // turistik vize
+            20 => 'https://picsum.photos/seed/corporate-event/800/500',     // kurumsal etkinlik
+        ];
+
+        foreach ($photos as $id => $url) {
+            DB::table('catalog_items')->where('id', $id)->update(['cover_image' => $url]);
+        }
+
         $this->command->info('✓ 12 kategori, 20 ürün eklendi (eski veriler temizlendi).');
     }
 }
