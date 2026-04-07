@@ -26,7 +26,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ── Tüm B2C route'ları yalnızca gruprezervasyonlari.com'da çalışır ────────
-Route::middleware('b2c_domain')->group(function () {
+// Route::domain() kullanarak domain eşleşmesi route tanımının bir parçası olur.
+// Bu sayede gruptalepleri.com bu route'larla hiç eşleşmez.
+$b2cDomain = config('b2c.domain', 'gruprezervasyonlari.com');
+Route::domain($b2cDomain)->group(function () {
 
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('b2c.home');
@@ -188,4 +191,4 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [CheckoutController::class, 'paynkolayFail'])->name('fail');
     });
 
-}); // b2c_domain middleware sonu
+}); // Route::domain() sonu
