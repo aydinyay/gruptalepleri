@@ -131,13 +131,22 @@ Route::get('/migrate-run-2026', function () {
             if (file_exists($compiledFile)) {
                 $compiledLines = file($compiledFile);
                 $errLine = $e->getLine();
-                $start = max(0, $errLine - 20);
-                $end   = min(count($compiledLines), $errLine + 3);
+                // if/endif sayısını bul
+                $ifCount = 0; $endifCount = 0;
+                $lastOpenIf = 0;
+                foreach ($compiledLines as $li => $cl) {
+                    if (preg_match('/\bif\s*\(/', $cl)) { $ifCount++; $lastOpenIf = $li+1; }
+                    if (strpos($cl, 'endif;') !== false) $endifCount++;
+                }
+                $lines[] = 'if_count: ' . $ifCount . ' | endif_count: ' . $endifCount . ' | last_open_if_line: ' . $lastOpenIf;
+                // Son açık if'in çevresini göster
+                $start = max(0, $lastOpenIf - 3);
+                $end   = min(count($compiledLines), $lastOpenIf + 5);
                 $snippet = '';
                 for ($i = $start; $i < $end; $i++) {
                     $snippet .= ($i+1) . ': ' . $compiledLines[$i];
                 }
-                $lines[] = 'COMPILED SNIPPET:' . "\n" . $snippet;
+                $lines[] = 'LAST OPEN IF SNIPPET:' . "\n" . $snippet;
             }
         }
     }
