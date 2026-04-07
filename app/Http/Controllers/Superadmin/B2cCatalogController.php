@@ -142,6 +142,11 @@ class B2cCatalogController extends Controller
             $validated['published_at'] = now();
         }
 
+        if ($request->hasFile('cover_image_file')) {
+            $validated['cover_image'] = $request->file('cover_image_file')
+                ->store('catalog', 'public');
+        }
+
         CatalogItem::create($validated);
 
         return redirect()->route('superadmin.b2c.catalog')
@@ -161,6 +166,15 @@ class B2cCatalogController extends Controller
 
         if (($validated['is_published'] ?? false) && ! $item->is_published) {
             $validated['published_at'] = now();
+        }
+
+        if ($request->hasFile('cover_image_file')) {
+            // Eski görseli sil
+            if ($item->cover_image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($item->cover_image);
+            }
+            $validated['cover_image'] = $request->file('cover_image_file')
+                ->store('catalog', 'public');
         }
 
         $item->update($validated);
@@ -219,6 +233,7 @@ class B2cCatalogController extends Controller
             'short_desc'          => 'nullable|string|max:300',
             'full_desc'           => 'nullable|string',
             'cover_image'         => 'nullable|string|max:255',
+            'cover_image_file'    => 'nullable|image|max:4096',
             'pricing_type'        => 'required|in:fixed,quote,request',
             'base_price'          => 'nullable|numeric|min:0',
             'currency'            => 'required|string|size:3',

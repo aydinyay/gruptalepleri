@@ -220,12 +220,20 @@
                         <div class="card border-0 shadow-sm p-4 mb-3">
                             <div class="section-title mt-0">Kapak Görseli</div>
                             @if(isset($item) && $item->cover_image)
-                            <img src="{{ asset('storage/'.$item->cover_image) }}" class="img-fluid rounded mb-2" alt="Kapak">
+                            <img src="{{ asset('storage/'.$item->cover_image) }}" class="img-fluid rounded mb-2" style="max-height:180px;object-fit:cover;" alt="Kapak">
                             @endif
-                            <div class="form-text mb-2">Görsel URL'si (storage yolu veya tam URL)</div>
-                            <input type="text" name="cover_image" class="form-control form-control-sm"
-                                   value="{{ old('cover_image', $item->cover_image ?? '') }}"
-                                   placeholder="images/urun-gorseli.jpg">
+
+                            <div class="mb-2">
+                                <label class="form-label fw-600 form-label-sm">Dosya Yükle</label>
+                                <input type="file" name="cover_image_file" class="form-control form-control-sm" accept="image/*">
+                                <div class="form-text">JPG/PNG/WEBP, max 4MB. Yüklenirse URL alanını geçersiz kılar.</div>
+                            </div>
+                            <div>
+                                <label class="form-label fw-600 form-label-sm">veya URL</label>
+                                <input type="text" name="cover_image" class="form-control form-control-sm"
+                                       value="{{ old('cover_image', $item->cover_image ?? '') }}"
+                                       placeholder="catalog/gorsel.jpg">
+                            </div>
                         </div>
 
                         <div class="card border-0 shadow-sm p-4">
