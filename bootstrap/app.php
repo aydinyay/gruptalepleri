@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureTransferSupplierAccess;
 use App\Http\Middleware\EnsureB2CAuth;
+use App\Http\Middleware\EnsureB2CDomain;
 use App\Http\Middleware\DomainRouter;
 use App\Http\Middleware\VisitorTracker;
 
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'             => EnsureUserHasRole::class,
             'transfer_supplier'=> EnsureTransferSupplierAccess::class,
             'b2c_auth'         => EnsureB2CAuth::class,
+            'b2c_domain'       => EnsureB2CDomain::class,
         ]);
         // DomainRouter en başa eklenir: session cookie'yi route yüklenmeden önce ayarlar
         $middleware->prependToGroup('web', DomainRouter::class);
