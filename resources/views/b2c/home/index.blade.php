@@ -387,7 +387,7 @@
     <div class="gyg-hero-bg"></div>
     <div class="gyg-hero-content">
         <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
-        <h1>Hayalindeki seyahati<br>grupla yaşa.</h1>
+        <h1>Keşfedin, karşılaştırın,<br><span style="color:var(--gr-accent,#f4a418);">rezervasyon yapın.</span></h1>
         <p class="hero-sub">Transfer'den charter'a, dinner cruise'dan yat kiralama'ya — hepsi burada.</p>
 
         <div class="gyg-search-wrap">
