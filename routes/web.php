@@ -27,6 +27,23 @@ Route::get('/git-pull-2026', function () {
 Route::get('/migrate-run-2026', function () {
     if (request('t') !== 'grtdeploy2026') abort(403);
     $lines = [];
+
+    // View cache temizle
+    try {
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        $lines[] = 'view:clear: OK';
+    } catch (\Throwable $e) {
+        $lines[] = 'view:clear ERROR: ' . $e->getMessage();
+    }
+
+    // Config cache temizle
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        $lines[] = 'config:clear: OK';
+    } catch (\Throwable $e) {
+        $lines[] = 'config:clear SKIP: ' . $e->getMessage();
+    }
+
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $lines[] = 'migrate: ' . \Illuminate\Support\Facades\Artisan::output();
@@ -47,6 +64,16 @@ Route::get('/migrate-run-2026', function () {
             $lines[] = 'seed: izin verilmeyen seeder: ' . $seedClass;
         }
     }
+    // B2C hata testi
+    if (request('debug') === 'b2c') {
+        try {
+            $result = app()->make(\App\Http\Controllers\B2C\HomeController::class)->index();
+            $lines[] = 'b2c_home: OK — ' . strlen($result->getContent()) . ' bytes';
+        } catch (\Throwable $e) {
+            $lines[] = 'b2c_home ERROR: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+        }
+    }
+
     return response(implode("\n", $lines), 200)->header('Content-Type', 'text/plain');
 });
 
