@@ -72,6 +72,24 @@ Route::get('/migrate-run-2026', function () {
             $lines[] = 'seed: izin verilmeyen seeder: ' . $seedClass;
         }
     }
+    // Git pull (fallback, exec ile)
+    if (request('debug') === 'gitpull') {
+        $out = [];
+        $code = -1;
+        try {
+            $cmd = 'cd ' . base_path() . ' && git pull origin main 2>&1';
+            exec($cmd, $out, $code);
+        } catch (\Throwable $e) {
+            $out[] = 'exec ERROR: ' . $e->getMessage();
+        }
+        $lines[] = 'git pull exit: ' . $code;
+        $lines[] = implode("\n", $out);
+        // Pull sonrası cacheları temizle
+        try { \Illuminate\Support\Facades\Artisan::call('view:clear'); $lines[] = 'view:clear after pull: OK'; } catch (\Throwable $e) {}
+        try { \Illuminate\Support\Facades\Artisan::call('route:clear'); $lines[] = 'route:clear after pull: OK'; } catch (\Throwable $e) {}
+        return response(implode("\n", $lines), 200)->header('Content-Type', 'text/plain');
+    }
+
     // Kaynak dosya içeriği kontrol
     if (request('debug') === 'src') {
         $f = resource_path('views/b2c/home/index.blade.php');
