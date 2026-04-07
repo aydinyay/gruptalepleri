@@ -116,6 +116,21 @@ Route::get('/migrate-run-2026', function () {
         return response("FILE_MTIME: " . date('Y-m-d H:i:s', filemtime($f)) . "\n" . $snippet, 200)->header('Content-Type', 'text/plain');
     }
 
+    // B2C ürün hata testi
+    if (request('debug') === 'product') {
+        $slug = request('slug', 'istanbul-havalimani-taksim-sisli-vip-karsilama');
+        try {
+            $ctrl = app()->make(\App\Http\Controllers\B2C\ProductController::class);
+            $response = $ctrl->show($slug);
+            $html = $response->render();
+            $lines[] = 'b2c_product: OK — ' . strlen($html) . ' bytes';
+        } catch (\Throwable $e) {
+            $lines[] = 'b2c_product ERROR: ' . $e->getMessage();
+            $lines[] = 'FILE: ' . $e->getFile() . ':' . $e->getLine();
+            $lines[] = 'TRACE: ' . implode("\n", array_slice(explode("\n", $e->getTraceAsString()), 0, 10));
+        }
+    }
+
     // B2C hata testi
     if (request('debug') === 'b2c') {
         try {
