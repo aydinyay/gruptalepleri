@@ -25,12 +25,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// ── Tüm B2C route'ları yalnızca gruprezervasyonlari.com'da çalışır ────────
-// Route::domain() kullanarak domain eşleşmesi route tanımının bir parçası olur.
-// Bu sayede gruptalepleri.com bu route'larla hiç eşleşmez.
-Route::domain('gruprezervasyonlari.com')->group(function () {
-
-// ── Ana Sayfa ──────────────────────────────────────────────────────────────
+// ── Ana Sayfa — web.php üzerinden yönetilir (domain kontrolü orada) ───────
+// '/' route'u web.php'dedir; B2C domain tespiti orada yapılır.
 Route::get('/', [HomeController::class, 'index'])->name('b2c.home');
 
 // ── Arama Autocomplete API ─────────────────────────────────────────────────
@@ -190,9 +186,3 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [CheckoutController::class, 'paynkolayFail'])->name('fail');
     });
 
-}); // Route::domain('gruprezervasyonlari.com') sonu
-
-// www. prefix için redirect
-Route::domain('www.gruprezervasyonlari.com')->get('{any?}', function ($any = '') {
-    return redirect('https://gruprezervasyonlari.com/' . $any, 301);
-})->where('any', '.*');

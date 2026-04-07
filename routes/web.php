@@ -258,6 +258,12 @@ Route::get('/sitemap-dinamik.xml', [\App\Http\Controllers\SitemapController::cla
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
 
 Route::get('/', function () {
+    // B2C domain ise B2C ana sayfasına yönlendir
+    $host = preg_replace('/^www\./', '', request()->getHost());
+    if ($host === config('b2c.domain', 'gruprezervasyonlari.com')) {
+        return app(\App\Http\Controllers\B2C\HomeController::class)->index();
+    }
+
     if (auth()->check()) {
         $role = auth()->user()->role;
         if ($role === 'superadmin') return redirect()->route('superadmin.dashboard');
