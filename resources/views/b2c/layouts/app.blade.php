@@ -386,7 +386,7 @@
         .gr-footer hr { border-color: rgba(255,255,255,.1); }
 
         section { padding: 4rem 0; }
-        @media (max-width: 991px) {
+        @@media (max-width: 991px) {
             .gyg-nav-links, .gyg-nav-actions { display: none !important; }
             .gyg-hamburger { display: flex; }
             section { padding: 2.5rem 0; }

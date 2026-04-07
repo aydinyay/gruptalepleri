@@ -184,9 +184,9 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
 }
-@media (max-width: 1200px) { .gyg-products-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px)  { .gyg-products-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
-@media (max-width: 480px)  { .gyg-products-grid { grid-template-columns: 1fr; } }
+@@media (max-width: 1200px) { .gyg-products-grid { grid-template-columns: repeat(3, 1fr); } }
+@@media (max-width: 768px)  { .gyg-products-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+@@media (max-width: 480px)  { .gyg-products-grid { grid-template-columns: 1fr; } }
 
 .gyg-pcard {
     border-radius: 12px;
@@ -244,8 +244,8 @@
     grid-template-columns: repeat(5, 1fr);
     gap: 16px;
 }
-@media (max-width: 1200px) { .gyg-dest-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 768px)  { .gyg-dest-grid { grid-template-columns: repeat(2, 1fr); } }
+@@media (max-width: 1200px) { .gyg-dest-grid { grid-template-columns: repeat(4, 1fr); } }
+@@media (max-width: 768px)  { .gyg-dest-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .gyg-dest-card {
     border-radius: 12px; overflow: hidden;
@@ -285,7 +285,7 @@
 
 /* Blog */
 .gyg-blog-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
-@media (max-width: 768px) { .gyg-blog-grid { grid-template-columns: 1fr; } }
+@@media (max-width: 768px) { .gyg-blog-grid { grid-template-columns: 1fr; } }
 .gyg-blog-card { text-decoration: none; color: inherit; display: block; }
 .gyg-blog-card:hover .blog-title { color: #1a3c6b; text-decoration: underline; }
 .gyg-blog-card .blog-thumb {
