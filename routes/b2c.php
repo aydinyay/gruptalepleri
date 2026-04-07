@@ -25,9 +25,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// ── Ana Sayfa — web.php'deki / route'u domain kontrolü ile çalıştırır ─────
-// Bu route sadece 'b2c.home' ismi için tanımlı; asıl eşleşme web.php'de olur.
-Route::get('/', [HomeController::class, 'index'])->name('b2c.home');
+// ── Ana Sayfa ──────────────────────────────────────────────────────────────
+Route::get('/', function () {
+    $host = preg_replace('/^www\./', '', request()->getHost());
+    if ($host !== 'gruprezervasyonlari.com') {
+        // gruptalepleri.com'dan geliyorsa B2B login'e yönlendir
+        return auth()->check()
+            ? redirect()->intended('/superadmin')
+            : redirect('/login');
+    }
+    return app(\App\Http\Controllers\B2C\HomeController::class)->index();
+})->name('b2c.home');
 
 // ── Arama Autocomplete API ─────────────────────────────────────────────────
 Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {
