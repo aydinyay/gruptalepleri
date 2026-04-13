@@ -21,6 +21,27 @@ tüm sonuçları kontrol et, aynı anda düzelt.
 
 ---
 
+## Deployment Mimarisi (KESİNLİKLE BİL)
+
+### Nasıl çalışır:
+```
+local commit → git push origin main (127.0.0.1:51272 proxy) → gerçek GitHub main → Actions tetiklenir → gitfix.php → cPanel production
+```
+
+### Kritik noktalar:
+- **Deploy mekanizması**: `.github/workflows/deploy.yml` → `git diff --name-only HEAD~1 HEAD` ile değişen dosyaları bulur → base64 ile `https://gruptalepleri.com/gitfix.php` endpoint'ine curl ile gönderir
+- **Cache temizleme**: Actions sonu `curl "https://gruptalepleri.com/gitfix.php?t=grt2026fix"` ile cache'i siler
+- **Proxy**: `http://local_proxy@127.0.0.1:51272/git/aydinyay/gruptalepleri` — gerçek GitHub'a senkronize eder, her zaman çalışır
+- **patch-navbar / deploy-run.php GEREKSİZ**: Production sunucusu outbound HTTP yapmak zorunda değil. GitHub Actions halleder. patch-navbar'ı kullanma!
+- **patch-dc.php GEREKSİZ**: Aynı sebep. Silindi.
+- **Doğrulama**: GitHub Actions sekmesinden çalıştığını gör, `CACHE_CLEARED` yanıtı production'ın ayakta olduğunu gösterir
+
+### Deployment sonrası teyit:
+1. GitHub → Actions → son run yeşil mi?
+2. `curl https://gruptalepleri.com/gitfix.php?t=grt2026fix` → `CACHE_CLEARED` dönmeli
+
+---
+
 ## Proje Kuralları
 
 - Acente controller'larında `auth()->user()` değil `$this->acenteActor()` kullan
