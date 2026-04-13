@@ -243,12 +243,12 @@ class GroupHubController extends Controller
                     'title' => 'Leisure Merkezi',
                     'subtitle' => 'Dinner Cruise ve Yacht Charter urunlerini vitrin kartlarla sunun.',
                     'links' => [
-                        ['label' => 'Dinner Cruise', 'route' => 'acente.dinner-cruise.index', 'icon' => 'fas fa-utensils'],
-                        ['label' => 'Yacht Charter', 'route' => 'acente.yacht-charter.index', 'icon' => 'fas fa-ship'],
+                        ['label' => 'Dinner Cruise', 'route' => 'acente.dinner-cruise.catalog', 'icon' => 'fas fa-utensils'],
+                        ['label' => 'Yacht Charter', 'route' => 'acente.yacht-charter.catalog', 'icon' => 'fas fa-ship'],
                     ],
                     'cards' => [
-                        ['tag' => 'Urun Vitrini', 'title' => 'Dinner Cruise Koleksiyonu', 'description' => 'Paketleri katalog gibi sunup talebe donusturun.', 'route' => 'acente.dinner-cruise.index', 'icon' => 'fas fa-water', 'theme' => 'theme-cyan'],
-                        ['tag' => 'Premium', 'title' => 'Yacht Charter Koleksiyonu', 'description' => 'Yat deneyimlerini paket odakli sergileyin.', 'route' => 'acente.yacht-charter.index', 'icon' => 'fas fa-anchor', 'theme' => 'theme-indigo'],
+                        ['tag' => 'Urun Vitrini', 'title' => 'Dinner Cruise Koleksiyonu', 'description' => 'Paketleri katalog gibi sunup talebe donusturun.', 'route' => 'acente.dinner-cruise.catalog', 'icon' => 'fas fa-water', 'theme' => 'theme-cyan'],
+                        ['tag' => 'Premium', 'title' => 'Yacht Charter Koleksiyonu', 'description' => 'Yat deneyimlerini paket odakli sergileyin.', 'route' => 'acente.yacht-charter.catalog', 'icon' => 'fas fa-anchor', 'theme' => 'theme-indigo'],
                         ['tag' => 'Hizli Talep', 'title' => 'Yeni Dinner Talebi', 'description' => 'Urun vitrinden dogrudan yeni talep acin.', 'route' => 'acente.dinner-cruise.create', 'icon' => 'fas fa-plus', 'theme' => 'theme-orange'],
                     ],
                 ],

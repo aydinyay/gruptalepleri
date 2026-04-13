@@ -90,7 +90,7 @@
 @php
     $isDinner = $productType === 'dinner_cruise';
     $newRoute = route($routePrefix . '.create');
-    $siblingRoute = $isDinner ? route('acente.yacht-charter.index') : route('acente.dinner-cruise.index');
+    $siblingRoute = $isDinner ? route('acente.yacht-charter.catalog') : route('acente.dinner-cruise.catalog');
     $siblingLabel = $isDinner ? 'Yacht koleksiyonunu gor' : 'Dinner cruise koleksiyonunu gor';
 
     $includedExtras = $extraOptions->where('default_included', true)->values();

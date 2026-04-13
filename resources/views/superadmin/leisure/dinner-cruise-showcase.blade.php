@@ -240,7 +240,7 @@
     <span>🔧 Superadmin</span>
     <a href="{{ route('superadmin.leisure.settings.index') }}">⚙ Leisure Ayarları</a>
     <a href="{{ route('superadmin.dinner-cruise.index') }}">📋 Talep Listesi</a>
-    <a href="{{ route('acente.dinner-cruise.index') }}">👁 Acente Vitrinini Gör</a>
+    <a href="{{ route('acente.dinner-cruise.catalog') }}">👁 Acente Vitrinini Gör</a>
     <span class="ms-auto">{{ $packages->count() }} paket · {{ $mediaAssets->count() }} medya · {{ $includedExtras->count() }} dahil servis</span>
 </div>
 
