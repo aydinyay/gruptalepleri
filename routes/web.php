@@ -1076,7 +1076,13 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/dinner-cruise/talep/{leisureRequest}', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'show'])->name('dinner-cruise.show');
     Route::post('/dinner-cruise/talep/{leisureRequest}/teklif/{offer}/kabul', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'acceptOffer'])->name('dinner-cruise.accept');
     Route::get('/dinner-cruise/teklif/{offer}/yazdir', \App\Http\Controllers\Acente\LeisureOfferPrintController::class)->name('dinner-cruise.offers.print');
-    Route::get('/yacht-charter', [\App\Http\Controllers\Acente\YachtCharterController::class, 'index'])->name('yacht-charter.index');
+    // ── Yacht Charter — GYG Katalog (yeni akış) ──────────────────────────
+    Route::get('/yacht-charter', [\App\Http\Controllers\Acente\YachtCatalogController::class, 'catalog'])->name('yacht-charter.catalog');
+    Route::get('/yacht-charter/urun/{code}', [\App\Http\Controllers\Acente\YachtCatalogController::class, 'show'])->name('yacht-charter.show-product');
+    Route::post('/yacht-charter/urun/{code}/rezervasyon', [\App\Http\Controllers\Acente\YachtCatalogController::class, 'book'])->name('yacht-charter.book');
+    Route::get('/yacht-charter/rezervasyon/{leisureRequest}', [\App\Http\Controllers\Acente\YachtCatalogController::class, 'bookingShow'])->name('yacht-charter.booking-show');
+    // ── Yacht Charter — Eski talep sistemi (korunuyor) ───────────────────
+    Route::get('/yacht-charter/taleplerim', [\App\Http\Controllers\Acente\YachtCharterController::class, 'index'])->name('yacht-charter.index');
     Route::get('/yacht-charter/talep', [\App\Http\Controllers\Acente\YachtCharterController::class, 'create'])->name('yacht-charter.create');
     Route::post('/yacht-charter/talep', [\App\Http\Controllers\Acente\YachtCharterController::class, 'store'])->name('yacht-charter.store');
     Route::get('/yacht-charter/talep/{leisureRequest}', [\App\Http\Controllers\Acente\YachtCharterController::class, 'show'])->name('yacht-charter.show');

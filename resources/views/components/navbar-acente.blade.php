@@ -118,13 +118,13 @@
             'items' => [
                 [
                     'label' => 'Dinner Cruise',
-                    'href' => route('acente.dinner-cruise.index'),
+                    'href' => route('acente.dinner-cruise.catalog'),
                     'icon' => 'fas fa-utensils',
                     'keys' => ['dinner-cruise'],
                 ],
                 [
                     'label' => 'Yacht Charter',
-                    'href' => route('acente.yacht-charter.index'),
+                    'href' => route('acente.yacht-charter.catalog'),
                     'icon' => 'fas fa-ship',
                     'keys' => ['yacht-charter'],
                 ],
