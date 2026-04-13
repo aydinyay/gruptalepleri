@@ -276,7 +276,11 @@ class PaynkolayGatewayService
 
     private function isSimulationAllowed(): bool
     {
-        return app()->environment(['local', 'testing']);
+        if (app()->environment(['local', 'testing'])) {
+            return true;
+        }
+
+        return auth()->check() && auth()->user()?->role === 'superadmin';
     }
 
     private function formatAmount(float|int|string $amount): string

@@ -129,6 +129,15 @@
                                 <i class="fas fa-lock me-2"></i>Ödemeyi Tamamla
                             </button>
                         </form>
+                        @if(auth()->user()?->role === 'superadmin')
+                        <form method="POST" action="{{ route('acente.leisure.payments.gateway-start', $booking) }}" class="mt-2">
+                            @csrf
+                            <input type="hidden" name="_simulate" value="1">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="fas fa-flask me-1"></i>Superadmin: Ödendi Simüle Et
+                            </button>
+                        </form>
+                        @endif
                         <div class="text-center mt-2" style="font-size:.74rem;color:var(--muted);">
                             <i class="fas fa-shield-alt me-1 text-success"></i>256-bit SSL şifreleme ile güvenli ödeme
                         </div>

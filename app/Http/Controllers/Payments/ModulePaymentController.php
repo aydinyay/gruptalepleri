@@ -215,6 +215,31 @@ class ModulePaymentController extends Controller
             return back()->with('error', 'Bu leisure booking icin kalan odeme bulunmuyor.');
         }
 
+        // Superadmin simülasyon bypass
+        if ($request->boolean('_simulate') && auth()->user()?->role === 'superadmin') {
+            $internalReference = $this->generateInternalReference('LEI');
+            $paymentReference  = $this->generatePaymentReference('LPY');
+            $currency = strtoupper((string) ($booking->currency ?: 'TRY'));
+            LeisurePayment::query()->create([
+                'leisure_booking_id'   => $booking->id,
+                'reference'            => $paymentReference,
+                'method'               => 'card',
+                'amount'               => $remainingAmount,
+                'currency'             => $currency,
+                'status'               => 'pending',
+                'provider'             => 'simulation',
+                'internal_reference'   => $internalReference,
+                'request_payload_json' => ['module' => 'leisure', 'booking_id' => $booking->id, 'simulated' => true],
+                'charged_try_amount'   => $remainingAmount,
+                'created_by_user_id'   => (int) $request->user()->id,
+            ]);
+
+            return redirect()->route('payment.paynkolay.simulate', [
+                'reference' => $internalReference,
+                'status'    => 'paid',
+            ]);
+        }
+
         $currency = strtoupper((string) ($booking->currency ?: 'TRY'));
         $fx = $this->tcmbExchangeRateService->convertToTry($remainingAmount, $currency);
         $internalReference = $this->generateInternalReference('LEI');
@@ -292,7 +317,8 @@ class ModulePaymentController extends Controller
 
     public function paynkolaySimulate(Request $request, string $reference): RedirectResponse
     {
-        abort_unless(app()->environment(['local', 'testing']), 404);
+        $isSuperadmin = auth()->check() && auth()->user()?->role === 'superadmin';
+        abort_unless(app()->environment(['local', 'testing']) || $isSuperadmin, 404);
 
         $status = strtolower((string) $request->query('status', 'paid'));
         if (! in_array($status, ['paid', 'failed'], true)) {
