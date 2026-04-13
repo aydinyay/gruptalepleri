@@ -161,7 +161,9 @@ try {
             // Dinner cruise B2B katalog
             'database/migrations/2026_04_13_100000_update_standard_departure_to_single.php',
             'app/Http/Controllers/Superadmin/LeisureSettingsController.php',
+            'app/Http/Controllers/Payments/ModulePaymentController.php',
             'resources/views/superadmin/leisure/settings.blade.php',
+            'resources/views/acente/dinner-cruise/catalog.blade.php',
             'resources/views/acente/dinner-cruise/show.blade.php',
             'public/deploy-run.php',
         ];
