@@ -142,7 +142,7 @@
                 <div class="dc-sec-title">4 mevsimsel seçenek seçin yap</div>
                 <div class="dc-pkg-tabs">
                     @foreach($allPackages as $p)
-                        <a href="{{ route('acente.dinner-cruise.show', $p->code) }}"
+                        <a href="{{ route('acente.dinner-cruise.show-product', $p->code) }}"
                            class="dc-pkg-tab {{ $p->id === $package->id ? 'active' : '' }}">
                             {{ $p->name_tr }}
                         </a>
@@ -151,12 +151,14 @@
                 <div class="p-3 rounded-3" style="background:rgba(255,85,51,.06);border:1px solid rgba(255,85,51,.2);">
                     <div class="fw-bold mb-1">{{ $package->name_tr }}</div>
                     <div style="font-size:.88rem;color:var(--muted);">{{ $package->summary_tr }}</div>
-                    <div class="mt-2 d-flex align-items-center gap-2">
+                    <div class="mt-2">
                         @if($package->original_price_per_person)
-                            <span style="text-decoration:line-through;color:var(--muted);font-size:.88rem;">{{ number_format((float)$package->original_price_per_person,0,',','.') }} TRY</span>
+                            <div style="font-size:.75rem;color:var(--muted);margin-bottom:.15rem;">Önerilen satış: <strong>{{ number_format((float)$package->original_price_per_person,0,',','.') }} {{ $package->currency ?: 'EUR' }}</strong>/kişi</div>
                         @endif
-                        <span style="font-size:1.25rem;font-weight:800;color:var(--gy);">{{ number_format((float)($package->base_price_per_person??0),0,',','.') }} TRY</span>
-                        <span style="font-size:.78rem;color:var(--muted);">/ kişi</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="font-size:1.25rem;font-weight:800;color:var(--gy);">{{ number_format((float)($package->base_price_per_person??0),0,',','.') }} {{ $package->currency ?: 'EUR' }}</span>
+                            <span style="font-size:.78rem;color:var(--muted);">/ kişi (B2B)</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -269,11 +271,11 @@
             <div class="dc-panel">
                 <div class="mb-1">
                     @if($package->original_price_per_person)
-                        <span class="dc-panel-old">{{ number_format((float)$package->original_price_per_person,0,',','.') }} TRY</span>
+                        <div style="font-size:.75rem;color:var(--muted);">Önerilen satış: <strong>{{ number_format((float)$package->original_price_per_person,0,',','.') }} {{ $package->currency ?: 'EUR' }}</strong>/kişi</div>
                     @endif
                 </div>
-                <div class="dc-panel-price">{{ number_format((float)($package->base_price_per_person??0),0,',','.') }} TRY</div>
-                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">kişi başı</div>
+                <div class="dc-panel-price">{{ number_format((float)($package->base_price_per_person??0),0,',','.') }} {{ $package->currency ?: 'EUR' }}</div>
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">kişi başı (B2B fiyat)</div>
 
                 <form id="bookForm" action="{{ route('acente.dinner-cruise.book', $package->code) }}" method="POST">
                     @csrf
@@ -349,9 +351,9 @@
             <div class="mt-3 p-3 rounded-3" style="background:var(--card);border:1px solid var(--brd);">
                 <div style="font-size:.8rem;font-weight:700;margin-bottom:.6rem;color:var(--muted);">DİĞER PAKETLER</div>
                 @foreach($allPackages->where('id','!=',$package->id) as $p)
-                    <a href="{{ route('acente.dinner-cruise.show', $p->code) }}" class="d-flex justify-content-between align-items-center text-decoration-none py-2" style="border-bottom:1px solid var(--brd);color:var(--txt);">
+                    <a href="{{ route('acente.dinner-cruise.show-product', $p->code) }}" class="d-flex justify-content-between align-items-center text-decoration-none py-2" style="border-bottom:1px solid var(--brd);color:var(--txt);">
                         <span style="font-size:.85rem;">{{ $p->name_tr }}</span>
-                        <span style="font-size:.88rem;font-weight:700;color:var(--gy);">{{ number_format((float)($p->base_price_per_person??0),0,',','.') }} TRY</span>
+                        <span style="font-size:.88rem;font-weight:700;color:var(--gy);">{{ number_format((float)($p->base_price_per_person??0),0,',','.') }} {{ $p->currency ?: 'EUR' }}</span>
                     </a>
                 @endforeach
             </div>
@@ -363,13 +365,14 @@
 <script>
 const pricePerPerson = {{ (float)($package->base_price_per_person ?? 0) }};
 const childRate = 0.5;
+const currency = '{{ $package->currency ?: 'EUR' }}';
 
 function calcTotal() {
     const adult  = parseInt(document.getElementById('paxAdult').value)  || 0;
     const child  = parseInt(document.getElementById('paxChild').value)   || 0;
     const total  = (adult * pricePerPerson) + (child * pricePerPerson * childRate);
     document.getElementById('totalPrice').textContent =
-        total > 0 ? total.toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' TRY' : '—';
+        total > 0 ? total.toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' ' + currency : '—';
 }
 
 ['paxAdult','paxChild','paxInfant'].forEach(id => {

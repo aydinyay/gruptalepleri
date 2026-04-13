@@ -202,11 +202,12 @@
 
                 <div class="dc-card-footer">
                     <div>
-                        <div class="dc-price-label">Kişi başı başlangıç</div>
-                        @if($pkg->original_price_per_person && $pkg->original_price_per_person > $pkg->base_price_per_person)
-                            <div class="dc-price-original">{{ number_format((float)$pkg->original_price_per_person, 0, ',', '.') }} TRY</div>
+                        @if($pkg->original_price_per_person)
+                            <div class="dc-price-label">Önerilen satış: {{ number_format((float)$pkg->original_price_per_person, 0, ',', '.') }} {{ $pkg->currency ?: 'EUR' }}/kişi</div>
+                        @else
+                            <div class="dc-price-label">Kişi başı B2B fiyat</div>
                         @endif
-                        <div class="dc-price-current">{{ number_format((float)($pkg->base_price_per_person ?? 0), 0, ',', '.') }} TRY</div>
+                        <div class="dc-price-current">{{ number_format((float)($pkg->base_price_per_person ?? 0), 0, ',', '.') }} {{ $pkg->currency ?: 'EUR' }}</div>
                     </div>
                     <span class="dc-btn-detail">İncele <i class="fas fa-arrow-right fa-xs"></i></span>
                 </div>

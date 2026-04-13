@@ -608,6 +608,70 @@ PHPCODE;
         $stmt->execute([json_encode(['20:30 Biniş / 21:00 Kalkış'])]);
         $output .= "Etkilenen satir: " . $stmt->rowCount() . "\n";
         $output .= "standard paketi departure_times → [\"20:30 Biniş / 21:00 Kalkış\"] olarak güncellendi.\n";
+    } elseif ($action === 'setup-dc-packages') {
+        // Alkolsüz (standard → alcoholfree) ve Alkollü paketleri kur
+        $dbCfg = config('database.connections.mysql');
+        $dsn = "mysql:host={$dbCfg['host']};port={$dbCfg['port']};dbname={$dbCfg['database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $dbCfg['username'], $dbCfg['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+
+        // 1) standard → alcoholfree güncelle
+        $stmt = $pdo->prepare("
+            UPDATE leisure_package_templates
+            SET code = 'alcoholfree',
+                name_tr = 'Alkolsüz Dinner Cruise',
+                name_en = 'Non-Alcoholic Dinner Cruise',
+                summary_tr = 'Boğaz hattında alkolsüz menü, canlı show ve transfer dahil akşam deneyimi.',
+                summary_en = 'Evening Bosphorus cruise with non-alcoholic menu, live show and transfer.',
+                base_price_per_person = 35.00,
+                original_price_per_person = 60.00,
+                currency = 'EUR',
+                sort_order = 10,
+                includes_tr = ?,
+                includes_en = ?,
+                excludes_tr = ?,
+                excludes_en = ?,
+                is_active = 1,
+                updated_at = NOW()
+            WHERE product_type = 'dinner_cruise' AND code = 'standard'
+        ");
+        $stmt->execute([
+            json_encode(['Gidiş / Dönüş transfer', 'Alkolsüz içecek paketi', 'Akşam yemeği', 'Canlı show programı', 'Boğaz turu'], JSON_UNESCAPED_UNICODE),
+            json_encode(['Round-trip transfer', 'Non-alcoholic beverage package', 'Dinner', 'Live show program', 'Bosphorus cruise'], JSON_UNESCAPED_UNICODE),
+            json_encode(['Alkollü içecekler', 'Özel fotoğraf/video çekimi'], JSON_UNESCAPED_UNICODE),
+            json_encode(['Alcoholic beverages', 'Private photo/video production'], JSON_UNESCAPED_UNICODE),
+        ]);
+        $output .= "alcoholfree paketi guncellendi: " . $stmt->rowCount() . " satir.\n";
+
+        // 2) alcohol paketi yoksa ekle
+        $check = $pdo->prepare("SELECT id FROM leisure_package_templates WHERE product_type = 'dinner_cruise' AND code = 'alcohol' LIMIT 1");
+        $check->execute();
+        if ($check->fetch()) {
+            $output .= "alcohol paketi zaten mevcut, atlanıyor.\n";
+        } else {
+            $ins = $pdo->prepare("
+                INSERT INTO leisure_package_templates
+                    (product_type, code, level, name_tr, name_en, summary_tr, summary_en,
+                     base_price_per_person, original_price_per_person, currency,
+                     sort_order, includes_tr, includes_en, excludes_tr, excludes_en,
+                     departure_times, pier_name, duration_hours, is_active, created_at, updated_at)
+                VALUES
+                    ('dinner_cruise', 'alcohol', 'standard',
+                     'Alkollü Dinner Cruise', 'Alcoholic Dinner Cruise',
+                     'Boğaz hattında alkollü menü, canlı show ve transfer dahil akşam deneyimi.',
+                     'Evening Bosphorus cruise with alcoholic menu (2 doubles), live show and transfer.',
+                     45.00, 80.00, 'EUR',
+                     20, ?, ?, ?, ?,
+                     ?, 'Kabataş İskelesi', 3, 1, NOW(), NOW())
+            ");
+            $ins->execute([
+                json_encode(['Gidiş / Dönüş transfer', 'Alkollü içecek paketi (2 duble)', 'Akşam yemeği', 'Canlı show programı', 'Boğaz turu'], JSON_UNESCAPED_UNICODE),
+                json_encode(['Round-trip transfer', 'Alcoholic beverage package (2 doubles)', 'Dinner', 'Live show program', 'Bosphorus cruise'], JSON_UNESCAPED_UNICODE),
+                json_encode(['Limitsiz alkol', 'Özel fotoğraf/video çekimi'], JSON_UNESCAPED_UNICODE),
+                json_encode(['Unlimited alcohol', 'Private photo/video production'], JSON_UNESCAPED_UNICODE),
+                json_encode(['20:30 Biniş / 21:00 Kalkış'], JSON_UNESCAPED_UNICODE),
+            ]);
+            $output .= "alcohol paketi eklendi (ID: " . $pdo->lastInsertId() . ").\n";
+        }
     } elseif ($action === 'cache-clear') {
         $run($kernel, 'config:clear');
         $run($kernel, 'cache:clear');
@@ -990,6 +1054,7 @@ PHPCODE;
 <a href="?key=<?= urlencode($providedKey) ?>&action=log" class="btn blue">📋 Laravel Log (Son 100)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=status" class="btn blue">Migration Durumu</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=migrate" class="btn green" onclick="return confirm('Migration calistirilsin mi?')">Migrate</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=setup-dc-packages" class="btn green" onclick="return confirm('Dinner Cruise paketleri kurulsun mu? (alcoholfree guncelle + alcohol ekle)')">🚢 DC Paketleri Kur</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=cache-clear" class="btn red">Cache Clear</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=full-clear" class="btn red">Full Clear</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=git-status" class="btn blue">Git Status</a>

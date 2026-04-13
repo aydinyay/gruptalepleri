@@ -760,9 +760,13 @@ class ModulePaymentController extends Controller
         }
 
         if ($module === 'leisure') {
-            return ($data['product_type'] ?? '') === LeisureRequest::PRODUCT_DINNER_CRUISE
-                ? $normalizedRole . '.dinner-cruise.show'
-                : $normalizedRole . '.yacht-charter.show';
+            if (($data['product_type'] ?? '') === LeisureRequest::PRODUCT_DINNER_CRUISE) {
+                return $normalizedRole === 'acente'
+                    ? 'acente.dinner-cruise.booking-show'
+                    : $normalizedRole . '.dinner-cruise.show';
+            }
+
+            return $normalizedRole . '.yacht-charter.show';
         }
 
         return 'dashboard';

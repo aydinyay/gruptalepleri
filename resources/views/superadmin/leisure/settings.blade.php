@@ -85,7 +85,7 @@
                         <div class="col-12"><label class="form-label">EN Haric Olanlar</label><textarea name="excludes_en_text" class="form-control" rows="3"></textarea></div>
                         <div class="col-12"><hr class="my-1"><small class="text-muted fw-semibold text-uppercase">Fiyat & Katalog Bilgileri</small></div>
                         <div class="col-12 col-md-6"><label class="form-label">B2B Fiyat (kisi basi)</label><input type="number" step="0.01" name="base_price_per_person" class="form-control" placeholder="850.00"></div>
-                        <div class="col-12 col-md-6"><label class="form-label">Orijinal Fiyat</label><input type="number" step="0.01" name="original_price_per_person" class="form-control" placeholder="1060.00"></div>
+                        <div class="col-12 col-md-6"><label class="form-label">Önerilen Satış Fiyatı</label><input type="number" step="0.01" name="original_price_per_person" class="form-control" placeholder="1060.00"></div>
                         <div class="col-12 col-md-4"><label class="form-label">Para Birimi</label><input type="text" name="currency" class="form-control" value="TRY" maxlength="3"></div>
                         <div class="col-12 col-md-4"><label class="form-label">Sure (saat)</label><input type="number" step="0.5" name="duration_hours" class="form-control" placeholder="3"></div>
                         <div class="col-12 col-md-4"><label class="form-label">Max Kisi</label><input type="number" name="max_pax" class="form-control" placeholder="300"></div>
@@ -234,7 +234,7 @@
                                 {{-- Katalog / Fiyat Alanlari --}}
                                 <div class="col-12"><hr class="my-1"><small class="text-muted fw-semibold text-uppercase">Fiyat & Katalog Bilgileri</small></div>
                                 <div class="col-12 col-md-3"><label class="form-label">B2B Fiyat (kisi basi)</label><input type="number" step="0.01" name="base_price_per_person" class="form-control" value="{{ $package->base_price_per_person }}" placeholder="850.00"></div>
-                                <div class="col-12 col-md-3"><label class="form-label">Orijinal Fiyat (ustu cizili)</label><input type="number" step="0.01" name="original_price_per_person" class="form-control" value="{{ $package->original_price_per_person }}" placeholder="1060.00"></div>
+                                <div class="col-12 col-md-3"><label class="form-label">Önerilen Satış Fiyatı</label><input type="number" step="0.01" name="original_price_per_person" class="form-control" value="{{ $package->original_price_per_person }}" placeholder="1060.00"></div>
                                 <div class="col-12 col-md-2"><label class="form-label">Para Birimi</label><input type="text" name="currency" class="form-control" value="{{ $package->currency ?? 'TRY' }}" placeholder="TRY" maxlength="3"></div>
                                 <div class="col-12 col-md-2"><label class="form-label">Sure (saat)</label><input type="number" step="0.5" name="duration_hours" class="form-control" value="{{ $package->duration_hours }}" placeholder="3"></div>
                                 <div class="col-12 col-md-2"><label class="form-label">Max Kisi</label><input type="number" name="max_pax" class="form-control" value="{{ $package->max_pax }}" placeholder="300"></div>
