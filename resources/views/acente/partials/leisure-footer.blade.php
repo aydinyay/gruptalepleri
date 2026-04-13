@@ -1,6 +1,6 @@
 @php
-    $footerPhone = $_adminTelefon ?? \App\Models\SistemAyar::get('sirket_whatsapp', '905354154799');
-    $footerPhone = preg_replace('/[^0-9]/', '', $footerPhone);
+    $footerPhone = \App\Models\SistemAyar::get('sirket_whatsapp', '905354154799');
+    $footerPhone = preg_replace('/[^0-9]/', '', (string) $footerPhone);
 @endphp
 <footer style="background:var(--card);border-top:1px solid var(--brd);margin-top:3rem;padding:2rem 0 1.5rem;">
     <div class="container">
@@ -27,7 +27,7 @@
                 @endif
             </div>
             <div style="font-size:.74rem;color:var(--muted);">
-                © {{ date('Y') }} GrupTalepleri. Tüm hakları saklıdır.
+                &copy; {{ date('Y') }} GrupTalepleri. Tüm hakları saklıdır.
             </div>
         </div>
     </div>
