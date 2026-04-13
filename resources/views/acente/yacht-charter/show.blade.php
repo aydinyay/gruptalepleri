@@ -86,17 +86,33 @@
     $currency = $package->currency ?: 'EUR';
 @endphp
 
+@php
+    $lbItems = [['url' => $heroImg, 'type' => 'photo', 'alt' => $package->name_tr]];
+    foreach ($galleryPhotos as $lbA) {
+        $lbItems[] = ['url' => $lbA->resolvedUrl(), 'type' => $lbA->media_type, 'alt' => $lbA->title_tr ?? ''];
+    }
+@endphp
+
+{{-- Lightbox --}}
+<div id="ycLb" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;">
+    <button onclick="ycLbClose()" style="position:fixed;top:14px;right:18px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;">✕</button>
+    <button onclick="ycLbPrev()" style="position:fixed;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;padding:.3rem .7rem;border-radius:8px;cursor:pointer;">‹</button>
+    <div id="ycLbMedia" style="max-width:92vw;max-height:88vh;display:flex;align-items:center;justify-content:center;"></div>
+    <button onclick="ycLbNext()" style="position:fixed;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;padding:.3rem .7rem;border-radius:8px;cursor:pointer;">›</button>
+    <div id="ycLbCount" style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);color:#fff;font-size:.82rem;background:rgba(0,0,0,.5);padding:.2rem .55rem;border-radius:999px;"></div>
+</div>
+
 <div class="container mt-3">
     {{-- Gallery --}}
-    <div class="yc-gallery mb-3">
-        <div class="yc-gallery-main">
+    <div class="yc-gallery mb-3" style="cursor:pointer;">
+        <div class="yc-gallery-main" onclick="ycLbOpen(0)">
             <img src="{{ $heroImg }}" alt="{{ $package->name_tr }}" loading="lazy">
         </div>
         @foreach($galleryImgs->take(2) as $i => $asset)
-            <div class="yc-gallery-thumb">
+            <div class="yc-gallery-thumb" onclick="ycLbOpen({{ $i + 1 }})">
                 <img src="{{ $asset->resolvedUrl() }}" alt="{{ $asset->title_tr }}" loading="lazy">
-                @if($i === 1 && $galleryImgs->count() > 2)
-                    <div class="yc-gallery-more">+{{ $galleryImgs->count() - 2 }} fotoğraf</div>
+                @if($i === 1 && count($lbItems) > 3)
+                    <div class="yc-gallery-more">+{{ count($lbItems) - 3 }} fotoğraf</div>
                 @endif
             </div>
         @endforeach
@@ -345,6 +361,44 @@
 
 @include('acente.partials.theme-script')
 <script>
+// ── Lightbox ──────────────────────────────────────────────────────────
+const ycLbImages = @json($lbItems);
+let ycLbIdx = 0;
+const ycLbEl    = document.getElementById('ycLb');
+const ycLbMedia = document.getElementById('ycLbMedia');
+const ycLbCount = document.getElementById('ycLbCount');
+
+function ycLbOpen(i) {
+    ycLbIdx = i;
+    ycLbRender();
+    ycLbEl.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function ycLbClose() {
+    ycLbEl.style.display = 'none';
+    document.body.style.overflow = '';
+    ycLbMedia.innerHTML = '';
+}
+function ycLbRender() {
+    const item = ycLbImages[ycLbIdx];
+    if (item.type === 'video') {
+        ycLbMedia.innerHTML = `<video src="${item.url}" controls autoplay playsinline style="max-width:92vw;max-height:88vh;border-radius:8px;"></video>`;
+    } else {
+        ycLbMedia.innerHTML = `<img src="${item.url}" alt="${item.alt}" style="max-width:92vw;max-height:88vh;object-fit:contain;border-radius:8px;">`;
+    }
+    ycLbCount.textContent = (ycLbIdx + 1) + ' / ' + ycLbImages.length;
+}
+function ycLbPrev() { ycLbIdx = (ycLbIdx - 1 + ycLbImages.length) % ycLbImages.length; ycLbRender(); }
+function ycLbNext() { ycLbIdx = (ycLbIdx + 1) % ycLbImages.length; ycLbRender(); }
+ycLbEl.addEventListener('click', e => { if (e.target === ycLbEl) ycLbClose(); });
+document.addEventListener('keydown', e => {
+    if (ycLbEl.style.display === 'none') return;
+    if (e.key === 'Escape') ycLbClose();
+    if (e.key === 'ArrowLeft') ycLbPrev();
+    if (e.key === 'ArrowRight') ycLbNext();
+});
+
+// ── Fiyat hesap ───────────────────────────────────────────────────────
 const pricePerHour = {{ $pricePerHour }};
 const currency = '{{ $currency }}';
 

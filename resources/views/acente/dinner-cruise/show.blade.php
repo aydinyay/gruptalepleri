@@ -82,24 +82,37 @@
 @php
     $heroImg = $package->hero_image_url ?: 'https://images.pexels.com/photos/3411083/pexels-photo-3411083.jpeg?auto=compress&cs=tinysrgb&w=1200';
     $galleryImgs = $galleryPhotos->isNotEmpty()
-        ? $galleryPhotos->take(3)->values()
+        ? $galleryPhotos->where('media_type','photo')->take(3)->values()
         : $mediaAssets->where('media_type','photo')->take(3)->values();
     $timeline = is_array($package->timeline_tr) ? $package->timeline_tr : json_decode($package->timeline_tr ?? '[]', true);
     $departureTimes = is_array($package->departure_times) ? $package->departure_times : json_decode($package->departure_times ?? '[]', true);
     $importantNotes = is_array($package->important_notes_tr) ? $package->important_notes_tr : json_decode($package->important_notes_tr ?? '[]', true);
+    $dcLbItems = [['url' => $heroImg, 'type' => 'photo', 'alt' => $package->name_tr]];
+    foreach ($galleryPhotos as $lbA) {
+        $dcLbItems[] = ['url' => $lbA->resolvedUrl(), 'type' => $lbA->media_type, 'alt' => $lbA->title_tr ?? ''];
+    }
 @endphp
+
+{{-- Lightbox --}}
+<div id="dcLb" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;">
+    <button onclick="dcLbClose()" style="position:fixed;top:14px;right:18px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;">✕</button>
+    <button onclick="dcLbPrev()" style="position:fixed;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;padding:.3rem .7rem;border-radius:8px;cursor:pointer;">‹</button>
+    <div id="dcLbMedia" style="max-width:92vw;max-height:88vh;display:flex;align-items:center;justify-content:center;"></div>
+    <button onclick="dcLbNext()" style="position:fixed;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;padding:.3rem .7rem;border-radius:8px;cursor:pointer;">›</button>
+    <div id="dcLbCount" style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);color:#fff;font-size:.82rem;background:rgba(0,0,0,.5);padding:.2rem .55rem;border-radius:999px;"></div>
+</div>
 
 <div class="container mt-3">
     {{-- Gallery --}}
-    <div class="dc-gallery mb-3">
-        <div class="dc-gallery-main">
+    <div class="dc-gallery mb-3" style="cursor:pointer;">
+        <div class="dc-gallery-main" onclick="dcLbOpen(0)">
             <img src="{{ $heroImg }}" alt="{{ $package->name_tr }}" loading="lazy">
         </div>
         @foreach($galleryImgs->take(2) as $i => $asset)
-            <div class="dc-gallery-thumb">
+            <div class="dc-gallery-thumb" onclick="dcLbOpen({{ $i + 1 }})">
                 <img src="{{ $asset->resolvedUrl() }}" alt="{{ $asset->title_tr }}" loading="lazy">
-                @if($i === 1 && $galleryImgs->count() > 2)
-                    <div class="dc-gallery-more">+{{ $galleryImgs->count() - 2 }} fotoğraf</div>
+                @if($i === 1 && count($dcLbItems) > 3)
+                    <div class="dc-gallery-more">+{{ count($dcLbItems) - 3 }} fotoğraf</div>
                 @endif
             </div>
         @endforeach
@@ -365,6 +378,44 @@
 
 @include('acente.partials.theme-script')
 <script>
+// ── Lightbox ──────────────────────────────────────────────────────────
+const dcLbImages = @json($dcLbItems);
+let dcLbIdx = 0;
+const dcLbEl    = document.getElementById('dcLb');
+const dcLbMedia = document.getElementById('dcLbMedia');
+const dcLbCount = document.getElementById('dcLbCount');
+
+function dcLbOpen(i) {
+    dcLbIdx = i;
+    dcLbRender();
+    dcLbEl.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function dcLbClose() {
+    dcLbEl.style.display = 'none';
+    document.body.style.overflow = '';
+    dcLbMedia.innerHTML = '';
+}
+function dcLbRender() {
+    const item = dcLbImages[dcLbIdx];
+    if (item.type === 'video') {
+        dcLbMedia.innerHTML = `<video src="${item.url}" controls autoplay playsinline style="max-width:92vw;max-height:88vh;border-radius:8px;"></video>`;
+    } else {
+        dcLbMedia.innerHTML = `<img src="${item.url}" alt="${item.alt}" style="max-width:92vw;max-height:88vh;object-fit:contain;border-radius:8px;">`;
+    }
+    dcLbCount.textContent = (dcLbIdx + 1) + ' / ' + dcLbImages.length;
+}
+function dcLbPrev() { dcLbIdx = (dcLbIdx - 1 + dcLbImages.length) % dcLbImages.length; dcLbRender(); }
+function dcLbNext() { dcLbIdx = (dcLbIdx + 1) % dcLbImages.length; dcLbRender(); }
+dcLbEl.addEventListener('click', e => { if (e.target === dcLbEl) dcLbClose(); });
+document.addEventListener('keydown', e => {
+    if (dcLbEl.style.display === 'none') return;
+    if (e.key === 'Escape') dcLbClose();
+    if (e.key === 'ArrowLeft') dcLbPrev();
+    if (e.key === 'ArrowRight') dcLbNext();
+});
+
+// ── Fiyat hesap ───────────────────────────────────────────────────────
 const pricePerPerson = {{ (float)($package->base_price_per_person ?? 0) }};
 const childRate = 0.5;
 const currency = '{{ $package->currency ?: 'EUR' }}';

@@ -65,7 +65,6 @@ class DinnerCruiseCatalogController extends Controller
             ->where('is_active', true)
             ->where('package_code', $package->code)
             ->where('category', 'gallery')
-            ->where('media_type', 'photo')
             ->orderBy('sort_order')
             ->get();
 
