@@ -26,7 +26,7 @@ class LeisureSettingsController extends Controller
         $galleryAssets = LeisureMediaAsset::query()
             ->whereNotNull('package_code')
             ->where('category', 'gallery')
-            ->where('media_type', 'photo')
+            ->where('is_active', true)
             ->orderBy('sort_order')
             ->get()
             ->groupBy('package_code');
@@ -108,7 +108,7 @@ class LeisureSettingsController extends Controller
         $existing = LeisureMediaAsset::query()
             ->where('product_type', $template->product_type)
             ->where('package_code', $template->code)
-            ->where('media_type', 'photo')
+            ->where('category', 'gallery')
             ->where('is_active', true)
             ->count();
 
@@ -117,29 +117,47 @@ class LeisureSettingsController extends Controller
         }
 
         $request->validate([
-            'gallery_photo' => 'required|file|mimes:jpg,jpeg,png,webp,avif|max:10240',
-            'gallery_title' => 'nullable|string|max:100',
+            'gallery_photos'   => 'required|array|min:1',
+            'gallery_photos.*' => 'file|mimes:jpg,jpeg,png,webp,avif,mp4,webm,mov|max:51200',
+            'gallery_title'    => 'nullable|string|max:100',
         ]);
 
-        $file = $request->file('gallery_photo');
-        $directory = '/uploads/leisure-gallery/' . $template->code;
+        $videoMimes = ['mp4', 'webm', 'mov'];
+        $files      = $request->file('gallery_photos');
+        $slots      = 6 - $existing;
+        $added      = 0;
+        $directory  = '/uploads/leisure-gallery/' . $template->code;
         File::ensureDirectoryExists(public_path($directory));
-        $filename = uniqid('gallery_', true) . '.' . strtolower((string) $file->getClientOriginalExtension());
-        $file->move(public_path($directory), $filename);
 
-        LeisureMediaAsset::query()->create([
-            'product_type' => $template->product_type,
-            'package_code' => $template->code,
-            'category' => 'gallery',
-            'media_type' => 'photo',
-            'source_type' => 'upload',
-            'title_tr' => trim((string) $request->input('gallery_title')) ?: ($template->name_tr . ' Galeri'),
-            'file_path' => $directory . '/' . $filename,
-            'is_active' => true,
-            'sort_order' => $existing + 1,
-        ]);
+        foreach (array_slice($files, 0, $slots) as $file) {
+            $ext       = strtolower((string) $file->getClientOriginalExtension());
+            $mediaType = in_array($ext, $videoMimes, true) ? 'video' : 'photo';
+            $filename  = uniqid('gallery_', true) . '.' . $ext;
+            $file->move(public_path($directory), $filename);
 
-        return back()->with('success', 'Galeri fotografi eklendi (' . ($existing + 1) . '/6).');
+            LeisureMediaAsset::query()->create([
+                'product_type' => $template->product_type,
+                'package_code' => $template->code,
+                'category'     => 'gallery',
+                'media_type'   => $mediaType,
+                'source_type'  => 'upload',
+                'title_tr'     => trim((string) $request->input('gallery_title')) ?: ($template->name_tr . ' Galeri'),
+                'file_path'    => $directory . '/' . $filename,
+                'is_active'    => true,
+                'sort_order'   => $existing + $added + 1,
+            ]);
+
+            $added++;
+        }
+
+        $total   = $existing + $added;
+        $skipped = count($files) - $added;
+        $msg     = $added . ' fotograf eklendi (' . $total . '/6).';
+        if ($skipped > 0) {
+            $msg .= ' ' . $skipped . ' dosya limit asimi nedeniyle atland.';
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function deleteGalleryPhoto(Request $request, LeisureMediaAsset $asset): RedirectResponse
