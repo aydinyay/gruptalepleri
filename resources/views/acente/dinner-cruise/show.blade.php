@@ -283,13 +283,19 @@
                            min="{{ now()->addDay()->format('Y-m-d') }}" required>
 
                     {{-- Kalkış saati --}}
-                    <div class="dc-panel-label">Kalkış saati</div>
-                    <select name="departure_time" class="dc-panel-select" required>
-                        <option value="">Seçin</option>
-                        @foreach($departureTimes as $dt)
-                            <option value="{{ $dt }}">{{ $dt }}</option>
-                        @endforeach
-                    </select>
+                    @if(count($departureTimes) === 1)
+                        <div class="dc-panel-label">Kalkış saati</div>
+                        <div class="dc-panel-input" style="display:flex;align-items:center;font-weight:600;">{{ $departureTimes[0] }}</div>
+                        <input type="hidden" name="departure_time" value="{{ $departureTimes[0] }}">
+                    @elseif(count($departureTimes) > 1)
+                        <div class="dc-panel-label">Kalkış saati</div>
+                        <select name="departure_time" class="dc-panel-select" required>
+                            <option value="">Seçin</option>
+                            @foreach($departureTimes as $dt)
+                                <option value="{{ $dt }}">{{ $dt }}</option>
+                            @endforeach
+                        </select>
+                    @endif
 
                     {{-- Kişi sayısı --}}
                     <div class="dc-panel-label">Kişi sayısı</div>
