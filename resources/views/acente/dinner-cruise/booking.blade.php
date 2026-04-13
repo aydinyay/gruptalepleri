@@ -120,7 +120,7 @@
                     </div>
 
                     @if((float)$booking->remaining_amount > 0)
-                        <form method="POST" action="{{ route('leisure.payments.gateway-start', $booking) }}">
+                        <form method="POST" action="{{ route('acente.leisure.payments.gateway-start', $booking) }}">
                             @csrf
                             <button type="submit" class="bk-btn-pay mt-2">
                                 <i class="fas fa-lock me-2"></i>Ödemeyi Tamamla
