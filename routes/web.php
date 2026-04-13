@@ -1062,7 +1062,13 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/charter/talep/advisory', \App\Http\Controllers\Acente\CharterAdvisoryController::class)->name('charter.advisory');
     Route::get('/charter/talep/{charterRequest}', [\App\Http\Controllers\Acente\CharterRequestController::class, 'show'])->name('charter.show');
     Route::post('/charter/talep/{charterRequest}/sales-quotes/{salesQuote}/kabul', [\App\Http\Controllers\Acente\CharterRequestController::class, 'acceptSalesQuote'])->name('charter.accept');
-    Route::get('/dinner-cruise', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'index'])->name('dinner-cruise.index');
+    // ── Dinner Cruise — GYG Katalog (yeni akış) ──────────────────────────
+    Route::get('/dinner-cruise', [\App\Http\Controllers\Acente\DinnerCruiseCatalogController::class, 'catalog'])->name('dinner-cruise.catalog');
+    Route::get('/dinner-cruise/urun/{code}', [\App\Http\Controllers\Acente\DinnerCruiseCatalogController::class, 'show'])->name('dinner-cruise.show-product');
+    Route::post('/dinner-cruise/urun/{code}/rezervasyon', [\App\Http\Controllers\Acente\DinnerCruiseCatalogController::class, 'book'])->name('dinner-cruise.book');
+    Route::get('/dinner-cruise/rezervasyon/{leisureRequest}', [\App\Http\Controllers\Acente\DinnerCruiseCatalogController::class, 'bookingShow'])->name('dinner-cruise.booking-show');
+    // ── Dinner Cruise — Eski talep sistemi (korunuyor) ───────────────────
+    Route::get('/dinner-cruise/talep-listesi', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'index'])->name('dinner-cruise.index');
     Route::get('/dinner-cruise/talep', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'create'])->name('dinner-cruise.create');
     Route::post('/dinner-cruise/talep', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'store'])->name('dinner-cruise.store');
     Route::get('/dinner-cruise/talep/{leisureRequest}', [\App\Http\Controllers\Acente\DinnerCruiseController::class, 'show'])->name('dinner-cruise.show');
