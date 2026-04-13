@@ -137,9 +137,10 @@ $detectGitRoot = static function (string $candidate) use ($runShell): ?string {
 
 try {
     if ($action === 'patch-navbar') {
-        // Acil: navbar ve kampanya blade'lerini GitHub'dan çek ve yaz
-        $branch = $deployBranch ?: 'main';
-        $rawBase = "https://raw.githubusercontent.com/aydinyay/gruptalepleri/{$branch}";
+        // GitHub private repo'dan dosya çek (GitHub API + token gerekli)
+        $branch   = $deployBranch ?: 'main';
+        $ghToken  = (string) ($_GET['token'] ?? '');
+        $apiBase  = "https://api.github.com/repos/aydinyay/gruptalepleri/contents";
         $files = [
             'resources/views/components/navbar-superadmin.blade.php',
             'resources/views/superadmin/tursab-kampanya.blade.php',
@@ -167,18 +168,41 @@ try {
             'resources/views/acente/dinner-cruise/show.blade.php',
             'public/deploy-run.php',
         ];
-        foreach ($files as $rel) {
-            $url     = $rawBase . '/' . $rel;
-            $dest    = $basePath . '/' . $rel;
-            $dir     = dirname($dest);
-            $content = @file_get_contents($url);
-            if ($content === false) {
-                $output .= "ATLANAMADI (fetch hatası): {$rel}\n";
-                continue;
+
+        // GitHub API ile dosya çek (private repo desteği)
+        $fetchFile = function(string $rel) use ($apiBase, $branch, $ghToken): string|false {
+            $url = $apiBase . '/' . $rel . '?ref=' . urlencode($branch);
+            $opts = [
+                'http' => [
+                    'method' => 'GET',
+                    'header' => implode("\r\n", array_filter([
+                        'User-Agent: gruptalepleri-deploy/1.0',
+                        'Accept: application/vnd.github.v3.raw',
+                        $ghToken ? "Authorization: Bearer {$ghToken}" : '',
+                    ])),
+                    'timeout' => 15,
+                ],
+            ];
+            $ctx = stream_context_create($opts);
+            return @file_get_contents($url, false, $ctx);
+        };
+
+        if (!$ghToken) {
+            $output .= "HATA: GitHub token gerekli. URL'e &token=GHP_... ekleyin.\n";
+            $output .= "Token: https://github.com/settings/tokens/new (repo scope)\n";
+        } else {
+            foreach ($files as $rel) {
+                $content = $fetchFile($rel);
+                if ($content === false) {
+                    $output .= "ATLANAMADI (fetch hatası): {$rel}\n";
+                    continue;
+                }
+                $dest = $basePath . '/' . $rel;
+                $dir  = dirname($dest);
+                if (!is_dir($dir)) @mkdir($dir, 0755, true);
+                file_put_contents($dest, $content);
+                $output .= "OK: {$rel}\n";
             }
-            if (!is_dir($dir)) @mkdir($dir, 0755, true);
-            file_put_contents($dest, $content);
-            $output .= "OK: {$rel}\n";
         }
         // Cache temizle
         $run($kernel, 'config:clear');
@@ -1071,7 +1095,9 @@ PHPCODE;
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-controller" class="btn red" onclick="return confirm('TursabController a yeni metodlar eklenecek. Devam?')">🔧 Patch Controller</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=diagnose" class="btn blue">🔍 Diagnose</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-routes" class="btn red" onclick="return confirm('Eksik kampanya routelari web.php e eklenecek. Devam?')">🔧 Patch Routes (Inline)</a>
-<a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Cek)</a>
+<span style="color:#fff;font-size:.85rem;margin-left:4px;">GitHub Token:</span>
+<input type="text" id="ghToken" placeholder="ghp_xxxx" style="padding:6px 10px;border-radius:6px;border:none;font-size:.85rem;width:220px;">
+<a href="#" class="btn red" onclick="var t=document.getElementById('ghToken').value;if(!t){alert('Token giriniz!');return false;}if(!confirm('GitHub\'dan dosyalar indirilecek. Onaylıyor musunuz?'))return false;window.location='?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main&token='+encodeURIComponent(t);">🚨 Patch (GitHub'dan Çek)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo" class="btn red" onclick="return confirm('TRUNCATE + CSV import (PDO). Emin misin?')">🚀 CSV Import PDO (TRUNCATE)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo&no_truncate=1" class="btn green" onclick="return confirm('UpdateOrCreate (PDO). Devam?')">🚀 CSV Import PDO (UpdateOrCreate)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
