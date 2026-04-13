@@ -137,10 +137,9 @@ $detectGitRoot = static function (string $candidate) use ($runShell): ?string {
 
 try {
     if ($action === 'patch-navbar') {
-        // GitHub private repo'dan dosya çek (GitHub API + token gerekli)
-        $branch   = $deployBranch ?: 'main';
-        $ghToken  = (string) ($_GET['token'] ?? '');
-        $apiBase  = "https://api.github.com/repos/aydinyay/gruptalepleri/contents";
+        // GitHub public repo'dan dosya çek — curl öncelikli, file_get_contents fallback
+        $branch  = $deployBranch ?: 'main';
+        $rawBase = "https://raw.githubusercontent.com/aydinyay/gruptalepleri/{$branch}";
         $files = [
             'resources/views/components/navbar-superadmin.blade.php',
             'resources/views/superadmin/tursab-kampanya.blade.php',
@@ -169,40 +168,38 @@ try {
             'public/deploy-run.php',
         ];
 
-        // GitHub API ile dosya çek (private repo desteği)
-        $fetchFile = function(string $rel) use ($apiBase, $branch, $ghToken): string|false {
-            $url = $apiBase . '/' . $rel . '?ref=' . urlencode($branch);
-            $opts = [
-                'http' => [
-                    'method' => 'GET',
-                    'header' => implode("\r\n", array_filter([
-                        'User-Agent: gruptalepleri-deploy/1.0',
-                        'Accept: application/vnd.github.v3.raw',
-                        $ghToken ? "Authorization: Bearer {$ghToken}" : '',
-                    ])),
-                    'timeout' => 15,
-                ],
-            ];
-            $ctx = stream_context_create($opts);
+        // curl önce dene (allow_url_fopen kapalı olsa bile çalışır), sonra file_get_contents
+        $fetchUrl = function(string $url): string|false {
+            if (function_exists('curl_init')) {
+                $ch = curl_init($url);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_TIMEOUT        => 20,
+                    CURLOPT_USERAGENT      => 'gruptalepleri-deploy/1.0',
+                    CURLOPT_SSL_VERIFYPEER => false,
+                ]);
+                $body = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                if ($body !== false && $code === 200) return $body;
+            }
+            // Fallback: file_get_contents
+            $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'gruptalepleri-deploy/1.0']]);
             return @file_get_contents($url, false, $ctx);
         };
 
-        if (!$ghToken) {
-            $output .= "HATA: GitHub token gerekli. URL'e &token=GHP_... ekleyin.\n";
-            $output .= "Token: https://github.com/settings/tokens/new (repo scope)\n";
-        } else {
-            foreach ($files as $rel) {
-                $content = $fetchFile($rel);
-                if ($content === false) {
-                    $output .= "ATLANAMADI (fetch hatası): {$rel}\n";
-                    continue;
-                }
-                $dest = $basePath . '/' . $rel;
-                $dir  = dirname($dest);
-                if (!is_dir($dir)) @mkdir($dir, 0755, true);
-                file_put_contents($dest, $content);
-                $output .= "OK: {$rel}\n";
+        foreach ($files as $rel) {
+            $content = $fetchUrl($rawBase . '/' . $rel);
+            if ($content === false || $content === '') {
+                $output .= "ATLANAMADI: {$rel}\n";
+                continue;
             }
+            $dest = $basePath . '/' . $rel;
+            $dir  = dirname($dest);
+            if (!is_dir($dir)) @mkdir($dir, 0755, true);
+            file_put_contents($dest, $content);
+            $output .= "OK: {$rel}\n";
         }
         // Cache temizle
         $run($kernel, 'config:clear');
@@ -1095,9 +1092,7 @@ PHPCODE;
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-controller" class="btn red" onclick="return confirm('TursabController a yeni metodlar eklenecek. Devam?')">🔧 Patch Controller</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=diagnose" class="btn blue">🔍 Diagnose</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-routes" class="btn red" onclick="return confirm('Eksik kampanya routelari web.php e eklenecek. Devam?')">🔧 Patch Routes (Inline)</a>
-<span style="color:#fff;font-size:.85rem;margin-left:4px;">GitHub Token:</span>
-<input type="text" id="ghToken" placeholder="ghp_xxxx" style="padding:6px 10px;border-radius:6px;border:none;font-size:.85rem;width:220px;">
-<a href="#" class="btn red" onclick="var t=document.getElementById('ghToken').value;if(!t){alert('Token giriniz!');return false;}if(!confirm('GitHub\'dan dosyalar indirilecek. Onaylıyor musunuz?'))return false;window.location='?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main&token='+encodeURIComponent(t);">🚨 Patch (GitHub'dan Çek)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Çek)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo" class="btn red" onclick="return confirm('TRUNCATE + CSV import (PDO). Emin misin?')">🚀 CSV Import PDO (TRUNCATE)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo&no_truncate=1" class="btn green" onclick="return confirm('UpdateOrCreate (PDO). Devam?')">🚀 CSV Import PDO (UpdateOrCreate)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
