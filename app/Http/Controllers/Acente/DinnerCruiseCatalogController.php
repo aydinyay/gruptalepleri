@@ -56,8 +56,17 @@ class DinnerCruiseCatalogController extends Controller
         $mediaAssets = LeisureMediaAsset::query()
             ->where('is_active', true)
             ->where(fn ($q) => $q->whereNull('product_type')->orWhere('product_type', 'dinner_cruise'))
+            ->whereNull('package_code')
             ->orderBy('sort_order')
             ->limit(9)
+            ->get();
+
+        $galleryPhotos = LeisureMediaAsset::query()
+            ->where('is_active', true)
+            ->where('package_code', $package->code)
+            ->where('category', 'gallery')
+            ->where('media_type', 'photo')
+            ->orderBy('sort_order')
             ->get();
 
         $extraOptions = LeisureExtraOption::query()
@@ -66,7 +75,7 @@ class DinnerCruiseCatalogController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('acente.dinner-cruise.show', compact('package', 'allPackages', 'mediaAssets', 'extraOptions'));
+        return view('acente.dinner-cruise.show', compact('package', 'allPackages', 'mediaAssets', 'galleryPhotos', 'extraOptions'));
     }
 
     // ── Direkt Rezervasyon + Ödeme ─────────────────────────────────────────

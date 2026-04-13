@@ -9,6 +9,7 @@ class LeisureMediaAsset extends Model
 {
     protected $fillable = [
         'product_type',
+        'package_code',
         'category',
         'media_type',
         'source_type',

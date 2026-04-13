@@ -81,7 +81,9 @@
 
 @php
     $heroImg = $package->hero_image_url ?: 'https://images.pexels.com/photos/3411083/pexels-photo-3411083.jpeg?auto=compress&cs=tinysrgb&w=1200';
-    $galleryImgs = $mediaAssets->where('media_type','photo')->take(3)->values();
+    $galleryImgs = $galleryPhotos->isNotEmpty()
+        ? $galleryPhotos->take(3)->values()
+        : $mediaAssets->where('media_type','photo')->take(3)->values();
     $timeline = is_array($package->timeline_tr) ? $package->timeline_tr : json_decode($package->timeline_tr ?? '[]', true);
     $departureTimes = is_array($package->departure_times) ? $package->departure_times : json_decode($package->departure_times ?? '[]', true);
     $importantNotes = is_array($package->important_notes_tr) ? $package->important_notes_tr : json_decode($package->important_notes_tr ?? '[]', true);

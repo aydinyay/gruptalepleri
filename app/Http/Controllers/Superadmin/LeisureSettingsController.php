@@ -23,10 +23,19 @@ class LeisureSettingsController extends Controller
     {
         $this->assertAuthorized();
 
+        $galleryAssets = LeisureMediaAsset::query()
+            ->whereNotNull('package_code')
+            ->where('category', 'gallery')
+            ->where('media_type', 'photo')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('package_code');
+
         return view('superadmin.leisure.settings', [
             'packages' => LeisurePackageTemplate::query()->orderBy('product_type')->orderBy('sort_order')->get(),
             'extras' => LeisureExtraOption::query()->orderByRaw('product_type is null desc')->orderBy('product_type')->orderBy('sort_order')->get(),
             'mediaAssets' => LeisureMediaAsset::query()->orderByRaw('product_type is null desc')->orderBy('product_type')->orderBy('sort_order')->latest('id')->get(),
+            'galleryAssets' => $galleryAssets,
         ]);
     }
 
@@ -90,6 +99,63 @@ class LeisureSettingsController extends Controller
         $asset->update(array_filter($validated, fn ($value) => $value !== '__KEEP__'));
 
         return back()->with('success', 'Medya kaydi guncellendi.');
+    }
+
+    public function storeGalleryPhoto(Request $request, LeisurePackageTemplate $template): RedirectResponse
+    {
+        $this->assertAuthorized();
+
+        $existing = LeisureMediaAsset::query()
+            ->where('product_type', $template->product_type)
+            ->where('package_code', $template->code)
+            ->where('media_type', 'photo')
+            ->where('is_active', true)
+            ->count();
+
+        if ($existing >= 6) {
+            return back()->with('error', 'Bu paket icin zaten 6 galeri fotografi var. Once birini silin.');
+        }
+
+        $request->validate([
+            'gallery_photo' => 'required|file|mimes:jpg,jpeg,png,webp,avif|max:10240',
+            'gallery_title' => 'nullable|string|max:100',
+        ]);
+
+        $file = $request->file('gallery_photo');
+        $directory = '/uploads/leisure-gallery/' . $template->code;
+        File::ensureDirectoryExists(public_path($directory));
+        $filename = uniqid('gallery_', true) . '.' . strtolower((string) $file->getClientOriginalExtension());
+        $file->move(public_path($directory), $filename);
+
+        LeisureMediaAsset::query()->create([
+            'product_type' => $template->product_type,
+            'package_code' => $template->code,
+            'category' => 'gallery',
+            'media_type' => 'photo',
+            'source_type' => 'upload',
+            'title_tr' => trim((string) $request->input('gallery_title')) ?: ($template->name_tr . ' Galeri'),
+            'file_path' => $directory . '/' . $filename,
+            'is_active' => true,
+            'sort_order' => $existing + 1,
+        ]);
+
+        return back()->with('success', 'Galeri fotografi eklendi (' . ($existing + 1) . '/6).');
+    }
+
+    public function deleteGalleryPhoto(Request $request, LeisureMediaAsset $asset): RedirectResponse
+    {
+        $this->assertAuthorized();
+
+        if ($asset->file_path && str_starts_with($asset->file_path, '/uploads/leisure-gallery/')) {
+            $absolutePath = public_path(ltrim($asset->file_path, '/'));
+            if (File::exists($absolutePath)) {
+                File::delete($absolutePath);
+            }
+        }
+
+        $asset->delete();
+
+        return back()->with('success', 'Galeri fotografi silindi.');
     }
 
     private function validatePackage(Request $request, ?LeisurePackageTemplate $currentTemplate = null): array

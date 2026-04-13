@@ -213,6 +213,42 @@
                             <td class="text-end"><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#package-edit-{{ $package->id }}">Duzenle</button></td>
                         </tr>
                         <tr class="collapse" id="package-edit-{{ $package->id }}"><td colspan="7" class="edit-surface p-0">
+
+                            {{-- ── Galeri Fotograflari ── --}}
+                            @php $pkgGallery = $galleryAssets[$package->code] ?? collect(); @endphp
+                            <div class="p-3 border-bottom">
+                                <div class="fw-semibold mb-2 small text-uppercase text-muted">Galeri Fotograflari ({{ $pkgGallery->count() }}/6)</div>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    @forelse($pkgGallery as $gImg)
+                                        <div class="position-relative" style="width:100px;">
+                                            <img src="{{ $gImg->resolvedUrl() }}" alt="{{ $gImg->title_tr }}" style="width:100px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
+                                            <form method="POST" action="{{ route('superadmin.leisure.settings.gallery.delete', $gImg) }}" style="position:absolute;top:2px;right:2px;" onsubmit="return confirm('Silinsin mi?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm p-0" style="width:20px;height:20px;font-size:10px;line-height:1;">✕</button>
+                                            </form>
+                                        </div>
+                                    @empty
+                                        <span class="text-muted small">Henuz galeri fotografi yok.</span>
+                                    @endforelse
+                                </div>
+                                @if($pkgGallery->count() < 6)
+                                <form method="POST" action="{{ route('superadmin.leisure.settings.gallery.store', $package) }}" enctype="multipart/form-data" class="d-flex gap-2 align-items-end flex-wrap">
+                                    @csrf
+                                    <div>
+                                        <label class="form-label small mb-1">Yeni Fotograf (maks 10MB)</label>
+                                        <input type="file" name="gallery_photo" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.webp,.avif" required style="width:220px;">
+                                    </div>
+                                    <div>
+                                        <label class="form-label small mb-1">Baslik (opsiyonel)</label>
+                                        <input type="text" name="gallery_title" class="form-control form-control-sm" placeholder="{{ $package->name_tr }}" style="width:160px;">
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">Ekle</button>
+                                </form>
+                                @else
+                                    <div class="text-muted small">Maksimum 6 fotograf yuklenebilir. Yer acmak icin birini silin.</div>
+                                @endif
+                            </div>
+
                             <form method="POST" action="{{ route('superadmin.leisure.settings.packages.update', $package) }}" enctype="multipart/form-data" class="row g-3 p-3">
                                 @csrf @method('PATCH')
                                 <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="dinner_cruise" @selected($package->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($package->product_type==='yacht')>Yacht Charter</option></select></div>

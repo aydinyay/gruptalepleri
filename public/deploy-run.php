@@ -137,8 +137,8 @@ $detectGitRoot = static function (string $candidate) use ($runShell): ?string {
 
 try {
     if ($action === 'patch-navbar') {
-        // Acil: navbar ve kampanya blade'lerini GitHub'dan çek ve yaz
-        $branch = $deployBranch ?: 'main';
+        // GitHub public repo'dan dosya çek — curl öncelikli, file_get_contents fallback
+        $branch  = $deployBranch ?: 'main';
         $rawBase = "https://raw.githubusercontent.com/aydinyay/gruptalepleri/{$branch}";
         $files = [
             'resources/views/components/navbar-superadmin.blade.php',
@@ -167,15 +167,36 @@ try {
             'resources/views/acente/dinner-cruise/show.blade.php',
             'public/deploy-run.php',
         ];
+
+        // curl önce dene (allow_url_fopen kapalı olsa bile çalışır), sonra file_get_contents
+        $fetchUrl = function(string $url): string|false {
+            if (function_exists('curl_init')) {
+                $ch = curl_init($url);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_TIMEOUT        => 20,
+                    CURLOPT_USERAGENT      => 'gruptalepleri-deploy/1.0',
+                    CURLOPT_SSL_VERIFYPEER => false,
+                ]);
+                $body = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                if ($body !== false && $code === 200) return $body;
+            }
+            // Fallback: file_get_contents
+            $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'gruptalepleri-deploy/1.0']]);
+            return @file_get_contents($url, false, $ctx);
+        };
+
         foreach ($files as $rel) {
-            $url     = $rawBase . '/' . $rel;
-            $dest    = $basePath . '/' . $rel;
-            $dir     = dirname($dest);
-            $content = @file_get_contents($url);
-            if ($content === false) {
-                $output .= "ATLANAMADI (fetch hatası): {$rel}\n";
+            $content = $fetchUrl($rawBase . '/' . $rel);
+            if ($content === false || $content === '') {
+                $output .= "ATLANAMADI: {$rel}\n";
                 continue;
             }
+            $dest = $basePath . '/' . $rel;
+            $dir  = dirname($dest);
             if (!is_dir($dir)) @mkdir($dir, 0755, true);
             file_put_contents($dest, $content);
             $output .= "OK: {$rel}\n";
@@ -1071,7 +1092,7 @@ PHPCODE;
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-controller" class="btn red" onclick="return confirm('TursabController a yeni metodlar eklenecek. Devam?')">🔧 Patch Controller</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=diagnose" class="btn blue">🔍 Diagnose</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=patch-routes" class="btn red" onclick="return confirm('Eksik kampanya routelari web.php e eklenecek. Devam?')">🔧 Patch Routes (Inline)</a>
-<a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Cek)</a>
+<a href="?key=<?= urlencode($providedKey) ?>&action=patch-navbar&branch=main" class="btn red" onclick="return confirm('GitHub main branch\'ten kritik dosyalar indirilip yazilacak. Onayliyor musunuz?')">🚨 Patch (GitHub'dan Çek)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo" class="btn red" onclick="return confirm('TRUNCATE + CSV import (PDO). Emin misin?')">🚀 CSV Import PDO (TRUNCATE)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import-pdo&no_truncate=1" class="btn green" onclick="return confirm('UpdateOrCreate (PDO). Devam?')">🚀 CSV Import PDO (UpdateOrCreate)</a>
 <a href="?key=<?= urlencode($providedKey) ?>&action=csv-import" class="btn red" onclick="return confirm('Acenteler tablosu TRUNCATE edilecek ve CSV import calisacak. Emin misin?')">CSV Import (TRUNCATE + Import)</a>
