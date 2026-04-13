@@ -593,6 +593,15 @@ PHPCODE;
         $run($kernel, 'kampanya:email-otomatik', ['--force' => true]);
     } elseif ($action === 'migrate') {
         $run($kernel, 'migrate', ['--force' => true]);
+    } elseif ($action === 'fix-departure-times') {
+        // Tek seferlik: standard paketi tek kalkis saatine guncelle
+        $dbCfg = config('database.connections.mysql');
+        $dsn = "mysql:host={$dbCfg['host']};port={$dbCfg['port']};dbname={$dbCfg['database']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $dbCfg['username'], $dbCfg['password']);
+        $stmt = $pdo->prepare("UPDATE leisure_package_templates SET departure_times = ?, updated_at = NOW() WHERE product_type = 'dinner_cruise' AND code = 'standard'");
+        $stmt->execute([json_encode(['20:30 Biniş / 21:00 Kalkış'])]);
+        $output .= "Etkilenen satir: " . $stmt->rowCount() . "\n";
+        $output .= "standard paketi departure_times → [\"20:30 Biniş / 21:00 Kalkış\"] olarak güncellendi.\n";
     } elseif ($action === 'cache-clear') {
         $run($kernel, 'config:clear');
         $run($kernel, 'cache:clear');
