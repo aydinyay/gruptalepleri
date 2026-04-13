@@ -162,7 +162,7 @@
 
                 $heroImg = $pkg->hero_image_url ?: 'https://images.pexels.com/photos/3411083/pexels-photo-3411083.jpeg?auto=compress&cs=tinysrgb&w=600';
             @endphp
-            <a href="{{ route('acente.dinner-cruise.show', $pkg->code) }}"
+            <a href="{{ route('acente.dinner-cruise.show-product', $pkg->code) }}"
                class="dc-card"
                data-tags="{{ $filterTags }}">
                 <div class="dc-card-img">
