@@ -158,6 +158,12 @@ try {
             'app/Console/Commands/BakanlikCsvImport.php',
             'database/migrations/2026_04_03_012751_add_faks_harita_to_acenteler.php',
             'database/migrations/2026_04_03_014444_add_tip_to_tursab_davetler.php',
+            // Dinner cruise B2B katalog
+            'database/migrations/2026_04_13_100000_update_standard_departure_to_single.php',
+            'app/Http/Controllers/Superadmin/LeisureSettingsController.php',
+            'resources/views/superadmin/leisure/settings.blade.php',
+            'resources/views/acente/dinner-cruise/show.blade.php',
+            'public/deploy-run.php',
         ];
         foreach ($files as $rel) {
             $url     = $rawBase . '/' . $rel;
