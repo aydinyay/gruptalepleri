@@ -83,6 +83,23 @@
                         <div class="col-12"><label class="form-label">EN Dahil Olanlar</label><textarea name="includes_en_text" class="form-control" rows="3"></textarea></div>
                         <div class="col-12"><label class="form-label">TR Haric Olanlar</label><textarea name="excludes_tr_text" class="form-control" rows="3"></textarea></div>
                         <div class="col-12"><label class="form-label">EN Haric Olanlar</label><textarea name="excludes_en_text" class="form-control" rows="3"></textarea></div>
+                        <div class="col-12"><hr class="my-1"><small class="text-muted fw-semibold text-uppercase">Fiyat & Katalog Bilgileri</small></div>
+                        <div class="col-12 col-md-6"><label class="form-label">B2B Fiyat (kisi basi)</label><input type="number" step="0.01" name="base_price_per_person" class="form-control" placeholder="850.00"></div>
+                        <div class="col-12 col-md-6"><label class="form-label">Orijinal Fiyat</label><input type="number" step="0.01" name="original_price_per_person" class="form-control" placeholder="1060.00"></div>
+                        <div class="col-12 col-md-4"><label class="form-label">Para Birimi</label><input type="text" name="currency" class="form-control" value="TRY" maxlength="3"></div>
+                        <div class="col-12 col-md-4"><label class="form-label">Sure (saat)</label><input type="number" step="0.5" name="duration_hours" class="form-control" placeholder="3"></div>
+                        <div class="col-12 col-md-4"><label class="form-label">Max Kisi</label><input type="number" name="max_pax" class="form-control" placeholder="300"></div>
+                        <div class="col-12 col-md-6"><label class="form-label">Iskele</label><input type="text" name="pier_name" class="form-control" placeholder="Kabatas"></div>
+                        <div class="col-12 col-md-6"><label class="form-label">Rozet Metni</label><input type="text" name="badge_text" class="form-control" placeholder="En Cok Tercih Edilen"></div>
+                        <div class="col-12 col-md-4"><label class="form-label">Puan (0-5)</label><input type="number" step="0.1" name="rating" class="form-control" placeholder="4.6"></div>
+                        <div class="col-12 col-md-4"><label class="form-label">Yorum Sayisi</label><input type="number" name="review_count" class="form-control" placeholder="2053"></div>
+                        <div class="col-12"><label class="form-label">Kalkis Saatleri <small class="text-muted">(her satira bir saat)</small></label><textarea name="departure_times_text" class="form-control" rows="2" placeholder="19:30&#10;22:00"></textarea></div>
+                        <div class="col-12"><label class="form-label">Bulusma Noktasi</label><input type="text" name="meeting_point" class="form-control"></div>
+                        <div class="col-12"><label class="form-label">TR Uzun Aciklama</label><textarea name="long_description_tr" class="form-control" rows="4"></textarea></div>
+                        <div class="col-12"><label class="form-label">EN Uzun Aciklama</label><textarea name="long_description_en" class="form-control" rows="4"></textarea></div>
+                        <div class="col-12"><label class="form-label">Timeline JSON <small class="text-muted">[{"time":"...","title":"...","desc":"..."}]</small></label><textarea name="timeline_tr_json" class="form-control font-monospace" rows="5" spellcheck="false"></textarea></div>
+                        <div class="col-12"><label class="form-label">Iptal Politikasi (TR)</label><textarea name="cancellation_policy_tr" class="form-control" rows="3"></textarea></div>
+                        <div class="col-12"><label class="form-label">Onemli Notlar (TR) <small class="text-muted">(her satira bir madde)</small></label><textarea name="important_notes_tr_text" class="form-control" rows="3"></textarea></div>
                         <div class="col-12 form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" checked><label class="form-check-label">Aktif</label></div>
                         <div class="col-12"><button class="btn btn-primary">Paket Ekle</button></div>
                     </form>
@@ -213,6 +230,31 @@
                                 <div class="col-12 col-md-6"><label class="form-label">EN Dahil Olanlar</label><textarea name="includes_en_text" class="form-control" rows="3">{{ implode(PHP_EOL, $package->includes_en ?? []) }}</textarea></div>
                                 <div class="col-12 col-md-6"><label class="form-label">TR Haric Olanlar</label><textarea name="excludes_tr_text" class="form-control" rows="3">{{ implode(PHP_EOL, $package->excludes_tr ?? []) }}</textarea></div>
                                 <div class="col-12 col-md-6"><label class="form-label">EN Haric Olanlar</label><textarea name="excludes_en_text" class="form-control" rows="3">{{ implode(PHP_EOL, $package->excludes_en ?? []) }}</textarea></div>
+
+                                {{-- Katalog / Fiyat Alanlari --}}
+                                <div class="col-12"><hr class="my-1"><small class="text-muted fw-semibold text-uppercase">Fiyat & Katalog Bilgileri</small></div>
+                                <div class="col-12 col-md-3"><label class="form-label">B2B Fiyat (kisi basi)</label><input type="number" step="0.01" name="base_price_per_person" class="form-control" value="{{ $package->base_price_per_person }}" placeholder="850.00"></div>
+                                <div class="col-12 col-md-3"><label class="form-label">Orijinal Fiyat (ustu cizili)</label><input type="number" step="0.01" name="original_price_per_person" class="form-control" value="{{ $package->original_price_per_person }}" placeholder="1060.00"></div>
+                                <div class="col-12 col-md-2"><label class="form-label">Para Birimi</label><input type="text" name="currency" class="form-control" value="{{ $package->currency ?? 'TRY' }}" placeholder="TRY" maxlength="3"></div>
+                                <div class="col-12 col-md-2"><label class="form-label">Sure (saat)</label><input type="number" step="0.5" name="duration_hours" class="form-control" value="{{ $package->duration_hours }}" placeholder="3"></div>
+                                <div class="col-12 col-md-2"><label class="form-label">Max Kisi</label><input type="number" name="max_pax" class="form-control" value="{{ $package->max_pax }}" placeholder="300"></div>
+
+                                <div class="col-12 col-md-4"><label class="form-label">Iskele / Kalkis Noktasi</label><input type="text" name="pier_name" class="form-control" value="{{ $package->pier_name }}" placeholder="Kabatas"></div>
+                                <div class="col-12 col-md-4"><label class="form-label">Rozet Metni</label><input type="text" name="badge_text" class="form-control" value="{{ $package->badge_text }}" placeholder="En Cok Tercih Edilen"></div>
+                                <div class="col-12 col-md-2"><label class="form-label">Puan (0-5)</label><input type="number" step="0.1" name="rating" class="form-control" value="{{ $package->rating }}" placeholder="4.6"></div>
+                                <div class="col-12 col-md-2"><label class="form-label">Yorum Sayisi</label><input type="number" name="review_count" class="form-control" value="{{ $package->review_count }}" placeholder="2053"></div>
+
+                                <div class="col-12"><label class="form-label">Kalkis Saatleri <small class="text-muted">(her satira bir saat, ornek: 19:30)</small></label><textarea name="departure_times_text" class="form-control" rows="2">{{ implode(PHP_EOL, $package->departure_times ?? []) }}</textarea></div>
+                                <div class="col-12"><label class="form-label">Bulusma Noktasi</label><input type="text" name="meeting_point" class="form-control" value="{{ $package->meeting_point }}"></div>
+
+                                <div class="col-12"><label class="form-label">TR Uzun Aciklama</label><textarea name="long_description_tr" class="form-control" rows="5">{{ $package->long_description_tr }}</textarea></div>
+                                <div class="col-12"><label class="form-label">EN Uzun Aciklama</label><textarea name="long_description_en" class="form-control" rows="5">{{ $package->long_description_en }}</textarea></div>
+
+                                <div class="col-12"><label class="form-label">Program / Timeline (JSON) <small class="text-muted">[{"time":"19:00","title":"...","desc":"..."}]</small></label><textarea name="timeline_tr_json" class="form-control font-monospace" rows="6" spellcheck="false">{{ $package->timeline_tr ? json_encode($package->timeline_tr, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '' }}</textarea></div>
+
+                                <div class="col-12"><label class="form-label">Iptal Politikasi (TR)</label><textarea name="cancellation_policy_tr" class="form-control" rows="3">{{ $package->cancellation_policy_tr }}</textarea></div>
+                                <div class="col-12"><label class="form-label">Onemli Notlar (TR) <small class="text-muted">(her satira bir madde)</small></label><textarea name="important_notes_tr_text" class="form-control" rows="4">{{ implode(PHP_EOL, $package->important_notes_tr ?? []) }}</textarea></div>
+
                                 <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" @checked($package->is_active)><label class="form-check-label">Aktif</label></div></div>
                                 <div class="col-12"><button class="btn btn-primary btn-sm">Kaydi Guncelle</button></div>
                             </form>

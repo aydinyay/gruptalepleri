@@ -111,6 +111,23 @@ class LeisureSettingsController extends Controller
             'excludes_en_text' => 'nullable|string|max:5000',
             'is_active' => 'nullable|boolean',
             'sort_order' => 'nullable|integer|min:0|max:9999',
+            // Catalog fields
+            'base_price_per_person' => 'nullable|numeric|min:0',
+            'original_price_per_person' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:3',
+            'duration_hours' => 'nullable|numeric|min:0|max:24',
+            'departure_times_text' => 'nullable|string|max:1000',
+            'pier_name' => 'nullable|string|max:100',
+            'meeting_point' => 'nullable|string|max:500',
+            'max_pax' => 'nullable|integer|min:1|max:10000',
+            'badge_text' => 'nullable|string|max:100',
+            'rating' => 'nullable|numeric|min:0|max:5',
+            'review_count' => 'nullable|integer|min:0',
+            'long_description_tr' => 'nullable|string|max:10000',
+            'long_description_en' => 'nullable|string|max:10000',
+            'timeline_tr_json' => 'nullable|string|max:20000',
+            'cancellation_policy_tr' => 'nullable|string|max:2000',
+            'important_notes_tr_text' => 'nullable|string|max:5000',
         ]);
 
         $code = strtolower(trim($validated['code']));
@@ -151,6 +168,23 @@ class LeisureSettingsController extends Controller
             'excludes_en' => $this->parseListText($validated['excludes_en_text'] ?? null),
             'is_active' => (bool) ($validated['is_active'] ?? false),
             'sort_order' => $validated['sort_order'] ?? 100,
+            // Catalog fields
+            'base_price_per_person' => isset($validated['base_price_per_person']) && $validated['base_price_per_person'] !== '' ? (float) $validated['base_price_per_person'] : null,
+            'original_price_per_person' => isset($validated['original_price_per_person']) && $validated['original_price_per_person'] !== '' ? (float) $validated['original_price_per_person'] : null,
+            'currency' => strtoupper(trim($validated['currency'] ?? 'TRY')) ?: 'TRY',
+            'duration_hours' => isset($validated['duration_hours']) && $validated['duration_hours'] !== '' ? (float) $validated['duration_hours'] : null,
+            'departure_times' => $this->parseListText($validated['departure_times_text'] ?? null),
+            'pier_name' => isset($validated['pier_name']) ? trim((string) $validated['pier_name']) ?: null : null,
+            'meeting_point' => isset($validated['meeting_point']) ? trim((string) $validated['meeting_point']) ?: null : null,
+            'max_pax' => $validated['max_pax'] ?? null,
+            'badge_text' => isset($validated['badge_text']) ? trim((string) $validated['badge_text']) ?: null : null,
+            'rating' => isset($validated['rating']) && $validated['rating'] !== '' ? (float) $validated['rating'] : null,
+            'review_count' => $validated['review_count'] ?? null,
+            'long_description_tr' => isset($validated['long_description_tr']) ? trim((string) $validated['long_description_tr']) ?: null : null,
+            'long_description_en' => isset($validated['long_description_en']) ? trim((string) $validated['long_description_en']) ?: null : null,
+            'timeline_tr' => $this->parseJsonField($validated['timeline_tr_json'] ?? null),
+            'cancellation_policy_tr' => isset($validated['cancellation_policy_tr']) ? trim((string) $validated['cancellation_policy_tr']) ?: null : null,
+            'important_notes_tr' => $this->parseListText($validated['important_notes_tr_text'] ?? null),
         ];
     }
 
@@ -295,6 +329,17 @@ class LeisureSettingsController extends Controller
             'is_active' => (bool) ($validated['is_active'] ?? false),
             'sort_order' => $validated['sort_order'] ?? 100,
         ];
+    }
+
+    private function parseJsonField(?string $json): array
+    {
+        $json = trim((string) $json);
+        if ($json === '') {
+            return [];
+        }
+        $decoded = json_decode($json, true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     private function parseListText(?string $text): array
