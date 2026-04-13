@@ -118,11 +118,12 @@ class LeisureSettingsController extends Controller
 
         $request->validate([
             'gallery_photos'   => 'required|array|min:1',
-            'gallery_photos.*' => 'file|mimes:jpg,jpeg,png,webp,avif,mp4,webm,mov|max:51200',
+            'gallery_photos.*' => 'file|max:51200',
             'gallery_title'    => 'nullable|string|max:100',
         ]);
 
-        $videoMimes = ['mp4', 'webm', 'mov'];
+        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'mp4', 'webm', 'mov', 'mkv', 'avi'];
+        $videoExts   = ['mp4', 'webm', 'mov', 'mkv', 'avi'];
         $files      = $request->file('gallery_photos');
         $slots      = 6 - $existing;
         $added      = 0;
@@ -130,8 +131,11 @@ class LeisureSettingsController extends Controller
         File::ensureDirectoryExists(public_path($directory));
 
         foreach (array_slice($files, 0, $slots) as $file) {
-            $ext       = strtolower((string) $file->getClientOriginalExtension());
-            $mediaType = in_array($ext, $videoMimes, true) ? 'video' : 'photo';
+            $ext = strtolower((string) $file->getClientOriginalExtension());
+            if (! in_array($ext, $allowedExts, true)) {
+                continue; // desteklenmeyen uzanti — atla
+            }
+            $mediaType = in_array($ext, $videoExts, true) ? 'video' : 'photo';
             $filename  = uniqid('gallery_', true) . '.' . $ext;
             $file->move(public_path($directory), $filename);
 
