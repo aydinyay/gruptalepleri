@@ -652,6 +652,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::patch('/leisure-ayarlar/ekstralar/{option}', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'updateExtra'])->name('leisure.settings.extras.update');
     Route::post('/leisure-ayarlar/medya', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'storeMedia'])->name('leisure.settings.media.store');
     Route::patch('/leisure-ayarlar/medya/{asset}', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'updateMedia'])->name('leisure.settings.media.update');
+    Route::post('/leisure-ayarlar/paketler/{template}/galeri', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'storeGalleryPhoto'])->name('superadmin.leisure.settings.gallery.store');
+    Route::delete('/leisure-ayarlar/galeri/{asset}', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'deleteGalleryPhoto'])->name('superadmin.leisure.settings.gallery.delete');
     Route::post('/ai-kutlama/ayar', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaAyarGuncelle'])->name('ai-kutlama.ayar');
     Route::post('/ai-kutlama/tara', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaTara'])->name('ai-kutlama.tara');
     Route::post('/ai-kutlama/manual', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aiKutlamaManuelOlustur'])->name('ai-kutlama.manual');
