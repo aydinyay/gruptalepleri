@@ -10,25 +10,25 @@
     @include('acente.partials.theme-styles')
     <style>
         :root {
-            --gyg-orange: #ff5533;
-            --gyg-orange-dark: #e8411d;
-            --gyg-text: #1a1a1a;
-            --gyg-muted: #595959;
-            --gyg-border: #e8e8e8;
-            --gyg-bg: #f5f5f5;
-            --gyg-card: #ffffff;
-            --gyg-star: #f5a623;
-            --gyg-radius: 12px;
+            --gt-orange: #ff5533;
+            --gt-orange-dark: #e8411d;
+            --gt-text: #1a1a1a;
+            --gt-muted: #595959;
+            --gt-border: #e8e8e8;
+            --gt-bg: #f5f5f5;
+            --gt-card: #ffffff;
+            --gt-star: #f5a623;
+            --gt-radius: 12px;
         }
         html[data-theme="dark"] {
-            --gyg-text: #f0f0f0;
-            --gyg-muted: #b0b0b0;
-            --gyg-border: #333;
-            --gyg-bg: #0f1520;
-            --gyg-card: #1a2235;
+            --gt-text: #f0f0f0;
+            --gt-muted: #b0b0b0;
+            --gt-border: #333;
+            --gt-bg: #0f1520;
+            --gt-card: #1a2235;
         }
 
-        body { background: var(--gyg-bg); color: var(--gyg-text); min-height: 100vh; }
+        body { background: var(--gt-bg); color: var(--gt-text); min-height: 100vh; }
 
         /* ── Hero bant ── */
         .dc-hero {
@@ -42,50 +42,50 @@
         .dc-hero-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
         .dc-chip { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); padding: .3rem .7rem; font-size: .78rem; font-weight: 600; }
         .dc-rating-strip { display: flex; align-items: center; gap: .4rem; margin-top: .9rem; }
-        .dc-rating-strip .stars { color: var(--gyg-star); }
+        .dc-rating-strip .stars { color: var(--gt-star); }
         .dc-rating-strip span { font-size: .88rem; color: rgba(255,255,255,.75); }
 
         /* ── Filtre bar ── */
-        .dc-filter-bar { background: var(--gyg-card); border-bottom: 1px solid var(--gyg-border); padding: .8rem 0; position: sticky; top: 64px; z-index: 99; }
+        .dc-filter-bar { background: var(--gt-card); border-bottom: 1px solid var(--gt-border); padding: .8rem 0; position: sticky; top: 64px; z-index: 99; }
         .dc-filter-bar .container { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-        .dc-filter-pill { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; border: 1px solid var(--gyg-border); background: var(--gyg-card); color: var(--gyg-text); padding: .38rem .75rem; font-size: .82rem; font-weight: 600; cursor: pointer; transition: border-color .15s, background .15s; white-space: nowrap; }
-        .dc-filter-pill:hover, .dc-filter-pill.active { border-color: var(--gyg-orange); color: var(--gyg-orange); background: rgba(255,85,51,.07); }
-        .dc-result-count { margin-left: auto; font-size: .82rem; color: var(--gyg-muted); }
+        .dc-filter-pill { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; border: 1px solid var(--gt-border); background: var(--gt-card); color: var(--gt-text); padding: .38rem .75rem; font-size: .82rem; font-weight: 600; cursor: pointer; transition: border-color .15s, background .15s; white-space: nowrap; }
+        .dc-filter-pill:hover, .dc-filter-pill.active { border-color: var(--gt-orange); color: var(--gt-orange); background: rgba(255,85,51,.07); }
+        .dc-result-count { margin-left: auto; font-size: .82rem; color: var(--gt-muted); }
 
         /* ── Kart grid ── */
         .dc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; padding: 1.5rem 0 2.5rem; }
 
         /* ── Ürün kartı ── */
-        .dc-card { background: var(--gyg-card); border-radius: var(--gyg-radius); border: 1px solid var(--gyg-border); overflow: hidden; transition: box-shadow .2s, transform .2s; cursor: pointer; text-decoration: none; color: var(--gyg-text); display: flex; flex-direction: column; }
-        .dc-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.13); transform: translateY(-2px); text-decoration: none; color: var(--gyg-text); }
+        .dc-card { background: var(--gt-card); border-radius: var(--gt-radius); border: 1px solid var(--gt-border); overflow: hidden; transition: box-shadow .2s, transform .2s; cursor: pointer; text-decoration: none; color: var(--gt-text); display: flex; flex-direction: column; }
+        .dc-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.13); transform: translateY(-2px); text-decoration: none; color: var(--gt-text); }
         .dc-card-img { position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; background: #ddd; }
         .dc-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
         .dc-card:hover .dc-card-img img { transform: scale(1.04); }
         .dc-badge { position: absolute; top: .6rem; left: .6rem; border-radius: 6px; padding: .3rem .55rem; font-size: .72rem; font-weight: 700; z-index: 2; }
-        .dc-badge.popular { background: #fff; color: var(--gyg-text); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+        .dc-badge.popular { background: #fff; color: var(--gt-text); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
         .dc-badge.certified { background: #0a6fcf; color: #fff; }
         .dc-badge.new { background: #12a354; color: #fff; }
         .dc-wishlist { position: absolute; top: .6rem; right: .6rem; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.92); border: none; display: flex; align-items: center; justify-content: center; color: #888; font-size: .9rem; cursor: pointer; z-index: 2; transition: color .15s; }
-        .dc-wishlist:hover { color: var(--gyg-orange); }
+        .dc-wishlist:hover { color: var(--gt-orange); }
         .dc-card-body { padding: .85rem; flex: 1; display: flex; flex-direction: column; gap: .35rem; }
-        .dc-card-meta { font-size: .78rem; color: var(--gyg-muted); display: flex; align-items: center; gap: .5rem; }
-        .dc-card-title { font-size: 1rem; font-weight: 700; line-height: 1.3; color: var(--gyg-text); }
+        .dc-card-meta { font-size: .78rem; color: var(--gt-muted); display: flex; align-items: center; gap: .5rem; }
+        .dc-card-title { font-size: 1rem; font-weight: 700; line-height: 1.3; color: var(--gt-text); }
         .dc-card-features { display: flex; flex-wrap: wrap; gap: .28rem; margin-top: .1rem; }
-        .dc-card-feat { font-size: .74rem; color: var(--gyg-muted); display: flex; align-items: center; gap: .22rem; }
+        .dc-card-feat { font-size: .74rem; color: var(--gt-muted); display: flex; align-items: center; gap: .22rem; }
         .dc-card-rating { display: flex; align-items: center; gap: .32rem; margin-top: auto; padding-top: .5rem; }
-        .dc-card-rating .star { color: var(--gyg-star); font-size: .85rem; }
+        .dc-card-rating .star { color: var(--gt-star); font-size: .85rem; }
         .dc-card-rating .score { font-weight: 700; font-size: .88rem; }
-        .dc-card-rating .count { font-size: .78rem; color: var(--gyg-muted); }
-        .dc-card-footer { border-top: 1px solid var(--gyg-border); padding: .7rem .85rem; display: flex; align-items: center; justify-content: space-between; }
-        .dc-price-label { font-size: .72rem; color: var(--gyg-muted); }
-        .dc-price-original { font-size: .78rem; color: var(--gyg-muted); text-decoration: line-through; }
-        .dc-price-current { font-size: 1.15rem; font-weight: 800; color: var(--gyg-orange); }
-        .dc-btn-detail { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; border: 1.5px solid var(--gyg-orange); background: transparent; color: var(--gyg-orange); padding: .36rem .75rem; font-size: .8rem; font-weight: 700; text-decoration: none; transition: background .15s, color .15s; }
-        .dc-btn-detail:hover { background: var(--gyg-orange); color: #fff; text-decoration: none; }
+        .dc-card-rating .count { font-size: .78rem; color: var(--gt-muted); }
+        .dc-card-footer { border-top: 1px solid var(--gt-border); padding: .7rem .85rem; display: flex; align-items: center; justify-content: space-between; }
+        .dc-price-label { font-size: .72rem; color: var(--gt-muted); }
+        .dc-price-original { font-size: .78rem; color: var(--gt-muted); text-decoration: line-through; }
+        .dc-price-current { font-size: 1.15rem; font-weight: 800; color: var(--gt-orange); }
+        .dc-btn-detail { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; border: 1.5px solid var(--gt-orange); background: transparent; color: var(--gt-orange); padding: .36rem .75rem; font-size: .8rem; font-weight: 700; text-decoration: none; transition: background .15s, color .15s; }
+        .dc-btn-detail:hover { background: var(--gt-orange); color: #fff; text-decoration: none; }
 
         /* ── Sayfa başlığı ── */
-        .dc-section-title { font-size: 1.2rem; font-weight: 800; margin: 0 0 .1rem; color: var(--gyg-text); }
-        .dc-section-sub { font-size: .88rem; color: var(--gyg-muted); }
+        .dc-section-title { font-size: 1.2rem; font-weight: 800; margin: 0 0 .1rem; color: var(--gt-text); }
+        .dc-section-sub { font-size: .88rem; color: var(--gt-muted); }
 
         @media (max-width: 575px) {
             .dc-grid { grid-template-columns: 1fr; }
@@ -114,7 +114,7 @@
                     <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
                 </div>
                 <strong style="color:#fff;">4.6</strong>
-                <span>• 2.053 yorum • GetYourGuide sertifikalı ürün</span>
+                <span>• 2.053 yorum • GT sertifikalı ürün</span>
             </div>
         </div>
     </div>
@@ -151,7 +151,7 @@
             @php
                 $badgeClass = match(strtolower((string)($pkg->badge_text ?? ''))) {
                     'en çok tercih edilen' => 'popular',
-                    'gyg sertifikalı'       => 'certified',
+                    'gt sertifikalı'        => 'certified',
                     'yeni etkinlik'         => 'new',
                     default                 => 'popular',
                 };
@@ -224,19 +224,19 @@
     {{-- Bilgi kutusu --}}
     <div class="row g-3 pb-4">
         <div class="col-md-4">
-            <div class="p-3 rounded-3" style="background: var(--gyg-card); border: 1px solid var(--gyg-border);">
+            <div class="p-3 rounded-3" style="background: var(--gt-card); border: 1px solid var(--gt-border);">
                 <div class="fw-bold mb-1"><i class="fas fa-shield-alt text-success me-2"></i>Ücretsiz İptal</div>
                 <div class="small text-muted">Hizmetten 24 saat öncesine kadar ücretsiz iptal hakkı.</div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="p-3 rounded-3" style="background: var(--gyg-card); border: 1px solid var(--gyg-border);">
+            <div class="p-3 rounded-3" style="background: var(--gt-card); border: 1px solid var(--gt-border);">
                 <div class="fw-bold mb-1"><i class="fas fa-clock text-primary me-2"></i>Anında Onay</div>
                 <div class="small text-muted">Rezervasyonunuz ödeme sonrası anında onaylanır, beklemenize gerek yok.</div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="p-3 rounded-3" style="background: var(--gyg-card); border: 1px solid var(--gyg-border);">
+            <div class="p-3 rounded-3" style="background: var(--gt-card); border: 1px solid var(--gt-border);">
                 <div class="fw-bold mb-1"><i class="fas fa-headset text-warning me-2"></i>7/24 Destek</div>
                 <div class="small text-muted">Operasyon ekibimiz her zaman ulaşılabilir, sorularınızı yanıtlar.</div>
             </div>

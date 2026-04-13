@@ -116,7 +116,7 @@ return new class extends Migration {
                 'name_en'                  => 'Bosphorus Turkish Night — VIP',
                 'summary_tr'               => 'Sahneye yakın VIP masa, 3 kurslu yemek ve sınırsız yerli alkollü+alkolsüz içecekler dahil.',
                 'summary_en'               => 'Front-row VIP table, 3-course dinner, unlimited local alcoholic & soft drinks included.',
-                'badge_text'               => 'GYG Sertifikalı',
+                'badge_text'               => 'GT Sertifikalı',
                 'base_price_per_person'    => 1150.00,
                 'original_price_per_person'=> 1440.00,
                 'currency'                 => 'TRY',
