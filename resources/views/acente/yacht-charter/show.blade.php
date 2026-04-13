@@ -421,5 +421,6 @@ transferCheck.addEventListener('change', () => {
     transferBody.classList.toggle('show', transferCheck.checked);
 });
 </script>
+@include('acente.partials.leisure-footer')
 </body>
 </html>

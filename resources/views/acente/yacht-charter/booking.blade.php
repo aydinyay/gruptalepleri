@@ -169,6 +169,7 @@
     </div>
 </div>
 
+@include('acente.partials.leisure-footer')
 @include('acente.partials.theme-script')
 </body>
 </html>

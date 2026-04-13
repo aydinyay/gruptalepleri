@@ -437,5 +437,6 @@ document.getElementById('chkTransfer').addEventListener('change', function() {
     document.getElementById('transferFields').style.display = this.checked ? '' : 'none';
 });
 </script>
+@include('acente.partials.leisure-footer')
 </body>
 </html>

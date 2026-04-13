@@ -168,5 +168,6 @@ document.querySelector('.yc-pill.active').addEventListener('click', () => {
     document.querySelectorAll('.yc-card').forEach(c => c.style.display = '');
 });
 </script>
+@include('acente.partials.leisure-footer')
 </body>
 </html>
