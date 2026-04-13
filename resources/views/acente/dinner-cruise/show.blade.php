@@ -273,7 +273,7 @@
                     @endif
                 </div>
                 <div class="dc-panel-price">{{ number_format((float)($package->base_price_per_person??0),0,',','.') }} TRY</div>
-                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">kişi başı · B2B fiyatı</div>
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">kişi başı</div>
 
                 <form id="bookForm" action="{{ route('acente.dinner-cruise.book', $package->code) }}" method="POST">
                     @csrf
