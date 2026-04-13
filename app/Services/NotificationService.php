@@ -79,6 +79,19 @@ class NotificationService
         );
     }
 
+    public function yeniLeisureBooking(string $gtpnr, string $agencyName, string $productType, float $amount, string $currency, string $adminUrl): void
+    {
+        $label  = $productType === 'yacht' ? 'Yat Kiralama' : 'Dinner Cruise';
+        $amtFmt = number_format($amount, 0, ',', '.') . ' ' . $currency;
+        $this->createForRole(
+            'admin_and_superadmin',
+            'new_leisure_booking',
+            "Yeni {$label}: {$gtpnr}",
+            "{$agencyName} — {$amtFmt} — Ödeme Bekliyor",
+            $adminUrl
+        );
+    }
+
     public function durumDegisti(int $agencyUserId, string $gtpnr, string $eskiDurum, string $yeniDurum, string $url): void
     {
         $this->createForUser(

@@ -133,6 +133,53 @@ class EmailService
     }
 
     /**
+     * Yeni leisure (Dinner Cruise / Yat Kiralama) rezervasyonu — admin + superadmin'e bildirim.
+     */
+    public function yeniLeisureBooking(string $gtpnr, string $agencyName, string $productType, float $amount, string $currency, string $adminUrl): void
+    {
+        if (! SistemAyar::emailEnabled()) {
+            return;
+        }
+
+        $label   = $productType === 'yacht' ? 'Yat Kiralama' : 'Dinner Cruise';
+        $icon    = $productType === 'yacht' ? '⛵' : '🚢';
+        $subject = "{$icon} Yeni {$label} Rezervasyonu: {$gtpnr}";
+        $amtFmt  = number_format($amount, 0, ',', '.') . ' ' . $currency;
+
+        $html = <<<HTML
+<!DOCTYPE html>
+<html lang="tr">
+<body style="margin:0;padding:20px;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table width="580" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+<tr><td style="background:#ff5533;padding:20px 28px;">
+  <span style="color:#fff;font-size:19px;font-weight:bold;">{$icon} Yeni {$label} Rezervasyonu</span>
+</td></tr>
+<tr><td style="padding:24px 28px;">
+  <p style="margin:0 0 16px;font-size:14px;color:#444;">Sisteme yeni bir {$label} rezervasyonu girdi:</p>
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
+    <tr style="border-bottom:1px solid #eee;"><td style="padding:9px 4px;color:#888;width:38%;">Referans</td><td style="padding:9px 4px;font-weight:bold;">{$gtpnr}</td></tr>
+    <tr style="border-bottom:1px solid #eee;"><td style="padding:9px 4px;color:#888;">Acente</td><td style="padding:9px 4px;">{$agencyName}</td></tr>
+    <tr style="border-bottom:1px solid #eee;"><td style="padding:9px 4px;color:#888;">Ürün</td><td style="padding:9px 4px;">{$label}</td></tr>
+    <tr><td style="padding:9px 4px;color:#888;">Tutar</td><td style="padding:9px 4px;font-weight:bold;color:#ff5533;">{$amtFmt}</td></tr>
+  </table>
+  <p style="margin:22px 0 0;text-align:center;">
+    <a href="{$adminUrl}" style="display:inline-block;background:#ff5533;color:#fff;padding:11px 26px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Rezervasyonu Görüntüle →</a>
+  </p>
+</td></tr>
+<tr><td style="padding:12px 28px;background:#f9f9f9;font-size:12px;color:#aaa;text-align:center;">GrupTalepleri Bildirim Sistemi</td></tr>
+</table>
+</td></tr></table>
+</body></html>
+HTML;
+
+        $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
+        foreach ($alicilar as $user) {
+            $this->sendHtml(null, $user, $subject, $html);
+        }
+    }
+
+    /**
      * Yeni acente kaydı — admin + superadmin'e email.
      */
     public function yeniAcente(string $companyTitle, string $contactName, string $phone, string $email, string $adminUrl): void

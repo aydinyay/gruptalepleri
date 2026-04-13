@@ -11,11 +11,15 @@ use App\Models\LeisureMediaAsset;
 use App\Models\LeisurePackageTemplate;
 use App\Models\LeisureRequest;
 use App\Models\LeisureRequestExtra;
+use App\Services\EmailService;
 use App\Services\Finance\FinanceSyncService;
 use App\Services\GtpnrService;
+use App\Services\NotificationService;
+use App\Services\SmsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DinnerCruiseCatalogController extends Controller
 {
@@ -205,6 +209,26 @@ class DinnerCruiseCatalogController extends Controller
 
             return $req;
         });
+
+        // Bildirimler (push + email + SMS) — hata olursa rezervasyonu bloklamaz
+        try {
+            $agencyName = auth()->user()->name;
+            $booking    = $leisureRequest->booking ?? $leisureRequest->load('booking')->booking;
+            $amount     = (float) ($booking?->total_amount ?? 0);
+            $cur        = $booking?->currency ?? 'EUR';
+            $adminUrl   = route('superadmin.dinner-cruise.show', $leisureRequest);
+
+            (new NotificationService())->yeniLeisureBooking($leisureRequest->gtpnr, $agencyName, 'dinner_cruise', $amount, $cur, $adminUrl);
+            (new EmailService())->yeniLeisureBooking($leisureRequest->gtpnr, $agencyName, 'dinner_cruise', $amount, $cur, $adminUrl);
+
+            $amtFmt = number_format($amount, 0, ',', '.') . ' ' . $cur;
+            (new SmsService())->sendByEvent('new_request', null,
+                "🚢 Yeni Dinner Cruise rezervasyonu: {$leisureRequest->gtpnr} / {$agencyName} / {$amtFmt}",
+                ['gtpnr' => $leisureRequest->gtpnr, 'acente_adi' => $agencyName]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Dinner Cruise booking notification error: ' . $e->getMessage());
+        }
 
         // Ödeme sayfasına yönlendir
         return redirect()

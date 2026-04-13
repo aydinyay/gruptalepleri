@@ -11,11 +11,15 @@ use App\Models\LeisurePackageTemplate;
 use App\Models\LeisureRequest;
 use App\Models\LeisureRequestExtra;
 use App\Models\YachtCharterRequestDetail;
+use App\Services\EmailService;
 use App\Services\Finance\FinanceSyncService;
 use App\Services\GtpnrService;
+use App\Services\NotificationService;
+use App\Services\SmsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class YachtCatalogController extends Controller
 {
@@ -201,6 +205,26 @@ class YachtCatalogController extends Controller
 
             return $req;
         });
+
+        // Bildirimler (push + email + SMS) — hata olursa rezervasyonu bloklamaz
+        try {
+            $agencyName = auth()->user()->name;
+            $booking    = $leisureRequest->booking ?? $leisureRequest->load('booking')->booking;
+            $amount     = (float) ($booking?->total_amount ?? 0);
+            $cur        = $booking?->currency ?? 'EUR';
+            $adminUrl   = route('superadmin.yacht-charter.show', $leisureRequest);
+
+            (new NotificationService())->yeniLeisureBooking($leisureRequest->gtpnr, $agencyName, 'yacht', $amount, $cur, $adminUrl);
+            (new EmailService())->yeniLeisureBooking($leisureRequest->gtpnr, $agencyName, 'yacht', $amount, $cur, $adminUrl);
+
+            $amtFmt = number_format($amount, 0, ',', '.') . ' ' . $cur;
+            (new SmsService())->sendByEvent('new_request', null,
+                "⛵ Yeni Yat Kiralama rezervasyonu: {$leisureRequest->gtpnr} / {$agencyName} / {$amtFmt}",
+                ['gtpnr' => $leisureRequest->gtpnr, 'acente_adi' => $agencyName]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Yacht booking notification error: ' . $e->getMessage());
+        }
 
         return redirect()
             ->route('acente.yacht-charter.booking-show', $leisureRequest)
