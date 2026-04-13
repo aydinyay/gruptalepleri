@@ -62,7 +62,11 @@
                 <i class="fas fa-check-circle fa-2x text-success"></i>
                 <div>
                     <div class="fw-bold">Rezervasyonunuz oluşturuldu!</div>
-                    <div style="font-size:.85rem;color:var(--muted);">Referans: <strong>{{ $leisureRequest->gtpnr }}</strong> — Ödemeyi tamamlayın, yeriniz kesinleşsin.</div>
+                    @if($booking && (float)$booking->remaining_amount <= 0)
+                        <div style="font-size:.85rem;color:var(--muted);">Referans: <strong>{{ $leisureRequest->gtpnr }}</strong> — Ödemeniz tamamlandı, yeriniz kesinleşti.</div>
+                    @else
+                        <div style="font-size:.85rem;color:var(--muted);">Referans: <strong>{{ $leisureRequest->gtpnr }}</strong> — Ödemeyi tamamlayın, yeriniz kesinleşsin.</div>
+                    @endif
                 </div>
             </div>
 
