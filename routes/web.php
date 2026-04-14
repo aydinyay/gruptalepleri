@@ -585,6 +585,14 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         ->name('transfer.ops.zones.store');
     Route::patch('/transfer/operasyon/zones/{zone}', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'updateZone'])
         ->name('transfer.ops.zones.update');
+    Route::post('/transfer/operasyon/vehicle-types', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'storeVehicleType'])
+        ->name('transfer.ops.vehicle-types.store');
+    Route::patch('/transfer/operasyon/vehicle-types/{vehicleType}', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'updateVehicleType'])
+        ->name('transfer.ops.vehicle-types.update');
+    Route::post('/transfer/operasyon/vehicle-types/{vehicleType}/media', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'storeVehicleMedia'])
+        ->name('transfer.ops.vehicle-types.media.store');
+    Route::delete('/transfer/operasyon/vehicle-types/media/{media}', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'deleteVehicleMedia'])
+        ->name('transfer.ops.vehicle-types.media.delete');
     Route::get('/leisure/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
         ->defaults('group', 'leisure')
         ->name('leisure.hub');
@@ -1018,6 +1026,8 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
         ->name('transfer.booking.cancel');
     Route::get('/transfer/bookings/{booking}/status', [\App\Http\Controllers\Transfer\TransferCheckoutController::class, 'paymentStatus'])
         ->name('transfer.booking.status');
+    Route::get('/rezervasyonlarim', [\App\Http\Controllers\Acente\AcenteReservationsController::class, 'index'])
+        ->name('rezervasyonlarim.index');
     Route::prefix('/transfer/tedarikci')->name('transfer.supplier.')->group(function () {
         Route::middleware('transfer_supplier:approved')->group(function () {
             Route::get('/sozlesme', [\App\Http\Controllers\Transfer\SupplierTransferController::class, 'showTerms'])

@@ -67,16 +67,54 @@
             border: 1px solid rgba(15, 23, 42, .08);
             border-radius: .95rem;
             background: #fff;
-            padding: .95rem;
+            overflow: hidden;
             height: 100%;
             display: flex;
             flex-direction: column;
-            gap: .65rem;
+            transition: box-shadow .2s, transform .2s;
+        }
+        .gt-transfer-page .gt-transfer-result-card:hover {
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .13);
+            transform: translateY(-2px);
+        }
+        .gt-transfer-page .gt-tr-img-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            background: #e2e8f0;
+        }
+        .gt-transfer-page .gt-tr-img-wrap img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform .35s;
+        }
+        .gt-transfer-page .gt-transfer-result-card:hover .gt-tr-img-wrap img { transform: scale(1.04); }
+        .gt-transfer-page .gt-tr-img-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: #94a3b8;
+        }
+        .gt-transfer-page .gt-tr-body { padding: .85rem; flex: 1; display: flex; flex-direction: column; gap: .45rem; }
+        .gt-transfer-page .gt-tr-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
+        .gt-transfer-page .gt-tr-sub   { font-size: .8rem; color: #64748b; }
+        .gt-transfer-page .gt-tr-amenities { display: flex; flex-wrap: wrap; gap: .3rem; }
+        .gt-transfer-page .gt-tr-amenity {
+            display: inline-flex; align-items: center; gap: .2rem;
+            font-size: .72rem; color: #475569;
+            background: #f1f5f9; border-radius: 4px; padding: .18rem .45rem;
+        }
+        .gt-transfer-page .gt-tr-footer {
+            border-top: 1px solid rgba(15, 23, 42, .07);
+            padding: .7rem .85rem;
+            display: flex; align-items: center; justify-content: space-between; gap: .5rem;
         }
         .gt-transfer-page .gt-transfer-price {
             font-size: 1.18rem;
             font-weight: 800;
             color: #0f172a;
+        }
+        .gt-transfer-page .gt-tr-suggested {
+            font-size: .75rem; color: #64748b;
         }
         .gt-transfer-page .gt-transfer-empty {
             border: 1px dashed rgba(15, 23, 42, .18);
@@ -93,13 +131,14 @@
             background: #0f1d36;
             color: #e5e7eb;
         }
+        html[data-theme="dark"] .gt-transfer-page .gt-tr-body { background: #0f1d36; }
+        html[data-theme="dark"] .gt-transfer-page .gt-tr-title { color: #f1f5f9; }
+        html[data-theme="dark"] .gt-transfer-page .gt-tr-amenity { background: #1e3a5f; color: #93c5fd; }
+        html[data-theme="dark"] .gt-transfer-page .gt-tr-footer { border-color: #2d4371; background: #0f1d36; }
         html[data-theme="dark"] .gt-transfer-page .gt-transfer-label,
-        html[data-theme="dark"] .gt-transfer-page .gt-transfer-muted {
-            color: #9fb2d9;
-        }
-        html[data-theme="dark"] .gt-transfer-page .gt-transfer-price {
-            color: #f8fafc;
-        }
+        html[data-theme="dark"] .gt-transfer-page .gt-transfer-muted,
+        html[data-theme="dark"] .gt-transfer-page .gt-tr-sub { color: #9fb2d9; }
+        html[data-theme="dark"] .gt-transfer-page .gt-transfer-price { color: #f8fafc; }
         html[data-theme="dark"] .gt-transfer-page .gt-transfer-empty {
             border-color: #2d4371;
             background: #0f1d36;
@@ -244,7 +283,7 @@
                         <div id="transferEmpty" class="gt-transfer-empty">
                             Arama yapmak icin soldaki alanlari doldurun.
                         </div>
-                        <div id="transferResults" class="row g-3 d-none"></div>
+                        <div id="transferResults" class="row g-3 d-none" style="margin-top:.5rem;"></div>
                     </div>
                 </div>
             </div>
@@ -388,6 +427,8 @@
         if (returnTimeInput) returnTimeInput.required = isRoundTrip;
     };
 
+    const esc = (str) => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
     const renderResults = (options, noResultReason, searchState) => {
         transferResults.innerHTML = '';
         transferResults.classList.add('d-none');
@@ -405,39 +446,84 @@
 
         options.forEach((option) => {
             const col = document.createElement('div');
-            col.className = 'col-12 col-xl-6';
+            col.className = 'col-12 col-md-6 col-xl-4';
 
-            const durationText = option.duration_minutes
-                ? `${option.duration_minutes} dk`
-                : 'Sure bilgisi tedarikciye gore degisir';
-            const ratingText = option.supplier_rating
-                ? `${option.supplier_rating} / 5`
-                : 'Puan bilgisi yok';
+            const photos = Array.isArray(option.vehicle_photos) ? option.vehicle_photos : [];
+            const amenities = Array.isArray(option.vehicle_amenities) ? option.vehicle_amenities : [];
             const priceText = (option.total_price !== null && option.total_price !== undefined)
-                ? `${Number(option.total_price).toFixed(2)} ${option.currency || searchState.currency}`
-                : `Teklif bazli (${option.currency || searchState.currency})`;
-
+                ? `${Number(option.total_price).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2})} ${option.currency || searchState.currency}`
+                : `Teklif bazlı`;
+            const suggestedText = option.vehicle_suggested_retail
+                ? `Önerilen sat.: ${Number(option.vehicle_suggested_retail).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2})} ${option.currency || searchState.currency}`
+                : '';
+            const durationText = option.duration_minutes ? `${option.duration_minutes} dk` : '';
             const openInNew = provider === 'atp';
             const ctaAttrs = openInNew ? 'target="_blank" rel="noopener noreferrer"' : '';
-            const ctaLabel = openInNew ? 'Dis rezervasyona git' : 'Rezervasyona git';
+
+            // Fotoğraf alanı
+            let imgHtml = '';
+            if (photos.length > 0) {
+                const imgId = `gttr_img_${Math.random().toString(36).slice(2,8)}`;
+                imgHtml = `
+                    <div class="gt-tr-img-wrap">
+                        <img id="${imgId}" src="${esc(photos[0])}" alt="${esc(option.vehicle_type)}" loading="lazy">
+                    </div>`;
+                if (photos.length > 1) {
+                    // slideshow çok basit
+                    setTimeout(() => {
+                        const el = document.getElementById(imgId);
+                        if (!el) return;
+                        let idx = 0;
+                        el.parentElement.addEventListener('mouseenter', () => {
+                            idx = (idx + 1) % photos.length;
+                            el.src = photos[idx];
+                        });
+                    }, 50);
+                }
+            } else {
+                imgHtml = `<div class="gt-tr-img-wrap"><div class="gt-tr-img-placeholder"><i class="fas fa-shuttle-van"></i></div></div>`;
+            }
+
+            // Donanım ikonları
+            const amenityMap = {
+                wifi:'fas fa-wifi', ac:'fas fa-snowflake', refreshments:'fas fa-bottle-water',
+                child_seat:'fas fa-baby', usb:'fas fa-plug', leather:'fas fa-couch',
+                panoramic:'fas fa-panorama', disabled_access:'fas fa-wheelchair',
+                luggage_assist:'fas fa-suitcase-rolling', tv:'fas fa-tv'
+            };
+            const amenityLabelMap = {
+                wifi:'WiFi', ac:'Klima', refreshments:'İkram', child_seat:'Çocuk Kol.',
+                usb:'USB Şarj', leather:'Deri Koltuk', panoramic:'Panoramik',
+                disabled_access:'Engelli', luggage_assist:'Bagaj Yard.', tv:'TV'
+            };
+            const amenityHtml = amenities.slice(0, 5).map(a =>
+                `<span class="gt-tr-amenity"><i class="${esc(amenityMap[a] || 'fas fa-check')}"></i>${esc(amenityLabelMap[a] || a)}</span>`
+            ).join('');
+
+            // Kapasite satırı
+            const cap = option.vehicle_max_passengers ? `<span class="gt-tr-amenity"><i class="fas fa-users"></i>${esc(option.vehicle_max_passengers)} kişi</span>` : '';
+            const lug = option.vehicle_luggage_capacity ? `<span class="gt-tr-amenity"><i class="fas fa-suitcase"></i>${esc(option.vehicle_luggage_capacity)} valiz</span>` : '';
 
             col.innerHTML = `
                 <div class="gt-transfer-result-card">
-                    <div class="d-flex align-items-start justify-content-between gap-2">
+                    ${imgHtml}
+                    <div class="gt-tr-body">
+                        <div class="gt-tr-title">${esc(option.vehicle_type || 'Transfer Aracı')}</div>
+                        <div class="gt-tr-sub"><i class="fas fa-building me-1"></i>${esc(option.supplier_name || '')}</div>
+                        ${option.vehicle_description ? `<div class="gt-tr-sub">${esc(option.vehicle_description)}</div>` : ''}
+                        ${(cap || lug || amenityHtml) ? `<div class="gt-tr-amenities">${cap}${lug}${amenityHtml}</div>` : ''}
+                        ${durationText ? `<div class="gt-tr-sub"><i class="fas fa-clock me-1"></i>${esc(durationText)}</div>` : ''}
+                        <div class="gt-tr-sub gt-transfer-muted" style="font-size:.76rem;">${esc(option.cancellation_policy || '')}</div>
+                    </div>
+                    <div class="gt-tr-footer">
                         <div>
-                            <div class="fw-bold">${option.vehicle_type || 'Transfer Araci'}</div>
-                            <div class="small text-muted">${option.supplier_name || '-'}</div>
+                            <div class="gt-transfer-price">${priceText}</div>
+                            ${suggestedText ? `<div class="gt-tr-suggested">${esc(suggestedText)}</div>` : ''}
                         </div>
-                        <span class="badge text-bg-light">${ratingText}</span>
+                        <a class="btn btn-primary btn-sm" href="${esc(option.booking_url)}" ${ctaAttrs}>
+                            Rezervasyon <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <div class="gt-transfer-muted">${option.cancellation_policy || 'Iptal politikasi supplier kurallarina gore degisir.'}</div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="small text-muted"><i class="fas fa-clock me-1"></i>${durationText}</span>
-                        <span class="gt-transfer-price">${priceText}</span>
-                    </div>
-                    <a class="btn btn-primary btn-sm mt-auto" href="${option.booking_url}" ${ctaAttrs}>
-                        <i class="fas fa-arrow-right me-1"></i>${ctaLabel}
-                    </a>
                 </div>
             `;
             transferResults.appendChild(col);
