@@ -102,6 +102,22 @@ class InternalTransferMarketplaceService
 
         $currentTermsVersion = SistemAyar::transferSupplierTermsVersion();
 
+        // Araç tipi medyasını önceden yükleyelim (N+1 önlemi)
+        $vehicleTypeIds = TransferPricingRule::query()
+            ->where('airport_id', $airport->id)
+            ->where('zone_id', $zone->id)
+            ->pluck('vehicle_type_id')
+            ->unique()
+            ->all();
+
+        /** @var \Illuminate\Support\Collection<int, \App\Models\TransferVehicleMedia> $allVehicleMedia */
+        $allVehicleMedia = \App\Models\TransferVehicleMedia::query()
+            ->whereIn('vehicle_type_id', $vehicleTypeIds)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('vehicle_type_id');
+
         $rules = $this->queryRules(
             airportId: (int) $airport->id,
             zoneId: (int) $zone->id,
@@ -186,18 +202,39 @@ class InternalTransferMarketplaceService
                 'created_by_user_id' => $userId,
             ]);
 
+            $vtId = (int) $rule->vehicle_type_id;
+            $vtMedia = $allVehicleMedia->get($vtId, collect());
+
             $results[] = [
-                'quote_token' => $quoteLock->token,
-                'vehicle_type' => (string) ($rule->vehicleType?->name ?? 'Transfer Araci'),
-                'supplier_name' => (string) $supplier->company_name,
-                'supplier_rating' => null,
-                'duration_minutes' => (int) $distance['duration_minutes'],
-                'distance_km' => (float) $distance['distance_km'],
-                'cancellation_policy' => $this->formatPolicy($policy),
-                'total_price' => (float) $priceBreakdown['total_amount'],
-                'currency' => strtoupper((string) $rule->currency),
-                'price_breakdown' => $priceBreakdown,
-                'booking_url' => route($checkoutRouteName, ['quoteToken' => $quoteLock->token]),
+                'quote_token'              => $quoteLock->token,
+                'vehicle_type'             => (string) ($rule->vehicleType?->name ?? 'Transfer Araci'),
+                'vehicle_description'      => (string) ($rule->vehicleType?->description ?? ''),
+                'vehicle_max_passengers'   => (int) ($rule->vehicleType?->max_passengers ?? 0),
+                'vehicle_luggage_capacity' => $rule->vehicleType?->luggage_capacity,
+                'vehicle_amenities'        => $rule->vehicleType?->activeAmenities() ?? [],
+                'vehicle_suggested_retail' => $rule->vehicleType?->suggested_retail_price !== null
+                    ? (float) $rule->vehicleType->suggested_retail_price
+                    : null,
+                'vehicle_photos'           => $vtMedia
+                    ->where('media_type', 'photo')
+                    ->take(6)
+                    ->map(fn ($m) => $m->resolvedUrl())
+                    ->filter()
+                    ->values()
+                    ->all(),
+                'vehicle_video'            => $vtMedia
+                    ->where('media_type', 'video')
+                    ->first()
+                    ?->resolvedUrl(),
+                'supplier_name'            => (string) $supplier->company_name,
+                'supplier_rating'          => null,
+                'duration_minutes'         => (int) $distance['duration_minutes'],
+                'distance_km'              => (float) $distance['distance_km'],
+                'cancellation_policy'      => $this->formatPolicy($policy),
+                'total_price'              => (float) $priceBreakdown['total_amount'],
+                'currency'                 => strtoupper((string) $rule->currency),
+                'price_breakdown'          => $priceBreakdown,
+                'booking_url'              => route($checkoutRouteName, ['quoteToken' => $quoteLock->token]),
             ];
         }
 

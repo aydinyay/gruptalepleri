@@ -111,6 +111,176 @@
         </div>
     </div>
 
+    {{-- ═══════════════════════════════════════════════════════════
+         ARAÇ TİPİ YÖNETİMİ (medya, donanım, önerilen fiyat)
+    ════════════════════════════════════════════════════════════ --}}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h2 class="h5 fw-bold mb-3">Araç Tipleri</h2>
+
+            {{-- Mevcut araç tipleri --}}
+            @foreach($vehicleTypes as $vt)
+            <div class="border rounded p-3 mb-3">
+                <div class="row g-2 align-items-start">
+                    {{-- Medya galeri önizleme --}}
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex flex-wrap gap-1">
+                            @foreach($vt->media->where('media_type', 'photo')->take(3) as $m)
+                                <img src="{{ $m->resolvedUrl() }}" alt="foto"
+                                     style="width:70px;height:52px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                            @endforeach
+                            @foreach($vt->media->where('media_type', 'video')->take(1) as $m)
+                                <div style="width:70px;height:52px;background:#0f172a;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-play text-white"></i>
+                                </div>
+                            @endforeach
+                            @if($vt->media->isEmpty())
+                                <div class="text-muted small fst-italic">Medya yok</div>
+                            @endif
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge text-bg-secondary">{{ $vt->media->count() }}/7 medya</span>
+                        </div>
+                    </div>
+
+                    {{-- Araç bilgileri güncelleme formu --}}
+                    <div class="col-12 col-md-9">
+                        <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.update', $vt) }}" class="row g-2">
+                            @csrf
+                            @method('PATCH')
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">İsim</label>
+                                <input class="form-control form-control-sm" name="name" value="{{ $vt->name }}" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">Max PAX</label>
+                                <input class="form-control form-control-sm" type="number" name="max_passengers" value="{{ $vt->max_passengers }}" min="1" max="100" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">Bagaj</label>
+                                <input class="form-control form-control-sm" type="number" name="luggage_capacity" value="{{ $vt->luggage_capacity }}" min="0" placeholder="adet">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Önerilen Satış (TRY)</label>
+                                <input class="form-control form-control-sm" type="number" step="0.01" name="suggested_retail_price" value="{{ $vt->suggested_retail_price }}" min="0" placeholder="müşteriye önerilen">
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_active" value="1" id="vtActive{{ $vt->id }}" @checked($vt->is_active)>
+                                    <label class="form-check-label small" for="vtActive{{ $vt->id }}">Aktif</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Açıklama</label>
+                                <input class="form-control form-control-sm" name="description" value="{{ $vt->description }}" placeholder="Araç hakkında kısa açıklama">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Donanım</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($amenityLabels as $code => $label)
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" name="amenities[]"
+                                                   value="{{ $code }}" id="amenity_{{ $vt->id }}_{{ $code }}"
+                                                   @checked(in_array($code, $vt->amenities_json ?? []))>
+                                            <label class="form-check-label small" for="amenity_{{ $vt->id }}_{{ $code }}">{{ $label }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="col-12 d-flex gap-2">
+                                <button class="btn btn-primary btn-sm">Güncelle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- Medya yükleme --}}
+                @if($vt->media->count() < 7)
+                <div class="border-top mt-3 pt-3">
+                    <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.media.store', $vt) }}" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-center">
+                        @csrf
+                        <label class="form-label small fw-semibold mb-0">Fotoğraf/Video Ekle <span class="text-muted">(max 50MB — jpg/png/webp/mp4)</span></label>
+                        <input type="file" name="vehicle_media[]" class="form-control form-control-sm" style="max-width:320px;" multiple accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.mp4,.webm,.mov">
+                        <button class="btn btn-outline-primary btn-sm">Yükle</button>
+                    </form>
+                </div>
+                @endif
+
+                {{-- Mevcut medya listesi + sil --}}
+                @if($vt->media->isNotEmpty())
+                <div class="border-top mt-2 pt-2">
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($vt->media as $m)
+                        <div class="position-relative" style="width:80px;">
+                            @if($m->media_type === 'photo')
+                                <img src="{{ $m->resolvedUrl() }}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd;" alt="">
+                            @else
+                                <div style="width:80px;height:60px;background:#0f172a;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-film text-white"></i>
+                                </div>
+                            @endif
+                            <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.media.delete', $m) }}" class="position-absolute top-0 end-0">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm p-0" style="width:20px;height:20px;font-size:.65rem;" title="Sil" onclick="return confirm('Sil?')">×</button>
+                            </form>
+                            <div class="text-center" style="font-size:.65rem;color:#64748b;">{{ $m->sort_order }}</div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endforeach
+
+            {{-- Yeni araç tipi ekle --}}
+            <div class="border border-dashed rounded p-3 bg-light">
+                <h3 class="h6 fw-bold mb-3">Yeni Araç Tipi Ekle</h3>
+                <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.store') }}" class="row g-2">
+                    @csrf
+                    <div class="col-md-2">
+                        <label class="form-label small">Kod (unique)</label>
+                        <input class="form-control form-control-sm" name="code" placeholder="sprinter_15" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">İsim</label>
+                        <input class="form-control form-control-sm" name="name" placeholder="Mercedes Sprinter 15" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Max PAX</label>
+                        <input class="form-control form-control-sm" type="number" name="max_passengers" value="3" min="1" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Bagaj</label>
+                        <input class="form-control form-control-sm" type="number" name="luggage_capacity" placeholder="adet">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Önerilen Satış (TRY)</label>
+                        <input class="form-control form-control-sm" type="number" step="0.01" name="suggested_retail_price" min="0">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label small">Sort</label>
+                        <input class="form-control form-control-sm" type="number" name="sort_order" value="100">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small">Donanım</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($amenityLabels as $code => $label)
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="amenities[]" value="{{ $code }}" id="new_amenity_{{ $code }}">
+                                    <label class="form-check-label small" for="new_amenity_{{ $code }}">{{ $label }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-success btn-sm">Araç Tipi Ekle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3">
         <div class="col-12 col-xl-6">
             <div class="card h-100">

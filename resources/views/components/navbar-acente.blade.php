@@ -130,6 +130,20 @@
                 ],
             ],
         ],
+        [
+            'id' => 'rezervasyonlarim',
+            'label' => 'Rezervasyonlarım',
+            'icon' => 'fas fa-calendar-check',
+            'href' => route('acente.rezervasyonlarim.index'),
+            'items' => [
+                [
+                    'label' => 'Tüm Rezervasyonlarım',
+                    'href' => route('acente.rezervasyonlarim.index'),
+                    'icon' => 'fas fa-list-check',
+                    'keys' => ['rezervasyonlarim'],
+                ],
+            ],
+        ],
         ...($canFinans ? [[
             'id' => 'finans',
             'label' => 'Finans',
