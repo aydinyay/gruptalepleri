@@ -169,7 +169,7 @@
 
     @if(! $transferEnabled)
         <div class="alert alert-warning border shadow-sm">
-            Transfer modulu devre disi. Lutfen sistem ayarlarini kontrol edin.
+            Transfer modülü devre dışı. Lütfen sistem ayarlarını kontrol edin.
         </div>
     @else
         <div class="row g-3">
@@ -196,9 +196,9 @@
                             <div class="col-12">
                                 <label class="gt-transfer-label" for="directionSelect">Yon</label>
                                 <select id="directionSelect" class="form-select" name="direction" required>
-                                    <option value="FROM_AIRPORT">Havaalanindan sehire</option>
-                                    <option value="TO_AIRPORT">Sehirden havaalanina</option>
-                                    <option value="BOTH">Gidis donus</option>
+                                    <option value="FROM_AIRPORT">Havalimanından Şehre</option>
+                                    <option value="TO_AIRPORT">Şehirden Havalimanına</option>
+                                    <option value="BOTH">Gidiş Dönüş</option>
                                 </select>
                             </div>
 
@@ -212,7 +212,7 @@
                             <div class="col-12">
                                 <label class="gt-transfer-label" for="zoneSelect">Nereye (Bolge)</label>
                                 <select id="zoneSelect" class="form-select" name="zone_id" disabled required>
-                                    <option value="">Once havalimani secin</option>
+                                    <option value="">Önce havalimanı seçin</option>
                                 </select>
                             </div>
 
@@ -278,10 +278,10 @@
                         <div id="transferError" class="alert alert-danger d-none mb-3"></div>
                         <div id="transferLoading" class="d-none text-center py-4">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <div class="small text-muted mt-2">Sonuclar yukleniyor...</div>
+                            <div class="small text-muted mt-2">Sonuçlar yükleniyor...</div>
                         </div>
                         <div id="transferEmpty" class="gt-transfer-empty">
-                            Arama yapmak icin soldaki alanlari doldurun.
+                            Arama yapmak için soldaki alanları doldurun.
                         </div>
                         <div id="transferResults" class="row g-3 d-none" style="margin-top:.5rem;"></div>
                     </div>
@@ -295,6 +295,7 @@
     @include('admin.partials.theme-script')
 @else
     @include('acente.partials.theme-script')
+    @include('acente.partials.leisure-footer')
 @endif
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -384,8 +385,8 @@
                 airportSelect.appendChild(option);
             });
         } catch (error) {
-            airportSelect.innerHTML = '<option value="">Havalimani yuklenemedi</option>';
-            showError(error.message || 'Havalimani listesi alinamadi.');
+            airportSelect.innerHTML = '<option value="">Havalimanı yüklenemedi</option>';
+            showError(error.message || 'Havalimanı listesi alınamadı.');
         }
     };
 
@@ -406,7 +407,7 @@
             }
 
             const zones = Array.isArray(payload.data) ? payload.data : [];
-            zoneSelect.innerHTML = '<option value="">Bolge secin</option>';
+            zoneSelect.innerHTML = '<option value="">Bölge seçin</option>';
             zones.forEach((zone) => {
                 const option = document.createElement('option');
                 option.value = zone.id;
@@ -415,8 +416,8 @@
             });
             zoneSelect.disabled = false;
         } catch (error) {
-            zoneSelect.innerHTML = '<option value="">Bolge yuklenemedi</option>';
-            showError(error.message || 'Bolge listesi alinamadi.');
+            zoneSelect.innerHTML = '<option value="">Bölge yüklenemedi</option>';
+            showError(error.message || 'Bölge listesi alınamadı.');
         }
     };
 
@@ -435,7 +436,7 @@
         transferEmpty.classList.remove('d-none');
 
         if (!Array.isArray(options) || options.length === 0) {
-            transferEmpty.textContent = noResultReason || 'Bu kriterlerde aktif transfer secenegi bulunamadi.';
+            transferEmpty.textContent = noResultReason || 'Bu kriterlerde aktif transfer seçeneği bulunamadı.';
             resultCountBadge.textContent = '0 sonuc';
             return;
         }
@@ -551,7 +552,7 @@
 
             const result = await response.json();
             if (!response.ok || !result.ok) {
-                const message = result.message || 'Transfer arama basarisiz oldu.';
+                const message = result.message || 'Transfer arama başarısız oldu.';
                 throw new Error(message);
             }
 
@@ -570,7 +571,7 @@
             renderResults(options, noResultReason, payload);
         } catch (error) {
             resetResultArea();
-            showError(error.message || 'Transfer arama yapilirken bir hata olustu.');
+            showError(error.message || 'Transfer arama yapılırken bir hata oluştu.');
         } finally {
             setLoading(false);
         }

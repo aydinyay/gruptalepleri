@@ -97,26 +97,26 @@
         <div class="col-12 col-lg-7">
             <div class="card gt-transfer-booking-card">
                 <div class="card-body p-4">
-                    <h2 class="h5 fw-bold mb-3">Rezervasyon detaylari</h2>
+                    <h2 class="h5 fw-bold mb-3">Rezervasyon Detayları</h2>
                     @php($contact = data_get($booking->price_snapshot_json, 'contact', []))
                     @php($operation = data_get($booking->price_snapshot_json, 'operation_details', []))
                     <div class="gt-transfer-kv"><span>Supplier</span><strong>{{ $booking->supplier?->company_name }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Arac tipi</span><strong>{{ $booking->vehicleType?->name }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Rota</span><strong>{{ $booking->airport?->code }} -> {{ $booking->zone?->name }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Yon</span><strong>{{ $booking->direction }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Alis zamani</span><strong>{{ optional($booking->pickup_at)->format('d.m.Y H:i') }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Araç Tipi</span><strong>{{ $booking->vehicleType?->name }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Rota</span><strong>{{ $booking->airport?->code }} → {{ $booking->zone?->name }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Yön</span><strong>{{ $booking->direction }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Alış Zamanı</span><strong>{{ optional($booking->pickup_at)->format('d.m.Y H:i') }}</strong></div>
                     @if($booking->return_at)
-                        <div class="gt-transfer-kv"><span>Donus zamani</span><strong>{{ optional($booking->return_at)->format('d.m.Y H:i') }}</strong></div>
+                        <div class="gt-transfer-kv"><span>Dönüş Zamanı</span><strong>{{ optional($booking->return_at)->format('d.m.Y H:i') }}</strong></div>
                     @endif
                     <div class="gt-transfer-kv"><span>PAX</span><strong>{{ $booking->pax }}</strong></div>
                     <div class="gt-transfer-kv"><span>Tutar</span><strong>{{ number_format((float) $booking->total_amount, 2, ',', '.') }} {{ $booking->currency }}</strong></div>
                     @if($booking->refundable_amount !== null)
-                        <div class="gt-transfer-kv"><span>Iade tutari</span><strong>{{ number_format((float) $booking->refundable_amount, 2, ',', '.') }} {{ $booking->currency }}</strong></div>
+                        <div class="gt-transfer-kv"><span>İade Tutarı</span><strong>{{ number_format((float) $booking->refundable_amount, 2, ',', '.') }} {{ $booking->currency }}</strong></div>
                     @endif
                     <hr class="my-3">
-                    <h3 class="h6 fw-bold mb-2">Yolcu / operasyon bilgileri</h3>
-                    <div class="gt-transfer-kv"><span>Iletisim adi</span><strong>{{ data_get($contact, 'name') ?: '-' }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Iletisim telefonu</span><strong>{{ data_get($contact, 'phone') ?: '-' }}</strong></div>
+                    <h3 class="h6 fw-bold mb-2">Yolcu / Operasyon Bilgileri</h3>
+                    <div class="gt-transfer-kv"><span>İletişim Adı</span><strong>{{ data_get($contact, 'name') ?: '-' }}</strong></div>
+                    <div class="gt-transfer-kv"><span>İletişim Telefonu</span><strong>{{ data_get($contact, 'phone') ?: '-' }}</strong></div>
                     <div class="gt-transfer-kv">
                         <span>Yolcu isimleri</span>
                         <strong class="text-end">
@@ -127,9 +127,9 @@
                             @endif
                         </strong>
                     </div>
-                    <div class="gt-transfer-kv"><span>Ucus numarasi</span><strong>{{ data_get($operation, 'flight_number') ?: '-' }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Uçuş Numarası</span><strong>{{ data_get($operation, 'flight_number') ?: '-' }}</strong></div>
                     <div class="gt-transfer-kv"><span>Terminal</span><strong>{{ data_get($operation, 'terminal') ?: '-' }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Tabela adi</span><strong>{{ data_get($operation, 'pickup_sign_name') ?: '-' }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Tabela Adı</span><strong>{{ data_get($operation, 'pickup_sign_name') ?: '-' }}</strong></div>
                     <div class="gt-transfer-kv">
                         <span>Tam adres</span>
                         <strong class="text-end">
@@ -140,8 +140,8 @@
                             @endif
                         </strong>
                     </div>
-                    <div class="gt-transfer-kv"><span>Valiz adedi</span><strong>{{ data_get($operation, 'luggage_count') ?? '-' }}</strong></div>
-                    <div class="gt-transfer-kv"><span>Cocuk koltugu</span><strong>{{ data_get($operation, 'child_seat_count') ?? '-' }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Valiz Adedi</span><strong>{{ data_get($operation, 'luggage_count') ?? '-' }}</strong></div>
+                    <div class="gt-transfer-kv"><span>Çocuk Koltuğu</span><strong>{{ data_get($operation, 'child_seat_count') ?? '-' }}</strong></div>
                     <div class="gt-transfer-kv">
                         <span>Not</span>
                         <strong class="text-end">
@@ -159,7 +159,7 @@
         <div class="col-12 col-lg-5">
             <div class="card gt-transfer-booking-card">
                 <div class="card-body p-4">
-                    <h2 class="h5 fw-bold mb-3">Odeme hareketleri</h2>
+                    <h2 class="h5 fw-bold mb-3">Ödeme Hareketleri</h2>
                     @forelse($booking->paymentTransactions as $transaction)
                         <div class="border rounded p-2 mb-2">
                             <div class="small text-muted">{{ $transaction->reference }}</div>
@@ -169,15 +169,15 @@
                             </div>
                         </div>
                     @empty
-                        <div class="alert alert-light border">Odeme kaydi bulunamadi.</div>
+                        <div class="alert alert-light border">Ödeme kaydı bulunamadı.</div>
                     @endforelse
 
                     @if($canCancel)
                         <form method="POST" action="{{ $cancelEndpoint }}" class="mt-3">
                             @csrf
-                            <label class="form-label">Iptal nedeni (opsiyonel)</label>
-                            <textarea name="reason" class="form-control mb-2" rows="2" placeholder="Iptal nedeni"></textarea>
-                            <button type="submit" class="btn btn-outline-danger w-100">Rezervasyonu iptal et</button>
+                            <label class="form-label">İptal Nedeni (opsiyonel)</label>
+                            <textarea name="reason" class="form-control mb-2" rows="2" placeholder="İptal nedeni"></textarea>
+                            <button type="submit" class="btn btn-outline-danger w-100">Rezervasyonu İptal Et</button>
                         </form>
                     @endif
                 </div>
@@ -190,6 +190,9 @@
     @include('admin.partials.theme-script')
 @else
     @include('acente.partials.theme-script')
+    <div class="no-print">
+        @include('acente.partials.leisure-footer')
+    </div>
 @endif
 
 {{-- ── VOUCHER (sadece print görünümünde / yazdır basıldığında) ── --}}

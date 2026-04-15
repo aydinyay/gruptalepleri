@@ -328,6 +328,7 @@
     @include('admin.partials.theme-script')
 @else
     @include('acente.partials.theme-script')
+    @include('acente.partials.leisure-footer')
 @endif
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -340,6 +341,7 @@
     if (!badge) return;
 
     let remaining = Math.max(0, Math.floor(Number(@json($ttlSeconds))));
+    let timerInterval;
 
     const tick = () => {
         const minutes = Math.floor(remaining / 60);
@@ -363,7 +365,7 @@
     };
 
     tick();
-    const timerInterval = setInterval(tick, 1000);
+    timerInterval = setInterval(tick, 1000);
 })();
 </script>
 </body>

@@ -229,6 +229,9 @@ class TransferCheckoutController extends Controller
             'cancelEndpoint' => $canCancel
                 ? route($roleContext . '.transfer.booking.cancel', ['booking' => $booking->id])
                 : null,
+            'rezervasyonlarimRoute' => $roleContext === 'acente'
+                ? route('acente.rezervasyonlarim.index')
+                : null,
         ]);
     }
 
