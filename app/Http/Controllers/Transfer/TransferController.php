@@ -105,7 +105,7 @@ class TransferController extends Controller
             'pickup_date' => ['required', 'date_format:Y-m-d'],
             'pickup_time' => ['required', 'date_format:H:i'],
             'pax' => ['required', 'integer', 'min:1', 'max:50'],
-            'currency' => ['required', 'string', 'size:3'],
+            'currency' => ['nullable', 'string', 'size:3'],
             'return_date' => ['nullable', 'date_format:Y-m-d', 'required_if:direction,BOTH'],
             'return_time' => ['nullable', 'date_format:H:i', 'required_if:direction,BOTH'],
         ]);
@@ -135,7 +135,6 @@ class TransferController extends Controller
                             ? $validated['return_date'] . ' ' . $validated['return_time'] . ':00'
                             : null,
                         'pax' => (int) $validated['pax'],
-                        'currency' => strtoupper((string) $validated['currency']),
                     ],
                     userId: (int) $request->user()->id,
                     checkoutRouteName: $roleContext . '.transfer.checkout.show',

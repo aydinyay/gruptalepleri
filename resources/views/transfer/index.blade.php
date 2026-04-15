@@ -120,7 +120,7 @@
                             </div>
 
                             <div class="row g-2 mt-1">
-                                <div class="col-6">
+                                <div class="col-12">
                                     <label class="gt-label">Yolcu Sayısı</label>
                                     <div class="pax-dropdown-wrap" id="paxWrap">
                                         <div class="gt-input-group">
@@ -138,12 +138,6 @@
                                         </div>
                                         <input type="hidden" name="pax" id="realPax" value="2">
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="gt-label">Para Birimi</label>
-                                    <select class="form-select" name="currency" style="padding-left:1rem !important;">
-                                        <option value="TRY" selected>TRY</option><option value="EUR">EUR</option><option value="USD">USD</option>
-                                    </select>
                                 </div>
                             </div>
 

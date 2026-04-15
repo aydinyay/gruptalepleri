@@ -123,7 +123,6 @@ class InternalTransferMarketplaceService
             zoneId: (int) $zone->id,
             direction: (string) $payload['direction'],
             pax: (int) $payload['pax'],
-            currency: strtoupper((string) $payload['currency']),
             currentTermsVersion: $currentTermsVersion
         );
 
@@ -153,7 +152,7 @@ class InternalTransferMarketplaceService
                 'zone_id' => $zone->id,
                 'vehicle_type_id' => $rule->vehicle_type_id,
                 'direction' => (string) $payload['direction'],
-                'currency' => strtoupper((string) $payload['currency']),
+                'currency' => strtoupper((string) $rule->currency),
                 'pax' => (int) $payload['pax'],
                 'pickup_at' => $pickupAt,
                 'return_at' => $returnAt,
@@ -269,7 +268,6 @@ class InternalTransferMarketplaceService
         int $zoneId,
         string $direction,
         int $pax,
-        string $currency,
         int $currentTermsVersion
     ): Collection
     {
@@ -278,7 +276,6 @@ class InternalTransferMarketplaceService
             ->where('airport_id', $airportId)
             ->where('zone_id', $zoneId)
             ->whereIn('direction', [$direction, 'BOTH'])
-            ->where('currency', $currency)
             ->where('is_active', true)
             ->where(function ($query): void {
                 $query->whereNull('valid_from')->orWhere('valid_from', '<=', now());
