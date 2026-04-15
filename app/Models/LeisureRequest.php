@@ -14,6 +14,7 @@ class LeisureRequest extends Model
 
     public const PRODUCT_DINNER_CRUISE = 'dinner_cruise';
     public const PRODUCT_YACHT = 'yacht';
+    public const PRODUCT_TOUR = 'tour';
 
     public const STATUS_NEW = 'new';
     public const STATUS_OFFER_SENT = 'offer_sent';
@@ -100,6 +101,7 @@ class LeisureRequest extends Model
         return match ($this->product_type) {
             self::PRODUCT_DINNER_CRUISE => 'Bosphorus Dinner Cruise',
             self::PRODUCT_YACHT => 'Yacht Charter',
+            self::PRODUCT_TOUR => 'Tur Paketi',
             default => ucfirst((string) $this->product_type),
         };
     }

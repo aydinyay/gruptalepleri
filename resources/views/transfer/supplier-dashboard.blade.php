@@ -278,6 +278,10 @@
                             <label class="form-label">Minimum fiyat</label>
                             <input type="number" step="0.01" class="form-control" name="minimum_fare" value="0" required>
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Maliyet fiyati (ödemeniz)</label>
+                            <input type="number" step="0.01" class="form-control" name="cost_price" value="0" placeholder="Tedarikci maliyeti">
+                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Gece baslangic (opsiyonel)</label>
                             <input type="time" class="form-control" name="night_start">
@@ -322,9 +326,11 @@
                                     <td>{{ $rule->airport?->code }} -> {{ $rule->zone?->name }}<br><small>{{ $rule->direction }}</small></td>
                                     <td>{{ $rule->vehicleType?->name }}</td>
                                     <td>
-                                        Base {{ number_format((float)$rule->base_fare, 2, ',', '.') }} +
-                                        {{ number_format((float)$rule->per_km, 2, ',', '.') }}/km +
-                                        {{ number_format((float)$rule->per_minute, 2, ',', '.') }}/dk
+                                        Satış: {{ number_format((float)$rule->base_fare, 2, ',', '.') }} +
+                                        {{ number_format((float)$rule->per_km, 2, ',', '.') }}/km<br>
+                                        @if($rule->cost_price !== null)
+                                            <small class="text-muted">Maliyet: {{ number_format((float)$rule->cost_price, 2, ',', '.') }} {{ strtoupper((string)$rule->currency) }}</small>
+                                        @endif
                                     </td>
                                     <td class="text-end">
                                         <div class="d-flex justify-content-end gap-1">
@@ -346,6 +352,7 @@
                                                 data-night-multiplier="{{ (float) $rule->night_multiplier }}"
                                                 data-peak-multiplier="{{ (float) $rule->peak_multiplier }}"
                                                 data-is-active="{{ $rule->is_active ? '1' : '0' }}"
+                                                data-cost-price="{{ $rule->cost_price !== null ? (float) $rule->cost_price : '' }}"
                                             >Duzenle</button>
                                             <form method="POST" action="{{ route('acente.transfer.supplier.pricing.destroy', $rule) }}">
                                                 @csrf
@@ -430,7 +437,8 @@ document.addEventListener('DOMContentLoaded', function () {
         night_start: form.querySelector('[name="night_start"]'),
         night_end: form.querySelector('[name="night_end"]'),
         night_multiplier: form.querySelector('[name="night_multiplier"]'),
-        peak_multiplier: form.querySelector('[name="peak_multiplier"]')
+        peak_multiplier: form.querySelector('[name="peak_multiplier"]'),
+        cost_price: form.querySelector('[name="cost_price"]')
     };
 
     var defaults = {
@@ -447,6 +455,7 @@ document.addEventListener('DOMContentLoaded', function () {
         night_end: fields.night_end ? fields.night_end.value : '',
         night_multiplier: fields.night_multiplier ? fields.night_multiplier.value : '1',
         peak_multiplier: fields.peak_multiplier ? fields.peak_multiplier.value : '1',
+        cost_price: fields.cost_price ? fields.cost_price.value : '0',
         is_active: activeField ? activeField.checked : true
     };
 
@@ -496,6 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (fields.night_end) fields.night_end.value = button.dataset.nightEnd || '';
         if (fields.night_multiplier) fields.night_multiplier.value = button.dataset.nightMultiplier || '1';
         if (fields.peak_multiplier) fields.peak_multiplier.value = button.dataset.peakMultiplier || '1';
+        if (fields.cost_price) fields.cost_price.value = button.dataset.costPrice || '0';
         if (activeField) activeField.checked = button.dataset.isActive === '1';
 
         if (sectionTitle) {

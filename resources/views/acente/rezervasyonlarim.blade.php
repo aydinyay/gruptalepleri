@@ -211,11 +211,24 @@
                         'cancelled'    => 'İptal',
                         default        => strtoupper($leisureRequest->status ?? '-'),
                     };
-                    $productIcon = $leisureRequest->product_type === 'dinner_cruise' ? 'fas fa-utensils' : 'fas fa-ship';
-                    $productLabel = $leisureRequest->product_type === 'dinner_cruise' ? 'Dinner Cruise' : 'Yacht Charter';
-                    $bookingRoute = $leisureRequest->product_type === 'dinner_cruise'
-                        ? route('acente.dinner-cruise.booking-show', $leisureRequest)
-                        : route('acente.yacht-charter.booking-show', $leisureRequest);
+                    $productIcon = match($leisureRequest->product_type) {
+                        'dinner_cruise' => 'fas fa-utensils',
+                        'yacht'         => 'fas fa-ship',
+                        'tour'          => 'fas fa-map-location-dot',
+                        default         => 'fas fa-compass',
+                    };
+                    $productLabel = match($leisureRequest->product_type) {
+                        'dinner_cruise' => 'Dinner Cruise',
+                        'yacht'         => 'Yacht Charter',
+                        'tour'          => 'Günübirlik Tur',
+                        default         => ucfirst((string) $leisureRequest->product_type),
+                    };
+                    $bookingRoute = match($leisureRequest->product_type) {
+                        'dinner_cruise' => route('acente.dinner-cruise.booking-show', $leisureRequest),
+                        'yacht'         => route('acente.yacht-charter.booking-show', $leisureRequest),
+                        'tour'          => route('acente.tour.booking-show', $leisureRequest),
+                        default         => route('acente.rezervasyonlarim.index'),
+                    };
                 @endphp
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="gt-rez-card p-3 h-100 d-flex flex-column gap-2">

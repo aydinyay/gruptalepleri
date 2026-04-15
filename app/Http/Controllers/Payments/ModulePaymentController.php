@@ -786,10 +786,16 @@ class ModulePaymentController extends Controller
         }
 
         if ($module === 'leisure') {
-            if (($data['product_type'] ?? '') === LeisureRequest::PRODUCT_DINNER_CRUISE) {
+            $productType = $data['product_type'] ?? '';
+
+            if ($productType === LeisureRequest::PRODUCT_DINNER_CRUISE) {
                 return $normalizedRole === 'acente'
                     ? 'acente.dinner-cruise.booking-show'
                     : $normalizedRole . '.dinner-cruise.show';
+            }
+
+            if ($productType === LeisureRequest::PRODUCT_TOUR) {
+                return 'acente.tour.booking-show';
             }
 
             return $normalizedRole . '.yacht-charter.show';

@@ -183,7 +183,7 @@ class LeisureSettingsController extends Controller
     private function validatePackage(Request $request, ?LeisurePackageTemplate $currentTemplate = null): array
     {
         $validated = $request->validate([
-            'product_type' => 'required|in:dinner_cruise,yacht',
+            'product_type' => 'required|in:dinner_cruise,yacht,tour',
             'code' => 'required|string|max:40',
             'level' => 'required|string|max:30',
             'name_tr' => 'required|string|max:255',
@@ -324,7 +324,7 @@ class LeisureSettingsController extends Controller
     private function validateExtra(Request $request, ?int $ignoreId = null): array
     {
         $validated = $request->validate([
-            'product_type' => 'nullable|in:dinner_cruise,yacht',
+            'product_type' => 'nullable|in:dinner_cruise,yacht,tour',
             'category' => 'required|string|max:40',
             'code' => 'required|string|max:50',
             'title_tr' => 'required|string|max:255',
@@ -371,7 +371,7 @@ class LeisureSettingsController extends Controller
     private function validateMedia(Request $request, bool $updating = false): array
     {
         $validated = $request->validate([
-            'product_type' => 'nullable|in:dinner_cruise,yacht',
+            'product_type' => 'nullable|in:dinner_cruise,yacht,tour',
             'category' => 'nullable|string|max:50',
             'media_type' => 'required|in:photo,video',
             'source_type' => 'required|in:upload,link',

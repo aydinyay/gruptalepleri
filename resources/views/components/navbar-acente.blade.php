@@ -128,6 +128,12 @@
                     'icon' => 'fas fa-ship',
                     'keys' => ['yacht-charter'],
                 ],
+                [
+                    'label' => 'Günübirlik Turlar',
+                    'href' => route('acente.tour.catalog'),
+                    'icon' => 'fas fa-map-location-dot',
+                    'keys' => ['tour'],
+                ],
             ],
         ],
         [

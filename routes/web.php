@@ -1098,6 +1098,11 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/yacht-charter/talep/{leisureRequest}', [\App\Http\Controllers\Acente\YachtCharterController::class, 'show'])->name('yacht-charter.show');
     Route::post('/yacht-charter/talep/{leisureRequest}/teklif/{offer}/kabul', [\App\Http\Controllers\Acente\YachtCharterController::class, 'acceptOffer'])->name('yacht-charter.accept');
     Route::get('/yacht-charter/teklif/{offer}/yazdir', \App\Http\Controllers\Acente\LeisureOfferPrintController::class)->name('yacht-charter.offers.print');
+    // ── Günübirlik Turlar — GYG Katalog ─────────────────────────────────────
+    Route::get('/tour', [\App\Http\Controllers\Acente\TourCatalogController::class, 'catalog'])->name('tour.catalog');
+    Route::get('/tour/urun/{code}', [\App\Http\Controllers\Acente\TourCatalogController::class, 'show'])->name('tour.show-product');
+    Route::post('/tour/urun/{code}/rezervasyon', [\App\Http\Controllers\Acente\TourCatalogController::class, 'book'])->name('tour.book');
+    Route::get('/tour/rezervasyon/{leisureRequest}', [\App\Http\Controllers\Acente\TourCatalogController::class, 'bookingShow'])->name('tour.booking-show');
     Route::post('/leisure/bookings/{booking}/payments/gateway-start', [\App\Http\Controllers\Payments\ModulePaymentController::class, 'startLeisure'])->name('leisure.payments.gateway-start');
 
     Route::get('/talep/olustur', [\App\Http\Controllers\Acente\RequestController::class, 'create'])->name('requests.create');

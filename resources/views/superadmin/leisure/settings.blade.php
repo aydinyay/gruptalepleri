@@ -69,7 +69,7 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('superadmin.leisure.settings.packages.store') }}" enctype="multipart/form-data" class="row g-3" id="leisurePackageCreateForm" data-bosphorus-sample='@json($bosphorusPackageSample, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)'>
                         @csrf
-                        <div class="col-12 col-md-6"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="dinner_cruise">Dinner Cruise</option><option value="yacht">Yacht Charter</option></select></div>
+                        <div class="col-12 col-md-6"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="dinner_cruise">Dinner Cruise</option><option value="yacht">Yacht Charter</option><option value="tour">Tur Paketi</option></select></div>
                         <div class="col-12 col-md-6"><label class="form-label">Kod</label><input type="text" name="code" class="form-control" placeholder="standard"></div>
                         <div class="col-12 col-md-6"><label class="form-label">Seviye</label><input type="text" name="level" class="form-control" placeholder="standard"></div>
                         <div class="col-12 col-md-6"><label class="form-label">Sira</label><input type="number" name="sort_order" class="form-control" value="100"></div>
@@ -111,7 +111,7 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('superadmin.leisure.settings.extras.store') }}" class="row g-3">
                         @csrf
-                        <div class="col-12 col-md-6"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="">Tum urunler</option><option value="dinner_cruise">Dinner Cruise</option><option value="yacht">Yacht Charter</option></select></div>
+                        <div class="col-12 col-md-6"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="">Tum urunler</option><option value="dinner_cruise">Dinner Cruise</option><option value="yacht">Yacht Charter</option><option value="tour">Tur Paketi</option></select></div>
                         <div class="col-12 col-md-6"><label class="form-label">Kategori</label><input type="text" name="category" class="form-control" placeholder="transfer"></div>
                         <div class="col-12 col-md-6"><label class="form-label">Kod</label><input type="text" name="code" class="form-control" placeholder="vip_transfer"></div>
                         <div class="col-12 col-md-6"><label class="form-label">Sira</label><input type="number" name="sort_order" class="form-control" value="100"></div>
@@ -135,7 +135,7 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('superadmin.leisure.settings.media.store') }}" enctype="multipart/form-data" class="row g-3 mb-4">
                         @csrf
-                        <div class="col-12 col-md-4"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="">Tum urunler</option><option value="dinner_cruise">Dinner Cruise</option><option value="yacht">Yacht Charter</option></select></div>
+                        <div class="col-12 col-md-4"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="">Tum urunler</option><option value="dinner_cruise">Dinner Cruise</option><option value="yacht">Yacht Charter</option><option value="tour">Tur Paketi</option></select></div>
                         <div class="col-12 col-md-4"><label class="form-label">Kategori</label><input type="text" name="category" class="form-control" placeholder="ambiyans"></div>
                         <div class="col-12 col-md-4"><label class="form-label">Medya Tipi</label><select name="media_type" class="form-select"><option value="photo">Foto</option><option value="video">Video</option></select></div>
                         <div class="col-12 col-md-4"><label class="form-label">Kaynak Tipi</label><select name="source_type" class="form-select"><option value="upload">Upload</option><option value="link">Link</option></select></div>
@@ -167,7 +167,7 @@
                             <tr class="collapse" id="media-edit-{{ $asset->id }}"><td colspan="7" class="edit-surface p-0">
                                 <form method="POST" action="{{ route('superadmin.leisure.settings.media.update', $asset) }}" enctype="multipart/form-data" class="row g-3 p-3">
                                     @csrf @method('PATCH')
-                                    <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="" @selected($asset->product_type===null)>Tum urunler</option><option value="dinner_cruise" @selected($asset->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($asset->product_type==='yacht')>Yacht Charter</option></select></div>
+                                    <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="" @selected($asset->product_type===null)>Tum urunler</option><option value="dinner_cruise" @selected($asset->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($asset->product_type==='yacht')>Yacht Charter</option><option value="tour" @selected($asset->product_type==='tour')>Tur Paketi</option></select></div>
                                     <div class="col-12 col-md-3"><label class="form-label">Kategori</label><input type="text" name="category" class="form-control" value="{{ $asset->category }}"></div>
                                     <div class="col-12 col-md-3"><label class="form-label">Medya Tipi</label><select name="media_type" class="form-select"><option value="photo" @selected($asset->media_type==='photo')>Foto</option><option value="video" @selected($asset->media_type==='video')>Video</option></select></div>
                                     <div class="col-12 col-md-3"><label class="form-label">Kaynak Tipi</label><select name="source_type" class="form-select"><option value="upload" @selected($asset->source_type==='upload')>Upload</option><option value="link" @selected($asset->source_type==='link')>Link</option></select></div>
@@ -259,7 +259,7 @@
 
                             <form method="POST" action="{{ route('superadmin.leisure.settings.packages.update', $package) }}" enctype="multipart/form-data" class="row g-3 p-3">
                                 @csrf @method('PATCH')
-                                <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="dinner_cruise" @selected($package->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($package->product_type==='yacht')>Yacht Charter</option></select></div>
+                                <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="dinner_cruise" @selected($package->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($package->product_type==='yacht')>Yacht Charter</option><option value="tour" @selected($package->product_type==='tour')>Tur Paketi</option></select></div>
                                 <div class="col-12 col-md-3"><label class="form-label">Kod</label><input type="text" name="code" class="form-control" value="{{ $package->code }}"></div>
                                 <div class="col-12 col-md-3"><label class="form-label">Seviye</label><input type="text" name="level" class="form-control" value="{{ $package->level }}"></div>
                                 <div class="col-12 col-md-3"><label class="form-label">Sira</label><input type="number" name="sort_order" class="form-control" value="{{ $package->sort_order }}"></div>
@@ -323,7 +323,7 @@
                         <tr class="collapse" id="extra-edit-{{ $extra->id }}"><td colspan="6" class="edit-surface p-0">
                             <form method="POST" action="{{ route('superadmin.leisure.settings.extras.update', $extra) }}" class="row g-3 p-3">
                                 @csrf @method('PATCH')
-                                <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="" @selected($extra->product_type===null)>Tum urunler</option><option value="dinner_cruise" @selected($extra->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($extra->product_type==='yacht')>Yacht Charter</option></select></div>
+                                <div class="col-12 col-md-3"><label class="form-label">Urun</label><select name="product_type" class="form-select"><option value="" @selected($extra->product_type===null)>Tum urunler</option><option value="dinner_cruise" @selected($extra->product_type==='dinner_cruise')>Dinner Cruise</option><option value="yacht" @selected($extra->product_type==='yacht')>Yacht Charter</option><option value="tour" @selected($extra->product_type==='tour')>Tur Paketi</option></select></div>
                                 <div class="col-12 col-md-3"><label class="form-label">Kategori</label><input type="text" name="category" class="form-control" value="{{ $extra->category }}"></div>
                                 <div class="col-12 col-md-3"><label class="form-label">Kod</label><input type="text" name="code" class="form-control" value="{{ $extra->code }}"></div>
                                 <div class="col-12 col-md-3"><label class="form-label">Sira</label><input type="number" name="sort_order" class="form-control" value="{{ $extra->sort_order }}"></div>

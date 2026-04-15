@@ -177,6 +177,7 @@ class InternalTransferMarketplaceService
                         'per_km' => (float) $rule->per_km,
                         'per_minute' => (float) $rule->per_minute,
                         'minimum_fare' => (float) $rule->minimum_fare,
+                        'cost_price' => $rule->cost_price !== null ? (float) $rule->cost_price : null,
                         'night_start' => $rule->night_start,
                         'night_end' => $rule->night_end,
                         'night_multiplier' => (float) $rule->night_multiplier,
