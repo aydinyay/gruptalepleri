@@ -96,9 +96,23 @@
                             <td>
                                 <span class="badge {{ $supplier->is_approved ? 'text-bg-success' : 'text-bg-warning' }}">{{ $supplier->is_approved ? 'Onayli' : 'Beklemede' }}</span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" style="white-space:nowrap;">
+                                @php $termsOk = $supplier->hasAcceptedVersion($termsVersion); @endphp
+                                @if($termsOk)
+                                    <span class="badge text-bg-success me-1" title="Sözleşme güncel (v{{ $termsVersion }})">
+                                        <i class="fas fa-file-contract"></i> v{{ $termsVersion }} ✓
+                                    </span>
+                                @else
+                                    <form method="POST" action="{{ route('superadmin.transfer.ops.suppliers.force-accept-terms', $supplier) }}" class="d-inline"
+                                          onsubmit="return confirm('{{ addslashes($supplier->company_name) }} adına mevcut sözleşmeyi (v{{ $termsVersion }}) onaylamak istiyor musunuz?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-warning btn-sm me-1">
+                                            <i class="fas fa-file-contract"></i> Sözleşme Onayla
+                                        </button>
+                                    </form>
+                                @endif
                                 <a class="btn btn-outline-primary btn-sm" href="{{ route('acente.transfer.supplier.index', ['supplier_id' => $supplier->id]) }}">
-                                    Paneli Ac
+                                    Paneli Aç
                                 </a>
                             </td>
                         </tr>

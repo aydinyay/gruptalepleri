@@ -593,6 +593,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         ->name('transfer.ops.vehicle-types.media.store');
     Route::delete('/transfer/operasyon/vehicle-types/media/{media}', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'deleteVehicleMedia'])
         ->name('transfer.ops.vehicle-types.media.delete');
+    Route::post('/transfer/operasyon/suppliers/{supplier}/force-accept-terms', [\App\Http\Controllers\Transfer\SuperadminTransferOpsController::class, 'forceAcceptTerms'])
+        ->name('transfer.ops.suppliers.force-accept-terms');
     Route::get('/leisure/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'superadmin'])
         ->defaults('group', 'leisure')
         ->name('leisure.hub');

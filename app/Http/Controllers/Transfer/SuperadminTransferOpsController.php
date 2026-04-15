@@ -69,6 +69,22 @@ class SuperadminTransferOpsController extends Controller
         return back()->with('success', 'Supplier ayarlari guncellendi.');
     }
 
+    public function forceAcceptTerms(TransferSupplier $supplier): RedirectResponse
+    {
+        abort_unless(Schema::hasTable('transfer_suppliers'), 404);
+
+        $currentVersion = SistemAyar::transferSupplierTermsVersion();
+
+        $supplier->update([
+            'terms_accepted_at'      => now(),
+            'terms_version_accepted' => $currentVersion,
+            'is_approved'            => true,
+            'approved_at'            => $supplier->approved_at ?? now(),
+        ]);
+
+        return back()->with('success', $supplier->company_name . ' için sözleşme v' . $currentVersion . ' yönetici adına onaylandı.');
+    }
+
     public function updateTerms(Request $request): RedirectResponse
     {
         abort_unless(Schema::hasTable('transfer_suppliers'), 404);
