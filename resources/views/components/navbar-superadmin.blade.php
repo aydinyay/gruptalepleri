@@ -172,6 +172,12 @@
                     'keys' => ['yacht-charter'],
                 ],
                 [
+                    'label' => 'Günübirlik Turlar',
+                    'href' => route('superadmin.tour.index'),
+                    'icon' => 'fas fa-map-location-dot',
+                    'keys' => ['tour'],
+                ],
+                [
                     'label' => 'Leisure Ayarlari',
                     'href' => route('superadmin.leisure.settings.index'),
                     'icon' => 'fas fa-sliders',

@@ -102,6 +102,12 @@
                     'icon' => 'fas fa-ship',
                     'keys' => ['yacht-charter'],
                 ],
+                [
+                    'label' => 'Günübirlik Turlar',
+                    'href' => route('admin.tour.index'),
+                    'icon' => 'fas fa-map-location-dot',
+                    'keys' => ['tour'],
+                ],
             ],
         ],
         [

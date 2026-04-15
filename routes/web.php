@@ -631,6 +631,11 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/yacht-charter/{leisureRequest}/supplier-quotes', [\App\Http\Controllers\Admin\YachtCharterManagementController::class, 'storeSupplierQuote'])->name('yacht-charter.supplier-quotes.store');
     Route::post('/yacht-charter/{leisureRequest}/client-offers', [\App\Http\Controllers\Admin\YachtCharterManagementController::class, 'storeClientOffer'])->name('yacht-charter.client-offers.store');
     Route::post('/yacht-charter/{leisureRequest}/start-operation', [\App\Http\Controllers\Admin\YachtCharterManagementController::class, 'startOperation'])->name('yacht-charter.start-operation');
+    Route::get('/tour', [\App\Http\Controllers\Admin\TourManagementController::class, 'index'])->name('tour.index');
+    Route::get('/tour/{leisureRequest}', [\App\Http\Controllers\Admin\TourManagementController::class, 'show'])->name('tour.show');
+    Route::post('/tour/{leisureRequest}/supplier-quotes', [\App\Http\Controllers\Admin\TourManagementController::class, 'storeSupplierQuote'])->name('tour.supplier-quotes.store');
+    Route::post('/tour/{leisureRequest}/client-offers', [\App\Http\Controllers\Admin\TourManagementController::class, 'storeClientOffer'])->name('tour.client-offers.store');
+    Route::post('/tour/{leisureRequest}/start-operation', [\App\Http\Controllers\Admin\TourManagementController::class, 'startOperation'])->name('tour.start-operation');
     Route::get('/charter/rfq-tedarikciler', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'index'])->name('charter.rfq-suppliers.index');
     Route::post('/charter/rfq-tedarikciler', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'store'])->name('charter.rfq-suppliers.store');
     Route::patch('/charter/rfq-tedarikciler/{supplier}', [\App\Http\Controllers\Superadmin\CharterRfqSupplierController::class, 'update'])->name('charter.rfq-suppliers.update');
@@ -909,6 +914,11 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin')->name('adm
     Route::post('/yacht-charter/{leisureRequest}/supplier-quotes', [\App\Http\Controllers\Admin\YachtCharterManagementController::class, 'storeSupplierQuote'])->name('yacht-charter.supplier-quotes.store');
     Route::post('/yacht-charter/{leisureRequest}/client-offers', [\App\Http\Controllers\Admin\YachtCharterManagementController::class, 'storeClientOffer'])->name('yacht-charter.client-offers.store');
     Route::post('/yacht-charter/{leisureRequest}/start-operation', [\App\Http\Controllers\Admin\YachtCharterManagementController::class, 'startOperation'])->name('yacht-charter.start-operation');
+    Route::get('/tour', [\App\Http\Controllers\Admin\TourManagementController::class, 'index'])->name('tour.index');
+    Route::get('/tour/{leisureRequest}', [\App\Http\Controllers\Admin\TourManagementController::class, 'show'])->name('tour.show');
+    Route::post('/tour/{leisureRequest}/supplier-quotes', [\App\Http\Controllers\Admin\TourManagementController::class, 'storeSupplierQuote'])->name('tour.supplier-quotes.store');
+    Route::post('/tour/{leisureRequest}/client-offers', [\App\Http\Controllers\Admin\TourManagementController::class, 'storeClientOffer'])->name('tour.client-offers.store');
+    Route::post('/tour/{leisureRequest}/start-operation', [\App\Http\Controllers\Admin\TourManagementController::class, 'startOperation'])->name('tour.start-operation');
     Route::get('/charter/{charterRequest}', [\App\Http\Controllers\Admin\CharterController::class, 'show'])->name('charter.show');
     Route::post('/charter/{charterRequest}/rfq', [\App\Http\Controllers\Admin\CharterController::class, 'sendRfq'])->name('charter.send-rfq');
     Route::post('/charter/{charterRequest}/supplier-quotes', [\App\Http\Controllers\Admin\CharterController::class, 'storeSupplierQuote'])->name('charter.supplier-quotes.store');
