@@ -37,6 +37,17 @@
             Superadmin gorunumu: <strong>{{ $supplier->company_name }}</strong> tedarikcisi adina paneli yonetiyorsunuz.
         </div>
     @endif
+    @if(!empty($asSuperadmin) && !$supplier->hasAcceptedVersion(\App\Models\SistemAyar::transferSupplierTermsVersion()))
+        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-triangle-exclamation me-2"></i>Bu tedarikci guncel sozlesmeyi henuz onaylamadi — arama sonuclarinda gorunmez.</span>
+            <form method="POST" action="{{ route('acente.transfer.supplier.terms.accept') }}?supplier_id={{ $selectedSupplierId }}" class="ms-3 flex-shrink-0">
+                @csrf
+                <input type="hidden" name="supplier_id" value="{{ $selectedSupplierId }}">
+                <input type="hidden" name="accept_terms" value="1">
+                <button type="submit" class="btn btn-warning btn-sm fw-semibold">Sozlesmeyi Onayla (Admin)</button>
+            </form>
+        </div>
+    @endif
 
     <div class="row g-3">
         <div class="col-12 col-xl-6">
