@@ -101,7 +101,7 @@
         <div class="card-body p-0">
             <table class="table table-hover mb-0" style="font-size:.875rem;">
                 <thead class="table-light">
-                    <tr><th>Hizmet</th><th>Tip</th><th>Fiyat</th><th>B2B</th><th>B2C Durumu</th><th>B2C Toggle</th></tr>
+                    <tr><th>Hizmet</th><th>Tip</th><th>Fiyat</th><th>B2B</th><th>B2C Durumu</th><th>Öne Çıkan</th><th>B2C Toggle</th></tr>
                 </thead>
                 <tbody>
                 @forelse($leisureTemplates as $tpl)
@@ -149,6 +149,24 @@
                         @endif
                     </td>
                     <td>
+                        @if($ci)
+                        <form method="POST" action="{{ route('superadmin.b2c.catalog.toggle-featured', $ci) }}">
+                            @csrf
+                            @if($ci->is_featured)
+                                <button class="btn btn-sm btn-warning" title="Öne çıkandan kaldır">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            @else
+                                <button class="btn btn-sm btn-outline-secondary" title="Öne çıkan yap">
+                                    <i class="far fa-star"></i>
+                                </button>
+                            @endif
+                        </form>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
+                    <td>
                         <form method="POST" action="{{ route('superadmin.b2c.leisure.toggle-publish', $tpl) }}">
                             @csrf
                             @if($ci && $ci->is_published)
@@ -164,7 +182,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-3">Leisure şablonu bulunamadı.</td></tr>
+                <tr><td colspan="7" class="text-center text-muted py-3">Leisure şablonu bulunamadı.</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -180,7 +198,7 @@
         <div class="card-body p-0">
             <table class="table table-hover mb-0" style="font-size:.875rem;">
                 <thead class="table-light">
-                    <tr><th>Araç</th><th>Kapasite</th><th>Fiyat (önerilen)</th><th>B2C Durumu</th><th>B2C Toggle</th></tr>
+                    <tr><th>Araç</th><th>Kapasite</th><th>Fiyat (önerilen)</th><th>B2C Durumu</th><th>Öne Çıkan</th><th>B2C Toggle</th></tr>
                 </thead>
                 <tbody>
                 @forelse($transferVehicleTypes as $vt)
@@ -213,6 +231,24 @@
                             @endif
                         @else
                             <span class="text-muted small">Eklenmedi</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($ci)
+                        <form method="POST" action="{{ route('superadmin.b2c.catalog.toggle-featured', $ci) }}">
+                            @csrf
+                            @if($ci->is_featured)
+                                <button class="btn btn-sm btn-warning" title="Öne çıkandan kaldır">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            @else
+                                <button class="btn btn-sm btn-outline-secondary" title="Öne çıkan yap">
+                                    <i class="far fa-star"></i>
+                                </button>
+                            @endif
+                        </form>
+                        @else
+                            <span class="text-muted">—</span>
                         @endif
                     </td>
                     <td>

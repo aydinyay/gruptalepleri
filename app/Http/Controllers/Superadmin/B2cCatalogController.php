@@ -67,7 +67,7 @@ class B2cCatalogController extends Controller
                 // Fiyat/görsel değişmiş olabilir — tazele
                 'title'       => $template->name_tr,
                 'short_desc'  => $template->summary_tr,
-                'cover_image' => $template->hero_image_url,
+                'cover_image' => $this->absoluteImageUrl($template->hero_image_url),
                 'base_price'  => $template->base_price_per_person,
                 'currency'    => $template->currency ?? 'EUR',
                 'duration_hours' => $template->duration_hours,
@@ -94,7 +94,7 @@ class B2cCatalogController extends Controller
                 'title'               => $template->name_tr,
                 'slug'                => $slug,
                 'short_desc'          => $template->summary_tr,
-                'cover_image'         => $template->hero_image_url,
+                'cover_image'         => $this->absoluteImageUrl($template->hero_image_url),
                 'product_type'        => $productType,
                 'owner_type'          => 'platform',
                 'pricing_type'        => 'fixed',
@@ -334,6 +334,13 @@ class B2cCatalogController extends Controller
         return back()->with('success', $msg);
     }
 
+    public function catalogToggleFeatured(CatalogItem $item): RedirectResponse
+    {
+        $item->update(['is_featured' => ! $item->is_featured]);
+        $msg = $item->is_featured ? '"' . $item->title . '" öne çıkan olarak işaretlendi.' : '"' . $item->title . '" öne çıkandan kaldırıldı.';
+        return back()->with('success', $msg);
+    }
+
     // ── Tedarikçi Başvuruları ─────────────────────────────────────────────
 
     public function supplierApplications()
@@ -358,6 +365,14 @@ class B2cCatalogController extends Controller
     }
 
     // ── Private helpers ───────────────────────────────────────────────────
+
+    /** Göreli yolları gruptalepleri.com tabanlı tam URL'ye çevirir */
+    private function absoluteImageUrl(?string $url): ?string
+    {
+        if (!$url) return null;
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) return $url;
+        return rtrim(config('app.url', 'https://gruptalepleri.com'), '/') . '/' . ltrim($url, '/');
+    }
 
     private function saveCoverImage(Request $request): string
     {
