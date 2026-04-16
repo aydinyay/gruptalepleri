@@ -32,6 +32,34 @@ if (($_GET['action'] ?? '') === 'migrate') {
     exit;
 }
 
+// Seeder çalıştırma — izin verilenler listesi (güvenlik katmanı)
+if (($_GET['action'] ?? '') === 'seed') {
+    $seeder = trim($_GET['class'] ?? '');
+    $allowedSeeders = [
+        'BestawayB2cApprovalSeeder',
+        'B2cSampleDataSeeder',
+        'TransferVehicleTypeSeeder',
+        'TransferAirportSeeder',
+    ];
+    if (!in_array($seeder, $allowedSeeders, true)) {
+        header('Content-Type: text/plain');
+        http_response_code(400);
+        echo "FORBIDDEN: '$seeder' izin verilmedi.\n";
+        echo "İzin verilenler: " . implode(', ', $allowedSeeders) . "\n";
+        exit;
+    }
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => $seeder, '--force' => true]);
+    header('Content-Type: text/plain');
+    echo "SEED_DONE class={$seeder} exitCode={$exitCode}\n";
+    echo \Illuminate\Support\Facades\Artisan::output();
+    exit;
+}
+
 // Compiled view diagnostiği
 if (($_GET['action'] ?? '') === 'diag') {
     header('Content-Type: text/plain');

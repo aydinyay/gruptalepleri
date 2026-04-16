@@ -60,6 +60,21 @@ https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=migrate
 ```
 Bu URL `php artisan migrate --force` komutunu çalıştırır ve sonucu ekrana yazar.
 
+### Seeder nasıl çalıştırılır:
+```
+https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=seed&class=SeederSınıfAdı
+```
+Örnek:
+```
+https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=seed&class=BestawayB2cApprovalSeeder
+```
+**Güvenlik:** Sadece `gitfix.php` içindeki `$allowedSeeders` listesindeki seeder'lar çalışır.
+Yeni seeder eklenecekse önce `$allowedSeeders` listesine eklenmeli, sonra deploy edilmeli.
+
+### B2C Acente Onayı (Seeder'sız yol):
+Superadmin paneli → `/superadmin/b2c/acenteler` → **"Direkt Ekle & Onayla"** butonu.
+Başvuru beklemeden herhangi bir onaylı transfer tedarikçisini B2C'ye ekler.
+
 ### Branch merge nasıl yapılır:
 Claude Code terminal üzerinden `git merge` ile local'de merge yapıp push'lar:
 ```bash

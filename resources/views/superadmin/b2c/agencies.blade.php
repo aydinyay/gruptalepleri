@@ -27,9 +27,14 @@
 <x-navbar-superadmin active="b2c" />
 
 <div class="page-header">
-    <div class="container-fluid px-4">
-        <h5><i class="fas fa-building me-2" style="color:#e8a020;"></i>B2C Acente Başvuruları</h5>
-        <p>gruprezervasyonlari.com'a katılmak isteyen acentelerin başvuruları</p>
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h5><i class="fas fa-building me-2" style="color:#e8a020;"></i>B2C Acente Başvuruları</h5>
+            <p>gruprezervasyonlari.com'a katılmak isteyen acentelerin başvuruları</p>
+        </div>
+        <button class="btn btn-warning btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modal-direct-approve">
+            <i class="fas fa-plus-circle me-1"></i> Direkt Ekle & Onayla
+        </button>
     </div>
 </div>
 
@@ -298,6 +303,74 @@
         @endif
     </div>
 
+</div>
+
+{{-- Direkt Ekle & Onayla Modal --}}
+<div class="modal fade" id="modal-direct-approve" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('superadmin.b2c.agencies.direct-approve') }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle me-2 text-warning"></i>Direkt B2C Onayı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Başvuru beklemeden onaylı bir transfer tedarikçisini B2C platformuna doğrudan ekler.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Transfer Tedarikçisi <span class="text-danger">*</span></label>
+                        <select name="transfer_supplier_id" class="form-select form-select-sm" required>
+                            <option value="">— Seçin —</option>
+                            @foreach($transferSuppliers as $sup)
+                                <option value="{{ $sup->id }}">
+                                    {{ $sup->company_name }}
+                                    @if($sup->user) ({{ $sup->user->name }}) @endif
+                                    @if($sup->b2cSubscription) ✓ Zaten kayıtlı @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Sadece onaylı + aktif tedarikçiler listelenir.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Hizmet Tipleri <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            @foreach(['transfer' => 'Transfer', 'leisure' => 'Leisure', 'charter' => 'Charter', 'tour' => 'Tur'] as $val => $lbl)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="service_types[]"
+                                           value="{{ $val }}" id="stype_{{ $val }}"
+                                           {{ $val === 'transfer' ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="stype_{{ $val }}">{{ $lbl }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Komisyon Oranı (%) — opsiyonel</label>
+                        <input type="number" name="commission_pct" class="form-control form-control-sm"
+                               step="0.01" min="0" max="50"
+                               placeholder="Boş = sistem varsayılanı">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Admin Notu — opsiyonel</label>
+                        <input type="text" name="admin_note" class="form-control form-control-sm"
+                               placeholder="İç not (acenteye gösterilmez)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                        <i class="fas fa-check me-1"></i>Onayla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

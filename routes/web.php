@@ -849,6 +849,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::patch('/acenteler/{sub}/onayla',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'approve'])->name('agencies.approve');
         Route::patch('/acenteler/{sub}/reddet',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'reject'])->name('agencies.reject');
         Route::patch('/acenteler/{sub}/askiya',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'suspend'])->name('agencies.suspend');
+        // Başvuru beklemeden direkt onayla (superadmin kısayolu)
+        Route::post('/acenteler/direkt-onayla',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'directApprove'])->name('agencies.direct-approve');
     });
 });
 

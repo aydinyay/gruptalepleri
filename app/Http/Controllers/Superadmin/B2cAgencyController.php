@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\B2C\B2cAgencySubscription;
+use App\Models\TransferSupplier;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -32,7 +33,14 @@ class B2cAgencyController extends Controller
             'suspended' => B2cAgencySubscription::where('status', 'suspended')->count(),
         ];
 
-        return view('superadmin.b2c.agencies', compact('subs', 'counts', 'status'));
+        // Direkt ekleme için: onaylı transfer tedarikçileri (henüz B2C kaydı yok olanlar önce)
+        $transferSuppliers = TransferSupplier::where('is_approved', true)
+            ->where('is_active', true)
+            ->with(['user', 'b2cSubscription'])
+            ->orderBy('company_name')
+            ->get();
+
+        return view('superadmin.b2c.agencies', compact('subs', 'counts', 'status', 'transferSuppliers'));
     }
 
     public function approve(Request $request, B2cAgencySubscription $sub)
@@ -86,5 +94,44 @@ class B2cAgencyController extends Controller
         ]);
 
         return back()->with('success', 'Acente B2C erişimi askıya alındı.');
+    }
+
+    /**
+     * Superadmin tarafından direkt B2C onayı — acente başvuru beklemeden eklenir.
+     * Zaten onaylı transfer tedarikçileri için kısayol.
+     */
+    public function directApprove(Request $request)
+    {
+        $request->validate([
+            'transfer_supplier_id' => 'required|integer|exists:transfer_suppliers,id',
+            'service_types'        => 'required|array|min:1',
+            'service_types.*'      => 'in:transfer,leisure,charter,tour',
+            'commission_pct'       => 'nullable|numeric|min:0|max:50',
+            'admin_note'           => 'nullable|string|max:500',
+        ]);
+
+        $supplier = TransferSupplier::with('user')->findOrFail($request->transfer_supplier_id);
+
+        if (! $supplier->user_id) {
+            return back()->with('error', 'Tedarikçiye bağlı bir kullanıcı bulunamadı.');
+        }
+
+        $sub = B2cAgencySubscription::updateOrCreate(
+            ['user_id' => $supplier->user_id],
+            [
+                'transfer_supplier_id' => $supplier->id,
+                'status'               => B2cAgencySubscription::STATUS_APPROVED,
+                'service_types_json'   => $request->service_types,
+                'commission_pct'       => $request->commission_pct ?: null,
+                'reviewed_by_user_id'  => auth()->id(),
+                'approved_at'          => now(),
+                'rejected_at'          => null,
+                'rejection_reason'     => null,
+                'admin_note'           => $request->admin_note,
+            ]
+        );
+
+        $action = $sub->wasRecentlyCreated ? 'oluşturuldu ve onaylandı' : 'güncellendi ve onaylandı';
+        return back()->with('success', "{$supplier->company_name} B2C aboneliği {$action}.");
     }
 }
