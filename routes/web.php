@@ -837,6 +837,11 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         // Tedarikçi Başvuruları
         Route::get('/tedarikci-basvurulari',  [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplications'])->name('supplier-apps');
         Route::patch('/tedarikci-basvurulari/{app}', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplicationUpdate'])->name('supplier-apps.update');
+        // Acente Başvuruları (B2C katılım)
+        Route::get('/acenteler',                      [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'index'])->name('agencies');
+        Route::patch('/acenteler/{sub}/onayla',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'approve'])->name('agencies.approve');
+        Route::patch('/acenteler/{sub}/reddet',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'reject'])->name('agencies.reject');
+        Route::patch('/acenteler/{sub}/askiya',       [\App\Http\Controllers\Superadmin\B2cAgencyController::class, 'suspend'])->name('agencies.suspend');
     });
 });
 
@@ -1128,6 +1133,11 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::post('/calisanlar/davet', [\App\Http\Controllers\Acente\CalisanController::class, 'davetGonder'])->name('calisanlar.davet');
     Route::delete('/calisanlar/{id}', [\App\Http\Controllers\Acente\CalisanController::class, 'sil'])->name('calisanlar.sil');
     Route::patch('/calisanlar/{id}/yetki', [\App\Http\Controllers\Acente\CalisanController::class, 'yetkiGuncelle'])->name('calisanlar.yetki');
+
+    // GrupRezervasyonlari.com B2C Katılım
+    Route::get('/gruprezervasyonlari',       [\App\Http\Controllers\Acente\B2cSubscriptionController::class, 'index'])->name('b2c.index');
+    Route::post('/gruprezervasyonlari',      [\App\Http\Controllers\Acente\B2cSubscriptionController::class, 'apply'])->name('b2c.apply');
+    Route::post('/gruprezervasyonlari/filo', [\App\Http\Controllers\Acente\B2cSubscriptionController::class, 'saveFleet'])->name('b2c.fleet.save');
 
     });
 

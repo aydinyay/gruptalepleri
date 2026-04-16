@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\B2C\B2cUser;
 
 class TransferBooking extends Model
 {
@@ -17,8 +18,16 @@ class TransferBooking extends Model
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_REFUNDED = 'refunded';
 
+    public const SOURCE_B2B = 'b2b';
+    public const SOURCE_B2C = 'b2c';
+
     protected $fillable = [
         'booking_ref',
+        'source',
+        'b2c_user_id',
+        'b2c_contact_name',
+        'b2c_contact_phone',
+        'b2c_contact_email',
         'quote_lock_id',
         'supplier_id',
         'agency_user_id',
@@ -98,6 +107,16 @@ class TransferBooking extends Model
     public function paymentTransactions(): HasMany
     {
         return $this->hasMany(TransferPaymentTransaction::class, 'transfer_booking_id');
+    }
+
+    public function b2cCustomer(): BelongsTo
+    {
+        return $this->belongsTo(B2cUser::class, 'b2c_user_id');
+    }
+
+    public function isB2C(): bool
+    {
+        return $this->source === self::SOURCE_B2C;
     }
 }
 

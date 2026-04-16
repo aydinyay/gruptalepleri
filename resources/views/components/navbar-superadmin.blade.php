@@ -180,6 +180,32 @@
             ],
         ],
         [
+            'id' => 'b2c',
+            'label' => 'B2C Vitrin',
+            'icon' => 'fas fa-store',
+            'href' => route('superadmin.b2c.dashboard'),
+            'items' => [
+                [
+                    'label' => 'B2C Dashboard',
+                    'href'  => route('superadmin.b2c.dashboard'),
+                    'icon'  => 'fas fa-chart-line',
+                    'keys'  => ['b2c-dashboard'],
+                ],
+                [
+                    'label' => 'Acente Başvuruları',
+                    'href'  => route('superadmin.b2c.agencies'),
+                    'icon'  => 'fas fa-building-circle-check',
+                    'keys'  => ['b2c'],
+                ],
+                [
+                    'label' => 'Katalog',
+                    'href'  => route('superadmin.b2c.catalog'),
+                    'icon'  => 'fas fa-boxes-stacked',
+                    'keys'  => ['b2c-catalog'],
+                ],
+            ],
+        ],
+        [
             'id' => 'finans',
             'label' => 'Finans',
             'icon' => 'fas fa-wallet',

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\B2C\B2cAgencySubscription;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -69,5 +70,21 @@ class TransferSupplier extends Model
         return $this->is_approved
             && $this->is_active
             && $this->hasAcceptedVersion($version);
+    }
+
+    public function fleet(): HasMany
+    {
+        return $this->hasMany(TransferVehicleFleet::class, 'supplier_id');
+    }
+
+    public function b2cSubscription(): HasOne
+    {
+        return $this->hasOne(B2cAgencySubscription::class, 'transfer_supplier_id');
+    }
+
+    /** Bu supplier B2C'ye onaylı şekilde katılıyor mu? */
+    public function isB2CApproved(): bool
+    {
+        return $this->b2cSubscription?->isApproved() ?? false;
     }
 }
