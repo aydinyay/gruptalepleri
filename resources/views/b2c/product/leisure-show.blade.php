@@ -3,8 +3,11 @@
 @section('content')
 
 @php
-    $heroImg = $package->hero_image_url
-        ?: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=1200';
+    $heroRaw = $package->hero_image_url ?? null;
+    if ($heroRaw && !str_starts_with($heroRaw, 'http')) {
+        $heroRaw = 'https://gruptalepleri.com/' . ltrim($heroRaw, '/');
+    }
+    $heroImg = $heroRaw ?: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
     $galleryImgs = $galleryPhotos->isNotEmpty()
         ? $galleryPhotos->take(3)->values()
