@@ -303,7 +303,7 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 <div style="display:flex;align-items:center;gap:10px;">
 <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-building" style="color:#1a3c6b;"></i></div>
 <div>
-<div style="font-size:.82rem;font-weight:700;color:#1a202c;">{{ $item->supplier->name ?? 'Grup Rezervasyonları' }}</div>
+<div style="font-size:.82rem;font-weight:700;color:#1a202c;">{{ $item->supplier?->name ?? 'Grup Rezervasyonları' }}</div>
 <div style="font-size:.75rem;color:#718096;"><i class="bi bi-patch-check-fill" style="color:#48bb78;"></i> Doğrulanmış Tedarikçi</div>
 </div>
 </div>
