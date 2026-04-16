@@ -843,6 +843,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::get('/katalog/{item}/duzenle', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogEdit'])->name('catalog.edit');
         Route::put('/katalog/{item}',        [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogUpdate'])->name('catalog.update');
         Route::post('/katalog/{item}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogTogglePublish'])->name('catalog.toggle-publish');
+        // Leisure & Transfer → B2C köprü toggle'ları
+        Route::post('/leisure/{template}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'leisureTogglePublish'])->name('leisure.toggle-publish');
+        Route::post('/transfer-arac/{vehicleType}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'transferVehicleTogglePublish'])->name('transfer-vehicle.toggle-publish');
         // Tedarikçi Başvuruları
         Route::get('/tedarikci-basvurulari',  [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplications'])->name('supplier-apps');
         Route::patch('/tedarikci-basvurulari/{app}', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplicationUpdate'])->name('supplier-apps.update');

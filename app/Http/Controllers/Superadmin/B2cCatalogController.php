@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
 use App\Models\B2C\SupplierApplication;
+use App\Models\LeisurePackageTemplate;
+use App\Models\TransferVehicleType;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -22,17 +25,147 @@ class B2cCatalogController extends Controller
     public function dashboard()
     {
         $stats = [
-            'total_items'       => CatalogItem::count(),
-            'published_items'   => CatalogItem::where('is_published', true)->count(),
-            'pending_publish'   => CatalogItem::where('is_published', false)->count(),
-            'total_categories'  => CatalogCategory::count(),
+            'total_items'           => CatalogItem::count(),
+            'published_items'       => CatalogItem::where('is_published', true)->count(),
+            'pending_publish'       => CatalogItem::where('is_published', false)->count(),
+            'total_categories'      => CatalogCategory::count(),
             'pending_supplier_apps' => SupplierApplication::where('status', 'pending')->count(),
         ];
 
         $latestItems = CatalogItem::with('category')->latest()->limit(10)->get();
         $pendingApps = SupplierApplication::where('status', 'pending')->latest()->limit(5)->get();
 
-        return view('superadmin.b2c.dashboard', compact('stats', 'latestItems', 'pendingApps'));
+        // Leisure şablonları ve Transfer araçları — mevcut CatalogItem bağlantısıyla
+        $linkedItems = CatalogItem::whereIn('reference_type', ['leisure_package', 'transfer_vehicle_type'])
+            ->get()
+            ->keyBy(fn ($ci) => $ci->reference_type . '_' . $ci->reference_id);
+
+        $leisureTemplates = LeisurePackageTemplate::orderBy('product_type')->orderBy('sort_order')->get()
+            ->each(fn ($t) => $t->catalogItem = $linkedItems->get('leisure_package_' . $t->id));
+
+        $transferVehicleTypes = TransferVehicleType::orderBy('sort_order')->get()
+            ->each(fn ($vt) => $vt->catalogItem = $linkedItems->get('transfer_vehicle_type_' . $vt->id));
+
+        return view('superadmin.b2c.dashboard', compact(
+            'stats', 'latestItems', 'pendingApps', 'leisureTemplates', 'transferVehicleTypes'
+        ));
+    }
+
+    // ── Leisure şablonu B2C toggle ─────────────────────────────────────────
+
+    public function leisureTogglePublish(LeisurePackageTemplate $template): RedirectResponse
+    {
+        $existing = CatalogItem::where('reference_type', 'leisure_package')
+            ->where('reference_id', $template->id)
+            ->first();
+
+        if ($existing) {
+            $nowPublished = ! $existing->is_published;
+            $existing->update([
+                'is_published' => $nowPublished,
+                'published_at' => $nowPublished ? now() : $existing->published_at,
+                // Fiyat/görsel değişmiş olabilir — tazele
+                'title'       => $template->name_tr,
+                'short_desc'  => $template->summary_tr,
+                'cover_image' => $template->hero_image_url,
+                'base_price'  => $template->base_price_per_person,
+                'currency'    => $template->currency ?? 'EUR',
+                'duration_hours' => $template->duration_hours,
+                'max_pax'     => $template->max_pax,
+                'rating_avg'  => $template->rating,
+                'review_count' => $template->review_count,
+            ]);
+            $msg = $nowPublished ? '"' . $template->name_tr . '" B2C\'de yayına alındı.' : '"' . $template->name_tr . '" yayından kaldırıldı.';
+        } else {
+            $productType = match ($template->product_type) {
+                'dinner_cruise'  => 'leisure',
+                'yacht_charter'  => 'charter',
+                default          => 'tour',
+            };
+
+            $slug = Str::slug($template->name_tr);
+            if (CatalogItem::where('slug', $slug)->exists()) {
+                $slug .= '-' . $template->id;
+            }
+
+            CatalogItem::create([
+                'reference_type'      => 'leisure_package',
+                'reference_id'        => $template->id,
+                'title'               => $template->name_tr,
+                'slug'                => $slug,
+                'short_desc'          => $template->summary_tr,
+                'cover_image'         => $template->hero_image_url,
+                'product_type'        => $productType,
+                'owner_type'          => 'platform',
+                'pricing_type'        => 'fixed',
+                'base_price'          => $template->base_price_per_person,
+                'currency'            => $template->currency ?? 'EUR',
+                'duration_hours'      => $template->duration_hours,
+                'min_pax'             => 1,
+                'max_pax'             => $template->max_pax,
+                'rating_avg'          => $template->rating,
+                'review_count'        => $template->review_count,
+                'destination_city'    => 'İstanbul',
+                'destination_country' => 'Türkiye',
+                'is_active'           => true,
+                'is_published'        => true,
+                'published_at'        => now(),
+                'sort_order'          => $template->sort_order ?? 0,
+            ]);
+            $msg = '"' . $template->name_tr . '" B2C kataloğuna eklendi ve yayına alındı.';
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    // ── Transfer araç tipi B2C toggle ─────────────────────────────────────
+
+    public function transferVehicleTogglePublish(TransferVehicleType $vehicleType): RedirectResponse
+    {
+        $existing = CatalogItem::where('reference_type', 'transfer_vehicle_type')
+            ->where('reference_id', $vehicleType->id)
+            ->first();
+
+        if ($existing) {
+            $nowPublished = ! $existing->is_published;
+            $existing->update([
+                'is_published' => $nowPublished,
+                'published_at' => $nowPublished ? now() : $existing->published_at,
+                'title'        => $vehicleType->name . ' Transfer',
+                'cover_image'  => $vehicleType->firstPhotoUrl(),
+                'max_pax'      => $vehicleType->max_passengers,
+            ]);
+            $msg = $nowPublished ? '"' . $vehicleType->name . '" B2C\'de yayına alındı.' : '"' . $vehicleType->name . '" yayından kaldırıldı.';
+        } else {
+            $slug = Str::slug($vehicleType->name . ' transfer');
+            if (CatalogItem::where('slug', $slug)->exists()) {
+                $slug .= '-' . $vehicleType->id;
+            }
+
+            CatalogItem::create([
+                'reference_type'      => 'transfer_vehicle_type',
+                'reference_id'        => $vehicleType->id,
+                'title'               => $vehicleType->name . ' Transfer',
+                'slug'                => $slug,
+                'short_desc'          => $vehicleType->description,
+                'cover_image'         => $vehicleType->firstPhotoUrl(),
+                'product_type'        => 'transfer',
+                'owner_type'          => 'platform',
+                'pricing_type'        => 'request',
+                'currency'            => 'EUR',
+                'min_pax'             => 1,
+                'max_pax'             => $vehicleType->max_passengers,
+                'destination_city'    => 'İstanbul',
+                'destination_country' => 'Türkiye',
+                'is_active'           => true,
+                'is_published'        => true,
+                'published_at'        => now(),
+                'sort_order'          => $vehicleType->sort_order ?? 0,
+            ]);
+            $msg = '"' . $vehicleType->name . '" transfer aracı B2C kataloğuna eklendi ve yayına alındı.';
+        }
+
+        return back()->with('success', $msg);
     }
 
     // ── Kategori CRUD ─────────────────────────────────────────────────────

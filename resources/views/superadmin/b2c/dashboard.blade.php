@@ -92,6 +92,152 @@
         </div>
     </div>
 
+    {{-- Leisure Hizmetler --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-ship me-2 text-primary"></i>Leisure Hizmetler <small class="text-muted fw-normal">(Dinner Cruise · Yacht Charter · Günübirlik Tur)</small></h6>
+            <a href="{{ route('superadmin.leisure.settings.index') }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="font-size:.875rem;">
+                <thead class="table-light">
+                    <tr><th>Hizmet</th><th>Tip</th><th>Fiyat</th><th>B2B</th><th>B2C Durumu</th><th>B2C Toggle</th></tr>
+                </thead>
+                <tbody>
+                @forelse($leisureTemplates as $tpl)
+                @php
+                    $typeLabel = match($tpl->product_type) {
+                        'dinner_cruise'  => 'Dinner Cruise',
+                        'yacht_charter'  => 'Yacht Charter',
+                        'gunubirlik_tur' => 'Günübirlik Tur',
+                        'tour'           => 'Tur',
+                        default          => $tpl->product_type,
+                    };
+                    $ci = $tpl->catalogItem;
+                @endphp
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ $tpl->name_tr }}</div>
+                        @if($tpl->hero_image_url)
+                        <img src="{{ $tpl->hero_image_url }}" style="height:32px;border-radius:4px;object-fit:cover;" alt="">
+                        @endif
+                    </td>
+                    <td><span class="badge bg-info text-dark">{{ $typeLabel }}</span></td>
+                    <td>
+                        @if($tpl->base_price_per_person)
+                            {{ number_format($tpl->base_price_per_person, 0, ',', '.') }} {{ $tpl->currency ?? 'EUR' }}<small class="text-muted">/kişi</small>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($tpl->is_active)
+                            <span class="badge bg-success">Aktif</span>
+                        @else
+                            <span class="badge bg-secondary">Pasif</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($ci)
+                            @if($ci->is_published)
+                                <span class="badge bg-success"><i class="fas fa-eye me-1"></i>Yayında</span>
+                            @else
+                                <span class="badge bg-warning text-dark">Taslak</span>
+                            @endif
+                        @else
+                            <span class="text-muted small">Eklenmedi</span>
+                        @endif
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('superadmin.b2c.leisure.toggle-publish', $tpl) }}">
+                            @csrf
+                            @if($ci && $ci->is_published)
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-eye-slash me-1"></i>Kaldır
+                                </button>
+                            @else
+                                <button class="btn btn-sm btn-success">
+                                    <i class="fas fa-eye me-1"></i>Yayına Al
+                                </button>
+                            @endif
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center text-muted py-3">Leisure şablonu bulunamadı.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Transfer Araçları --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-car me-2 text-warning"></i>Transfer Araç Tipleri</h6>
+            <a href="{{ route('superadmin.transfer.ops.index') }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="font-size:.875rem;">
+                <thead class="table-light">
+                    <tr><th>Araç</th><th>Kapasite</th><th>Fiyat (önerilen)</th><th>B2C Durumu</th><th>B2C Toggle</th></tr>
+                </thead>
+                <tbody>
+                @forelse($transferVehicleTypes as $vt)
+                @php $ci = $vt->catalogItem; @endphp
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            @if($vt->firstPhotoUrl())
+                                <img src="{{ $vt->firstPhotoUrl() }}" style="width:48px;height:36px;object-fit:cover;border-radius:4px;" alt="">
+                            @endif
+                            <div class="fw-semibold">{{ $vt->name }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-muted small"><i class="fas fa-users me-1"></i>Maks. {{ $vt->max_passengers }} kişi</span>
+                    </td>
+                    <td>
+                        @if($vt->suggested_retail_price)
+                            {{ number_format($vt->suggested_retail_price, 0, ',', '.') }} TRY
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($ci)
+                            @if($ci->is_published)
+                                <span class="badge bg-success"><i class="fas fa-eye me-1"></i>Yayında</span>
+                            @else
+                                <span class="badge bg-warning text-dark">Taslak</span>
+                            @endif
+                        @else
+                            <span class="text-muted small">Eklenmedi</span>
+                        @endif
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('superadmin.b2c.transfer-vehicle.toggle-publish', $vt) }}">
+                            @csrf
+                            @if($ci && $ci->is_published)
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-eye-slash me-1"></i>Kaldır
+                                </button>
+                            @else
+                                <button class="btn btn-sm btn-success">
+                                    <i class="fas fa-eye me-1"></i>Yayına Al
+                                </button>
+                            @endif
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="5" class="text-center text-muted py-3">Transfer aracı bulunamadı.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="row g-4">
         {{-- Son Ürünler --}}
         <div class="col-lg-8">
