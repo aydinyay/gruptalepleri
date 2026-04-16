@@ -39,5 +39,9 @@ if (($_GET['action'] ?? '') === 'log') {
 @unlink("$webRoot/bootstrap/cache/packages.php");
 // Storage lock dosyasını da temizle
 @unlink("$webRoot/storage/app/kampanya-email.lock");
+// View cache temizle (compiled Blade dosyaları)
+foreach (glob("$webRoot/storage/framework/views/*.php") ?: [] as $f) {
+    @unlink($f);
+}
 if (function_exists('opcache_reset')) opcache_reset();
 echo "CACHE_CLEARED";
