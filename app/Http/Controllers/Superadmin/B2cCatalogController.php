@@ -72,8 +72,8 @@ class B2cCatalogController extends Controller
                 'currency'    => $template->currency ?? 'EUR',
                 'duration_hours' => $template->duration_hours,
                 'max_pax'     => $template->max_pax,
-                'rating_avg'  => $template->rating,
-                'review_count' => $template->review_count,
+                'rating_avg'  => $template->rating ?? 0,
+                'review_count' => $template->review_count ?? 0,
             ]);
             $msg = $nowPublished ? '"' . $template->name_tr . '" B2C\'de yayına alındı.' : '"' . $template->name_tr . '" yayından kaldırıldı.';
         } else {
