@@ -1,5 +1,9 @@
 @extends('b2c.layouts.app')
 @section('title', $item->meta_title ?? $item->title)
+@push('head_styles')
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+@endpush
+
 @section('content')
 
 @php
