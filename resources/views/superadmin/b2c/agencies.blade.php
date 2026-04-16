@@ -1,3 +1,4 @@
+{{-- B2C Acente Başvuruları — v2 --}}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
