@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{{-- transfer/booking.blade.php --}}
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
