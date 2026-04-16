@@ -289,6 +289,35 @@ class SuperadminTransferOpsController extends Controller
         return back()->with('success', $added . ' medya dosyası eklendi.');
     }
 
+    public function storeVehicleMediaUrl(Request $request, TransferVehicleType $vehicleType): RedirectResponse
+    {
+        abort_unless(Schema::hasTable('transfer_vehicle_media'), 404);
+
+        $existingCount = TransferVehicleMedia::query()
+            ->where('vehicle_type_id', $vehicleType->id)
+            ->where('is_active', true)
+            ->count();
+
+        if ($existingCount >= 7) {
+            return back()->with('error', 'Maksimum medya sayısına ulaşıldı (7). Önce bir tanesini silin.');
+        }
+
+        $request->validate([
+            'media_url' => ['required', 'url', 'max:500'],
+        ]);
+
+        TransferVehicleMedia::query()->create([
+            'vehicle_type_id' => $vehicleType->id,
+            'media_type'      => 'photo',
+            'source_type'     => 'link',
+            'external_url'    => $request->input('media_url'),
+            'is_active'       => true,
+            'sort_order'      => $existingCount + 1,
+        ]);
+
+        return back()->with('success', 'URL ile görsel eklendi.');
+    }
+
     public function deleteVehicleMedia(Request $request, TransferVehicleMedia $media): RedirectResponse
     {
         if ($media->file_path && str_starts_with($media->file_path, '/uploads/transfer-vehicle-media/')) {

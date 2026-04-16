@@ -211,12 +211,22 @@
                 {{-- Medya yükleme --}}
                 @if($vt->media->count() < 7)
                 <div class="border-top mt-3 pt-3">
-                    <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.media.store', $vt) }}" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-center">
-                        @csrf
-                        <label class="form-label small fw-semibold mb-0">Fotoğraf/Video Ekle <span class="text-muted">(max 50MB — jpg/png/webp/mp4)</span></label>
-                        <input type="file" name="vehicle_media[]" class="form-control form-control-sm" style="max-width:320px;" multiple accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.mp4,.webm,.mov">
-                        <button class="btn btn-outline-primary btn-sm">Yükle</button>
-                    </form>
+                    <div class="d-flex flex-wrap gap-3">
+                        {{-- Dosya yükleme --}}
+                        <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.media.store', $vt) }}" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-center">
+                            @csrf
+                            <label class="form-label small fw-semibold mb-0">Dosya Yükle <span class="text-muted">(jpg/png/webp/mp4)</span></label>
+                            <input type="file" name="vehicle_media[]" class="form-control form-control-sm" style="max-width:280px;" multiple accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.mp4,.webm,.mov">
+                            <button class="btn btn-outline-primary btn-sm">Yükle</button>
+                        </form>
+                        {{-- URL ile ekleme --}}
+                        <form method="POST" action="{{ route('superadmin.transfer.ops.vehicle-types.media.url.store', $vt) }}" class="d-flex flex-wrap gap-2 align-items-center">
+                            @csrf
+                            <label class="form-label small fw-semibold mb-0">veya URL ile Ekle</label>
+                            <input type="url" name="media_url" class="form-control form-control-sm" style="max-width:320px;" placeholder="https://..." required>
+                            <button class="btn btn-outline-secondary btn-sm">URL Ekle</button>
+                        </form>
+                    </div>
                 </div>
                 @endif
 
