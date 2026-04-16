@@ -147,7 +147,7 @@
             <div style="font-size:.83rem;opacity:.75;margin-bottom:14px;">
                 Platformumuza ürün ekleyin, müşteri kitlesiyle buluşun.
             </div>
-            <a href="{{ route('b2c.supplier-apply.index') }}"
+            <a href="{{ route('b2c.supplier-apply.show') }}"
                style="display:inline-block;padding:9px 20px;background:#f4a418;color:#fff;border-radius:8px;font-size:.88rem;font-weight:700;text-decoration:none;">
                 <i class="bi bi-building me-1"></i>İş Ortağı Olun
             </a>
