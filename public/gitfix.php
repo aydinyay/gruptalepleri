@@ -97,6 +97,34 @@ if (($_GET['action'] ?? '') === 'diag') {
     exit;
 }
 
+// .env değişken yazma (sadece izin verilen anahtarlar)
+if (($_GET['action'] ?? '') === 'setenv') {
+    $key   = strtoupper(trim($_GET['key'] ?? ''));
+    $value = trim($_GET['value'] ?? '');
+    $allowed = ['ASSET_URL', 'APP_URL', 'APP_ENV', 'APP_DEBUG'];
+    if (!in_array($key, $allowed, true)) {
+        http_response_code(400);
+        echo "FORBIDDEN: '$key' değiştirilemez."; exit;
+    }
+    $envFile = "$webRoot/.env";
+    if (!file_exists($envFile)) { echo "ENV_NOT_FOUND"; exit; }
+    $content = file_get_contents($envFile);
+    // Mevcut satırı değiştir veya sona ekle
+    $pattern = '/^' . preg_quote($key, '/') . '=.*/m';
+    $line = $key . '=' . $value;
+    if (preg_match($pattern, $content)) {
+        $content = preg_replace($pattern, $line, $content);
+    } else {
+        $content .= "\n" . $line . "\n";
+    }
+    file_put_contents($envFile, $content);
+    // Config cache temizle
+    @unlink("$webRoot/bootstrap/cache/config.php");
+    if (function_exists('opcache_reset')) opcache_reset();
+    echo "ENV_SET: $line";
+    exit;
+}
+
 // Hata logu okuma
 if (($_GET['action'] ?? '') === 'log') {
     $which = $_GET['which'] ?? 'laravel';

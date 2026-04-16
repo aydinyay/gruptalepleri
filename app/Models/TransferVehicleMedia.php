@@ -44,8 +44,8 @@ class TransferVehicleMedia extends Model
             return $this->file_path;
         }
 
-        // Göreli yollar (/ ile başlayanlar dahil) — asset() ile tam URL üret
-        // Bu sayede gruprezervasyonlari.com'da da gruptalepleri.com/uploads/... doğru yüklenir
-        return asset(ltrim($this->file_path, '/'));
+        // asset() request domain'ini kullanır; config('app.url') her zaman sabit domain döner
+        $base = rtrim(config('app.url', 'https://gruptalepleri.com'), '/');
+        return $base . '/' . ltrim($this->file_path, '/');
     }
 }
