@@ -28,7 +28,7 @@
 
     $lbItems = [['url' => $heroImg, 'type' => 'photo', 'alt' => $package->name_tr]];
     foreach ($galleryPhotos as $lbA) {
-        $lbItems[] = ['url' => $lbA->resolvedUrl(), 'type' => $lbA->media_type, 'alt' => $lbA->title_tr ?? ''];
+        $lbItems[] = ['url' => $b2bAsset($lbA->resolvedUrl()), 'type' => $lbA->media_type, 'alt' => $lbA->title_tr ?? ''];
     }
 @endphp
 
