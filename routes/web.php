@@ -75,7 +75,7 @@ Route::get('/migrate-run-2026', function () {
     }
     $seedClass = request('seed');
     if ($seedClass) {
-        $allowed = ['BlogSeeder', 'SistemOlaySeeder', 'B2cSampleDataSeeder'];
+        $allowed = ['BlogSeeder', 'SistemOlaySeeder', 'B2cSampleDataSeeder', 'SmallYachtSeeder'];
         if (in_array($seedClass, $allowed, true)) {
             try {
                 \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => $seedClass, '--force' => true]);
