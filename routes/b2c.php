@@ -198,6 +198,7 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
 Route::prefix('transfer')->name('b2c.transfer.')->group(function () {
     Route::get('/',                                      [\App\Http\Controllers\B2C\TransferController::class, 'index'])->name('index');
     Route::get('/bolgeler',                              [\App\Http\Controllers\B2C\TransferController::class, 'zones'])->name('zones');
+    Route::get('/fiyat-sorgula',                         [\App\Http\Controllers\B2C\TransferController::class, 'priceQuery'])->name('price-query')->middleware('throttle:30,1');
     Route::post('/ara',                                  [\App\Http\Controllers\B2C\TransferController::class, 'search'])->name('search');
     Route::get('/checkout/{quoteToken}',                 [\App\Http\Controllers\B2C\TransferController::class, 'checkout'])->name('checkout');
     Route::post('/checkout/{quoteToken}/rezervasyon',    [\App\Http\Controllers\B2C\TransferController::class, 'book'])->name('book');

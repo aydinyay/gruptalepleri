@@ -201,6 +201,8 @@ class B2cTransferService
                         'direction'       => $rule->direction,
                         'currency'        => $rule->currency,
                         'base_fare'       => (float) $rule->base_fare,
+                        'cost_price'      => $rule->cost_price !== null ? (float) $rule->cost_price : null,
+                        'b2c_price'       => $rule->b2c_price !== null ? (float) $rule->b2c_price : null,
                         'per_km'          => (float) $rule->per_km,
                         'per_minute'      => (float) $rule->per_minute,
                         'minimum_fare'    => (float) $rule->minimum_fare,
@@ -332,6 +334,33 @@ class B2cTransferService
         ?Carbon $returnAt,
         float $b2cCommissionRate
     ): array {
+        $tripFactor = ($direction === 'BOTH' && $returnAt !== null) ? 2.0 : 1.0;
+
+        // ── Mod 1: b2c_price sabit fiyat ─────────────────────────────────────
+        // Tedarikçi ürün sayfasında açıkça B2C perakende fiyatı belirlemiş.
+        // Formül hesabı yapılmaz; tedarikçi base_fare'i alır, fark GT komisyonudur.
+        if ($rule->b2c_price !== null && (float) $rule->b2c_price > 0) {
+            $b2cPrice       = round((float) $rule->b2c_price * $tripFactor, 2);
+            $baseFare       = round((float) $rule->base_fare * $tripFactor, 2);
+            $commissionAmount = round($b2cPrice - $baseFare, 2);
+
+            return [
+                'price_mode'        => 'fixed_b2c_price',
+                'base_amount'       => $baseFare,
+                'distance_amount'   => 0.0,
+                'duration_amount'   => 0.0,
+                'minimum_fare'      => 0.0,
+                'night_multiplier'  => 1.0,
+                'peak_multiplier'   => 1.0,
+                'trip_factor'       => $tripFactor,
+                'subtotal_amount'   => $b2cPrice,
+                'commission_rate'   => $b2cPrice > 0 ? round($commissionAmount / $b2cPrice * 100, 2) : 0.0,
+                'commission_amount' => $commissionAmount,
+                'total_amount'      => $b2cPrice,
+            ];
+        }
+
+        // ── Mod 2: Formül tabanlı hesaplama (varsayılan) ──────────────────────
         $base           = (float) $rule->base_fare;
         $distanceAmount = (float) $rule->per_km * $distanceKm;
         $durationAmount = (float) $rule->per_minute * $durationMinutes;
@@ -345,12 +374,12 @@ class B2cTransferService
 
         $nightMultiplier = $this->resolveNightMultiplier($rule, $pickupAt);
         $peakMultiplier  = $this->resolvePeakMultiplier($rule, $pickupAt);
-        $tripFactor      = ($direction === 'BOTH' && $returnAt !== null) ? 2.0 : 1.0;
 
         $subtotalAmount   = round($subtotal * $nightMultiplier * $peakMultiplier * $tripFactor, 2);
         $commissionAmount = round($subtotalAmount * ($b2cCommissionRate / 100), 2);
 
         return [
+            'price_mode'        => 'formula',
             'base_amount'       => round($base, 2),
             'distance_amount'   => round($distanceAmount, 2),
             'duration_amount'   => round($durationAmount, 2),

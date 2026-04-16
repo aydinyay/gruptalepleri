@@ -47,6 +47,27 @@ class TransferController extends Controller
         return response()->json($zones);
     }
 
+    /**
+     * Ürün sayfası AJAX fiyat sorgusu — JSON döner, QuoteLock oluşturur.
+     * Throttle: ürün sayfasında her tarih/kişi değişiminde tetiklenir.
+     */
+    public function priceQuery(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'airport_id' => 'required|integer|exists:transfer_airports,id',
+            'zone_id'    => 'required|integer|exists:transfer_zones,id',
+            'direction'  => 'required|in:ARR,DEP,BOTH',
+            'pax'        => 'required|integer|min:1|max:100',
+            'pickup_at'  => 'required|date|after:now',
+            'return_at'  => 'nullable|date|after:pickup_at',
+        ]);
+
+        $b2cUserId = Auth::guard('b2c')->id();
+        $result    = $this->b2cTransferService->search($validated, $b2cUserId);
+
+        return response()->json($result);
+    }
+
     /** Arama yapılıp sonuçlar gösterilir */
     public function search(Request $request)
     {
