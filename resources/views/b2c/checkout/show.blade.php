@@ -110,7 +110,10 @@
             @php $grandTotal = 0; $cartCurrency = 'TRY'; @endphp
             @foreach($cart as $rowId => $row)
             @php
-                $lineTotal = ($row['base_price'] ?? 0) * ($row['pax_count'] ?? 1);
+                $durationHours = $row['duration_hours'] ?? null;
+                $lineTotal = $durationHours
+                    ? ($row['base_price'] ?? 0) * $durationHours
+                    : ($row['base_price'] ?? 0) * ($row['pax_count'] ?? 1);
                 $grandTotal += $lineTotal;
                 if (!empty($row['currency'])) $cartCurrency = $row['currency'];
             @endphp
@@ -120,10 +123,18 @@
                     @if(!empty($row['service_date']))
                     <div class="ck-item-meta"><i class="bi bi-calendar3 me-1"></i>{{ \Carbon\Carbon::parse($row['service_date'])->format('d M Y') }}</div>
                     @endif
+                    @if($durationHours)
+                    <div class="ck-item-meta"><i class="bi bi-clock me-1"></i>{{ $durationHours }} saat</div>
+                    @else
                     <div class="ck-item-meta"><i class="bi bi-people me-1"></i>{{ $row['pax_count'] }} kişi</div>
+                    @endif
+                    @if(!empty($row['event_type']))
+                    <div class="ck-item-meta"><i class="bi bi-star me-1"></i>{{ $row['event_type'] }}</div>
+                    @endif
                     @if($row['pricing_type'] === 'fixed' && $row['base_price'])
                     <div class="ck-item-meta">
-                        {{ number_format($row['base_price'],0,',','.') }} {{ $row['currency'] }} × {{ $row['pax_count'] }} kişi
+                        {{ number_format($row['base_price'],0,',','.') }} {{ $row['currency'] }}
+                        @if($durationHours) × {{ $durationHours }} saat @else × {{ $row['pax_count'] }} kişi @endif
                         = <strong>{{ number_format($lineTotal,0,',','.') }} {{ $row['currency'] }}</strong>
                     </div>
                     @endif

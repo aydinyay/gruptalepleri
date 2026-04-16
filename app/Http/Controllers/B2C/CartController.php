@@ -26,23 +26,26 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'catalog_item_id' => 'required|integer|exists:catalog_items,id',
-            'pax_count'       => 'required|integer|min:1|max:500',
+            'pax_count'       => 'nullable|integer|min:1|max:500',
             'service_date'    => 'nullable|date|after:today',
+            'duration_hours'  => 'nullable|integer|min:1|max:24',
+            'event_type'      => 'nullable|string|max:100',
         ]);
 
         $item = CatalogItem::published()->findOrFail($validated['catalog_item_id']);
 
         $cart = session(self::SESSION_KEY, []);
 
-        // Aynı ürün zaten sepette mi? (tarih bazlı row)
-        $rowId = md5($item->id . ($validated['service_date'] ?? ''));
+        $rowId = md5($item->id . ($validated['service_date'] ?? '') . ($validated['duration_hours'] ?? ''));
 
         $cart[$rowId] = [
             'catalog_item_id' => $item->id,
             'slug'            => $item->slug,
             'title'           => $item->title,
-            'pax_count'       => (int) $validated['pax_count'],
+            'pax_count'       => (int) ($validated['pax_count'] ?? 1),
             'service_date'    => $validated['service_date'] ?? null,
+            'duration_hours'  => $validated['duration_hours'] ?? null,
+            'event_type'      => $validated['event_type'] ?? null,
             'pricing_type'    => $item->pricing_type,
             'base_price'      => $item->base_price,
             'currency'        => $item->currency,
