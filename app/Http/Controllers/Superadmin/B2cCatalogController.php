@@ -138,7 +138,11 @@ class B2cCatalogController extends Controller
         $validated = $this->validateCatalogItem($request);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
-        if ($validated['is_published'] ?? false) {
+        $validated['is_active']    = $request->boolean('is_active');
+        $validated['is_featured']  = $request->boolean('is_featured');
+        $validated['is_published'] = $request->boolean('is_published');
+
+        if ($validated['is_published']) {
             $validated['published_at'] = now();
         }
 
@@ -163,12 +167,16 @@ class B2cCatalogController extends Controller
         $validated = $this->validateCatalogItem($request, $item->id);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
-        if (($validated['is_published'] ?? false) && ! $item->is_published) {
+        // Checkbox alanları: işaretlenmeyince HTTP'de gelmez — boolean() false döner
+        $validated['is_active']    = $request->boolean('is_active');
+        $validated['is_featured']  = $request->boolean('is_featured');
+        $validated['is_published'] = $request->boolean('is_published');
+
+        if ($validated['is_published'] && ! $item->is_published) {
             $validated['published_at'] = now();
         }
 
         if ($request->hasFile('cover_image_file')) {
-            // Eski görseli sil (sadece local dosyaysa)
             if ($item->cover_image && !str_starts_with($item->cover_image, 'http')) {
                 $oldPath = public_path('uploads/' . $item->cover_image);
                 if (file_exists($oldPath)) @unlink($oldPath);
@@ -262,6 +270,8 @@ class B2cCatalogController extends Controller
             'min_pax'             => 'nullable|integer|min:1',
             'max_pax'             => 'nullable|integer|min:1',
             'sort_order'          => 'integer|min:0',
+            'rating_avg'          => 'nullable|numeric|min:0|max:5',
+            'review_count'        => 'nullable|integer|min:0',
             'meta_title'          => 'nullable|string|max:120',
             'meta_description'    => 'nullable|string|max:250',
         ]);

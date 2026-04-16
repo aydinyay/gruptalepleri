@@ -241,7 +241,7 @@
                             <div class="row g-2">
                                 <div class="col-6">
                                     <label class="form-label form-label-sm">Puan Avg</label>
-                                    <input type="number" name="rating_avg" class="form-control form-control-sm" step="0.1" min="0" max="5"
+                                    <input type="number" name="rating_avg" class="form-control form-control-sm" step="0.01" min="0" max="5"
                                            value="{{ old('rating_avg', $item->rating_avg ?? 0) }}">
                                 </div>
                                 <div class="col-6">
