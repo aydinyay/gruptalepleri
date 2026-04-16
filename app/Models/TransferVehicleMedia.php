@@ -40,10 +40,12 @@ class TransferVehicleMedia extends Model
             return null;
         }
 
-        if (Str::startsWith($this->file_path, ['http://', 'https://', '/'])) {
+        if (Str::startsWith($this->file_path, ['http://', 'https://'])) {
             return $this->file_path;
         }
 
-        return asset($this->file_path);
+        // Göreli yollar (/ ile başlayanlar dahil) — asset() ile tam URL üret
+        // Bu sayede gruprezervasyonlari.com'da da gruptalepleri.com/uploads/... doğru yüklenir
+        return asset(ltrim($this->file_path, '/'));
     }
 }
