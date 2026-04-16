@@ -110,3 +110,38 @@ grep -rn "^@media\|[^@]@media" resources/views/
 - Acente controller'larında `auth()->user()` değil `$this->acenteActor()` kullan
 - Eski sistem sayfalarına (finans arşivi, TÜRSAB, muhasebe) dokunma
 - Her deployment öncesi onay al (local değişiklikler için onay gerekmez)
+
+---
+
+## Sistem Mimarisi — Kim Ne Yapıyor?
+
+### Ürün/Hizmet Ekleme Yetkisi
+
+| Modül | Kim ekler? | Acente rolü |
+|---|---|---|
+| Leisure paket şablonları | **Sadece Superadmin** (`/leisure-ayarlar`) | Hazır şablonlardan talep oluşturur |
+| Transfer fiyat kuralları | **Sadece Superadmin** (`/superadmin/transfer/operasyon`) | Fiyatları görebilir, rezervasyon yapar |
+| B2C Katalog (CatalogItem) | **Sadece Superadmin** (`/superadmin/b2c/katalog`) | Erişimi yok |
+| Dinner Cruise / Yacht / Tur | **Sadece Superadmin** | Talep oluşturur, teklif bekler |
+
+**Kural:** Sistemde hiçbir ürün/hizmet şablonu acente tarafından oluşturulamaz. Acenteler yalnızca hazır ürünleri kullanarak talep/rezervasyon yapar.
+
+### İki Kanal Yapısı (Hedef Mimari)
+
+```
+Ürün/Hizmet (tek kaynak)
+    ├── B2B: gruptalepleri.com/acente/...   → her zaman erişilebilir
+    └── B2C: gruprezervasyonlari.com        → superadmin "Yayına Al" seçince aktif
+```
+
+- `catalog_items.is_published = true` → B2C vitrinde görünür
+- `catalog_items.reference_type + reference_id` alanları mevcut: leisure/transfer kayıtlarına köprü için tasarlanmış ama henüz kullanılmıyor
+- Hedef: Leisure/Transfer ürünleri otomatik CatalogItem oluşturulsun, superadmin tek dashboard'dan yönetsin
+
+### Mevcut Tablolar ve Sahiplikleri
+
+- `leisure_package_templates` — sistem geneli, sahibi yok (superadmin yönetir)
+- `leisure_requests` — `user_id` = talep açan acente
+- `catalog_items` — `owner_type` (platform/supplier), superadmin yönetir
+- `transfer_pricing_rules` — tedarikçi bazlı, superadmin onaylar
+- `b2c_agency_subscriptions` — onaylı B2C acenteleri
