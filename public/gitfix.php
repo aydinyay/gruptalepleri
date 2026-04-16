@@ -139,6 +139,27 @@ if (($_GET['action'] ?? '') === 'log') {
     exit;
 }
 
+// Katalog ürün sorgulama
+if (($_GET['action'] ?? '') === 'catalog-check') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    header('Content-Type: text/plain');
+    $slug = $_GET['slug'] ?? '';
+    if ($slug) {
+        $item = \Illuminate\Support\Facades\DB::table('catalog_items')->where('slug', $slug)->first();
+        echo $item ? json_encode($item, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : "NOT FOUND: $slug";
+    } else {
+        $items = \Illuminate\Support\Facades\DB::table('catalog_items')
+            ->select('id','slug','title','is_published','is_active','product_type','pricing_type','base_price','currency')
+            ->orderBy('id','desc')->limit(20)->get();
+        echo json_encode($items, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");
