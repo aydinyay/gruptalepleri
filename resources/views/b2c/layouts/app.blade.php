@@ -774,7 +774,7 @@
 
             {{-- Ulaşım (MEGA) --}}
             <li data-mega="mega-ulasim">
-                <a href="{{ route('b2c.catalog.category', 'transfer') }}">
+                <a href="{{ route('b2c.transfer.index') }}">
                     Ulaşım
                     <i class="bi bi-chevron-down caret"></i>
                 </a>
@@ -782,9 +782,9 @@
                     <div class="gyg-mega-inner">
                         <div class="gyg-mega-sidebar">
                             <div class="sidebar-title">Ulaşım Hizmetleri</div>
-                            <a href="{{ route('b2c.catalog.category', 'transfer') }}" class="sidebar-see-all">Tüm ulaşım seçenekleri →</a>
+                            <a href="{{ route('b2c.transfer.index') }}" class="sidebar-see-all">Tüm ulaşım seçenekleri →</a>
                             <ul>
-                                <li><a href="{{ route('b2c.catalog.category', 'transfer') }}">Havalimanı Transferi</a></li>
+                                <li><a href="{{ route('b2c.transfer.index') }}">Havalimanı Transferi</a></li>
                                 <li><a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">Özel Jet</a></li>
                                 <li><a href="{{ route('b2c.catalog.category', 'helikopter') }}">Helikopter</a></li>
                             </ul>
@@ -792,16 +792,16 @@
                         <div class="gyg-mega-grid">
                             @php
                                 $megaUlasim = [
-                                    ['icon'=>'bi-car-front-fill',  'title'=>'Havalimanı Transferi', 'sub'=>'İstanbul, Antalya, İzmir',    'slug'=>'transfer'],
-                                    ['icon'=>'bi-taxi-front-fill', 'title'=>'VIP Transfer',         'sub'=>'Özel şoför hizmeti',          'slug'=>'transfer'],
-                                    ['icon'=>'bi-airplane-fill',   'title'=>'Özel Jet Kiralama',    'sub'=>'Konforlu & hızlı uçuş',      'slug'=>'ozel-jet'],
-                                    ['icon'=>'bi-airplane-engines','title'=>'Charter Uçuşu',        'sub'=>'Grup için özel uçak',         'slug'=>'ozel-jet'],
-                                    ['icon'=>'bi-helicopter',      'title'=>'Helikopter Turu',      'sub'=>'Havadan panoramik gezi',      'slug'=>'helikopter'],
-                                    ['icon'=>'bi-bus-front-fill',  'title'=>'Grup Transferi',       'sub'=>'Otobüs & minibüs kiralama',   'slug'=>'transfer'],
+                                    ['icon'=>'bi-car-front-fill',  'title'=>'Havalimanı Transferi', 'sub'=>'İstanbul, Antalya, İzmir',    'url'=> route('b2c.transfer.index')],
+                                    ['icon'=>'bi-taxi-front-fill', 'title'=>'VIP Transfer',         'sub'=>'Özel şoför hizmeti',          'url'=> route('b2c.transfer.index')],
+                                    ['icon'=>'bi-airplane-fill',   'title'=>'Özel Jet Kiralama',    'sub'=>'Konforlu & hızlı uçuş',      'url'=> route('b2c.catalog.category', 'ozel-jet')],
+                                    ['icon'=>'bi-airplane-engines','title'=>'Charter Uçuşu',        'sub'=>'Grup için özel uçak',         'url'=> route('b2c.catalog.category', 'ozel-jet')],
+                                    ['icon'=>'bi-helicopter',      'title'=>'Helikopter Turu',      'sub'=>'Havadan panoramik gezi',      'url'=> route('b2c.catalog.category', 'helikopter')],
+                                    ['icon'=>'bi-bus-front-fill',  'title'=>'Grup Transferi',       'sub'=>'Otobüs & minibüs kiralama',   'url'=> route('b2c.transfer.index')],
                                 ];
                             @endphp
                             @foreach($megaUlasim as $u)
-                            <a href="{{ route('b2c.catalog.category', $u['slug']) }}" class="gyg-mega-item">
+                            <a href="{{ $u['url'] }}" class="gyg-mega-item">
                                 <div class="thumb"><i class="bi {{ $u['icon'] }}"></i></div>
                                 <div class="item-text">
                                     {{ $u['title'] }}<br>
@@ -975,7 +975,7 @@
             Ulaşım <i class="bi bi-chevron-down"></i>
         </div>
         <div class="gyg-mobile-section-body">
-            <a href="{{ route('b2c.catalog.category', 'transfer') }}">Havalimanı Transferi</a>
+            <a href="{{ route('b2c.transfer.index') }}">Havalimanı Transferi</a>
             <a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">Özel Jet Kiralama</a>
             <a href="{{ route('b2c.catalog.category', 'helikopter') }}">Helikopter</a>
         </div>
@@ -1039,7 +1039,7 @@
             <div class="col-6 col-lg-2">
                 <div class="footer-title">Hizmetler</div>
                 <ul class="list-unstyled" style="font-size:.88rem;line-height:2;">
-                    <li><a href="{{ route('b2c.catalog.category', 'transfer') }}">Havalimanı Transferi</a></li>
+                    <li><a href="{{ route('b2c.transfer.index') }}">Havalimanı Transferi</a></li>
                     <li><a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">Özel Jet</a></li>
                     <li><a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}">Dinner Cruise</a></li>
                     <li><a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}">Yat Kiralama</a></li>
