@@ -38,20 +38,19 @@ if (($_GET['action'] ?? '') === 'diag') {
     foreach (array_slice($files, 0, 10) as $f) {
         echo basename($f) . "  " . date('H:i:s', filemtime($f)) . "\n";
     }
-    // 679d96d4 dosyasını bul
-    $target = "$viewsDir/679d96d4c210d94894f581d4e6882f53.php";
-    if (file_exists($target)) {
-        echo "\n=== 679d96d4... content (first 30 lines) ===\n";
-        $lines = file($target);
-        echo implode('', array_slice($lines, 0, 30));
-    }
-    // booking compiled dosyasını da bul
-    $bookingHash = md5($bookingPath);
-    $bookingCompiled = "$viewsDir/$bookingHash.php";
-    if (file_exists($bookingCompiled)) {
-        echo "\n=== booking compiled (first 30 lines) ===\n";
-        $lines = file($bookingCompiled);
-        echo implode('', array_slice($lines, 0, 30));
+    // Tüm compiled view'ların 110-135. satırlarını göster (parse error bölgesi)
+    echo "\n=== COMPILED VIEW CONTENTS (lines 110-135) ===\n";
+    usort($files, fn($a,$b) => filemtime($b) - filemtime($a));
+    foreach ($files as $f) {
+        echo "\n--- " . basename($f) . " ---\n";
+        $allLines = file($f);
+        $total = count($allLines);
+        echo "Total lines: $total\n";
+        $start = max(0, 108); // line 109 (0-indexed)
+        $end   = min($total, 140);
+        foreach (array_slice($allLines, $start, $end - $start, true) as $ln => $content) {
+            echo ($ln + 1) . ': ' . $content;
+        }
     }
     exit;
 }
