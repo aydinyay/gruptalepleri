@@ -19,6 +19,8 @@ class BestawayB2cApprovalSeeder extends Seeder
         $supplier = TransferSupplier::where('company_name', 'like', '%BESTAWAY%')
             ->orWhere('company_name', 'like', '%Bestaway%')
             ->orWhere('company_name', 'like', '%bestaway%')
+            ->orWhere('company_name', 'like', '%Bestway%')
+            ->orWhere('company_name', 'like', '%BESTWAY%')
             ->first();
 
         if (! $supplier) {

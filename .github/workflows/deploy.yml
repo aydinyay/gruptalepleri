@@ -11,18 +11,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0   # Tüm tarihçe — before SHA erişimi için gerekli
 
       - name: Deploy changed files to server
         run: |
           HOOK="https://gruptalepleri.com/gitfix.php"
           TOKEN="grt2026fix"
+          BEFORE="${{ github.event.before }}"
 
-          # İlk commit ise tüm dosyalar, değilse sadece değişenler
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            FILES=$(git diff --name-only HEAD~1 HEAD)
-          else
+          # İlk push veya force-push (before = 000...000) → tüm dosyalar
+          # Aksi hâlde: önceki deploy'dan bu yana değişen tüm dosyalar
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || \
+             ! git rev-parse "$BEFORE" >/dev/null 2>&1; then
             FILES=$(git ls-files)
+            echo "İlk push veya tarihçe yok — tüm dosyalar deploy ediliyor"
+          else
+            FILES=$(git diff --name-only "$BEFORE" HEAD)
+            echo "Deploy aralığı: $BEFORE → ${{ github.sha }}"
           fi
 
           echo "Deploy edilecek dosyalar:"
@@ -43,7 +48,7 @@ jobs:
           done
           if [ $FAIL -gt 0 ]; then echo "WARNING: $FAIL dosya yüklenemedi"; exit 1; fi
 
-      - name: Run migrations (sosyal medya)
+      - name: Run migrations
         run: |
           sleep 8
           RESP=$(curl -sf --max-time 60 "https://gruptalepleri.com/mig-sm-2026?t=grtmig2026sm" 2>&1 || true)
