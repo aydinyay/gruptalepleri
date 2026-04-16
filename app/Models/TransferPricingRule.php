@@ -21,7 +21,6 @@ class TransferPricingRule extends Model
         'per_km',
         'per_minute',
         'minimum_fare',
-        'cost_price',
         'night_start',
         'night_end',
         'night_multiplier',
@@ -29,19 +28,22 @@ class TransferPricingRule extends Model
         'valid_from',
         'valid_until',
         'is_active',
+        'cost_price',
+        'b2c_price',
     ];
 
     protected $casts = [
-        'base_fare' => 'decimal:2',
-        'per_km' => 'decimal:2',
-        'per_minute' => 'decimal:2',
-        'minimum_fare' => 'decimal:2',
-        'cost_price' => 'decimal:2',
+        'base_fare'        => 'decimal:2',
+        'per_km'           => 'decimal:2',
+        'per_minute'       => 'decimal:2',
+        'minimum_fare'     => 'decimal:2',
         'night_multiplier' => 'decimal:2',
-        'peak_multiplier' => 'decimal:2',
-        'valid_from' => 'datetime',
-        'valid_until' => 'datetime',
-        'is_active' => 'boolean',
+        'peak_multiplier'  => 'decimal:2',
+        'cost_price'       => 'decimal:2',
+        'b2c_price'        => 'decimal:2',
+        'valid_from'       => 'datetime',
+        'valid_until'      => 'datetime',
+        'is_active'        => 'boolean',
     ];
 
     public function supplier(): BelongsTo
@@ -64,4 +66,3 @@ class TransferPricingRule extends Model
         return $this->belongsTo(TransferVehicleType::class, 'vehicle_type_id');
     }
 }
-

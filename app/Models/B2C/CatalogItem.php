@@ -2,6 +2,8 @@
 
 namespace App\Models\B2C;
 
+use App\Models\TransferAirport;
+use App\Models\TransferZone;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -41,6 +43,9 @@ class CatalogItem extends Model
         'review_count',
         'meta_title',
         'meta_description',
+        'transfer_airport_id',
+        'transfer_zone_id',
+        'transfer_direction',
     ];
 
     protected function casts(): array
@@ -94,6 +99,27 @@ class CatalogItem extends Model
     public function supplier()
     {
         return $this->belongsTo(User::class, 'supplier_id');
+    }
+
+    /** Transfer rotası: havalimanı */
+    public function transferAirport()
+    {
+        return $this->belongsTo(TransferAirport::class, 'transfer_airport_id');
+    }
+
+    /** Transfer rotası: bölge/otel bölgesi */
+    public function transferZone()
+    {
+        return $this->belongsTo(TransferZone::class, 'transfer_zone_id');
+    }
+
+    /** Bu ürün sayfasında canlı transfer fiyat sorgusu yapılabilir mi? */
+    public function hasLiveTransferPricing(): bool
+    {
+        return $this->product_type === 'transfer'
+            && $this->transfer_airport_id !== null
+            && $this->transfer_zone_id !== null
+            && $this->transfer_direction !== null;
     }
 
     // ── Erişimciler ────────────────────────────────────────────────────────
