@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\AiCelebrationService;
 use App\Services\Transfer\Contracts\TransferDistanceCalculator;
 use App\Services\Transfer\GoogleTransferDistanceCalculator;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -27,6 +28,20 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
         Paginator::useBootstrapFive();
+
+        // guest:b2c middleware authenticated kullanıcıyı B2B route'una (acente/dashboard)
+        // yönlendirmesin — B2C domain'de B2C anasayfasına git.
+        RedirectIfAuthenticated::redirectUsing(function (\Illuminate\Http\Request $request) {
+            if ($request->attributes->get('is_b2c', false)) {
+                return route('b2c.home');
+            }
+            if (auth()->check()) {
+                $role = auth()->user()->role ?? '';
+                if ($role === 'superadmin') return route('superadmin.dashboard');
+                if ($role === 'admin')      return route('admin.dashboard');
+            }
+            return route('acente.dashboard');
+        });
 
         // Admin ve superadmin telefon numaralarını tüm view'lara paylaş
         View::composer('*', function ($view) {

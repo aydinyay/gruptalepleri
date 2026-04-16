@@ -257,7 +257,11 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 <div class="pc-label">Başlangıç fiyatı</div>
 <div class="pc-price">{{ number_format($item->base_price,0,',','.') }} <span style="font-size:1rem;">{{ $item->currency }}</span></div>
 <div class="pc-per">kişi başı</div>
+@auth('b2c')
+<a href="{{ route('b2c.iletisim') }}" class="pc-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Talep Et</a>
+@else
 <a href="{{ route('b2c.auth.register') }}" class="pc-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap</a>
+@endauth
 <a href="{{ route('b2c.iletisim') }}" class="pc-sec"><i class="bi bi-chat-dots me-2"></i>Soru Sor</a>
 @elseif($item->pricing_type === 'quote')
 <div class="pc-qbox"><i class="bi bi-info-circle-fill me-2" style="color:#1a3c6b;"></i>Kişiye özel fiyatlandırma. 4 saat içinde size özel fiyat iletilsin.</div>
