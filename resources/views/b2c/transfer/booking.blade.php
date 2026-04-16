@@ -186,6 +186,18 @@
             </div>
             @endif
 
+            {{-- Voucher --}}
+            @if($booking->status === 'confirmed')
+            <div class="booking-card">
+                <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2"></i>Fiş / Voucher</h5>
+                <a href="{{ route('b2c.transfer.voucher', $booking->booking_ref) }}"
+                   target="_blank"
+                   class="btn btn-outline-secondary btn-sm w-100 mb-2">
+                    <i class="bi bi-printer me-1"></i>Voucher Görüntüle / Yazdır
+                </a>
+            </div>
+            @endif
+
             {{-- Destek --}}
             <div class="booking-card">
                 <h5 class="fw-bold mb-3"><i class="bi bi-headset me-2"></i>Destek</h5>

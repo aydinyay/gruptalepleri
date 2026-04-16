@@ -202,6 +202,7 @@ Route::prefix('transfer')->name('b2c.transfer.')->group(function () {
     Route::get('/checkout/{quoteToken}',                 [\App\Http\Controllers\B2C\TransferController::class, 'checkout'])->name('checkout');
     Route::post('/checkout/{quoteToken}/rezervasyon',    [\App\Http\Controllers\B2C\TransferController::class, 'book'])->name('book');
     Route::get('/rezervasyon/{bookingRef}',              [\App\Http\Controllers\B2C\TransferController::class, 'bookingShow'])->name('booking');
+    Route::get('/rezervasyon/{bookingRef}/voucher',     [\App\Http\Controllers\B2C\TransferController::class, 'bookingVoucher'])->name('voucher');
 });
 
 // Transfer ödeme callback'leri (CSRF muaf)

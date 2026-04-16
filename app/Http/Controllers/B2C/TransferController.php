@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TransferBooking;
 use App\Models\TransferPaymentTransaction;
 use App\Models\TransferQuoteLock;
+use App\Services\B2C\B2cTransferNotificationService;
 use App\Services\B2C\B2cTransferService;
 use App\Services\Transfer\PaynkolayService;
 use Carbon\Carbon;
@@ -24,8 +25,9 @@ use Illuminate\Validation\ValidationException;
 class TransferController extends Controller
 {
     public function __construct(
-        private readonly B2cTransferService $b2cTransferService,
-        private readonly PaynkolayService   $paynkolayService,
+        private readonly B2cTransferService              $b2cTransferService,
+        private readonly PaynkolayService                $paynkolayService,
+        private readonly B2cTransferNotificationService  $notificationService,
     ) {}
 
     /** Arama formu */
@@ -249,6 +251,24 @@ class TransferController extends Controller
         return $this->handlePaymentReturn($request, forceFailed: true);
     }
 
+    /** Yazdırılabilir/PDF voucher */
+    public function bookingVoucher(string $bookingRef)
+    {
+        $booking = TransferBooking::query()
+            ->where('booking_ref', $bookingRef)
+            ->where('source', TransferBooking::SOURCE_B2C)
+            ->where('status', TransferBooking::STATUS_CONFIRMED)
+            ->with(['supplier', 'airport', 'zone', 'vehicleType'])
+            ->firstOrFail();
+
+        $b2cUser = Auth::guard('b2c')->user();
+        if ($b2cUser && $booking->b2c_user_id !== null && $booking->b2c_user_id !== $b2cUser->id) {
+            abort(403);
+        }
+
+        return view('b2c.transfer.voucher', compact('booking'));
+    }
+
     /** Rezervasyon detay sayfası */
     public function bookingShow(string $bookingRef)
     {
@@ -320,6 +340,17 @@ class TransferController extends Controller
                 'status'       => TransferBooking::STATUS_CONFIRMED,
                 'confirmed_at' => $now,
             ]);
+
+            // Bildirimler: müşteri + admin + tedarikçi
+            try {
+                $booking->refresh();
+                $this->notificationService->bookingConfirmed($booking);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('B2C transfer notification failed', [
+                    'booking_ref' => $booking->booking_ref,
+                    'error'       => $e->getMessage(),
+                ]);
+            }
 
             return redirect()->route('b2c.transfer.booking', ['bookingRef' => $booking->booking_ref])
                 ->with('payment_success', true);
