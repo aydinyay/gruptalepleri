@@ -51,7 +51,7 @@
         .gt-voucher-item .value { font-weight: 600; color: #0f172a; }
         .gt-voucher-footer { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid #e2e8f0; font-size: .78rem; color: #64748b; text-align: center; }
 
-        @media print {
+        @@media print {
             .no-print { display: none !important; }
             body { background: #fff !important; }
             .gt-voucher { box-shadow: none; border-color: #000; }
