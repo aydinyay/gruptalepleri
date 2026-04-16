@@ -54,6 +54,12 @@ class CartController extends Controller
             return response()->json(['count' => count($cart), 'message' => 'Sepete eklendi.']);
         }
 
+        // Ürün sayfasından "Rezervasyon Yap" ile gelindiyse direkt checkout'a gönder
+        // (EnsureB2CAuth giriş yapmamış kullanıcıyı B2C login'e yönlendirir)
+        if ($request->input('checkout')) {
+            return redirect()->route('b2c.checkout.show');
+        }
+
         return redirect()->route('b2c.cart.index')->with('success', '"' . $item->title . '" sepete eklendi.');
     }
 

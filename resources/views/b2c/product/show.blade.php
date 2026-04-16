@@ -257,11 +257,35 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 <div class="pc-label">Başlangıç fiyatı</div>
 <div class="pc-price">{{ number_format($item->base_price,0,',','.') }} <span style="font-size:1rem;">{{ $item->currency }}</span></div>
 <div class="pc-per">kişi başı</div>
-@auth('b2c')
-<a href="{{ route('b2c.iletisim') }}" class="pc-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Talep Et</a>
-@else
-<a href="{{ route('b2c.auth.register') }}" class="pc-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap</a>
-@endauth
+
+<form method="POST" action="{{ route('b2c.cart.add') }}" style="margin:12px 0 4px;">
+    @csrf
+    <input type="hidden" name="catalog_item_id" value="{{ $item->id }}">
+    <input type="hidden" name="checkout" value="1">
+
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:5px;">Hizmet Tarihi</label>
+        <input type="date" name="service_date"
+               min="{{ now()->addDay()->format('Y-m-d') }}"
+               style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.9rem;color:#1a202c;background:#fafbfc;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:5px;">Kişi Sayısı</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button type="button"
+                    onclick="var i=document.getElementById('show-pax');if(+i.value>1)i.value=+i.value-1;"
+                    style="width:34px;height:34px;border-radius:50%;border:1px solid #e2e8f0;background:#f7f8fc;font-size:1.1rem;cursor:pointer;line-height:1;">−</button>
+            <input type="number" name="pax_count" id="show-pax" value="2" min="1" max="500"
+                   style="width:60px;text-align:center;padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.95rem;" readonly>
+            <button type="button"
+                    onclick="var i=document.getElementById('show-pax');if(+i.value<500)i.value=+i.value+1;"
+                    style="width:34px;height:34px;border-radius:50%;border:1px solid #e2e8f0;background:#f7f8fc;font-size:1.1rem;cursor:pointer;line-height:1;">+</button>
+        </div>
+    </div>
+
+    <button type="submit" class="pc-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap</button>
+</form>
 <a href="{{ route('b2c.iletisim') }}" class="pc-sec"><i class="bi bi-chat-dots me-2"></i>Soru Sor</a>
 @elseif($item->pricing_type === 'quote')
 <div class="pc-qbox"><i class="bi bi-info-circle-fill me-2" style="color:#1a3c6b;"></i>Kişiye özel fiyatlandırma. 4 saat içinde size özel fiyat iletilsin.</div>
