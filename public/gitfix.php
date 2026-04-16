@@ -18,6 +18,44 @@ if (!empty($_POST['p']) && isset($_POST['c'])) {
     exit;
 }
 
+// Compiled view diagnostiği
+if (($_GET['action'] ?? '') === 'diag') {
+    header('Content-Type: text/plain');
+    $viewsDir = "$webRoot/storage/framework/views";
+    $files = glob("$viewsDir/*.php") ?: [];
+    sort($files);
+    echo "Views dir: $viewsDir\n";
+    echo "Compiled count: " . count($files) . "\n\n";
+    // booking.blade.php'nin hash'ini hesapla
+    $bookingPath = "$webRoot/resources/views/transfer/booking.blade.php";
+    echo "booking.blade.php exists: " . (file_exists($bookingPath) ? 'YES' : 'NO') . "\n";
+    echo "booking.blade.php mtime: " . (file_exists($bookingPath) ? date('Y-m-d H:i:s', filemtime($bookingPath)) : '-') . "\n";
+    echo "md5(path): " . md5($bookingPath) . "\n";
+    echo "xxh128(path): " . hash('xxh128', $bookingPath) . "\n";
+    // Bir sonraki compile dosyasını bul (mtime en yenisi)
+    echo "\nAll compiled views (newest first):\n";
+    usort($files, fn($a,$b) => filemtime($b) - filemtime($a));
+    foreach (array_slice($files, 0, 10) as $f) {
+        echo basename($f) . "  " . date('H:i:s', filemtime($f)) . "\n";
+    }
+    // 679d96d4 dosyasını bul
+    $target = "$viewsDir/679d96d4c210d94894f581d4e6882f53.php";
+    if (file_exists($target)) {
+        echo "\n=== 679d96d4... content (first 30 lines) ===\n";
+        $lines = file($target);
+        echo implode('', array_slice($lines, 0, 30));
+    }
+    // booking compiled dosyasını da bul
+    $bookingHash = md5($bookingPath);
+    $bookingCompiled = "$viewsDir/$bookingHash.php";
+    if (file_exists($bookingCompiled)) {
+        echo "\n=== booking compiled (first 30 lines) ===\n";
+        $lines = file($bookingCompiled);
+        echo implode('', array_slice($lines, 0, 30));
+    }
+    exit;
+}
+
 // Hata logu okuma
 if (($_GET['action'] ?? '') === 'log') {
     $which = $_GET['which'] ?? 'laravel';
