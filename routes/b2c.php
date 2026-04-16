@@ -186,6 +186,13 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [CheckoutController::class, 'paynkolayFail'])->name('fail');
     });
 
+// ── Leisure / Yat Talep Formu ─────────────────────────────────────────────────
+Route::post('/urun/leisure-talep', [\App\Http\Controllers\B2C\LeisureInquiryController::class, 'store'])
+    ->name('b2c.leisure.inquiry.store')
+    ->middleware('throttle:10,1');
+Route::get('/urun/leisure-talep/tesekkur', [\App\Http\Controllers\B2C\LeisureInquiryController::class, 'confirm'])
+    ->name('b2c.leisure.inquiry.confirm');
+
 // ── B2C Transfer ───────────────────────────────────────────────────────────
 Route::prefix('transfer')->name('b2c.transfer.')->group(function () {
     Route::get('/',                                      [\App\Http\Controllers\B2C\TransferController::class, 'index'])->name('index');

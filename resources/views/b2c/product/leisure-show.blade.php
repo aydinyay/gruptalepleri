@@ -262,7 +262,7 @@ body{background:var(--bg);color:var(--txt);}
             @endif
         </div>
 
-        {{-- Sağ: Fiyat paneli --}}
+        {{-- Sağ: Rezervasyon paneli --}}
         @php
             $b2cPrice   = (float)($package->original_price_per_person ?? $package->base_price_per_person ?? 0);
             $b2cCur     = $package->currency ?: 'EUR';
@@ -270,34 +270,93 @@ body{background:var(--bg);color:var(--txt);}
         <div>
             <div class="lp-panel">
                 <div class="lp-panel-label">Başlangıç fiyatı</div>
-                <div class="lp-panel-price" id="lpDisplayPrice">{{ number_format($b2cPrice, 0, ',', '.') }} {{ $b2cCur }}</div>
+                <div class="lp-panel-price">{{ number_format($b2cPrice, 0, ',', '.') }} {{ $b2cCur }}</div>
                 <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">/ saat · grup başına</div>
 
-                {{-- Süre seçici --}}
-                <div class="lp-panel-label">Süre</div>
-                <select id="lpDuration" class="lp-panel-select">
-                    @foreach([1,2,3,4,5,6,8] as $h)
-                        <option value="{{ $h }}" {{ $h == 2 ? 'selected' : '' }}>
-                            {{ $h }} saat ({{ number_format($b2cPrice * $h, 0, ',', '.') }} {{ $b2cCur }})
-                        </option>
-                    @endforeach
-                </select>
+                @if($errors->any())
+                    <div class="alert alert-danger p-2 mb-2" style="font-size:.82rem;">
+                        @foreach($errors->all() as $e)<div>• {{ $e }}</div>@endforeach
+                    </div>
+                @endif
 
-                <div class="lp-total-row">
-                    <span class="lp-total-label">Toplam tahmini</span>
-                    <span class="lp-total-amount" id="lpTotal">{{ number_format($b2cPrice * 2, 0, ',', '.') }} {{ $b2cCur }}</span>
-                </div>
+                <form method="POST" action="{{ route('b2c.leisure.inquiry.store') }}" id="lpBookForm">
+                    @csrf
+                    <input type="hidden" name="package_code" value="{{ $package->code }}">
 
-                <a href="{{ route('b2c.iletisim') }}" class="lp-btn-cta mt-2">
-                    <i class="fas fa-anchor me-1"></i> Rezervasyon Yap
-                </a>
+                    {{-- Tarih --}}
+                    <div class="lp-panel-label">Tarih</div>
+                    <input type="date" name="service_date" class="lp-panel-select"
+                           min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                           value="{{ old('service_date') }}" required>
+
+                    {{-- Kişi sayısı --}}
+                    <div class="lp-panel-label">Kişi sayısı</div>
+                    <select name="guest_count" class="lp-panel-select" required>
+                        @for($g=1;$g<=($package->max_pax ?? 20);$g++)
+                            <option value="{{ $g }}" {{ old('guest_count',2)==$g?'selected':'' }}>{{ $g }} kişi</option>
+                        @endfor
+                    </select>
+
+                    {{-- Süre --}}
+                    <div class="lp-panel-label">Süre</div>
+                    <select name="duration_hours" id="lpDuration" class="lp-panel-select" required>
+                        @foreach([1,2,3,4,5,6,8] as $h)
+                            <option value="{{ $h }}" {{ old('duration_hours',2)==$h?'selected':'' }}>
+                                {{ $h }} saat ({{ number_format($b2cPrice * $h, 0, ',', '.') }} {{ $b2cCur }})
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <div class="lp-total-row mb-2">
+                        <span class="lp-total-label">Toplam tahmini</span>
+                        <span class="lp-total-amount" id="lpTotal">{{ number_format($b2cPrice * 2, 0, ',', '.') }} {{ $b2cCur }}</span>
+                    </div>
+
+                    <div class="lp-div"></div>
+
+                    {{-- Kalkış saati --}}
+                    <div class="lp-panel-label">Kalkış saati (opsiyonel)</div>
+                    <input type="time" name="start_time" class="lp-panel-select"
+                           value="{{ old('start_time') }}" style="margin-bottom:.8rem;">
+
+                    {{-- Etkinlik --}}
+                    <div class="lp-panel-label">Etkinlik türü (opsiyonel)</div>
+                    <select name="event_type" class="lp-panel-select">
+                        <option value="">Seçiniz...</option>
+                        @foreach(['Özel Gezi','Doğum Günü','Evlilik Teklifi','Kurumsal / Toplantı','Bekarlığa Veda','Fotoğraf Çekimi','Diğer'] as $et)
+                            <option value="{{ $et }}" {{ old('event_type')==$et?'selected':'' }}>{{ $et }}</option>
+                        @endforeach
+                    </select>
+
+                    {{-- Ad --}}
+                    <div class="lp-panel-label">Adınız</div>
+                    <input type="text" name="guest_name" class="lp-panel-select"
+                           placeholder="Ad Soyad" value="{{ old('guest_name') }}" required
+                           style="margin-bottom:.8rem;">
+
+                    {{-- Telefon --}}
+                    <div class="lp-panel-label">Telefon</div>
+                    <input type="tel" name="guest_phone" class="lp-panel-select"
+                           placeholder="+90 5xx xxx xx xx" value="{{ old('guest_phone') }}" required
+                           style="margin-bottom:.8rem;">
+
+                    {{-- Notlar --}}
+                    <div class="lp-panel-label">Notlar (opsiyonel)</div>
+                    <textarea name="notes" class="lp-panel-select" rows="2"
+                              placeholder="Özel istek, güzergah tercihi..."
+                              style="margin-bottom:.8rem;resize:vertical;">{{ old('notes') }}</textarea>
+
+                    <button type="submit" class="lp-btn-cta">
+                        <i class="fas fa-anchor me-1"></i> Rezervasyon Talebi Gönder
+                    </button>
+                </form>
 
                 <div class="lp-div"></div>
 
                 <div class="lp-trust"><i class="fas fa-check-circle"></i> Ücretsiz iptal (24 saat öncesine kadar)</div>
-                <div class="lp-trust"><i class="fas fa-check-circle"></i> 4 saat içinde teklif</div>
+                <div class="lp-trust"><i class="fas fa-check-circle"></i> 4 saat içinde onay</div>
                 <div class="lp-trust"><i class="fas fa-check-circle"></i> Özel kaptan dahil</div>
-                <div class="lp-trust"><i class="fas fa-check-circle"></i> Güvenli ödeme · 256-bit SSL</div>
+                <div class="lp-trust"><i class="fas fa-check-circle"></i> Güvenli · SSL şifreleme</div>
 
                 @if($package->pier_name)
                 <div class="lp-div"></div>
