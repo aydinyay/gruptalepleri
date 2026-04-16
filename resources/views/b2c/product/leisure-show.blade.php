@@ -58,6 +58,12 @@ body{background:var(--bg);color:var(--txt);}
 .lp-btn-cta:hover{background:var(--gy-d);color:#fff;}
 .lp-btn-soft{display:flex;justify-content:center;align-items:center;gap:.4rem;width:100%;padding:.65rem;border-radius:999px;border:2px solid #1a3c6b;color:#1a3c6b;font-weight:600;font-size:.9rem;text-decoration:none;margin-top:.55rem;background:transparent;}
 .lp-btn-soft:hover{background:#1a3c6b;color:#fff;}
+.lp-panel-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.25rem;}
+.lp-panel-price{font-size:1.6rem;font-weight:800;color:var(--gy);}
+.lp-panel-select{width:100%;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--brd);background:var(--card);color:var(--txt);font-size:.9rem;margin-bottom:.8rem;}
+.lp-total-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--brd);padding-top:.7rem;margin-top:.5rem;}
+.lp-total-label{font-size:.85rem;color:var(--muted);}
+.lp-total-amount{font-size:1.15rem;font-weight:800;color:var(--txt);}
 .lp-trust{display:flex;align-items:center;gap:.45rem;font-size:.78rem;color:var(--muted);margin-top:.45rem;}
 .lp-trust i{color:#48bb78;}
 .lp-div{height:1px;background:#f0f0f0;margin:.85rem 0;}
@@ -257,18 +263,33 @@ body{background:var(--bg);color:var(--txt);}
         </div>
 
         {{-- Sağ: Fiyat paneli --}}
+        @php
+            $b2cPrice   = (float)($package->original_price_per_person ?? $package->base_price_per_person ?? 0);
+            $b2cCur     = $package->currency ?: 'EUR';
+        @endphp
         <div>
             <div class="lp-panel">
-                <div class="lp-panel-qbox">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Kişiselleştirilmiş fiyatlandırma. Grup büyüklüğü ve tarihe göre size özel fiyat iletilir.
+                <div class="lp-panel-label">Başlangıç fiyatı</div>
+                <div class="lp-panel-price" id="lpDisplayPrice">{{ number_format($b2cPrice, 0, ',', '.') }} {{ $b2cCur }}</div>
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">/ saat · grup başına</div>
+
+                {{-- Süre seçici --}}
+                <div class="lp-panel-label">Süre</div>
+                <select id="lpDuration" class="lp-panel-select">
+                    @foreach([1,2,3,4,5,6,8] as $h)
+                        <option value="{{ $h }}" {{ $h == 2 ? 'selected' : '' }}>
+                            {{ $h }} saat ({{ number_format($b2cPrice * $h, 0, ',', '.') }} {{ $b2cCur }})
+                        </option>
+                    @endforeach
+                </select>
+
+                <div class="lp-total-row">
+                    <span class="lp-total-label">Toplam tahmini</span>
+                    <span class="lp-total-amount" id="lpTotal">{{ number_format($b2cPrice * 2, 0, ',', '.') }} {{ $b2cCur }}</span>
                 </div>
 
-                <a href="{{ route('b2c.iletisim') }}" class="lp-btn-cta">
-                    <i class="fas fa-paper-plane me-1"></i> Fiyat Al
-                </a>
-                <a href="{{ route('b2c.iletisim') }}" class="lp-btn-soft">
-                    <i class="fas fa-phone me-1"></i> İletişime Geç
+                <a href="{{ route('b2c.iletisim') }}" class="lp-btn-cta mt-2">
+                    <i class="fas fa-anchor me-1"></i> Rezervasyon Yap
                 </a>
 
                 <div class="lp-div"></div>
@@ -326,6 +347,20 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft') lpLbPrev();
     if (e.key === 'ArrowRight') lpLbNext();
 });
+
+// Fiyat hesap
+const lpPricePerHour = {{ $b2cPrice }};
+const lpCurrency     = '{{ $b2cCur }}';
+const lpDurationSel  = document.getElementById('lpDuration');
+const lpTotal        = document.getElementById('lpTotal');
+
+function lpFmt(n) { return n.toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' ' + lpCurrency; }
+if (lpDurationSel) {
+    lpDurationSel.addEventListener('change', () => {
+        const h = parseInt(lpDurationSel.value);
+        if (lpTotal) lpTotal.textContent = lpFmt(lpPricePerHour * h);
+    });
+}
 </script>
 
 @endsection
