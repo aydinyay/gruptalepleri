@@ -26,16 +26,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────
-Route::get('/', function () {
-    $host = preg_replace('/^www\./', '', request()->getHost());
-    if ($host !== 'gruprezervasyonlari.com') {
-        // gruptalepleri.com'dan geliyorsa B2B login'e yönlendir
-        return auth()->check()
-            ? redirect()->intended('/superadmin')
-            : redirect('/login');
-    }
-    return app(\App\Http\Controllers\B2C\HomeController::class)->index();
-})->name('b2c.home');
+// NOT: / rotası web.php'de tanımlıdır (her iki domain'i de yönetir).
+// b2c.php sonradan yüklendiğinden burada tekrar tanımlanmamalı — ezip bozar.
 
 // ── Arama Autocomplete API ─────────────────────────────────────────────────
 Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {
