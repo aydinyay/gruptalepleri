@@ -26,6 +26,7 @@ class LeisureRequest extends Model
 
     protected $fillable = [
         'user_id',
+        'source_channel',
         'gtpnr',
         'product_type',
         'status',

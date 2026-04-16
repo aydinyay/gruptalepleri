@@ -186,12 +186,24 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [CheckoutController::class, 'paynkolayFail'])->name('fail');
     });
 
-// ── Leisure / Yat Talep Formu ─────────────────────────────────────────────────
+// ── Leisure / Yat Rezervasyon ──────────────────────────────────────────────────
 Route::post('/urun/leisure-talep', [\App\Http\Controllers\B2C\LeisureInquiryController::class, 'store'])
     ->name('b2c.leisure.inquiry.store')
     ->middleware('throttle:10,1');
 Route::get('/urun/leisure-talep/tesekkur', [\App\Http\Controllers\B2C\LeisureInquiryController::class, 'confirm'])
     ->name('b2c.leisure.inquiry.confirm');
+Route::get('/urun/leisure-rezervasyon/{gtpnr}', [\App\Http\Controllers\B2C\LeisureInquiryController::class, 'show'])
+    ->name('b2c.leisure.booking.show');
+Route::post('/urun/leisure-odeme/{booking}', [\App\Http\Controllers\B2C\LeisurePaymentController::class, 'start'])
+    ->name('b2c.leisure.payment.start')
+    ->middleware('throttle:5,1');
+
+// Paynkolay B2C leisure callbacks (CSRF muaf)
+Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->prefix('urun/leisure-odeme')->name('b2c.leisure.payment.')->group(function () {
+        Route::match(['get', 'post'], '/basarili', [\App\Http\Controllers\B2C\LeisurePaymentController::class, 'success'])->name('success');
+        Route::match(['get', 'post'], '/basarisiz', [\App\Http\Controllers\B2C\LeisurePaymentController::class, 'fail'])->name('fail');
+    });
 
 // ── B2C Transfer ───────────────────────────────────────────────────────────
 Route::prefix('transfer')->name('b2c.transfer.')->group(function () {

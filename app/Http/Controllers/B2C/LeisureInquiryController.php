@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
+use App\Models\LeisureBooking;
+use App\Models\LeisureClientOffer;
 use App\Models\LeisurePackageTemplate;
+use App\Models\LeisureRequest;
+use App\Models\YachtCharterRequestDetail;
+use App\Services\GtpnrService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LeisureInquiryController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request, GtpnrService $gtpnrService)
     {
         $validated = $request->validate([
             'package_code'   => 'required|string|max:60',
@@ -31,53 +36,76 @@ class LeisureInquiryController extends Controller
         $currency = $package?->currency ?: 'EUR';
         $total    = $price * (int) $validated['duration_hours'];
 
-        $notes = implode(' | ', array_filter([
-            'Yat: ' . ($package?->name_tr ?? $validated['package_code']),
-            'Tarih: ' . \Carbon\Carbon::parse($validated['service_date'])->format('d.m.Y'),
-            'Kişi: ' . $validated['guest_count'],
-            'Süre: ' . $validated['duration_hours'] . ' saat',
-            $validated['start_time'] ? 'Kalkış: ' . $validated['start_time'] : null,
-            $validated['event_type'] ? 'Etkinlik: ' . $validated['event_type'] : null,
-            $validated['notes'] ? 'Not: ' . $validated['notes'] : null,
-            $total > 0 ? 'Tahmini: ' . number_format($total, 0, ',', '.') . ' ' . $currency : null,
-        ]));
+        $booking = DB::transaction(function () use ($validated, $package, $price, $currency, $total, $gtpnrService): LeisureBooking {
+            $req = LeisureRequest::create([
+                'user_id'        => null,
+                'source_channel' => 'b2c',
+                'gtpnr'          => $gtpnrService->generate('yacht'),
+                'product_type'   => LeisureRequest::PRODUCT_YACHT,
+                'status'         => LeisureRequest::STATUS_APPROVED,
+                'service_date'   => $validated['service_date'],
+                'guest_count'    => (int) $validated['guest_count'],
+                'guest_name'     => $validated['guest_name'],
+                'guest_phone'    => $validated['guest_phone'],
+                'package_level'  => $package?->level,
+                'notes'          => $validated['notes'] ?? null,
+                'approved_at'    => now(),
+            ]);
 
-        $leadId = DB::table('b2c_quick_leads')->insertGetId([
-            'name'         => $validated['guest_name'],
-            'phone'        => $validated['guest_phone'],
-            'service_type' => 'yacht_charter',
-            'notes'        => $notes,
-            'created_at'   => now(),
-            'updated_at'   => now(),
-        ]);
+            YachtCharterRequestDetail::create([
+                'leisure_request_id' => $req->id,
+                'start_time'         => $validated['start_time'] ?? null,
+                'duration_hours'     => (int) $validated['duration_hours'],
+                'event_type'         => $validated['event_type'] ?? null,
+                'detail_json'        => ['booking_type' => 'b2c_direct', 'package_code' => $validated['package_code']],
+            ]);
 
-        // Onay sayfası için session'a detayları koy
-        session()->flash('leisure_inquiry', [
-            'ref'            => 'YC-B2C-' . str_pad($leadId, 5, '0', STR_PAD_LEFT),
-            'package_name'   => $package?->name_tr ?? $validated['package_code'],
-            'service_date'   => \Carbon\Carbon::parse($validated['service_date'])->format('d.m.Y'),
-            'guest_count'    => $validated['guest_count'],
-            'duration_hours' => $validated['duration_hours'],
-            'start_time'     => $validated['start_time'] ?? null,
-            'event_type'     => $validated['event_type'] ?? null,
-            'guest_name'     => $validated['guest_name'],
-            'guest_phone'    => $validated['guest_phone'],
-            'total'          => $total > 0 ? number_format($total, 0, ',', '.') . ' ' . $currency : null,
-            'includes'       => $package?->includes_tr ?? [],
-            'pier_name'      => $package?->pier_name ?? null,
-        ]);
+            $offer = LeisureClientOffer::create([
+                'leisure_request_id'  => $req->id,
+                'package_template_id' => $package?->id,
+                'package_label'       => $package?->name_tr ?? $validated['package_code'],
+                'total_price'         => $total,
+                'per_person_price'    => $price,
+                'currency'            => $currency,
+                'includes_snapshot'   => $package?->includes_tr,
+                'excludes_snapshot'   => $package?->excludes_tr,
+                'status'              => 'accepted',
+                'shared_at'           => now(),
+                'accepted_at'         => now(),
+            ]);
 
-        return redirect()->route('b2c.leisure.inquiry.confirm');
+            return LeisureBooking::create([
+                'leisure_request_id' => $req->id,
+                'client_offer_id'    => $offer->id,
+                'status'             => 'pending_payment',
+                'total_amount'       => $total,
+                'total_paid'         => 0,
+                'remaining_amount'   => $total,
+                'currency'           => $currency,
+                'operation_note'     => 'B2C direkt rezervasyon',
+            ]);
+        });
+
+        return redirect()->route('b2c.leisure.booking.show', $booking->request->gtpnr);
+    }
+
+    public function show(string $gtpnr)
+    {
+        $leisureRequest = LeisureRequest::where('gtpnr', $gtpnr)
+            ->where('source_channel', 'b2c')
+            ->with(['booking.payments', 'yachtDetail', 'clientOffers.packageTemplate'])
+            ->firstOrFail();
+
+        $booking = $leisureRequest->booking;
+        $offer   = $leisureRequest->clientOffers->first();
+        $detail  = $leisureRequest->yachtDetail;
+        $pkg     = $offer?->packageTemplate;
+
+        return view('b2c.product.leisure-confirm', compact('leisureRequest', 'booking', 'offer', 'detail', 'pkg'));
     }
 
     public function confirm()
     {
-        $inquiry = session('leisure_inquiry');
-
-        if (! $inquiry) {
-            return redirect()->route('b2c.home');
-        }
-
-        return view('b2c.product.leisure-confirm', compact('inquiry'));
+        return redirect()->route('b2c.home');
     }
 }
