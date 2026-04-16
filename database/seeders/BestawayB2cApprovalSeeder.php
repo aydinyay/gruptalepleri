@@ -4,9 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\B2C\B2cAgencySubscription;
 use App\Models\TransferSupplier;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * BESTAWAY Tour'u B2C transfer tedarikçisi olarak onaylar.
@@ -16,45 +15,45 @@ class BestawayB2cApprovalSeeder extends Seeder
 {
     public function run(): void
     {
-        // BESTAWAY Tour kullanıcısını bul — ad veya şirket adıyla
-        $user = User::where('name', 'like', '%BESTAWAY%')
-            ->orWhere('name', 'like', '%Bestaway%')
-            ->orWhere('company_name', 'like', '%BESTAWAY%')
+        // TransferSupplier tablosunda ara — User'da company_name yok
+        $supplier = TransferSupplier::where('company_name', 'like', '%BESTAWAY%')
             ->orWhere('company_name', 'like', '%Bestaway%')
+            ->orWhere('company_name', 'like', '%bestaway%')
             ->first();
 
-        if (! $user) {
-            $this->command->warn('BESTAWAY Tour kullanıcısı bulunamadı. Tüm kullanıcılar:');
-            User::orderBy('id')->limit(20)->each(function (User $u): void {
-                $this->command->line("  [{$u->id}] {$u->name} / " . ($u->company_name ?? '—'));
-            });
+        if (! $supplier) {
+            // company_name bulunamazsa onaylı tedarikçileri listele
+            $all = TransferSupplier::where('is_approved', true)->get(['id', 'company_name', 'user_id']);
+            $msg = 'BESTAWAY Tour tedarikçisi bulunamadı. Onaylı tedarikçiler: '
+                . $all->pluck('company_name')->implode(', ');
+            Log::warning($msg);
+            $this->command?->warn($msg);
             return;
         }
 
-        $this->command->info("BESTAWAY Tour bulundu: [{$user->id}] {$user->name}");
+        $this->command?->info("Tedarikçi bulundu: [{$supplier->id}] {$supplier->company_name}");
 
-        // Transfer tedarikçisi kaydını bul
-        $supplier = TransferSupplier::where('user_id', $user->id)->first();
-
-        if (! $supplier) {
-            $this->command->warn("Kullanıcının transfer tedarikçi kaydı yok (user_id={$user->id}). Transfer onayı atlanıyor.");
+        if (! $supplier->user_id) {
+            $msg = "Tedarikçiye bağlı kullanıcı yok (supplier_id={$supplier->id}).";
+            Log::warning($msg);
+            $this->command?->warn($msg);
+            return;
         }
 
-        // B2C aboneliği oluştur veya güncelle
         $subscription = B2cAgencySubscription::updateOrCreate(
-            ['user_id' => $user->id],
+            ['user_id' => $supplier->user_id],
             [
-                'transfer_supplier_id' => $supplier?->id,
+                'transfer_supplier_id' => $supplier->id,
                 'status'               => B2cAgencySubscription::STATUS_APPROVED,
                 'service_types_json'   => ['transfer'],
                 'approved_at'          => now(),
-                'admin_note'           => 'Test acentesi — BestawayB2cApprovalSeeder tarafından otomatik onaylandı.',
+                'admin_note'           => 'Test acentesi — BestawayB2cApprovalSeeder',
             ]
         );
 
-        $this->command->info(
-            "B2C aboneliği " . ($subscription->wasRecentlyCreated ? 'oluşturuldu' : 'güncellendi') .
-            " (id={$subscription->id}, status={$subscription->status})"
-        );
+        $action = $subscription->wasRecentlyCreated ? 'oluşturuldu' : 'güncellendi';
+        $msg    = "B2C aboneliği {$action}: id={$subscription->id}, status={$subscription->status}";
+        Log::info($msg);
+        $this->command?->info($msg);
     }
 }
