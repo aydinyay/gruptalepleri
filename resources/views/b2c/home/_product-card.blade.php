@@ -61,15 +61,18 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 
         <div class="gyg-pcard-title">{{ $item->title }}</div>
 
-        @if(($item->rating_avg ?? 0) > 0)
         <div class="d-flex align-items-center gap-1" style="margin-bottom:4px;">
+            @if(($item->rating_avg ?? 0) > 0)
             <span class="gyg-pcard-stars">{!! str_repeat('★', (int)floor($item->rating_avg)) . ($item->rating_avg - floor($item->rating_avg) >= 0.5 ? '★' : '') . str_repeat('☆', 5 - (int)ceil($item->rating_avg)) !!}</span>
             <span class="gyg-pcard-rating">{{ number_format($item->rating_avg, 1) }}</span>
             @if(($item->review_count ?? 0) > 0)
             <span class="gyg-pcard-reviews">({{ number_format($item->review_count, 0, ',', '.') }})</span>
             @endif
+            @else
+            <span class="gyg-pcard-stars" style="color:#d1d5db;">☆☆☆☆☆</span>
+            <span style="font-size:.72rem;color:#a0aec0;font-weight:600;">Yeni</span>
+            @endif
         </div>
-        @endif
 
         @if($item->pricing_type === 'fixed' && $item->base_price)
             <div class="gyg-pcard-price-label">kişi başı itibaren</div>
