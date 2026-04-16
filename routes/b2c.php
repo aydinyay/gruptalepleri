@@ -186,6 +186,21 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [CheckoutController::class, 'paynkolayFail'])->name('fail');
     });
 
+// ── Guest (Misafir) Rezervasyon — Tüm Ürün Tipleri ────────────────────────────
+Route::post('/urun/{slug}/rezervasyon', [\App\Http\Controllers\B2C\GuestBookingController::class, 'book'])
+    ->name('b2c.guest.booking.book')
+    ->middleware('throttle:10,1');
+Route::get('/rezervasyon/{ref}', [\App\Http\Controllers\B2C\GuestBookingController::class, 'show'])
+    ->name('b2c.guest.booking.show');
+Route::post('/rezervasyon/{order}/odeme', [\App\Http\Controllers\B2C\GuestPaymentController::class, 'start'])
+    ->name('b2c.guest.payment.start')
+    ->middleware('throttle:5,1');
+Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->prefix('rezervasyon/odeme')->name('b2c.guest.payment.')->group(function () {
+        Route::match(['get', 'post'], '/basarili', [\App\Http\Controllers\B2C\GuestPaymentController::class, 'success'])->name('success');
+        Route::match(['get', 'post'], '/basarisiz', [\App\Http\Controllers\B2C\GuestPaymentController::class, 'fail'])->name('fail');
+    });
+
 // ── Leisure / Yat Rezervasyon ──────────────────────────────────────────────────
 Route::post('/urun/leisure-talep', [\App\Http\Controllers\B2C\LeisureInquiryController::class, 'store'])
     ->name('b2c.leisure.inquiry.store')

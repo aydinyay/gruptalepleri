@@ -252,47 +252,111 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 
 <div id="tr-results"></div>
 
-{{-- Transfer değil veya canlı fiyat yok --}}
+{{-- Transfer değil → Rezervasyon formu --}}
 @elseif($item->pricing_type === 'fixed' && $item->base_price)
 <div class="pc-label">Başlangıç fiyatı</div>
-<div class="pc-price">{{ number_format($item->base_price,0,',','.') }} <span style="font-size:1rem;">{{ $item->currency }}</span></div>
-<div class="pc-per">kişi başı</div>
+<div class="pc-price" id="pcTotalPrice">{{ number_format($item->base_price,0,',','.') }} <span style="font-size:1rem;">{{ $item->currency }}</span></div>
+<div class="pc-per">/ kişi başı — toplam aşağıda hesaplanır</div>
 
-<form method="POST" action="{{ route('b2c.cart.add') }}" style="margin:12px 0 4px;">
+@if($errors->any())
+    <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:.82rem;color:#c53030;">
+        @foreach($errors->all() as $e)<div>• {{ $e }}</div>@endforeach
+    </div>
+@endif
+
+<form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:10px 0 4px;" id="bookForm">
     @csrf
-    <input type="hidden" name="catalog_item_id" value="{{ $item->id }}">
-    <input type="hidden" name="checkout" value="1">
-
     <div style="margin-bottom:10px;">
-        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:5px;">Hizmet Tarihi</label>
-        <input type="date" name="service_date"
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Hizmet Tarihi</label>
+        <input type="date" name="service_date" value="{{ old('service_date') }}"
                min="{{ now()->addDay()->format('Y-m-d') }}"
-               style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.9rem;color:#1a202c;background:#fafbfc;">
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
     </div>
-
-    <div style="margin-bottom:14px;">
-        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:5px;">Kişi Sayısı</label>
-        <div style="display:flex;align-items:center;gap:10px;">
-            <button type="button"
-                    onclick="var i=document.getElementById('show-pax');if(+i.value>1)i.value=+i.value-1;"
-                    style="width:34px;height:34px;border-radius:50%;border:1px solid #e2e8f0;background:#f7f8fc;font-size:1.1rem;cursor:pointer;line-height:1;">−</button>
-            <input type="number" name="pax_count" id="show-pax" value="2" min="1" max="500"
-                   style="width:60px;text-align:center;padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.95rem;" readonly>
-            <button type="button"
-                    onclick="var i=document.getElementById('show-pax');if(+i.value<500)i.value=+i.value+1;"
-                    style="width:34px;height:34px;border-radius:50%;border:1px solid #e2e8f0;background:#f7f8fc;font-size:1.1rem;cursor:pointer;line-height:1;">+</button>
-        </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Kişi Sayısı</label>
+        <select name="pax_count" id="pcPax" style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;" onchange="pcCalc(this.value)">
+            @for($p=1;$p<=($item->max_pax ?? 50);$p++)
+                <option value="{{ $p }}" {{ old('pax_count',2)==$p?'selected':'' }}>{{ $p }} kişi</option>
+            @endfor
+        </select>
     </div>
-
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding-top:8px;margin-bottom:10px;">
+        <span style="font-size:.85rem;color:#718096;">Toplam</span>
+        <span id="pcTotal" style="font-size:1.1rem;font-weight:800;color:#FF5533;">{{ number_format($item->base_price*2,0,',','.') }} {{ $item->currency }}</span>
+    </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Ad Soyad</label>
+        <input type="text" name="guest_name" value="{{ old('guest_name') }}" placeholder="Ad Soyad" required
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+    </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Telefon</label>
+        <input type="tel" name="guest_phone" value="{{ old('guest_phone') }}" placeholder="+90 5xx xxx xx xx" required
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+    </div>
     <button type="submit" class="pc-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap</button>
 </form>
-<a href="{{ route('b2c.iletisim') }}" class="pc-sec"><i class="bi bi-chat-dots me-2"></i>Soru Sor</a>
-@elseif($item->pricing_type === 'quote')
-<div class="pc-qbox"><i class="bi bi-info-circle-fill me-2" style="color:#1a3c6b;"></i>Kişiye özel fiyatlandırma. 4 saat içinde size özel fiyat iletilsin.</div>
-<a href="{{ route('b2c.iletisim') }}" class="pc-cta"><i class="bi bi-send me-2"></i>Fiyat Al</a>
+
+@elseif(in_array($item->pricing_type, ['quote','request']))
+<div class="pc-qbox">
+    <i class="bi bi-info-circle-fill me-2" style="color:#1a3c6b;"></i>
+    @if($item->pricing_type === 'quote')Kişiye özel fiyatlandırma. Formu doldurun, 4 saat içinde size özel teklif iletilsin.
+    @else Grup talebinizi oluşturun, ekibimiz sizinle iletişime geçsin.
+    @endif
+</div>
+
+@if($errors->any())
+    <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:.82rem;color:#c53030;">
+        @foreach($errors->all() as $e)<div>• {{ $e }}</div>@endforeach
+    </div>
+@endif
+
+<form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:6px 0 4px;">
+    @csrf
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Tercih Edilen Tarih</label>
+        <input type="date" name="service_date" value="{{ old('service_date') }}"
+               min="{{ now()->addDay()->format('Y-m-d') }}"
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+    </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Kişi Sayısı</label>
+        <select name="pax_count" style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+            @for($p=1;$p<=($item->max_pax ?? 100);$p++)
+                <option value="{{ $p }}" {{ old('pax_count',2)==$p?'selected':'' }}>{{ $p }} kişi</option>
+            @endfor
+        </select>
+    </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Ad Soyad</label>
+        <input type="text" name="guest_name" value="{{ old('guest_name') }}" placeholder="Ad Soyad" required
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+    </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Telefon</label>
+        <input type="tel" name="guest_phone" value="{{ old('guest_phone') }}" placeholder="+90 5xx xxx xx xx" required
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+    </div>
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Notlar (opsiyonel)</label>
+        <textarea name="notes" rows="2" placeholder="Özel istek, bütçe, detaylar..."
+                  style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;resize:vertical;">{{ old('notes') }}</textarea>
+    </div>
+    <button type="submit" class="pc-cta"><i class="bi bi-send me-2"></i>Teklif / Talep Gönder</button>
+</form>
 @else
-<div class="pc-qbox"><i class="bi bi-telephone-fill me-2" style="color:#1a3c6b;"></i>Grup talebinizi oluşturun.</div>
-<a href="{{ route('b2c.iletisim') }}" class="pc-cta"><i class="bi bi-clipboard-plus me-2"></i>Talep Oluştur</a>
+<div class="pc-qbox"><i class="bi bi-telephone-fill me-2" style="color:#1a3c6b;"></i>Bilgi almak için aşağıdaki formu doldurun.</div>
+<form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:6px 0 4px;">
+    @csrf
+    <div style="margin-bottom:10px;">
+        <input type="text" name="guest_name" value="{{ old('guest_name') }}" placeholder="Ad Soyad" required
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;margin-bottom:8px;">
+        <input type="tel" name="guest_phone" value="{{ old('guest_phone') }}" placeholder="Telefon" required
+               style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+        <input type="hidden" name="pax_count" value="1">
+    </div>
+    <button type="submit" class="pc-cta"><i class="bi bi-clipboard-plus me-2"></i>Talep Oluştur</button>
+</form>
 @endif
 
 <div class="pc-div"></div>
@@ -468,6 +532,23 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 <style>
 @@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 </style>
+@endif
+
+@if(!$item->hasLiveTransferPricing() && $item->pricing_type === 'fixed' && $item->base_price)
+<script>
+var _pcUnitPrice = {{ (float)$item->base_price }};
+var _pcCurrency  = '{{ $item->currency }}';
+function pcCalc(pax) {
+    var n = parseInt(pax) || 1;
+    var total = (_pcUnitPrice * n).toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' ' + _pcCurrency;
+    var el = document.getElementById('pcTotal');
+    if (el) el.textContent = total;
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var sel = document.getElementById('pcPax');
+    if (sel) pcCalc(sel.value);
+});
+</script>
 @endif
 
 @endsection
