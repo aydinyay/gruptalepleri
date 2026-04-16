@@ -79,11 +79,11 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
             <div class="gyg-pcard-price">{{ number_format($item->base_price, 0, ',', '.') }} {{ $item->currency ?? 'TRY' }}</div>
             <span class="gyg-pcard-cta">Rezervasyon Yap</span>
         @elseif($item->pricing_type === 'quote')
-            <div class="gyg-pcard-price-label" style="margin-top:auto;padding-top:8px;">Kişiye özel fiyat</div>
+            <div class="gyg-pcard-price-label">Kişiye özel fiyat</div>
             <div class="gyg-pcard-price" style="font-size:.95rem;color:#718096;font-weight:600;">Fiyat Al</div>
             <span class="gyg-pcard-cta outline">Ücretsiz Teklif Al</span>
         @else
-            <div class="gyg-pcard-price-label" style="margin-top:auto;padding-top:8px;">Talep üzerine</div>
+            <div class="gyg-pcard-price-label">Talep üzerine</div>
             <span class="gyg-pcard-cta outline">Bilgi Al</span>
         @endif
     </div>

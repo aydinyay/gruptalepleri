@@ -271,7 +271,8 @@
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    flex-direction: column;
     transition: transform .2s, box-shadow .2s;
     background: #fff;
     border: 1px solid #f0f0f0;
@@ -305,13 +306,13 @@
     padding: 3px 10px; border-radius: 50px;
     backdrop-filter: blur(4px);
 }
-.gyg-pcard-body { padding: 14px; }
+.gyg-pcard-body { padding: 14px; display: flex; flex-direction: column; flex: 1; }
 .gyg-pcard-cat { font-size: .75rem; color: #718096; margin-bottom: 4px; }
 .gyg-pcard-title { font-size: .93rem; font-weight: 600; line-height: 1.4; color: #1a202c; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gyg-pcard-stars { color: #f4a418; font-size: .85rem; letter-spacing: -.05em; }
 .gyg-pcard-rating { font-weight: 700; font-size: .88rem; color: #1a202c; }
 .gyg-pcard-reviews { font-size: .82rem; color: #718096; }
-.gyg-pcard-price-label { font-size: .75rem; color: #718096; margin-top: 8px; }
+.gyg-pcard-price-label { font-size: .75rem; color: #718096; margin-top: auto; padding-top: 8px; }
 .gyg-pcard-price { font-size: 1.05rem; font-weight: 700; color: #1a202c; }
 
 /* ═══════════════════════════════════════════════════════
