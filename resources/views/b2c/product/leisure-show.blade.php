@@ -3,11 +3,21 @@
 @section('content')
 
 @php
-    $heroRaw = $package->hero_image_url ?? null;
-    if ($heroRaw && !str_starts_with($heroRaw, 'http')) {
-        $heroRaw = 'https://gruptalepleri.com/' . ltrim($heroRaw, '/');
-    }
-    $heroImg = $heroRaw ?: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=1200';
+    // Görseller gruptalepleri.com sunucusunda — B2C'de doğru domain'i zorla
+    $b2bAsset = function(?string $url): ?string {
+        if (!$url) return null;
+        if (str_starts_with($url, 'http')) {
+            return str_replace(
+                ['gruprezervasyonlari.com', config('b2c.domain', 'gruprezervasyonlari.com')],
+                'gruptalepleri.com',
+                $url
+            );
+        }
+        return 'https://gruptalepleri.com/' . ltrim($url, '/');
+    };
+
+    $heroImg = $b2bAsset($package->hero_image_url)
+        ?: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
     $galleryImgs = $galleryPhotos->isNotEmpty()
         ? $galleryPhotos->take(3)->values()
@@ -103,7 +113,7 @@ body{background:var(--bg);color:var(--txt);}
         </div>
         @foreach($galleryImgs->take(2) as $i => $asset)
             <div class="lp-gallery-thumb" onclick="lpLbOpen({{ $i + 1 }})">
-                <img src="{{ $asset->resolvedUrl() }}" alt="{{ $asset->title_tr ?? '' }}" loading="lazy">
+                <img src="{{ $b2bAsset($asset->resolvedUrl()) }}" alt="{{ $asset->title_tr ?? '' }}" loading="lazy">
                 @if($i === 1 && count($lbItems) > 3)
                     <div class="lp-gallery-more">+{{ count($lbItems) - 3 }} fotoğraf</div>
                 @endif
