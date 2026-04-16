@@ -99,8 +99,10 @@
             <div class="card gt-transfer-booking-card">
                 <div class="card-body p-4">
                     <h2 class="h5 fw-bold mb-3">Rezervasyon Detayları</h2>
-                    @php($contact = data_get($booking->price_snapshot_json, 'contact', []))
-                    @php($operation = data_get($booking->price_snapshot_json, 'operation_details', []))
+                    @php
+                        $contact = data_get($booking->price_snapshot_json, 'contact', []);
+                        $operation = data_get($booking->price_snapshot_json, 'operation_details', []);
+                    @endphp
                     <div class="gt-transfer-kv"><span>Supplier</span><strong>{{ $booking->supplier?->company_name }}</strong></div>
                     <div class="gt-transfer-kv"><span>Araç Tipi</span><strong>{{ $booking->vehicleType?->name }}</strong></div>
                     <div class="gt-transfer-kv"><span>Rota</span><strong>{{ $booking->airport?->code }} → {{ $booking->zone?->name }}</strong></div>
@@ -198,8 +200,10 @@
 
 {{-- ── VOUCHER (sadece print görünümünde / yazdır basıldığında) ── --}}
 <div class="container mt-4" id="gtVoucher" style="display:none;">
-    @php($contact   = data_get($booking->price_snapshot_json, 'contact', []))
-    @php($operation = data_get($booking->price_snapshot_json, 'operation_details', []))
+    @php
+        $contact   = data_get($booking->price_snapshot_json, 'contact', []);
+        $operation = data_get($booking->price_snapshot_json, 'operation_details', []);
+    @endphp
     <div class="gt-voucher">
         <div class="gt-voucher-header">
             <div>
