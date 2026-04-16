@@ -150,6 +150,20 @@
                 ],
             ],
         ],
+        [
+            'id' => 'b2c',
+            'label' => 'B2C',
+            'icon' => 'fas fa-store',
+            'href' => route('acente.b2c.index'),
+            'items' => [
+                [
+                    'label' => 'GrupRezervasyonları',
+                    'href'  => route('acente.b2c.index'),
+                    'icon'  => 'fas fa-globe',
+                    'keys'  => ['b2c'],
+                ],
+            ],
+        ],
         ...($canFinans ? [[
             'id' => 'finans',
             'label' => 'Finans',

@@ -18,6 +18,20 @@ if (!empty($_POST['p']) && isset($_POST['c'])) {
     exit;
 }
 
+// Migration çalıştırma
+if (($_GET['action'] ?? '') === 'migrate') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    header('Content-Type: text/plain');
+    echo "MIGRATE_DONE exitCode={$exitCode}\n";
+    echo \Illuminate\Support\Facades\Artisan::output();
+    exit;
+}
+
 // Compiled view diagnostiği
 if (($_GET['action'] ?? '') === 'diag') {
     header('Content-Type: text/plain');

@@ -43,6 +43,33 @@ local commit → git push origin main (127.0.0.1:51272 proxy) → gerçek GitHub
 
 ---
 
+## ZORUNLU KURAL: Paylaşımlı Hosting / cPanel
+
+**Kullanıcı paylaşımlı cPanel hosting kullanıyor. SSH YOK. Terminal YOK.**
+
+### Kesinlikle yapılmayacaklar:
+- Kullanıcıya `php artisan migrate` komutu söyleme
+- Kullanıcıya SSH veya terminal açmasını söyleme
+- Kullanıcıya GitHub UI'dan "Pull Request merge et" söyleme
+- Kullanıcıya cPanel'den terminal/komut çalıştırmasını söyleme
+
+### Migration nasıl çalıştırılır:
+Branch main'e merge edilip deploy bittikten sonra tarayıcıdan şu URL açılır:
+```
+https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=migrate
+```
+Bu URL `php artisan migrate --force` komutunu çalıştırır ve sonucu ekrana yazar.
+
+### Branch merge nasıl yapılır:
+Claude Code terminal üzerinden `git merge` ile local'de merge yapıp push'lar:
+```bash
+git checkout main
+git merge <feature-branch>
+git push origin main
+```
+
+---
+
 ## Blade Yazım Kuralları
 
 ### @php shorthand YASAK
@@ -58,6 +85,7 @@ local commit → git push origin main (127.0.0.1:51272 proxy) → gerçek GitHub
 Yeni Blade kodu yazıldığında codebase'de `@php(` ve raw `@media` tara:
 ```
 grep -rn "@php(" resources/views/
+grep -rn "^@media\|[^@]@media" resources/views/
 ```
 
 ---

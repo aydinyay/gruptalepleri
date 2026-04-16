@@ -194,3 +194,21 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [CheckoutController::class, 'paynkolayFail'])->name('fail');
     });
 
+// ── B2C Transfer ───────────────────────────────────────────────────────────
+Route::prefix('transfer')->name('b2c.transfer.')->group(function () {
+    Route::get('/',                                      [\App\Http\Controllers\B2C\TransferController::class, 'index'])->name('index');
+    Route::get('/bolgeler',                              [\App\Http\Controllers\B2C\TransferController::class, 'zones'])->name('zones');
+    Route::post('/ara',                                  [\App\Http\Controllers\B2C\TransferController::class, 'search'])->name('search');
+    Route::get('/checkout/{quoteToken}',                 [\App\Http\Controllers\B2C\TransferController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout/{quoteToken}/rezervasyon',    [\App\Http\Controllers\B2C\TransferController::class, 'book'])->name('book');
+    Route::get('/rezervasyon/{bookingRef}',              [\App\Http\Controllers\B2C\TransferController::class, 'bookingShow'])->name('booking');
+    Route::get('/rezervasyon/{bookingRef}/voucher',     [\App\Http\Controllers\B2C\TransferController::class, 'bookingVoucher'])->name('voucher');
+});
+
+// Transfer ödeme callback'leri (CSRF muaf)
+Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->prefix('transfer/odeme')->name('b2c.transfer.payment.')->group(function () {
+        Route::match(['get', 'post'], '/basarili', [\App\Http\Controllers\B2C\TransferController::class, 'paymentSuccess'])->name('success');
+        Route::match(['get', 'post'], '/basarisiz', [\App\Http\Controllers\B2C\TransferController::class, 'paymentFail'])->name('fail');
+    });
+
