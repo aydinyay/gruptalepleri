@@ -181,7 +181,7 @@ VF153 14/05/2026 SAW - ECN 07:15-08:45"></textarea>
                     <div class="qr-box"><div class="qr-label">Dönüş</div><div class="qr-value">{{ $payload['return_date'] ?? 'bulunamadı' }}</div></div>
                     <div class="qr-box"><div class="qr-label">Fiyat</div><div class="qr-value">{{ $payload['price_per_pax'] ?? 'bulunamadı' }}</div></div>
                     <div class="qr-box"><div class="qr-label">Para Birimi</div><div class="qr-value">{{ $payload['currency'] ?? 'bulunamadı' }}</div></div>
-                    @php($payloadAirlineLogo = app(\App\Services\AirlineLogoService::class)->resolve($payload['airline'] ?? null))
+                    @php $payloadAirlineLogo = app(\App\Services\AirlineLogoService::class)->resolve($payload['airline'] ?? null); @endphp
                     <div class="qr-box">
                         <div class="qr-label">Havayolu</div>
                         <div class="qr-value d-flex align-items-center gap-2">

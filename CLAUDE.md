@@ -43,6 +43,25 @@ local commit → git push origin main (127.0.0.1:51272 proxy) → gerçek GitHub
 
 ---
 
+## Blade Yazım Kuralları
+
+### @php shorthand YASAK
+`@php($var = expr)` sözdizimi production'da yanlış derleniyor (`<?php($var = expr)` üretiyor — boşluksuz, kapanış yok). **ASLA kullanma.**
+
+**Doğru:** `@php $var = expr; @endphp`  
+**Yanlış:** `@php($var = expr)`
+
+### @media CSS yasak (CSS içinde)
+`<style>` bloğu içindeki `@media` Blade direktifi olarak işleniyor. `@@media` kullan.
+
+### Her Blade değişikliğinde kontrol et
+Yeni Blade kodu yazıldığında codebase'de `@php(` ve raw `@media` tara:
+```
+grep -rn "@php(" resources/views/
+```
+
+---
+
 ## Proje Kuralları
 
 - Acente controller'larında `auth()->user()` değil `$this->acenteActor()` kullan

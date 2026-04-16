@@ -393,7 +393,7 @@
                             </thead>
                             <tbody>
                             @forelse($settlements as $settlement)
-                                @php($booking = $settlement->booking)
+                                @php $booking = $settlement->booking; @endphp
                                 <tr>
                                     <td>
                                         @if($booking)

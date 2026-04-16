@@ -276,7 +276,7 @@
                         <div class="section-kicker mt-4">5. Ekstralar ve notlar</div>
                         <div class="extra-grid mt-3">
                             @foreach($extraOptions as $option)
-                                @php($checked = $option->default_included || in_array($option->code, $selectedExtras, true))
+                                @php $checked = $option->default_included || in_array($option->code, $selectedExtras, true); @endphp
                                 <label class="extra-option {{ $option->default_included ? 'included' : '' }}">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="extra_option_codes[]" value="{{ $option->code }}" @checked($checked) @disabled($option->default_included)>
