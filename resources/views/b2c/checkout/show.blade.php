@@ -107,31 +107,41 @@
         <div class="ck-summary">
             <div style="font-size:1rem;font-weight:800;color:#1a202c;margin-bottom:16px;">Sipariş Özeti</div>
 
-            @php $grandTotal = 0; @endphp
+            @php $grandTotal = 0; $cartCurrency = 'TRY'; @endphp
             @foreach($cart as $rowId => $row)
             @php
                 $lineTotal = ($row['base_price'] ?? 0) * ($row['pax_count'] ?? 1);
                 $grandTotal += $lineTotal;
+                if (!empty($row['currency'])) $cartCurrency = $row['currency'];
             @endphp
-            <div style="margin-bottom:14px;">
-                <div class="ck-item-title">{{ $row['title'] }}</div>
-                @if(!empty($row['service_date']))
-                <div class="ck-item-meta"><i class="bi bi-calendar3 me-1"></i>{{ \Carbon\Carbon::parse($row['service_date'])->format('d M Y') }}</div>
-                @endif
-                <div class="ck-item-meta"><i class="bi bi-people me-1"></i>{{ $row['pax_count'] }} kişi</div>
-                @if($row['pricing_type'] === 'fixed' && $row['base_price'])
-                <div class="ck-item-meta">
-                    {{ number_format($row['base_price'],0,',','.') }} {{ $row['currency'] }} × {{ $row['pax_count'] }} kişi
-                    = <strong>{{ number_format($lineTotal,0,',','.') }} {{ $row['currency'] }}</strong>
+            <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div style="flex:1;">
+                    <div class="ck-item-title">{{ $row['title'] }}</div>
+                    @if(!empty($row['service_date']))
+                    <div class="ck-item-meta"><i class="bi bi-calendar3 me-1"></i>{{ \Carbon\Carbon::parse($row['service_date'])->format('d M Y') }}</div>
+                    @endif
+                    <div class="ck-item-meta"><i class="bi bi-people me-1"></i>{{ $row['pax_count'] }} kişi</div>
+                    @if($row['pricing_type'] === 'fixed' && $row['base_price'])
+                    <div class="ck-item-meta">
+                        {{ number_format($row['base_price'],0,',','.') }} {{ $row['currency'] }} × {{ $row['pax_count'] }} kişi
+                        = <strong>{{ number_format($lineTotal,0,',','.') }} {{ $row['currency'] }}</strong>
+                    </div>
+                    @endif
                 </div>
-                @endif
+                <form method="POST" action="{{ route('b2c.cart.remove', $rowId) }}" style="flex-shrink:0;">
+                    @csrf @method('DELETE')
+                    <button type="submit" title="Kaldır"
+                            style="border:none;background:none;color:#e53e3e;font-size:1rem;cursor:pointer;padding:0;">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </form>
             </div>
             <hr class="ck-divider">
             @endforeach
 
             <div class="ck-total-row">
                 <span class="ck-total-label">Toplam</span>
-                <span class="ck-total-amount">{{ number_format($grandTotal,0,',','.') }} TRY</span>
+                <span class="ck-total-amount">{{ number_format($grandTotal,0,',','.') }} {{ $cartCurrency }}</span>
             </div>
 
             <div style="margin-top:16px;padding:12px 14px;background:#f0f7ff;border-radius:9px;font-size:.82rem;color:#1a3c6b;">
