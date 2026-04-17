@@ -547,11 +547,11 @@
         }
         .gyg-pcard-cta:hover { background: #e04420; }
         .gyg-pcard-cta.outline {
-            background: transparent;
-            border: 2px solid var(--gr-primary);
-            color: var(--gr-primary) !important;
+            background: var(--gr-primary);
+            border: none;
+            color: #fff !important;
         }
-        .gyg-pcard-cta.outline:hover { background: var(--gr-primary); color: #fff !important; }
+        .gyg-pcard-cta.outline:hover { background: #152f56; }
 
         /* Bölüm başlık + "tümünü gör" satırı */
         .gyg-section-head {
