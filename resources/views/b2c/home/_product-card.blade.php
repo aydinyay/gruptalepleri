@@ -37,7 +37,6 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
         @if($item->badge_label)
             @php
             $badgeStyles = [
-                'Öne Çıkan'  => 'background:#FF5533;color:#fff;',
                 'Popüler'    => 'background:#3182ce;color:#fff;',
                 'Yeni'       => 'background:#38a169;color:#fff;',
                 'Son Fırsat' => 'background:#e53e3e;color:#fff;',

@@ -437,7 +437,7 @@ class B2cCatalogController extends Controller
 
     public function catalogSetBadge(Request $request, CatalogItem $item): RedirectResponse
     {
-        $allowed = ['', 'Öne Çıkan', 'Popüler', 'Yeni', 'Son Fırsat', 'İndirim', 'Sınırlı'];
+        $allowed = ['', 'Popüler', 'Yeni', 'Son Fırsat', 'İndirim', 'Sınırlı'];
         $badge   = in_array($request->input('badge_label'), $allowed, true) ? $request->input('badge_label') : '';
         $item->update(['badge_label' => $badge ?: null]);
         return back()->with('success', '"' . $item->title . '" etiket güncellendi.');
