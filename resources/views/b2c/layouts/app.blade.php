@@ -690,33 +690,37 @@
                             <div class="sidebar-title">Kategoriler</div>
                             <a href="{{ route('b2c.catalog.index') }}" class="sidebar-see-all">Tümünü keşfet →</a>
                             <ul>
-                                <li><a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}" class="{{ request()->route('slug') === 'dinner-cruise' ? 'active' : '' }}">Dinner Cruise</a></li>
-                                <li><a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" class="{{ request()->route('slug') === 'yat-kiralama' ? 'active' : '' }}">Yat Kiralama</a></li>
-                                <li><a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}" class="{{ request()->route('slug') === 'yurt-ici-turlar' ? 'active' : '' }}">Yurt İçi Turlar</a></li>
-                                <li><a href="{{ route('b2c.catalog.category', 'yurt-disi-turlar') }}" class="{{ request()->route('slug') === 'yurt-disi-turlar' ? 'active' : '' }}">Yurt Dışı Turlar</a></li>
-                                <li><a href="{{ route('b2c.catalog.category', 'gunubirlik-turlar') }}" class="{{ request()->route('slug') === 'gunubirlik-turlar' ? 'active' : '' }}">Günübirlik Turlar</a></li>
+                                @foreach(($navCategories ?? collect())->take(6) as $cat)
+                                <li><a href="{{ route('b2c.catalog.category', $cat->slug) }}" class="{{ request()->route('slug') === $cat->slug ? 'active' : '' }}">{{ $cat->name }}</a></li>
+                                @endforeach
                             </ul>
                         </div>
                         <div class="gyg-mega-grid">
                             @php
-                                $megaAktiviteler = [
-                                    ['icon'=>'bi-water',           'title'=>'Dinner Cruise',          'sub'=>'İstanbul Boğazı',     'slug'=>'dinner-cruise'],
-                                    ['icon'=>'bi-tsunami',         'title'=>'Yat Kiralama',            'sub'=>'Ege & Akdeniz',       'slug'=>'yat-kiralama'],
-                                    ['icon'=>'bi-map-fill',        'title'=>'Yurt İçi Turlar',         'sub'=>'Tüm Türkiye',         'slug'=>'yurt-ici-turlar'],
-                                    ['icon'=>'bi-globe-americas',  'title'=>'Yurt Dışı Turlar',        'sub'=>'Dünya geneli',        'slug'=>'yurt-disi-turlar'],
-                                    ['icon'=>'bi-sunrise-fill',    'title'=>'Günübirlik Turlar',       'sub'=>'Günü birlik geziler', 'slug'=>'gunubirlik-turlar'],
-                                    ['icon'=>'bi-binoculars-fill', 'title'=>'Şehir Turları',           'sub'=>'Rehberli turlar',     'slug'=>'yurt-ici-turlar'],
-                                    ['icon'=>'bi-camera-fill',     'title'=>'Fotoğraf Turları',        'sub'=>'Anı yakala',         'slug'=>'yurt-ici-turlar'],
-                                    ['icon'=>'bi-stars',           'title'=>'VIP Deneyimler',          'sub'=>'Özel organizasyon',   'slug'=>'dinner-cruise'],
-                                    ['icon'=>'bi-people-fill',     'title'=>'Grup Paketleri',          'sub'=>'10+ kişi',            'slug'=>'yurt-ici-turlar'],
-                                ];
+                            $catIconMap = [
+                                'dinner-cruise'     => 'bi-water',
+                                'yat-kiralama'      => 'bi-tsunami',
+                                'yurt-ici-turlar'   => 'bi-map-fill',
+                                'yurt-disi-turlar'  => 'bi-globe-americas',
+                                'gunubirlik-turlar' => 'bi-sunrise-fill',
+                                'transfer'          => 'bi-car-front-fill',
+                                'charter'           => 'bi-airplane-fill',
+                                'ozel-jet'          => 'bi-airplane-fill',
+                                'ozel-jet-charter'  => 'bi-airplane-fill',
+                                'air-charter'       => 'bi-airplane-engines',
+                                'helikopter'        => 'bi-helicopter',
+                                'sehir-turlari'     => 'bi-binoculars-fill',
+                                'fotograf-turlari'  => 'bi-camera-fill',
+                                'vip-deneyimler'    => 'bi-stars',
+                                'grup-paketleri'    => 'bi-people-fill',
+                            ];
                             @endphp
-                            @foreach($megaAktiviteler as $m)
-                            <a href="{{ route('b2c.catalog.category', $m['slug']) }}" class="gyg-mega-item">
-                                <div class="thumb"><i class="bi {{ $m['icon'] }}"></i></div>
+                            @foreach(($navCategories ?? collect())->take(9) as $cat)
+                            <a href="{{ route('b2c.catalog.category', $cat->slug) }}" class="gyg-mega-item">
+                                <div class="thumb"><i class="bi {{ $catIconMap[$cat->slug] ?? 'bi-grid' }}"></i></div>
                                 <div class="item-text">
-                                    {{ $m['title'] }}<br>
-                                    <span style="font-weight:400;color:var(--gr-muted);font-size:.8rem;">{{ $m['sub'] }}</span>
+                                    {{ $cat->name }}<br>
+                                    <span style="font-weight:400;color:var(--gr-muted);font-size:.8rem;">{{ $cat->published_items_count }} deneyim</span>
                                 </div>
                             </a>
                             @endforeach
@@ -737,33 +741,36 @@
                             <div class="sidebar-title">Bölgeler</div>
                             <a href="{{ route('b2c.catalog.index') }}" class="sidebar-see-all">Tüm destinasyonlar →</a>
                             <ul>
-                                <li><a href="{{ route('b2c.catalog.index') }}?sehir=istanbul">İstanbul</a></li>
-                                <li><a href="{{ route('b2c.catalog.index') }}?sehir=antalya">Antalya</a></li>
-                                <li><a href="{{ route('b2c.catalog.index') }}?sehir=bodrum">Bodrum & Marmaris</a></li>
-                                <li><a href="{{ route('b2c.catalog.index') }}?sehir=kapadokya">Kapadokya</a></li>
-                                <li><a href="{{ route('b2c.catalog.index') }}?ulke=yurt-disi">Yurt Dışı</a></li>
+                                @foreach(($navCities ?? collect())->take(6) as $city)
+                                <li><a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode(mb_strtolower($city->destination_city)) }}">{{ $city->destination_city }}</a></li>
+                                @endforeach
                             </ul>
                         </div>
                         <div class="gyg-mega-grid">
                             @php
-                                $megaDestinasyonlar = [
-                                    ['icon'=>'bi-buildings-fill',  'title'=>'İstanbul',      'sub'=>'Şehir & Boğaz turları',    'sehir'=>'istanbul'],
-                                    ['icon'=>'bi-sun-fill',        'title'=>'Antalya',       'sub'=>'Sahil & doğa',             'sehir'=>'antalya'],
-                                    ['icon'=>'bi-water',           'title'=>'Bodrum',        'sub'=>'Yat & tekne',              'sehir'=>'bodrum'],
-                                    ['icon'=>'bi-cloud-fill',      'title'=>'Kapadokya',     'sub'=>'Balon & tarihi turlar',    'sehir'=>'kapadokya'],
-                                    ['icon'=>'bi-tree-fill',       'title'=>'Marmaris',      'sub'=>'Tekne turları',            'sehir'=>'marmaris'],
-                                    ['icon'=>'bi-snow',            'title'=>'Uludağ',        'sub'=>'Kış sporları',             'sehir'=>'uludag'],
-                                    ['icon'=>'bi-geo-alt-fill',    'title'=>'İzmir',         'sub'=>'Kültür & lezzet',          'sehir'=>'izmir'],
-                                    ['icon'=>'bi-globe-europe-africa', 'title'=>'Dubai',     'sub'=>'Yurt dışı paketler',       'sehir'=>'dubai'],
-                                    ['icon'=>'bi-globe-americas',  'title'=>'Diğer Ülkeler', 'sub'=>'Dünya geneli',             'sehir'=>'diger'],
-                                ];
+                            $cityIconMap = [
+                                'istanbul'   => 'bi-buildings-fill',
+                                'antalya'    => 'bi-sun-fill',
+                                'bodrum'     => 'bi-water',
+                                'kapadokya'  => 'bi-cloud-fill',
+                                'marmaris'   => 'bi-tree-fill',
+                                'uludağ'     => 'bi-snow',
+                                'izmir'      => 'bi-geo-alt-fill',
+                                'ankara'     => 'bi-building',
+                                'dubai'      => 'bi-globe-europe-africa',
+                                'dubai'      => 'bi-globe-europe-africa',
+                                'fethiye'    => 'bi-water',
+                                'alanya'     => 'bi-sun-fill',
+                                'trabzon'    => 'bi-mountain',
+                            ];
                             @endphp
-                            @foreach($megaDestinasyonlar as $d)
-                            <a href="{{ route('b2c.catalog.index') }}?sehir={{ $d['sehir'] }}" class="gyg-mega-item">
-                                <div class="thumb"><i class="bi {{ $d['icon'] }}"></i></div>
+                            @foreach(($navCities ?? collect()) as $city)
+                            @php $cityKey = mb_strtolower($city->destination_city); @endphp
+                            <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($cityKey) }}" class="gyg-mega-item">
+                                <div class="thumb"><i class="bi {{ $cityIconMap[$cityKey] ?? 'bi-geo-alt-fill' }}"></i></div>
                                 <div class="item-text">
-                                    {{ $d['title'] }}<br>
-                                    <span style="font-weight:400;color:var(--gr-muted);font-size:.8rem;">{{ $d['sub'] }}</span>
+                                    {{ $city->destination_city }}<br>
+                                    <span style="font-weight:400;color:var(--gr-muted);font-size:.8rem;">{{ $city->cnt }} deneyim</span>
                                 </div>
                             </a>
                             @endforeach

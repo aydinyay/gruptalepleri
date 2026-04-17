@@ -43,6 +43,34 @@ class AppServiceProvider extends ServiceProvider
             return route('acente.dashboard');
         });
 
+        // B2C navbar için kategoriler ve şehirler
+        View::composer('b2c.layouts.app', function ($view) {
+            static $navData = null;
+            if ($navData === null) {
+                try {
+                    $navCategories = \App\Models\B2C\CatalogCategory::active()
+                        ->rootCategories()
+                        ->ordered()
+                        ->withCount(['publishedItems'])
+                        ->get();
+
+                    $navCities = \App\Models\B2C\CatalogItem::published()
+                        ->whereNotNull('destination_city')
+                        ->where('destination_city', '!=', '')
+                        ->selectRaw('destination_city, COUNT(*) as cnt')
+                        ->groupBy('destination_city')
+                        ->orderByDesc('cnt')
+                        ->limit(9)
+                        ->get();
+                } catch (\Throwable $e) {
+                    $navCategories = collect();
+                    $navCities     = collect();
+                }
+                $navData = compact('navCategories', 'navCities');
+            }
+            $view->with($navData);
+        });
+
         // Admin ve superadmin telefon numaralarını tüm view'lara paylaş
         View::composer('*', function ($view) {
             static $adminTelefon     = null;
