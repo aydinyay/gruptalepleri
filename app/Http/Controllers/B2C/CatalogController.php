@@ -19,7 +19,11 @@ class CatalogController extends Controller
             $query->where('product_type', $type);
         }
         if ($city = $request->get('sehir')) {
-            $query->whereRaw('LOWER(destination_city) = ?', [mb_strtolower($city)]);
+            $cityLower = mb_strtolower($city);
+            $query->where(function ($q) use ($cityLower) {
+                $q->whereRaw('LOWER(destination_city) = ?', [$cityLower])
+                  ->orWhereHas('locations', fn ($lq) => $lq->where('slug', $cityLower));
+            });
         }
         if ($pricing = $request->get('fiyat')) {
             $query->where('pricing_type', $pricing);

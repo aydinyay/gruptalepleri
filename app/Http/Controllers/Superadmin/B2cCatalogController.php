@@ -7,6 +7,7 @@ use App\Models\B2C\B2cOrder;
 use App\Models\B2C\B2cPayment;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
+use App\Models\B2C\CatalogItemLocation;
 use App\Models\B2C\SupplierApplication;
 use App\Models\CharterPresetPackage;
 use App\Models\LeisurePackageTemplate;
@@ -101,6 +102,7 @@ class B2cCatalogController extends Controller
                 'currency'      => $package->currency,
                 'cover_image'   => $this->absoluteImageUrl($package->hero_image_url),
             ]);
+            $this->syncCharterLocations($existing, $package);
             $msg = $nowPublished ? 'Charter paketi B2C\'de yayına alındı.' : 'Charter paketi B2C\'den kaldırıldı.';
         } else {
             $category = CatalogCategory::where('slug', 'charter')
@@ -114,7 +116,7 @@ class B2cCatalogController extends Controller
                 $slug = $baseSlug . '-' . $i++;
             }
 
-            CatalogItem::create([
+            $newItem = CatalogItem::create([
                 'reference_type'  => 'charter_package',
                 'reference_id'    => $package->id,
                 'title'           => $package->title,
@@ -132,6 +134,7 @@ class B2cCatalogController extends Controller
                 'min_pax'         => $package->suggested_pax,
                 'destination_city'=> $package->from_label ?? $package->from_iata,
             ]);
+            $this->syncCharterLocations($newItem, $package);
             $msg = 'Charter paketi B2C\'ye eklendi ve yayına alındı.';
         }
 
@@ -370,7 +373,8 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        CatalogItem::create($validated);
+        $item = CatalogItem::create($validated);
+        $this->syncLocations($item, $request->input('locations_json', '[]'));
 
         return redirect()->route('superadmin.b2c.catalog')
             ->with('success', 'Ürün oluşturuldu.');
@@ -378,6 +382,7 @@ class B2cCatalogController extends Controller
 
     public function catalogEdit(CatalogItem $item)
     {
+        $item->load('locations');
         $categories = CatalogCategory::active()->ordered()->get();
         return view('superadmin.b2c.catalog-form', compact('item', 'categories'));
     }
@@ -405,6 +410,7 @@ class B2cCatalogController extends Controller
         }
 
         $item->update($validated);
+        $this->syncLocations($item, $request->input('locations_json', '[]'));
 
         return redirect()->route('superadmin.b2c.catalog')
             ->with('success', 'Ürün güncellendi.');
@@ -452,6 +458,41 @@ class B2cCatalogController extends Controller
     }
 
     // ── Private helpers ───────────────────────────────────────────────────
+
+    /** Lokasyon listesini JSON'dan alıp tüm mevcut kayıtlarla senkronize eder */
+    private function syncLocations(CatalogItem $item, string $json): void
+    {
+        $rows = collect(json_decode($json, true) ?: [])
+            ->filter(fn ($r) => !empty($r['name']) && !empty($r['type']))
+            ->map(fn ($r) => [
+                'type' => $r['type'],
+                'name' => trim($r['name']),
+                'slug' => Str::slug(trim($r['name'])),
+            ])
+            ->unique(fn ($r) => $r['type'] . '|' . $r['slug'])
+            ->values();
+
+        $item->locations()->delete();
+        foreach ($rows as $row) {
+            $item->locations()->create($row);
+        }
+    }
+
+    /** Charter paket için from/to şehirlerini lokasyon olarak kaydeder */
+    private function syncCharterLocations(CatalogItem $item, CharterPresetPackage $package): void
+    {
+        $locs = [];
+        foreach (['from_label' => $package->from_label, 'to_label' => $package->to_label] as $label) {
+            if ($label && trim($label) !== '') {
+                $locs[] = ['type' => 'il', 'name' => trim($label), 'slug' => Str::slug(trim($label))];
+            }
+        }
+        if (empty($locs)) return;
+        $item->locations()->delete();
+        foreach (collect($locs)->unique('slug') as $loc) {
+            $item->locations()->create($loc);
+        }
+    }
 
     /** Göreli yolları gruptalepleri.com tabanlı tam URL'ye çevirir */
     private function absoluteImageUrl(?string $url): ?string

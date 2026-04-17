@@ -245,6 +245,52 @@
                             </div>
                         </div>
 
+                        <div class="card border-0 shadow-sm p-4 mb-3">
+                            <div class="section-title mt-0">Konum Etiketleri</div>
+                            <div class="form-text mb-2">Bir ürün birden fazla lokasyonda görünebilir (belde, ilçe, il, bölge, ülke).</div>
+                            <input type="hidden" name="locations_json" id="locationsJson"
+                                   value="{{ json_encode(isset($item) ? $item->locations->map(fn($l) => ['type'=>$l->type,'name'=>$l->name])->values()->toArray() : []) }}">
+                            <div id="locationTags" class="d-flex flex-wrap gap-1 mb-2"></div>
+                            <div class="d-flex gap-1">
+                                <select id="locType" class="form-select form-select-sm" style="width:120px;flex-shrink:0;">
+                                    <option value="belde">Belde</option>
+                                    <option value="ilce">İlçe</option>
+                                    <option value="il" selected>İl / Şehir</option>
+                                    <option value="bolge">Bölge</option>
+                                    <option value="ulke">Ülke</option>
+                                </select>
+                                <input type="text" id="locName" class="form-control form-control-sm" placeholder="Ör: İstanbul">
+                                <button type="button" class="btn btn-sm btn-outline-primary px-3" onclick="addLocation()">Ekle</button>
+                            </div>
+                            <script>
+                            (function(){
+                                const typeLabels = {belde:'Belde',ilce:'İlçe',il:'İl',bolge:'Bölge',ulke:'Ülke'};
+                                let locs = JSON.parse(document.getElementById('locationsJson').value || '[]');
+                                function render(){
+                                    const c = document.getElementById('locationTags');
+                                    c.innerHTML = locs.map((l,i) =>
+                                        `<span class="badge bg-secondary d-inline-flex align-items-center gap-1" style="font-size:.78rem;font-weight:500;">
+                                            <span style="opacity:.75;font-size:.7rem;">${typeLabels[l.type]??l.type}</span> ${l.name}
+                                            <button type="button" onclick="removeLocation(${i})" class="btn-close btn-close-white ms-1" style="font-size:.55rem;"></button>
+                                        </span>`
+                                    ).join('');
+                                    document.getElementById('locationsJson').value = JSON.stringify(locs);
+                                }
+                                window.addLocation = function(){
+                                    const name = document.getElementById('locName').value.trim();
+                                    const type = document.getElementById('locType').value;
+                                    if(!name) return;
+                                    locs.push({type,name});
+                                    document.getElementById('locName').value = '';
+                                    render();
+                                };
+                                window.removeLocation = function(i){ locs.splice(i,1); render(); };
+                                document.getElementById('locName').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addLocation();} });
+                                render();
+                            })();
+                            </script>
+                        </div>
+
                         <div class="card border-0 shadow-sm p-4">
                             <div class="section-title mt-0">Puanlama (Manuel)</div>
                             <div class="row g-2">

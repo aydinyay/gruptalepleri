@@ -2,6 +2,7 @@
 
 namespace App\Models\B2C;
 
+use App\Models\B2C\CatalogItemLocation;
 use App\Models\TransferAirport;
 use App\Models\TransferZone;
 use App\Models\User;
@@ -94,6 +95,11 @@ class CatalogItem extends Model
     public function category()
     {
         return $this->belongsTo(CatalogCategory::class, 'category_id');
+    }
+
+    public function locations()
+    {
+        return $this->hasMany(CatalogItemLocation::class, 'catalog_item_id');
     }
 
     /** Tedarikçi acente — gruptalepleri.com'daki B2B user */

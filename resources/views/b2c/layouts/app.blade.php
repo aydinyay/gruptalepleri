@@ -742,7 +742,7 @@
                             <a href="{{ route('b2c.catalog.index') }}" class="sidebar-see-all">Tüm destinasyonlar →</a>
                             <ul>
                                 @foreach(($navCities ?? collect())->take(6) as $city)
-                                <li><a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode(mb_strtolower($city->destination_city)) }}">{{ $city->destination_city }}</a></li>
+                                <li><a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city->slug) }}">{{ $city->name }}</a></li>
                                 @endforeach
                             </ul>
                         </div>
@@ -765,11 +765,10 @@
                             ];
                             @endphp
                             @foreach(($navCities ?? collect()) as $city)
-                            @php $cityKey = mb_strtolower($city->destination_city); @endphp
-                            <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($cityKey) }}" class="gyg-mega-item">
-                                <div class="thumb"><i class="bi {{ $cityIconMap[$cityKey] ?? 'bi-geo-alt-fill' }}"></i></div>
+                            <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city->slug) }}" class="gyg-mega-item">
+                                <div class="thumb"><i class="bi {{ $cityIconMap[$city->slug] ?? 'bi-geo-alt-fill' }}"></i></div>
                                 <div class="item-text">
-                                    {{ $city->destination_city }}<br>
+                                    {{ $city->name }}<br>
                                     <span style="font-weight:400;color:var(--gr-muted);font-size:.8rem;">{{ $city->cnt }} deneyim</span>
                                 </div>
                             </a>

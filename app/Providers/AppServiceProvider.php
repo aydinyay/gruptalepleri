@@ -54,11 +54,11 @@ class AppServiceProvider extends ServiceProvider
                         ->withCount(['publishedItems'])
                         ->get();
 
-                    $navCities = \App\Models\B2C\CatalogItem::published()
-                        ->whereNotNull('destination_city')
-                        ->where('destination_city', '!=', '')
-                        ->selectRaw('destination_city, COUNT(*) as cnt')
-                        ->groupBy('destination_city')
+                    $navCities = \App\Models\B2C\CatalogItemLocation::whereHas(
+                            'item', fn ($q) => $q->published()
+                        )
+                        ->selectRaw('name, slug, type, COUNT(DISTINCT catalog_item_id) as cnt')
+                        ->groupBy('name', 'slug', 'type')
                         ->orderByDesc('cnt')
                         ->limit(9)
                         ->get();
