@@ -41,6 +41,9 @@
             <div class="stat-card" style="border-color:#1a3c6b;">
                 <div class="stat-num">{{ $stats['total_items'] }}</div>
                 <div class="stat-label">Toplam Ürün</div>
+                @if($stats['pending_publish'] > 0)
+                <div style="font-size:.72rem;color:#e67e22;margin-top:2px;">{{ $stats['pending_publish'] }} yayın bekliyor</div>
+                @endif
             </div>
         </div>
         <div class="col-6 col-md-2">

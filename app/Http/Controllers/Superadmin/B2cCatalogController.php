@@ -28,10 +28,11 @@ class B2cCatalogController extends Controller
 
     public function dashboard()
     {
+        $activeQ = fn () => CatalogItem::where(fn ($q) => $q->where('is_active', true)->orWhereNull('is_active'));
         $stats = [
-            'total_items'           => CatalogItem::count(),
-            'published_items'       => CatalogItem::where('is_published', true)->count(),
-            'pending_publish'       => CatalogItem::where('is_published', false)->count(),
+            'total_items'           => $activeQ()->count(),
+            'published_items'       => $activeQ()->where('is_published', true)->count(),
+            'pending_publish'       => $activeQ()->where('is_published', false)->count(),
             'total_categories'      => CatalogCategory::count(),
             'pending_supplier_apps' => SupplierApplication::where('status', 'pending')->count(),
         ];
