@@ -28,6 +28,7 @@
         : $mediaAssets->where('media_type','photo')->take(3)->values();
 
     $timeline       = is_array($package->timeline_tr) ? $package->timeline_tr : json_decode($package->timeline_tr ?? '[]', true);
+    $timelineEn     = is_array($package->timeline_en ?? null) ? $package->timeline_en : json_decode($package->timeline_en ?? '[]', true);
     $importantNotes = is_array($package->important_notes_tr) ? $package->important_notes_tr : json_decode($package->important_notes_tr ?? '[]', true);
 
     $lbItems = [['url' => $heroImg, 'type' => 'photo', 'alt' => $package->name_tr]];
@@ -226,8 +227,16 @@ body{background:var(--bg);color:var(--txt);}
             {{-- Program / Timeline --}}
             @if(!empty($timeline))
             <div class="lp-sec">
-                <div class="lp-sec-title">Program</div>
-                <ul class="lp-timeline">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-2" style="border-bottom:2px solid var(--brd);">
+                    <span style="font-size:1.1rem;font-weight:800;">Program</span>
+                    @if(!empty($timelineEn))
+                    <div style="display:flex;gap:.35rem;">
+                        <button id="tlBtnTr" onclick="tlLang('tr')" style="padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:#1a3c6b;color:#fff;border:none;cursor:pointer;">TR</button>
+                        <button id="tlBtnEn" onclick="tlLang('en')" style="padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:transparent;color:var(--muted);border:1.5px solid var(--brd);cursor:pointer;">EN</button>
+                    </div>
+                    @endif
+                </div>
+                <ul class="lp-timeline" id="tlTr">
                     @foreach($timeline as $tl)
                         <li>
                             <div class="lp-tl-time">{{ $tl['time'] ?? '' }}</div>
@@ -239,6 +248,20 @@ body{background:var(--bg);color:var(--txt);}
                         </li>
                     @endforeach
                 </ul>
+                @if(!empty($timelineEn))
+                <ul class="lp-timeline" id="tlEn" style="display:none;">
+                    @foreach($timelineEn as $tl)
+                        <li>
+                            <div class="lp-tl-time">{{ $tl['time'] ?? '' }}</div>
+                            <div class="lp-tl-dot"></div>
+                            <div class="lp-tl-text">
+                                <div class="fw-bold" style="font-size:.9rem;">{{ $tl['title'] ?? '' }}</div>
+                                @if(!empty($tl['desc']))<div style="font-size:.84rem;color:var(--muted);">{{ $tl['desc'] }}</div>@endif
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+                @endif
             </div>
             @endif
 
@@ -419,6 +442,22 @@ if (lpDurationSel) {
         const h = parseInt(lpDurationSel.value);
         if (lpTotal) lpTotal.textContent = lpFmt(lpPricePerHour * h);
     });
+}
+
+function tlLang(l) {
+    var trList = document.getElementById('tlTr');
+    var enList = document.getElementById('tlEn');
+    var btnTr  = document.getElementById('tlBtnTr');
+    var btnEn  = document.getElementById('tlBtnEn');
+    if (!trList || !enList) return;
+    trList.style.display = l === 'tr' ? '' : 'none';
+    enList.style.display = l === 'en' ? '' : 'none';
+    btnTr.style.cssText = l === 'tr'
+        ? 'padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:#1a3c6b;color:#fff;border:none;cursor:pointer;'
+        : 'padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:transparent;color:var(--muted);border:1.5px solid var(--brd);cursor:pointer;';
+    btnEn.style.cssText = l === 'en'
+        ? 'padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:#1a3c6b;color:#fff;border:none;cursor:pointer;'
+        : 'padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:transparent;color:var(--muted);border:1.5px solid var(--brd);cursor:pointer;';
 }
 </script>
 
