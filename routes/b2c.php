@@ -116,7 +116,14 @@ Route::post('/tedarikci-ol', [SupplierApplyController::class, 'store'])
 
 // ── Hakkımızda / Statik Sayfalar ───────────────────────────────────────────
 Route::get('/hakkimizda', fn () => view('b2c.static.hakkimizda'))->name('b2c.hakkimizda');
-Route::get('/iletisim', fn () => view('b2c.static.iletisim'))->name('b2c.iletisim');
+Route::get('/iletisim', function () {
+    $keys = ['sirket_unvan','sirket_adres','sirket_telefon','sirket_cep','sirket_whatsapp','sirket_eposta','sirket_instagram','sirket_facebook','sirket_tursab_no'];
+    $s = [];
+    foreach ($keys as $k) {
+        $s[$k] = \App\Models\SistemAyar::get($k, '');
+    }
+    return view('b2c.static.iletisim', ['sirket' => $s]);
+})->name('b2c.iletisim');
 Route::post('/iletisim', function (\Illuminate\Http\Request $request) {
     $request->validate([
         'name'    => 'required|string|max:100',

@@ -87,37 +87,63 @@
     {{-- Sol: iletişim bilgileri --}}
     <div>
         <div class="contact-info-card">
+            @if(!empty($sirket['sirket_unvan']))
+            <div style="font-size:.82rem;color:#718096;margin-bottom:16px;">{{ $sirket['sirket_unvan'] }}</div>
+            @endif
             <div class="contact-info-title">İletişim Bilgileri</div>
 
+            @php
+                $tel = $sirket['sirket_telefon'] ?: $sirket['sirket_cep'] ?: '';
+                $telRaw = preg_replace('/[^0-9+]/', '', $tel);
+            @endphp
+            @if($tel)
             <div class="contact-item">
                 <div class="contact-item-icon"><i class="bi bi-telephone-fill"></i></div>
                 <div>
                     <div class="contact-item-label">Telefon</div>
                     <div class="contact-item-value">
-                        <a href="tel:+902125550000">+90 (212) 555 00 00</a>
+                        <a href="tel:{{ $telRaw }}">{{ $tel }}</a>
                     </div>
                 </div>
             </div>
+            @endif
 
+            @if(!empty($sirket['sirket_cep']) && $sirket['sirket_cep'] !== $tel)
+            <div class="contact-item">
+                <div class="contact-item-icon"><i class="bi bi-phone-fill"></i></div>
+                <div>
+                    <div class="contact-item-label">Cep / Mobil</div>
+                    <div class="contact-item-value">
+                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sirket['sirket_cep']) }}">{{ $sirket['sirket_cep'] }}</a>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(!empty($sirket['sirket_eposta']))
             <div class="contact-item">
                 <div class="contact-item-icon"><i class="bi bi-envelope-fill"></i></div>
                 <div>
                     <div class="contact-item-label">E-posta</div>
                     <div class="contact-item-value">
-                        <a href="mailto:info@gruprezervasyonlari.com">info@gruprezervasyonlari.com</a>
+                        <a href="mailto:{{ $sirket['sirket_eposta'] }}">{{ $sirket['sirket_eposta'] }}</a>
                     </div>
                 </div>
             </div>
+            @endif
 
+            @if(!empty($sirket['sirket_whatsapp']))
+            @php $waRaw = preg_replace('/[^0-9]/', '', $sirket['sirket_whatsapp']); @endphp
             <div class="contact-item">
                 <div class="contact-item-icon"><i class="bi bi-whatsapp"></i></div>
                 <div>
                     <div class="contact-item-label">WhatsApp Destek</div>
                     <div class="contact-item-value">
-                        <a href="https://wa.me/902125550000" target="_blank">WhatsApp ile yazın</a>
+                        <a href="https://wa.me/{{ $waRaw }}" target="_blank">{{ $sirket['sirket_whatsapp'] }}</a>
                     </div>
                 </div>
             </div>
+            @endif
 
             <div class="contact-item">
                 <div class="contact-item-icon"><i class="bi bi-clock-fill"></i></div>
@@ -130,15 +156,44 @@
                 </div>
             </div>
 
+            @if(!empty($sirket['sirket_adres']))
             <div class="contact-item">
                 <div class="contact-item-icon"><i class="bi bi-geo-alt-fill"></i></div>
                 <div>
                     <div class="contact-item-label">Adres</div>
-                    <div class="contact-item-value" style="font-weight:400;font-size:.88rem;color:#4a5568;">
-                        İstanbul, Türkiye
+                    <div class="contact-item-value" style="font-weight:400;font-size:.88rem;color:#4a5568;line-height:1.5;">
+                        {!! nl2br(e($sirket['sirket_adres'])) !!}
                     </div>
                 </div>
             </div>
+            @endif
+
+            @if(!empty($sirket['sirket_tursab_no']))
+            <div class="contact-item">
+                <div class="contact-item-icon"><i class="bi bi-shield-check-fill"></i></div>
+                <div>
+                    <div class="contact-item-label">TÜRSAB Belge No</div>
+                    <div class="contact-item-value">{{ $sirket['sirket_tursab_no'] }}</div>
+                </div>
+            </div>
+            @endif
+
+            @if(!empty($sirket['sirket_instagram']) || !empty($sirket['sirket_facebook']))
+            <div class="contact-item">
+                <div class="contact-item-icon"><i class="bi bi-share-fill"></i></div>
+                <div>
+                    <div class="contact-item-label">Sosyal Medya</div>
+                    <div class="contact-item-value d-flex gap-3 mt-1">
+                        @if(!empty($sirket['sirket_instagram']))
+                        <a href="{{ $sirket['sirket_instagram'] }}" target="_blank" style="color:#e1306c;font-size:1.3rem;"><i class="bi bi-instagram"></i></a>
+                        @endif
+                        @if(!empty($sirket['sirket_facebook']))
+                        <a href="{{ $sirket['sirket_facebook'] }}" target="_blank" style="color:#1877f2;font-size:1.3rem;"><i class="bi bi-facebook"></i></a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- Tedarikçi CTA --}}
