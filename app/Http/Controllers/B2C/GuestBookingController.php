@@ -24,8 +24,13 @@ class GuestBookingController extends Controller
             'notes'        => 'nullable|string|max:1000',
         ]);
 
-        $isFixed  = $item->pricing_type === 'fixed' && $item->base_price > 0;
-        $total    = $isFixed ? round((float) $item->base_price * (int) $validated['pax_count'], 2) : null;
+        $isFixed     = $item->pricing_type === 'fixed' && $item->base_price > 0;
+        $isPerFlight = $item->product_type === 'charter';
+        $total       = $isFixed
+            ? ($isPerFlight
+                ? round((float) $item->base_price, 2)
+                : round((float) $item->base_price * (int) $validated['pax_count'], 2))
+            : null;
         $status   = $isFixed ? 'pending' : 'pending_quote';
         $payStatus = $isFixed ? 'unpaid' : 'unpaid';
 

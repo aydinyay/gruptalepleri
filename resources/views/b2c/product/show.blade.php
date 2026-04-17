@@ -254,9 +254,14 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 
 {{-- Transfer değil → Rezervasyon formu --}}
 @elseif($item->pricing_type === 'fixed' && $item->base_price)
-<div class="pc-label">Başlangıç fiyatı</div>
+@php $isCharterFlight = $item->product_type === 'charter'; @endphp
+<div class="pc-label">{{ $isCharterFlight ? 'Uçuş fiyatı (tüm yolcular)' : 'Başlangıç fiyatı' }}</div>
 <div class="pc-price" id="pcTotalPrice">{{ number_format($item->base_price,0,',','.') }} <span style="font-size:1rem;">{{ $item->currency }}</span></div>
+@if(!$isCharterFlight)
 <div class="pc-per">/ kişi başı — toplam aşağıda hesaplanır</div>
+@else
+<div class="pc-per">Kapasite: {{ $item->max_pax ?? $item->min_pax ?? '—' }} kişi — fiyat kişi sayısına göre değişmez</div>
+@endif
 
 @if($errors->any())
     <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:.82rem;color:#c53030;">
@@ -273,16 +278,19 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
                style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
     </div>
     <div style="margin-bottom:10px;">
-        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Kişi Sayısı</label>
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">
+            {{ $isCharterFlight ? 'Yolcu Sayısı' : 'Kişi Sayısı' }}
+        </label>
         <select name="pax_count" id="pcPax" style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;" onchange="pcCalc(this.value)">
-            @for($p=1;$p<=($item->max_pax ?? 50);$p++)
-                <option value="{{ $p }}" {{ old('pax_count',2)==$p?'selected':'' }}>{{ $p }} kişi</option>
+            @php $maxPax = $isCharterFlight ? ($item->max_pax ?? $item->min_pax ?? 20) : ($item->max_pax ?? 50); @endphp
+            @for($p=1;$p<=$maxPax;$p++)
+                <option value="{{ $p }}" {{ old('pax_count',1)==$p?'selected':'' }}>{{ $p }} kişi</option>
             @endfor
         </select>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding-top:8px;margin-bottom:10px;">
-        <span style="font-size:.85rem;color:#718096;">Toplam</span>
-        <span id="pcTotal" style="font-size:1.1rem;font-weight:800;color:#FF5533;">{{ number_format($item->base_price*2,0,',','.') }} {{ $item->currency }}</span>
+        <span style="font-size:.85rem;color:#718096;">{{ $isCharterFlight ? 'Uçuş Fiyatı' : 'Toplam' }}</span>
+        <span id="pcTotal" style="font-size:1.1rem;font-weight:800;color:#FF5533;">{{ number_format($item->base_price,0,',','.') }} {{ $item->currency }}</span>
     </div>
     <div style="margin-bottom:10px;">
         <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Ad Soyad</label>
@@ -536,11 +544,14 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 
 @if(!$item->hasLiveTransferPricing() && $item->pricing_type === 'fixed' && $item->base_price)
 <script>
-var _pcUnitPrice = {{ (float)$item->base_price }};
-var _pcCurrency  = '{{ $item->currency }}';
+var _pcUnitPrice   = {{ (float)$item->base_price }};
+var _pcCurrency    = '{{ $item->currency }}';
+var _pcIsCharter   = {{ $isCharterFlight ? 'true' : 'false' }};
 function pcCalc(pax) {
     var n = parseInt(pax) || 1;
-    var total = (_pcUnitPrice * n).toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' ' + _pcCurrency;
+    var total = _pcIsCharter
+        ? _pcUnitPrice.toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' ' + _pcCurrency
+        : (_pcUnitPrice * n).toLocaleString('tr-TR', {maximumFractionDigits:0}) + ' ' + _pcCurrency;
     var el = document.getElementById('pcTotal');
     if (el) el.textContent = total;
 }

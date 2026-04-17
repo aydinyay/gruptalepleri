@@ -133,16 +133,23 @@ $paidPayment = $order->payments->firstWhere('status', 'paid');
                             {{ $isPaid ? 'Ödendi' : 'Ödeme Bekliyor' }}
                         </span>
                     </div>
-                    @if($order->unit_price)
+                    @if($order->product_type === 'charter')
                         <div class="bk-row">
-                            <span class="bk-row-label">Birim fiyat</span>
-                            <span class="bk-row-val">{{ number_format((float)$order->unit_price,0,',','.') }} {{ $order->currency }}</span>
+                            <span class="bk-row-label">Fiyatlandırma</span>
+                            <span class="bk-row-val">Uçuş başına sabit fiyat</span>
+                        </div>
+                    @else
+                        @if($order->unit_price)
+                            <div class="bk-row">
+                                <span class="bk-row-label">Birim fiyat</span>
+                                <span class="bk-row-val">{{ number_format((float)$order->unit_price,0,',','.') }} {{ $order->currency }}</span>
+                            </div>
+                        @endif
+                        <div class="bk-row">
+                            <span class="bk-row-label">Kişi sayısı</span>
+                            <span class="bk-row-val">× {{ $order->pax_count }}</span>
                         </div>
                     @endif
-                    <div class="bk-row">
-                        <span class="bk-row-label">Kişi sayısı</span>
-                        <span class="bk-row-val">× {{ $order->pax_count }}</span>
-                    </div>
                     <div class="bk-total-row">
                         <span class="bk-total-label">{{ $isPaid ? 'Ödenen' : 'Toplam' }}</span>
                         <span class="bk-total-val">{{ number_format((float)$order->total_price,0,',','.') }} {{ $order->currency }}</span>
