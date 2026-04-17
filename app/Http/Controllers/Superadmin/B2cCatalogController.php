@@ -102,7 +102,10 @@ class B2cCatalogController extends Controller
             ]);
             $msg = $nowPublished ? 'Charter paketi B2C\'de yayına alındı.' : 'Charter paketi B2C\'den kaldırıldı.';
         } else {
-            $category = CatalogCategory::where('product_type', 'charter')->first();
+            $category = CatalogCategory::where('slug', 'charter')
+                ->orWhere('slug', 'ozel-jet-charter')
+                ->orWhere('slug', 'air-charter')
+                ->first();
             $baseSlug = Str::slug($package->title . '-' . $package->code);
             $slug = $baseSlug;
             $i = 1;
