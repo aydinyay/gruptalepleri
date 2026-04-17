@@ -20,14 +20,8 @@ class CharterPresetPackageController extends Controller
     private const HERO_IMAGE_UPLOAD_DIR = 'charter/preset-packages';
     private const HERO_IMAGE_STORAGE_PREFIX = '/storage/' . self::HERO_IMAGE_UPLOAD_DIR . '/';
 
-    private function assertAuthorized(): void
-    {
-        abort_unless(auth()->check() && auth()->user()->role === 'superadmin', 403);
-    }
-
     public function index()
     {
-        $this->assertAuthorized();
 
         return view('superadmin.charter-preset-packages', [
             'packages' => $this->loadPackages(),
@@ -38,7 +32,6 @@ class CharterPresetPackageController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->assertAuthorized();
 
         $payload = $this->validatePayload($request);
         $this->ensureHeroImageFeatureReady($request);
@@ -58,7 +51,6 @@ class CharterPresetPackageController extends Controller
 
     public function update(Request $request, string $packageCode): RedirectResponse
     {
-        $this->assertAuthorized();
 
         if ($this->usesDatabaseStorage()) {
             $current = CharterPresetPackage::query()
@@ -95,7 +87,6 @@ class CharterPresetPackageController extends Controller
 
     public function destroy(string $packageCode): RedirectResponse
     {
-        $this->assertAuthorized();
         $currentCode = strtolower(trim($packageCode));
 
         if ($this->usesDatabaseStorage()) {
