@@ -187,8 +187,8 @@
 .gyg-hero-card {
     background: #fff;
     border-radius: 12px;
-    width: 500px;
-    max-width: calc(50% - 8px);
+    flex: 1 1 300px;
+    max-width: 500px;
     text-align: left;
     text-decoration: none;
     transition: transform .2s, box-shadow .2s;
@@ -197,6 +197,9 @@
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,.18);
 }
+.gyg-hero-cards.count-1 .gyg-hero-card { max-width: 560px; }
+.gyg-hero-cards.count-2 .gyg-hero-card { max-width: 500px; }
+.gyg-hero-cards.count-3 .gyg-hero-card { max-width: 380px; }
 .gyg-hero-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.25); color: #1a202c; }
 .gyg-hero-card .hc-img {
     width: 150px;
@@ -212,7 +215,7 @@
 .gyg-hero-card .hc-price { font-weight: 800; font-size: 1.05rem; color: #1a202c; }
 .gyg-hero-card .hc-price-label { font-size: .7rem; color: #718096; }
 @@media (max-width: 680px) {
-    .gyg-hero-card { max-width: 100%; width: 100%; }
+    .gyg-hero-card { max-width: 100%; width: 100%; flex: 1 1 100%; }
     .gyg-hero-card .hc-img { width: 110px; min-width: 110px; }
 }
 
@@ -429,23 +432,12 @@
             <a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-hero-tag">Kapadokya</a>
         </div>
 
-        {{-- Hero kartları --}}
-        @php
-            $heroDisplay = $heroItems->isNotEmpty() ? $heroItems->take(2) : collect([
-                (object)['slug'=>'dinner-cruise','category'=>null,'product_type'=>'leisure',
-                 'title'=>'İstanbul: Türk Gecesi Gösterisi ile Boğazda Akşam Yemeği Gezisi',
-                 'duration_hours'=>3,'destination_city'=>'İstanbul','min_pax'=>1,
-                 'rating_avg'=>4.6,'review_count'=>2040,'pricing_type'=>'fixed','base_price'=>1284,'currency'=>'TRY'],
-                (object)['slug'=>'yurt-ici-turlar','category'=>null,'product_type'=>'tour',
-                 'title'=>'İstanbul: Üst Açık Otobüsle Şehir Turu & Panoramik Boğaz Gezisi',
-                 'duration_hours'=>4,'destination_city'=>'İstanbul','min_pax'=>1,
-                 'rating_avg'=>4.3,'review_count'=>890,'pricing_type'=>'fixed','base_price'=>650,'currency'=>'TRY'],
-            ]);
-        @endphp
-        <div class="gyg-hero-cards">
-            @foreach($heroDisplay as $hi)
+        {{-- Hero kartları — sadece Vizyon etiketliler, max 3 --}}
+        @if($heroItems->isNotEmpty())
+        <div class="gyg-hero-cards count-{{ $heroItems->count() }}">
+            @foreach($heroItems as $hi)
             @php
-                $hiImg = isset($hi->cover_image) && $hi->cover_image
+                $hiImg = $hi->cover_image
                     ? (str_starts_with($hi->cover_image, 'http') ? $hi->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $hi->cover_image)
                     : null;
             @endphp
@@ -459,11 +451,11 @@
                             @if($hi->duration_hours) {{ $hi->duration_hours }} saat · @endif
                             {{ $hi->destination_city ?? 'Türkiye' }}
                         </div>
-                        @if($hi->rating_avg > 0)
+                        @if(($hi->rating_avg ?? 0) > 0)
                         <div style="margin-bottom:6px;">
                             <span class="hc-stars">{!! str_repeat('★', (int)floor($hi->rating_avg)) !!}</span>
                             <span style="font-size:.82rem;font-weight:700;color:#1a202c;"> {{ number_format($hi->rating_avg,1) }}</span>
-                            @if($hi->review_count > 0)<span style="font-size:.75rem;color:#718096;"> ({{ number_format($hi->review_count,0,',','.') }})</span>@endif
+                            @if(($hi->review_count ?? 0) > 0)<span style="font-size:.75rem;color:#718096;"> ({{ number_format($hi->review_count,0,',','.') }})</span>@endif
                         </div>
                         @endif
                     </div>
@@ -479,6 +471,7 @@
             </a>
             @endforeach
         </div>
+        @endif
     </div>
 </section>
 

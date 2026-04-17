@@ -31,8 +31,8 @@ class HomeController extends Controller
         $featuredItems = $allItems->where('is_featured', true)->values();
         $latestItems   = $allItems->where('is_featured', false)->values();
 
-        // Hero kartları — öne çıkan ilk 2
-        $heroItems = $featuredItems->take(2);
+        // Hero kartları — sadece Vizyon etiketli, max 3
+        $heroItems = $allItems->where('badge_label', 'Vizyon')->take(3)->values();
 
         // Destinasyonlar — hangi şehirlerde ürün var
         $destinationCities = CatalogItem::published()
