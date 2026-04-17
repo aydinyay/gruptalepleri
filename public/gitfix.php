@@ -125,6 +125,17 @@ if (($_GET['action'] ?? '') === 'setenv') {
     exit;
 }
 
+// Dosya okuma (debug)
+if (($_GET['action'] ?? '') === 'readfile') {
+    $rel = trim($_GET['path'] ?? '');
+    if ($rel === '' || str_contains($rel, '..')) { echo 'INVALID'; exit; }
+    $full = "$webRoot/$rel";
+    if (!file_exists($full)) { echo "NOT_FOUND: $full"; exit; }
+    header('Content-Type: text/plain');
+    echo file_get_contents($full);
+    exit;
+}
+
 // Hata logu okuma
 if (($_GET['action'] ?? '') === 'log') {
     $which = $_GET['which'] ?? 'laravel';
