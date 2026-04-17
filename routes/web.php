@@ -844,6 +844,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::put('/katalog/{item}',        [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogUpdate'])->name('catalog.update');
         Route::post('/katalog/{item}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogTogglePublish'])->name('catalog.toggle-publish');
         Route::post('/katalog/{item}/one-cikan', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogToggleFeatured'])->name('catalog.toggle-featured');
+        Route::post('/katalog/{item}/etiket',   [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogSetBadge'])->name('catalog.set-badge');
         // Leisure & Transfer → B2C köprü toggle'ları
         Route::post('/leisure/{template}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'leisureTogglePublish'])->name('leisure.toggle-publish');
         Route::post('/transfer-arac/{vehicleType}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'transferVehicleTogglePublish'])->name('transfer-vehicle.toggle-publish');
