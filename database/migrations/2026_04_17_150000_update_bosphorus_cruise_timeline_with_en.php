@@ -55,28 +55,32 @@ return new class extends Migration {
                 'updated_at' => now(),
             ]);
 
-        // ── VIP — format düzelt (event → title) ───────────────────────────
+        // ── VIP (alkollü) — görselle eşleşen 19:00–23:30 programı ──────────
         DB::table('leisure_package_templates')
             ->where('product_type', 'dinner_cruise')
             ->where('code', 'vip')
             ->update([
                 'timeline_tr' => json_encode([
-                    ['time' => '18:30', 'title' => 'VIP Öncelikli Biniş',     'desc' => 'Kabataş İskelesi D kapısı — VIP öncelikli karşılama'],
-                    ['time' => '19:00', 'title' => 'Gemi Hareketi',           'desc' => 'Boğaz turuna başlangıç; içecek servisi açılıyor'],
-                    ['time' => '19:15', 'title' => 'İlk Kurs',                'desc' => 'Deniz ürünleri ve seçkin mezeler'],
-                    ['time' => '19:45', 'title' => 'Türk Gecesi Şovu',        'desc' => 'Oryantal dans, halk oyunları ve canlı müzik'],
-                    ['time' => '20:30', 'title' => 'VIP Ana Yemek',           'desc' => 'Ana yemek ve baklava servisi; sınırsız içecek devam ediyor'],
-                    ['time' => '21:00', 'title' => 'Serbest Eğlence',         'desc' => 'Fotoğraf çekimi ve dans pisti'],
-                    ['time' => '21:30', 'title' => 'Dönüş ve İniş',          'desc' => 'Kabataş İskelesi\'ne yanaşma'],
+                    ['time' => '19:00', 'title' => 'Otelden Alınma',           'desc' => 'Servis aracı otelinizden sizi alarak Kabataş İskelesi\'ne götürür (opsiyonel eklenti)'],
+                    ['time' => '19:45', 'title' => 'VIP Gemiye Biniş',         'desc' => 'Kabataş İskelesi D kapısı — VIP öncelikli karşılama ve masalara yerleşme'],
+                    ['time' => '20:00', 'title' => 'Gemi Hareketi',            'desc' => 'Boğaz turu başlıyor; sınırsız alkollü/alkolsüz içecek servisi açılıyor'],
+                    ['time' => '20:15', 'title' => 'İlk Kurs',                 'desc' => 'Çorba, soğuk mezeler ve ekmek servisi'],
+                    ['time' => '20:45', 'title' => 'Türk Gecesi Şovu',         'desc' => 'Canlı müzik, Türk halk dansları ve oryantal dans gösterisi'],
+                    ['time' => '21:30', 'title' => 'Ana Yemek',                'desc' => 'Türk mutfağından ana yemek ve tatlı servisi; sınırsız içecek devam ediyor'],
+                    ['time' => '22:00', 'title' => 'Serbest Eğlence',          'desc' => 'Dans pisti, canlı müzik ve fotoğraf çekimi'],
+                    ['time' => '23:00', 'title' => 'Gemi Dönüşü',              'desc' => 'Kabataş İskelesi\'ne yanaşma'],
+                    ['time' => '23:30', 'title' => 'Otele Transfer',           'desc' => 'Servis aracı ile otelinize dönüş (opsiyonel eklenti)'],
                 ], JSON_UNESCAPED_UNICODE),
                 'timeline_en' => json_encode([
-                    ['time' => '18:30', 'title' => 'VIP Priority Boarding',   'desc' => 'Kabataş Pier gate D — priority welcome and seating'],
-                    ['time' => '19:00', 'title' => 'Departure',               'desc' => 'Bosphorus cruise begins; drink service opens'],
-                    ['time' => '19:15', 'title' => 'First Course',            'desc' => 'Seafood and premium cold starters'],
-                    ['time' => '19:45', 'title' => 'Turkish Night Show',      'desc' => 'Oriental dance, folk performances and live music'],
-                    ['time' => '20:30', 'title' => 'VIP Main Course',         'desc' => 'Main dish and baklava service; unlimited drinks continue'],
-                    ['time' => '21:00', 'title' => 'Free Time',               'desc' => 'Photo opportunities and dance floor'],
-                    ['time' => '21:30', 'title' => 'Return & Disembark',      'desc' => 'Docking at Kabataş Pier'],
+                    ['time' => '19:00', 'title' => 'Hotel Pickup',             'desc' => 'Shuttle service picks you up from your hotel and drives to Kabataş Pier (optional add-on)'],
+                    ['time' => '19:45', 'title' => 'VIP Boarding',             'desc' => 'Kabataş Pier gate D — VIP priority welcome and seating'],
+                    ['time' => '20:00', 'title' => 'Departure',                'desc' => 'Bosphorus cruise begins; unlimited alcoholic & soft drink service opens'],
+                    ['time' => '20:15', 'title' => 'First Course',             'desc' => 'Soup, cold starters and bread service'],
+                    ['time' => '20:45', 'title' => 'Turkish Night Show',       'desc' => 'Live music, Turkish folk dance and oriental dance performance'],
+                    ['time' => '21:30', 'title' => 'Main Course',              'desc' => 'Turkish cuisine main dish and dessert; unlimited drinks continue'],
+                    ['time' => '22:00', 'title' => 'Free Time',                'desc' => 'Dance floor, live music and photo opportunities'],
+                    ['time' => '23:00', 'title' => 'Return',                   'desc' => 'Docking back at Kabataş Pier'],
+                    ['time' => '23:30', 'title' => 'Hotel Drop-off',           'desc' => 'Shuttle service back to your hotel (optional add-on)'],
                 ], JSON_UNESCAPED_UNICODE),
                 'updated_at' => now(),
             ]);
