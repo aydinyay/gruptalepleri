@@ -99,6 +99,7 @@ class B2cCatalogController extends Controller
                 'title'         => $package->title,
                 'base_price'    => $package->price,
                 'currency'      => $package->currency,
+                'cover_image'   => $this->absoluteImageUrl($package->hero_image_url),
             ]);
             $msg = $nowPublished ? 'Charter paketi B2C\'de yayına alındı.' : 'Charter paketi B2C\'den kaldırıldı.';
         } else {
@@ -122,6 +123,7 @@ class B2cCatalogController extends Controller
                 'pricing_type'    => 'fixed',
                 'base_price'      => $package->price,
                 'currency'        => $package->currency,
+                'cover_image'     => $this->absoluteImageUrl($package->hero_image_url),
                 'is_published'    => true,
                 'published_at'    => now(),
                 'is_active'       => true,
