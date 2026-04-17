@@ -37,25 +37,37 @@
 
     {{-- İstatistikler --}}
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <div class="stat-card" style="border-color:#1a3c6b;">
                 <div class="stat-num">{{ $stats['total_items'] }}</div>
                 <div class="stat-label">Toplam Ürün</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <div class="stat-card" style="border-color:#27ae60;">
                 <div class="stat-num text-success">{{ $stats['published_items'] }}</div>
                 <div class="stat-label">Yayında</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card" style="border-color:#e67e22;">
-                <div class="stat-num text-warning">{{ $stats['pending_publish'] }}</div>
-                <div class="stat-label">Yayın Bekliyor</div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="border-color:#6f42c1;">
+                <div class="stat-num" style="color:#6f42c1;">{{ $orderStats['total'] }}</div>
+                <div class="stat-label">Toplam Rezervasyon</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="border-color:#e67e22;">
+                <div class="stat-num text-warning">{{ $orderStats['pending_payment'] }}</div>
+                <div class="stat-label">Ödeme Bekliyor</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="border-color:#27ae60;">
+                <div class="stat-num text-success">{{ $orderStats['paid'] }}</div>
+                <div class="stat-label">Ödendi</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
             <div class="stat-card" style="border-color:#e74c3c;">
                 <div class="stat-num text-danger">{{ $stats['pending_supplier_apps'] }}</div>
                 <div class="stat-label">Tedarikçi Başvurusu</div>
@@ -83,6 +95,11 @@
         <div class="col-md-2 col-4">
             <a href="{{ route('superadmin.b2c.supplier-apps') }}" class="btn btn-warning w-100">
                 <i class="fas fa-building me-1"></i>Başvurular
+            </a>
+        </div>
+        <div class="col-md-2 col-4">
+            <a href="{{ route('superadmin.b2c.orders') }}" class="btn btn-outline-purple w-100" style="border-color:#6f42c1;color:#6f42c1;">
+                <i class="fas fa-clipboard-list me-1"></i>Rezervasyonlar
             </a>
         </div>
         <div class="col-md-2 col-4">
@@ -268,6 +285,101 @@
                 </tr>
                 @empty
                 <tr><td colspan="5" class="text-center text-muted py-3">Transfer aracı bulunamadı.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Charter Paketleri --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-plane me-2 text-danger"></i>Air Charter Paketleri</h6>
+            <a href="{{ route('superadmin.charter.packages.index') }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="font-size:.875rem;">
+                <thead class="table-light">
+                    <tr><th>Paket</th><th>Rota</th><th>Fiyat</th><th>B2C Durumu</th><th>B2C Toggle</th></tr>
+                </thead>
+                <tbody>
+                @forelse($charterPackages as $pkg)
+                @php $ci = $pkg->catalogItem; @endphp
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ $pkg->title }}</div>
+                        <small class="text-muted">{{ $pkg->suggested_pax }} kişi · {{ ucfirst($pkg->transport_type) }}</small>
+                    </td>
+                    <td><span class="badge bg-secondary">{{ $pkg->from_iata }} → {{ $pkg->to_iata }}</span></td>
+                    <td>{{ number_format($pkg->price, 0, ',', '.') }} {{ $pkg->currency }}</td>
+                    <td>
+                        @if($ci && $ci->is_published)
+                            <span class="badge bg-success"><i class="fas fa-eye me-1"></i>Yayında</span>
+                        @elseif($ci)
+                            <span class="badge bg-warning text-dark">Taslak</span>
+                        @else
+                            <span class="text-muted small">Eklenmedi</span>
+                        @endif
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('superadmin.b2c.charter-package.toggle-publish', $pkg) }}">
+                            @csrf
+                            @if($ci && $ci->is_published)
+                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-eye-slash me-1"></i>Kaldır</button>
+                            @else
+                                <button class="btn btn-sm btn-success"><i class="fas fa-eye me-1"></i>Yayına Al</button>
+                            @endif
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="5" class="text-center text-muted py-3">Aktif charter paketi bulunamadı.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Son Rezervasyonlar --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-clipboard-list me-2" style="color:#6f42c1;"></i>Son Rezervasyonlar</h6>
+            <a href="{{ route('superadmin.b2c.orders') }}" class="btn btn-sm btn-outline-secondary">Tümü</a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="font-size:.875rem;">
+                <thead class="table-light">
+                    <tr><th>Ref</th><th>Misafir</th><th>Hizmet</th><th>Tutar</th><th>Ödeme</th><th>Tarih</th></tr>
+                </thead>
+                <tbody>
+                @forelse($recentOrders as $order)
+                <tr>
+                    <td><code style="font-size:.78rem;">{{ $order->order_ref }}</code></td>
+                    <td>
+                        <div class="fw-semibold">{{ $order->guest_name }}</div>
+                        <small class="text-muted">{{ $order->guest_phone }}</small>
+                    </td>
+                    <td><span class="text-truncate d-inline-block" style="max-width:180px;">{{ $order->item_title ?? $order->item?->title ?? '—' }}</span></td>
+                    <td>
+                        @if($order->total_price)
+                            {{ number_format($order->total_price, 0, ',', '.') }} {{ $order->currency }}
+                        @else
+                            <span class="text-muted">Teklif</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($order->payment_status === 'paid')
+                            <span class="badge bg-success">Ödendi</span>
+                        @elseif(in_array($order->status, ['pending_quote','quote_sent']))
+                            <span class="badge bg-info text-dark">Talep</span>
+                        @else
+                            <span class="badge bg-warning text-dark">Bekliyor</span>
+                        @endif
+                    </td>
+                    <td><small class="text-muted">{{ $order->created_at->format('d.m H:i') }}</small></td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center text-muted py-3">Henüz rezervasyon yok.</td></tr>
                 @endforelse
                 </tbody>
             </table>

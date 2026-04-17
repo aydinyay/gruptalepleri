@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\B2C\B2cOrder;
+use App\Models\B2C\B2cPayment;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
 use App\Models\B2C\SupplierApplication;
+use App\Models\CharterPresetPackage;
 use App\Models\LeisurePackageTemplate;
 use App\Models\TransferVehicleType;
 use Illuminate\Http\RedirectResponse;
@@ -36,7 +39,7 @@ class B2cCatalogController extends Controller
         $pendingApps = SupplierApplication::where('status', 'pending')->latest()->limit(5)->get();
 
         // Leisure şablonları ve Transfer araçları — mevcut CatalogItem bağlantısıyla
-        $linkedItems = CatalogItem::whereIn('reference_type', ['leisure_package', 'transfer_vehicle_type'])
+        $linkedItems = CatalogItem::whereIn('reference_type', ['leisure_package', 'transfer_vehicle_type', 'charter_package'])
             ->get()
             ->keyBy(fn ($ci) => $ci->reference_type . '_' . $ci->reference_id);
 
@@ -46,9 +49,88 @@ class B2cCatalogController extends Controller
         $transferVehicleTypes = TransferVehicleType::orderBy('sort_order')->get()
             ->each(fn ($vt) => $vt->catalogItem = $linkedItems->get('transfer_vehicle_type_' . $vt->id));
 
+        $charterPackages = CharterPresetPackage::where('is_active', true)
+            ->orderBy('sort_order')->orderBy('id')->get()
+            ->each(fn ($p) => $p->catalogItem = $linkedItems->get('charter_package_' . $p->id));
+
+        $orderStats = [
+            'total'           => B2cOrder::count(),
+            'pending_payment' => B2cOrder::where('payment_status', 'unpaid')->where('status', 'pending')->count(),
+            'paid'            => B2cOrder::where('payment_status', 'paid')->count(),
+            'inquiry'         => B2cOrder::whereIn('status', ['pending_quote', 'quote_sent'])->count(),
+            'revenue_try'     => (float) B2cPayment::where('status', 'paid')->sum('charged_try_amount'),
+        ];
+
+        $recentOrders = B2cOrder::with('item')->latest()->limit(10)->get();
+
         return view('superadmin.b2c.dashboard', compact(
-            'stats', 'latestItems', 'pendingApps', 'leisureTemplates', 'transferVehicleTypes'
+            'stats', 'latestItems', 'pendingApps',
+            'leisureTemplates', 'transferVehicleTypes', 'charterPackages',
+            'orderStats', 'recentOrders'
         ));
+    }
+
+    // ── B2C Rezervasyon Listesi ────────────────────────────────────────────
+
+    public function ordersIndex(Request $request)
+    {
+        $orders = B2cOrder::with('item')
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->payment, fn ($q) => $q->where('payment_status', $request->payment))
+            ->latest()
+            ->paginate(30);
+
+        return view('superadmin.b2c.orders', compact('orders'));
+    }
+
+    // ── Charter Paketi B2C Toggle ──────────────────────────────────────────
+
+    public function charterTogglePublish(CharterPresetPackage $package): RedirectResponse
+    {
+        $existing = CatalogItem::where('reference_type', 'charter_package')
+            ->where('reference_id', $package->id)
+            ->first();
+
+        if ($existing) {
+            $nowPublished = ! $existing->is_published;
+            $existing->update([
+                'is_published'  => $nowPublished,
+                'published_at'  => $nowPublished ? now() : null,
+                'title'         => $package->title,
+                'base_price'    => $package->price,
+                'currency'      => $package->currency,
+            ]);
+            $msg = $nowPublished ? 'Charter paketi B2C\'de yayına alındı.' : 'Charter paketi B2C\'den kaldırıldı.';
+        } else {
+            $category = CatalogCategory::where('product_type', 'charter')->first();
+            $baseSlug = Str::slug($package->title . '-' . $package->code);
+            $slug = $baseSlug;
+            $i = 1;
+            while (CatalogItem::where('slug', $slug)->exists()) {
+                $slug = $baseSlug . '-' . $i++;
+            }
+
+            CatalogItem::create([
+                'reference_type'  => 'charter_package',
+                'reference_id'    => $package->id,
+                'title'           => $package->title,
+                'slug'            => $slug,
+                'product_type'    => 'charter',
+                'pricing_type'    => 'fixed',
+                'base_price'      => $package->price,
+                'currency'        => $package->currency,
+                'is_published'    => true,
+                'published_at'    => now(),
+                'is_active'       => true,
+                'category_id'     => $category?->id,
+                'short_desc'      => $package->summary,
+                'min_pax'         => $package->suggested_pax,
+                'destination_city'=> $package->from_label ?? $package->from_iata,
+            ]);
+            $msg = 'Charter paketi B2C\'ye eklendi ve yayına alındı.';
+        }
+
+        return back()->with('success', $msg);
     }
 
     // ── Leisure şablonu B2C toggle ─────────────────────────────────────────

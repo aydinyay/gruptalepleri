@@ -15,7 +15,6 @@ class EnsureUserHasRole
     {
         $user = $request->user();
         if ($user === null) {
-            \Log::warning('EnsureUserHasRole: user null', ['path' => $request->path(), 'roles' => $roles]);
             abort(403);
         }
 
@@ -30,10 +29,7 @@ class EnsureUserHasRole
         }
 
         $userRole = strtolower(trim((string) ($user->role ?? '')));
-        if (!in_array($userRole, $allowedRoles, true)) {
-            \Log::warning('EnsureUserHasRole: role mismatch', ['path' => $request->path(), 'user_id' => $user->id, 'user_role' => $userRole, 'allowed' => $allowedRoles]);
-            abort(403);
-        }
+        abort_unless(in_array($userRole, $allowedRoles, true), 403);
 
         return $next($request);
     }
