@@ -544,15 +544,15 @@
     <div class="container" style="max-width:1280px;">
         <div class="gyg-section-head">
             <div>
-                <h2>Öne Çıkan Deneyimler</h2>
-                <p>En çok tercih edilen hizmetlerimiz</p>
+                <h2>Tüm Hizmetler</h2>
+                <p>Öne çıkanlar başta — tüm deneyimler bir arada</p>
             </div>
             <a href="{{ route('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
         </div>
 
         <div class="gyg-products-grid">
-            @if($featuredItems->isNotEmpty())
-                @foreach($featuredItems->take(8) as $item)
+            @if($allItems->isNotEmpty())
+                @foreach($allItems as $item)
                     @include('b2c.home._product-card', ['item' => $item])
                 @endforeach
             @else

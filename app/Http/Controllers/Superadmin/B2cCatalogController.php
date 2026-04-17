@@ -495,6 +495,7 @@ class B2cCatalogController extends Controller
             'currency'            => 'required|string|size:3',
             'is_active'           => 'boolean',
             'is_featured'         => 'boolean',
+            'badge_label'         => 'nullable|string|max:40',
             'is_published'        => 'boolean',
             'destination_city'    => 'nullable|string|max:100',
             'destination_country' => 'nullable|string|max:100',

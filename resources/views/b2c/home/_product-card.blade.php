@@ -34,7 +34,20 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
         @endif
 
         {{-- FOMO / rozet --}}
-        @if($item->is_featured)
+        @if($item->badge_label)
+            @php
+            $badgeStyles = [
+                'Öne Çıkan'  => 'background:#FF5533;color:#fff;',
+                'Popüler'    => 'background:#3182ce;color:#fff;',
+                'Yeni'       => 'background:#38a169;color:#fff;',
+                'Son Fırsat' => 'background:#e53e3e;color:#fff;',
+                'İndirim'    => 'background:#dd6b20;color:#fff;',
+                'Sınırlı'   => 'background:#805ad5;color:#fff;',
+            ];
+            $badgeStyle = $badgeStyles[$item->badge_label] ?? 'background:#718096;color:#fff;';
+            @endphp
+            <div class="gyg-pcard-tag" style="{{ $badgeStyle }}">{{ $item->badge_label }}</div>
+        @elseif($item->is_featured)
             <div class="gyg-pcard-tag featured">Öne Çıkan</div>
         @endif
 

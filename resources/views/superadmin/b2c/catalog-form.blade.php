@@ -209,6 +209,15 @@
                                 </div>
                             </div>
                             <div class="mb-2">
+                                <label class="form-label fw-600 form-label-sm">Rozet / Etiket</label>
+                                <select name="badge_label" class="form-select form-select-sm">
+                                    <option value="">— Yok —</option>
+                                    @foreach(['Öne Çıkan','Popüler','Yeni','Son Fırsat','İndirim','Sınırlı'] as $bl)
+                                        <option value="{{ $bl }}" {{ old('badge_label', $item->badge_label ?? '') === $bl ? 'selected' : '' }}>{{ $bl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-2">
                                 <div class="form-check">
                                     <input type="checkbox" name="is_published" value="1" class="form-check-input" id="isPublished"
                                            {{ old('is_published', $item->is_published ?? false) ? 'checked' : '' }}>

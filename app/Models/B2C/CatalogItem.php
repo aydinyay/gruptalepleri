@@ -30,6 +30,7 @@ class CatalogItem extends Model
         'currency',
         'is_active',
         'is_featured',
+        'badge_label',
         'is_published',
         'published_at',
         'destination_city',

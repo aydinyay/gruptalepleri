@@ -20,21 +20,16 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        // Öne çıkan ürünler
-        $featuredItems = CatalogItem::published()
-            ->featured()
+        // Tüm yayındaki ürünler — öne çıkanlar önce
+        $allItems = CatalogItem::published()
+            ->orderByDesc('is_featured')
             ->ordered()
             ->with('category')
-            ->limit(6)
+            ->limit(24)
             ->get();
 
-        // Son eklenen / popüler ürünler (featured olmayan)
-        $latestItems = CatalogItem::published()
-            ->where('is_featured', false)
-            ->ordered()
-            ->with('category')
-            ->limit(8)
-            ->get();
+        $featuredItems = $allItems->where('is_featured', true)->values();
+        $latestItems   = $allItems->where('is_featured', false)->values();
 
         // Hero kartları — öne çıkan ilk 2
         $heroItems = $featuredItems->take(2);
@@ -63,6 +58,7 @@ class HomeController extends Controller
 
         return view('b2c.home.index', compact(
             'categories',
+            'allItems',
             'featuredItems',
             'heroItems',
             'latestItems',
