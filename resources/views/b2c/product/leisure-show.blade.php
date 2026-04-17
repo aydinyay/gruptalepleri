@@ -28,7 +28,7 @@
         : $mediaAssets->where('media_type','photo')->take(3)->values();
 
     $timeline       = is_array($package->timeline_tr) ? $package->timeline_tr : json_decode($package->timeline_tr ?? '[]', true);
-    $timelineEn     = is_array($package->timeline_en ?? null) ? $package->timeline_en : json_decode($package->timeline_en ?? '[]', true);
+    $timelineEn     = isset($package->timeline_en) ? (is_array($package->timeline_en) ? $package->timeline_en : json_decode($package->timeline_en ?? '[]', true)) : [];
     $importantNotes = is_array($package->important_notes_tr) ? $package->important_notes_tr : json_decode($package->important_notes_tr ?? '[]', true);
 
     $lbItems = [['url' => $heroImg, 'type' => 'photo', 'alt' => $package->name_tr]];
