@@ -212,7 +212,7 @@
                                 <label class="form-label fw-600 form-label-sm">Rozet / Etiket</label>
                                 <select name="badge_label" class="form-select form-select-sm">
                                     <option value="">— Yok —</option>
-                                    @foreach(['Popüler','Yeni','Son Fırsat','İndirim','Sınırlı'] as $bl)
+                                    @foreach(['Vizyon','Popüler','Yeni','Son Fırsat','İndirim','Sınırlı'] as $bl)
                                         <option value="{{ $bl }}" {{ old('badge_label', $item->badge_label ?? '') === $bl ? 'selected' : '' }}>{{ $bl }}</option>
                                     @endforeach
                                 </select>

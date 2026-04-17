@@ -1,6 +1,6 @@
 @php
 $badgeColors = [
-    'Öne Çıkan'  => '#FF5533',
+    'Vizyon'     => '#b7791f',
     'Popüler'    => '#3182ce',
     'Yeni'       => '#38a169',
     'Son Fırsat' => '#e53e3e',
@@ -13,7 +13,7 @@ $badgeColors = [
     @csrf
     <select name="badge_label" class="form-select form-select-sm" style="font-size:.74rem;padding:2px 4px;min-width:90px;" onchange="this.form.submit()">
         <option value="">—</option>
-        @foreach(['Popüler','Yeni','Son Fırsat','İndirim','Sınırlı'] as $bl)
+        @foreach(['Vizyon','Popüler','Yeni','Son Fırsat','İndirim','Sınırlı'] as $bl)
         <option value="{{ $bl }}"
             @if(($ci->badge_label ?? '') === $bl) selected @endif
             style="background:{{ $badgeColors[$bl] ?? '#718096' }};color:#fff;">{{ $bl }}</option>
