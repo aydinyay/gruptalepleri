@@ -206,6 +206,17 @@
     min-width: 150px;
     background: #e8eef5 center/cover no-repeat;
     flex-shrink: 0;
+    position: relative;
+}
+.gyg-hero-card .hc-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
 }
 .gyg-hero-card .hc-body { padding: 14px 16px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
 .gyg-hero-card .hc-cat { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #718096; margin-bottom: 5px; }
@@ -442,7 +453,14 @@
                     : null;
             @endphp
             <a href="{{ route('b2c.product.show', $hi->slug) }}" class="gyg-hero-card">
-                <div class="hc-img" @if($hiImg) style="background-image:url('{{ $hiImg }}')" @endif></div>
+                <div class="hc-img" @if($hiImg) style="background-image:url('{{ $hiImg }}')" @endif>
+                    @if($hi->badge_label)
+                    @php
+                    $hcBadgeColors = ['Vizyon'=>'#b7791f','Popüler'=>'#3182ce','Yeni'=>'#38a169','Son Fırsat'=>'#e53e3e','İndirim'=>'#dd6b20','Sınırlı'=>'#805ad5'];
+                    @endphp
+                    <div class="hc-badge" style="background:{{ $hcBadgeColors[$hi->badge_label] ?? '#718096' }};color:#fff;">{{ $hi->badge_label }}</div>
+                    @endif
+                </div>
                 <div class="hc-body">
                     <div>
                         <div class="hc-cat">{{ optional($hi->category)->name ?? ucfirst($hi->product_type) }}</div>
