@@ -15,6 +15,16 @@
     <meta property="og:title" content="@yield('title', 'Grup Rezervasyonları')">
     <meta property="og:description" content="@yield('meta_description', 'Türkiye\'nin lider grup seyahat platformu.')">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    @hasSection('og_image')
+    <meta property="og:image" content="@yield('og_image')">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="@yield('og_image')">
+    @else
+    <meta property="og:image" content="https://gruprezervasyonlari.com/og-default.jpg">
+    @endif
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">

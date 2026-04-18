@@ -1,5 +1,9 @@
 @extends('b2c.layouts.app')
 @section('title', $item->meta_title ?? $item->title)
+@if($item->cover_image)
+@section('og_image', str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image)
+@endif
+@section('meta_description', $item->meta_description ?? $item->short_desc ?? ($item->title . ' — Grup Rezervasyonları'))
 @section('content')
 <style>
 /* GYG Galeri */
