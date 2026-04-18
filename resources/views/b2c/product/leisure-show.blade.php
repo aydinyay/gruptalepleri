@@ -118,7 +118,7 @@ body{background:var(--bg);color:var(--txt);}
 
 <div class="container mt-3">
     {{-- Gallery --}}
-    <div class="lp-gallery mb-3" style="cursor:pointer;">
+    <div class="lp-gallery mb-3" style="cursor:pointer;position:relative;">
         <div class="lp-gallery-main" onclick="lpLbOpen(0)">
             <img src="{{ $heroImg }}" alt="{{ $package->name_tr }}" loading="lazy">
         </div>
@@ -130,6 +130,12 @@ body{background:var(--bg);color:var(--txt);}
                 @endif
             </div>
         @endforeach
+        <div style="position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;z-index:10;transition:transform .15s;"
+             class="{{ ($isSaved ?? false) ? 'saved' : '' }}"
+             data-item-id="{{ $item->id }}"
+             onclick="event.stopPropagation();grtWishlistToggle(this)" title="İstek listesine ekle">
+            <i class="bi {{ ($isSaved ?? false) ? 'bi-heart-fill' : 'bi-heart' }}" {{ ($isSaved ?? false) ? 'style=color:#e53e3e' : '' }}></i>
+        </div>
     </div>
 
     @php

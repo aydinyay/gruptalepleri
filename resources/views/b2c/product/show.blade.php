@@ -20,6 +20,9 @@
 .prd-gal-more{position:absolute;inset:0;background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:800;}
 .prd-gal-btn{position:absolute;bottom:14px;right:36px;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;border-radius:8px;padding:6px 14px;font-size:.82rem;font-weight:700;color:#1a202c;cursor:pointer;display:flex;align-items:center;gap:5px;}
 .prd-gal-btn:hover{background:#fff;}
+.prd-heart-btn{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:transform .15s,background .15s;z-index:10;}
+.prd-heart-btn:hover{background:#fff;transform:scale(1.1);}
+.prd-heart-btn.saved i{color:#e53e3e;}
 @@media(max-width:600px){.prd-gal-1,.prd-gal-2,.prd-gal-3,.prd-gal-4,.prd-gal-n{height:240px;border-radius:8px;}}
 /* Lightbox */
 .prd-lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;}
@@ -200,6 +203,11 @@ $_imgCount = count($_imgs);
     <button class="prd-gal-btn" onclick="prdLbOpen(0)">
         <i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})
     </button>
+    <div class="prd-heart-btn {{ ($isSaved ?? false) ? 'saved' : '' }}"
+         data-item-id="{{ $item->id }}"
+         onclick="grtWishlistToggle(this)" title="İstek listesine ekle">
+        <i class="bi {{ ($isSaved ?? false) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+    </div>
 </div>
 @endif
 

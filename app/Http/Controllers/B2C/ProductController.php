@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
+use App\Models\B2C\B2cWishlistItem;
 use App\Models\B2C\CatalogItem;
 use App\Models\B2C\CatalogSession;
 use App\Models\LeisureMediaAsset;
@@ -55,8 +56,10 @@ class ProductController extends Controller
                     ->orderBy('sort_order')
                     ->get();
 
+                $isSaved = B2cWishlistItem::where('session_id', session()->getId())->where('catalog_item_id', $item->id)->exists();
+
                 return view('b2c.product.leisure-show', compact(
-                    'item', 'package', 'relatedItems', 'galleryPhotos', 'mediaAssets', 'allPackages'
+                    'item', 'package', 'relatedItems', 'galleryPhotos', 'mediaAssets', 'allPackages', 'isSaved'
                 ));
             }
         }
@@ -89,6 +92,8 @@ class ProductController extends Controller
             ? CatalogSession::where('catalog_item_id', $item->id)->upcoming()->get()
             : collect();
 
-        return view('b2c.product.show', compact('item', 'relatedItems', 'extraGallery', 'sessions'));
+        $isSaved = B2cWishlistItem::where('session_id', session()->getId())->where('catalog_item_id', $item->id)->exists();
+
+        return view('b2c.product.show', compact('item', 'relatedItems', 'extraGallery', 'sessions', 'isSaved'));
     }
 }
