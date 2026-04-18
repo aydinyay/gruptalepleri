@@ -1109,8 +1109,8 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     Route::get('/charter/talep/{charterRequest}', [\App\Http\Controllers\Acente\CharterRequestController::class, 'show'])->name('charter.show');
     Route::post('/charter/talep/{charterRequest}/sales-quotes/{salesQuote}/kabul', [\App\Http\Controllers\Acente\CharterRequestController::class, 'acceptSalesQuote'])->name('charter.accept');
     // ── Unified B2B Katalog ───────────────────────────────────────────────
-    Route::get('/katalog', [\App\Http\Controllers\Acente\CatalogProductController::class, 'index'])->name('acente.catalog.index');
-    Route::get('/urun/{slug}', [\App\Http\Controllers\Acente\CatalogProductController::class, 'show'])->name('acente.product.show');
+    Route::get('/katalog', [\App\Http\Controllers\Acente\CatalogProductController::class, 'index'])->name('catalog.index');
+    Route::get('/urun/{slug}', [\App\Http\Controllers\Acente\CatalogProductController::class, 'show'])->name('product.show');
 
     // ── Dinner Cruise — GYG Katalog (yeni akış) ──────────────────────────
     Route::get('/dinner-cruise', [\App\Http\Controllers\Acente\DinnerCruiseCatalogController::class, 'catalog'])->name('dinner-cruise.catalog');
