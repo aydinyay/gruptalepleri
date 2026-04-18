@@ -8,6 +8,7 @@ use App\Models\B2C\B2cPayment;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
 use App\Models\B2C\CatalogItemLocation;
+use App\Models\B2C\CatalogSession;
 use App\Models\B2C\SupplierApplication;
 use App\Models\CharterPresetPackage;
 use App\Models\LeisurePackageTemplate;
@@ -593,14 +594,81 @@ class B2cCatalogController extends Controller
             return response()->json(['error' => 'Gemini API hatası: ' . $resp->status(), 'detail' => $resp->body()], 502);
         }
 
-        $raw  = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
-        $data = json_decode($raw, true);
+        $raw = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
+
+        // Bazen markdown code block içinde gelir
+        $clean = preg_replace('/^```(?:json)?\s*/i', '', $raw);
+        $clean = preg_replace('/\s*```\s*$/i', '', trim($clean));
+
+        $data = json_decode($clean, true);
 
         if (! is_array($data)) {
             return response()->json(['error' => 'Gemini yanıtı parse edilemedi.', 'raw' => $raw], 502);
         }
 
         return response()->json($data);
+    }
+
+    // ── Seans Yönetimi ────────────────────────────────────────────────────────
+
+    public function sessionIndex(CatalogItem $item)
+    {
+        $sessions = CatalogSession::where('catalog_item_id', $item->id)
+            ->orderBy('session_date')->orderBy('session_time')->paginate(50);
+        return view('superadmin.b2c.sessions', compact('item', 'sessions'));
+    }
+
+    public function sessionStore(Request $request, CatalogItem $item)
+    {
+        $v = $request->validate([
+            'session_date'   => 'required|date|after_or_equal:today',
+            'session_time'   => 'nullable|date_format:H:i',
+            'capacity'       => 'nullable|integer|min:1',
+            'price_override' => 'nullable|numeric|min:0',
+            'label'          => 'nullable|string|max:100',
+        ]);
+        $v['catalog_item_id'] = $item->id;
+        CatalogSession::create($v);
+        return back()->with('success', 'Seans eklendi.');
+    }
+
+    public function sessionBulkStore(Request $request, CatalogItem $item)
+    {
+        $v = $request->validate([
+            'start_date'     => 'required|date|after_or_equal:today',
+            'end_date'       => 'required|date|after_or_equal:start_date',
+            'weekdays'       => 'required|array|min:1',
+            'weekdays.*'     => 'integer|between:0,6',
+            'session_time'   => 'nullable|date_format:H:i',
+            'capacity'       => 'nullable|integer|min:1',
+            'price_override' => 'nullable|numeric|min:0',
+            'label'          => 'nullable|string|max:100',
+        ]);
+
+        $date   = \Carbon\Carbon::parse($v['start_date']);
+        $end    = \Carbon\Carbon::parse($v['end_date']);
+        $days   = array_map('intval', $v['weekdays']);
+        $added  = 0;
+
+        while ($date->lte($end)) {
+            if (in_array($date->dayOfWeek, $days, true)) {
+                CatalogSession::firstOrCreate(
+                    ['catalog_item_id' => $item->id, 'session_date' => $date->toDateString(), 'session_time' => $v['session_time'] ?? null],
+                    ['capacity' => $v['capacity'] ?? null, 'price_override' => $v['price_override'] ?? null, 'label' => $v['label'] ?? null]
+                );
+                $added++;
+            }
+            $date->addDay();
+        }
+
+        return back()->with('success', "{$added} seans oluşturuldu.");
+    }
+
+    public function sessionDestroy(CatalogItem $item, CatalogSession $session)
+    {
+        abort_if($session->catalog_item_id !== $item->id, 403);
+        $session->delete();
+        return back()->with('success', 'Seans silindi.');
     }
 
     private function parseGalleryUrls(string $raw): array

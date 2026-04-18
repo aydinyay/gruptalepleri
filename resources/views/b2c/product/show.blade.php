@@ -42,6 +42,11 @@
 .prd-item i{font-size:1.1rem;color:#1a3c6b;flex-shrink:0;margin-top:2px}
 .prd-item strong{font-size:.85rem;display:block;color:#1a202c}
 .prd-item span{font-size:.8rem;color:#718096}
+.session-slot{padding:5px 10px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid;}
+.slot-open{background:#f0fdf4;border-color:#86efac;color:#166534;}
+.slot-open:hover{background:#dcfce7;border-color:#4ade80;}
+.slot-open.selected{background:#166534;border-color:#166534;color:#fff;}
+.slot-full{background:#f9fafb;border-color:#e5e7eb;color:#9ca3af;cursor:not-allowed;}
 .prd-full-desc h3{font-size:1rem;font-weight:700;color:#1a202c;margin:18px 0 8px}
 .prd-full-desc h2{font-size:1.1rem;font-weight:700;color:#1a202c;margin:20px 0 8px}
 .prd-full-desc ul{padding-left:20px;margin-bottom:10px}
@@ -397,12 +402,57 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 
 <form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:10px 0 4px;" id="bookForm">
     @csrf
+    @if($sessions->isNotEmpty())
+    {{-- Seans seçici --}}
+    <input type="hidden" name="session_id" id="selectedSessionId">
+    <input type="hidden" name="service_date" id="selectedServiceDate">
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:6px;">Seans Seçin *</label>
+        @php
+        $sessionsByDate = $sessions->groupBy(fn($s) => $s->session_date->format('Y-m-d'));
+        @endphp
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;padding-right:2px;">
+        @foreach($sessionsByDate as $date => $slots)
+        <div>
+            <div style="font-size:.75rem;font-weight:700;color:#718096;text-transform:uppercase;margin-bottom:3px;">
+                {{ \Carbon\Carbon::parse($date)->translatedFormat('d M Y, D') }}
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            @foreach($slots as $s)
+            @php
+                $full = $s->isFull();
+                $rem  = $s->remainingCapacity();
+                $price = $s->price_override ?? $item->base_price;
+            @endphp
+            <button type="button"
+                    class="session-slot {{ $full ? 'slot-full' : 'slot-open' }}"
+                    data-id="{{ $s->id }}"
+                    data-date="{{ $date }}"
+                    data-price="{{ $price }}"
+                    {{ $full ? 'disabled' : '' }}
+                    onclick="selectSession(this)">
+                {{ $s->session_time ? substr($s->session_time,0,5) : 'Tüm Gün' }}
+                @if($s->label) · {{ $s->label }} @endif
+                @if($rem !== null && $rem <= 5 && !$full)
+                <span style="font-size:.7rem;color:#e04420;"> ({{ $rem }} kaldı)</span>
+                @endif
+                @if($full) <span style="font-size:.7rem;">(Dolu)</span> @endif
+            </button>
+            @endforeach
+            </div>
+        </div>
+        @endforeach
+        </div>
+        <div id="noSessionWarning" style="display:none;font-size:.8rem;color:#c53030;margin-top:4px;">Lütfen bir seans seçin.</div>
+    </div>
+    @else
     <div style="margin-bottom:10px;">
         <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Hizmet Tarihi</label>
         <input type="date" name="service_date" value="{{ old('service_date') }}"
                min="{{ now()->addDay()->format('Y-m-d') }}"
                style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
     </div>
+    @endif
     @if(!$isGroupPrice)
     <div style="margin-bottom:10px;">
         <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Kişi Sayısı</label>
@@ -728,5 +778,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 })();
 </script>
+
+@if($sessions->isNotEmpty())
+<script>
+function selectSession(btn) {
+    document.querySelectorAll('.session-slot.selected').forEach(function(el){ el.classList.remove('selected'); });
+    btn.classList.add('selected');
+    document.getElementById('selectedSessionId').value   = btn.dataset.id;
+    document.getElementById('selectedServiceDate').value = btn.dataset.date;
+    var price = parseFloat(btn.dataset.price) || _pcUnitPrice;
+    _pcUnitPrice = price;
+    var paxEl = document.getElementById('pcPax');
+    if (paxEl) pcCalc(paxEl.value); else {
+        var tot = document.getElementById('pcTotal');
+        if (tot) tot.textContent = price.toLocaleString('tr-TR',{maximumFractionDigits:0}) + ' ' + _pcCurrency;
+        var pp  = document.getElementById('pcTotalPrice');
+        if (pp) pp.textContent = price.toLocaleString('tr-TR',{maximumFractionDigits:0});
+    }
+    document.getElementById('noSessionWarning').style.display = 'none';
+}
+document.getElementById('bookForm').addEventListener('submit', function(e) {
+    if (!document.getElementById('selectedSessionId').value) {
+        e.preventDefault();
+        document.getElementById('noSessionWarning').style.display = 'block';
+    }
+});
+</script>
+@endif
 
 @endsection

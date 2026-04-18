@@ -847,6 +847,10 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::post('/katalog/{item}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogTogglePublish'])->name('catalog.toggle-publish');
         Route::post('/katalog/{item}/one-cikan', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogToggleFeatured'])->name('catalog.toggle-featured');
         Route::post('/katalog/{item}/etiket',   [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogSetBadge'])->name('catalog.set-badge');
+        Route::get('/katalog/{item}/seanslar',  [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionIndex'])->name('sessions.index');
+        Route::post('/katalog/{item}/seanslar', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionStore'])->name('sessions.store');
+        Route::post('/katalog/{item}/seanslar/tekrarla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionBulkStore'])->name('sessions.bulk');
+        Route::delete('/katalog/{item}/seanslar/{session}', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionDestroy'])->name('sessions.destroy');
         // Leisure & Transfer → B2C köprü toggle'ları
         Route::post('/leisure/{template}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'leisureTogglePublish'])->name('leisure.toggle-publish');
         Route::post('/transfer-arac/{vehicleType}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'transferVehicleTogglePublish'])->name('transfer-vehicle.toggle-publish');

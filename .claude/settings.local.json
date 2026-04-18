@@ -167,7 +167,20 @@
       "Bash(grep -E \"\\\\.tsx$\")",
       "Bash(find /c/acentapazari -name \"vite.config.ts\" -exec cat {} \\\\;)",
       "Bash(curl -s -X POST https://acentapazari.com/api/admin/test-notify -H 'Content-Type: application/json' -H 'Authorization: Bearer test')",
-      "Bash(curl -s \"https://acentapazari.com/sms-test.php\")"
+      "Bash(curl -s \"https://acentapazari.com/sms-test.php\")",
+      "Bash(php --version)",
+      "Bash(grep -r \"class B2cOrder\\\\|class B2COrder\\\\|B2c\\\\\\\\\\\\\\\\Order\\\\|Models\\\\\\\\\\\\\\\\B2c\" \"c:/gruptalepleri/app/\" --include=\"*.php\" -l)",
+      "Bash(curl -s \"https://gruptalepleri.com/superadmin/show-last-error\")",
+      "Bash(curl -s \"https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=log\")",
+      "Bash(curl -sI \"https://gruptalepleri.com/superadmin/charter/paketler\")",
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/Superadmin/CharterPresetPackageController.php)",
+      "Bash(curl -s \"https://gruptalepleri.com/superadmin/charter/paketler\" -b \"laravel-session=test\")",
+      "Bash(curl -s \"https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=readfile&path=app/Http/Controllers/Superadmin/CharterPresetPackageController.php\")",
+      "WebSearch",
+      "WebFetch(domain:www.red-gate.com)",
+      "WebFetch(domain:www.surfsidemedia.in)",
+      "WebFetch(domain:www.gruptalepleri.com)",
+      "Bash(grep -n '^\\\\s*$table' c:/gruptalepleri/database/migrations/2026_04_07_100300_create_b2c_orders_table.php)"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [

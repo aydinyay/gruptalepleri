@@ -32,10 +32,15 @@
     <div class="row justify-content-center">
         <div class="col-xl-9">
 
-            <div class="mb-3">
+            <div class="mb-3 d-flex gap-2">
                 <a href="{{ route('superadmin.b2c.catalog') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Kataloga Dön
                 </a>
+                @isset($item)
+                <a href="{{ route('superadmin.b2c.sessions.index', $item) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-calendar-alt me-1"></i>Seans Yönetimi
+                </a>
+                @endisset
             </div>
 
             <form method="POST" action="{{ isset($item) ? route('superadmin.b2c.catalog.update', $item) : route('superadmin.b2c.catalog.store') }}"

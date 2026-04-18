@@ -4,6 +4,7 @@ namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
 use App\Models\B2C\CatalogItem;
+use App\Models\B2C\CatalogSession;
 use App\Models\LeisureMediaAsset;
 use App\Models\LeisurePackageTemplate;
 
@@ -83,6 +84,11 @@ class ProductController extends Controller
             }
         }
 
-        return view('b2c.product.show', compact('item', 'relatedItems', 'extraGallery'));
+        $sessionSubtypes = ['timed_experience', 'event_ticket', 'admission_ticket', 'dinner_cruise', 'evening_show'];
+        $sessions = in_array($item->product_subtype, $sessionSubtypes)
+            ? CatalogSession::where('catalog_item_id', $item->id)->upcoming()->get()
+            : collect();
+
+        return view('b2c.product.show', compact('item', 'relatedItems', 'extraGallery', 'sessions'));
     }
 }
