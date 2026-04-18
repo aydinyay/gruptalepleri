@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # Social media preview botlarına izin ver (WhatsApp, Facebook, Twitter)
+    RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot) [NC]
+    RewriteRule ^ - [E=social_bot:1,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
