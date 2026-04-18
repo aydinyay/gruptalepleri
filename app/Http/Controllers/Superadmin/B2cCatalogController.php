@@ -388,8 +388,9 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
-        unset($validated['cover_image_file']);
+        $urlGallery = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
+        $validated['gallery_json'] = $this->saveGalleryFiles($request, $urlGallery);
+        unset($validated['cover_image_file'], $validated['gallery_files']);
 
         $item = CatalogItem::create($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
@@ -428,8 +429,9 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
-        unset($validated['cover_image_file']);
+        $urlGallery = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
+        $validated['gallery_json'] = $this->saveGalleryFiles($request, $urlGallery);
+        unset($validated['cover_image_file'], $validated['gallery_files']);
 
         $item->update($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
@@ -545,7 +547,22 @@ class B2cCatalogController extends Controller
 
         $file->move($dest, basename($name));
 
-        return $name; // örn: "catalog/AbCdEfGh12345678.jpg"
+        return $name;
+    }
+
+    private function saveGalleryFiles(Request $request, array $existing = []): array
+    {
+        $urls = $existing;
+        foreach ($request->file('gallery_files', []) as $file) {
+            if (! $file || ! $file->isValid()) continue;
+            $ext  = strtolower($file->getClientOriginalExtension()) ?: 'jpg';
+            $name = 'catalog/' . Str::random(32) . '.' . $ext;
+            $dest = public_path('uploads/catalog');
+            if (!is_dir($dest)) mkdir($dest, 0755, true);
+            $file->move($dest, basename($name));
+            $urls[] = $name;
+        }
+        return array_values(array_filter($urls));
     }
 
     public function aiFieldSuggest(Request $request)
@@ -738,6 +755,8 @@ class B2cCatalogController extends Controller
             'full_desc'           => 'nullable|string',
             'cover_image'         => 'nullable|string|max:500',
             'cover_image_file'    => 'nullable|image|max:4096',
+            'gallery_files'       => 'nullable|array|max:6',
+            'gallery_files.*'     => 'nullable|mimes:jpg,jpeg,png,webp,gif,mp4,mov,webm|max:51200',
             'pricing_type'        => 'required|in:fixed,quote,request',
             'gt_price'            => 'nullable|numeric|min:0',
             'base_price'          => 'nullable|numeric|min:0',

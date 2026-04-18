@@ -293,14 +293,36 @@
 
                         <div class="card border-0 shadow-sm p-4 mb-3">
                             <div class="section-title mt-0">Galeri Görselleri</div>
-                            <div class="form-text mb-2">Kapak görselinden sonra gösterilecek ek fotoğraflar (maks. 6). Her satıra bir URL yazın.</div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-600 form-label-sm">Dosya Yükle (maks. 6 adet)</label>
+                                <input type="file" name="gallery_files[]" multiple
+                                       accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
+                                       class="form-control form-control-sm">
+                                <div class="form-text">JPG/PNG/WEBP/GIF · MP4/MOV/WEBM · Maks. 6 dosya, her biri 50MB. Mevcut galeriye eklenir.</div>
+                            </div>
+
                             @php
                             $galleryUrls = isset($item) && $item->gallery_json
                                 ? implode("\n", array_filter((array) $item->gallery_json))
                                 : old('gallery_urls', '');
                             @endphp
-                            <textarea name="gallery_urls" class="form-control form-control-sm" rows="6"
+
+                            @if(isset($item) && $item->gallery_json)
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                @foreach((array)$item->gallery_json as $gUrl)
+                                @if($gUrl)
+                                <img src="{{ str_starts_with($gUrl,'http') ? $gUrl : asset('uploads/'.$gUrl) }}"
+                                     style="height:70px;width:100px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
+                                @endif
+                                @endforeach
+                            </div>
+                            @endif
+
+                            <label class="form-label fw-600 form-label-sm">veya URL listesi (her satıra bir URL)</label>
+                            <textarea name="gallery_urls" class="form-control form-control-sm" rows="4"
                                       placeholder="https://gruptalepleri.com/uploads/leisure/foto1.jpg&#10;https://...">{{ $galleryUrls }}</textarea>
+                            <div class="form-text">URL eklerseniz yüklenen dosyalarla birleştirilir.</div>
                         </div>
 
                         <div class="card border-0 shadow-sm p-4 mb-3">
