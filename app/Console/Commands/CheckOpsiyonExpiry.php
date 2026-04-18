@@ -54,7 +54,7 @@ class CheckOpsiyonExpiry extends Command
             $pencereBitis     = $hedefZaman;
 
             foreach ($odemeUyarilari as $odeme) {
-                $dueDt = Carbon::parse($odeme->due_date . ' ' . ($odeme->due_time ?: '15:59:59'));
+                $dueDt = Carbon::parse($odeme->due_date)->setTimeFromTimeString($odeme->due_time ?: '15:59:59');
                 if (! $dueDt->isFuture()) continue;
                 if (! $dueDt->between($pencereBaslangic, $pencereBitis)) continue;
 

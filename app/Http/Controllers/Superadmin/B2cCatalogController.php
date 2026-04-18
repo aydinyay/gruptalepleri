@@ -388,6 +388,7 @@ class B2cCatalogController extends Controller
         }
 
         $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
+        unset($validated['cover_image_file']);
 
         $item = CatalogItem::create($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
@@ -405,6 +406,7 @@ class B2cCatalogController extends Controller
 
     public function catalogUpdate(Request $request, CatalogItem $item)
     {
+        try {
         $validated = $this->validateCatalogItem($request, $item->id);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
@@ -426,12 +428,20 @@ class B2cCatalogController extends Controller
         }
 
         $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
+        unset($validated['cover_image_file']);
 
         $item->update($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
 
         return redirect()->route('superadmin.b2c.catalog')
             ->with('success', 'Ürün güncellendi.');
+        } catch (\Throwable $e) {
+            \Log::error('catalogUpdate hatası', ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response('<pre style="padding:20px;color:red;white-space:pre-wrap">'
+                . get_class($e) . ': ' . e($e->getMessage()) . "\n\n"
+                . e(collect(explode("\n", $e->getTraceAsString()))->take(10)->implode("\n"))
+                . '</pre>', 500);
+        }
     }
 
     public function catalogTogglePublish(CatalogItem $item)
@@ -717,7 +727,7 @@ class B2cCatalogController extends Controller
             'slug'                => 'nullable|string|max:200|unique:catalog_items,slug,' . ($ignoreId ?? 'NULL'),
             'short_desc'          => 'nullable|string|max:300',
             'full_desc'           => 'nullable|string',
-            'cover_image'         => 'nullable|string|max:255',
+            'cover_image'         => 'nullable|string|max:500',
             'cover_image_file'    => 'nullable|image|max:4096',
             'pricing_type'        => 'required|in:fixed,quote,request',
             'gt_price'            => 'nullable|numeric|min:0',
