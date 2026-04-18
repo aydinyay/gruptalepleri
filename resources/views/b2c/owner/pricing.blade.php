@@ -162,11 +162,24 @@ tr:hover td { background: #f8faff; }
 <body data-usd="{{ $usdKuru }}" data-eur="{{ $eurKuru }}">
 
 <div class="page-header">
-    <div>
-        <h1><i class="bi bi-bar-chart-line-fill" style="margin-right:8px;"></i>Fiyat & Maliyet Analizi</h1>
-        <div class="sub">gruprezervasyonlari.com — Özel Yönetim Paneli</div>
+    <div style="display:flex;align-items:center;gap:16px;">
+        <a href="https://gruptalepleri.com/superadmin/b2c" style="color:rgba(255,255,255,.7);text-decoration:none;font-size:.82rem;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,.2);padding:5px 10px;border-radius:6px;white-space:nowrap;">
+            <i class="bi bi-arrow-left"></i> Süperadmin
+        </a>
+        <div>
+            <h1><i class="bi bi-bar-chart-line-fill" style="margin-right:8px;"></i>Fiyat & Maliyet Analizi</h1>
+            <div class="sub">gruprezervasyonlari.com — Özel Yönetim Paneli</div>
+        </div>
     </div>
-    <div style="font-size:.72rem;opacity:.6;"><i class="bi bi-shield-lock-fill" style="margin-right:4px;"></i>Korumalı</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <a href="https://gruprezervasyonlari.com" target="_blank" style="color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,.2);padding:5px 10px;border-radius:6px;">
+            <i class="bi bi-box-arrow-up-right"></i> GR Sitesi
+        </a>
+        <a href="https://gruptalepleri.com/superadmin/b2c/katalog" style="color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,.2);padding:5px 10px;border-radius:6px;">
+            <i class="bi bi-grid"></i> Katalog
+        </a>
+        <div style="font-size:.72rem;opacity:.5;"><i class="bi bi-shield-lock-fill" style="margin-right:4px;"></i>Korumalı</div>
+    </div>
 </div>
 
 @php
