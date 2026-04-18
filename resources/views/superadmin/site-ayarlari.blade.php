@@ -1019,7 +1019,7 @@
             </button>
         </div>
     </form>
-    @elseif($activeTab === 'finans')
+    @if($activeTab === 'finans')
     <div class="card border-0 shadow-sm p-4" style="max-width:480px;">
         <h6 class="fw-bold mb-1"><i class="fas fa-coins me-2 text-warning"></i>Döviz Kurları</h6>
         <p class="text-muted small mb-3">GR fiyat analiz tablosunda TRY karşılıkları bu kurlarla hesaplanır.</p>
