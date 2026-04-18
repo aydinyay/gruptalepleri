@@ -36,15 +36,24 @@ Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {
     $results = ['popular' => [], 'items' => []];
 
     if (strlen($q) < 2) {
-        // Boş/kısa sorgu → popüler destinasyonlar + kategoriler
-        $results['popular'] = [
-            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'İstanbul',  'sub'=>'Türkiye'],
-            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Antalya',   'sub'=>'Türkiye'],
-            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Bodrum',    'sub'=>'Türkiye'],
-            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Kapadokya', 'sub'=>'Türkiye'],
-            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Marmaris',  'sub'=>'Türkiye'],
-            ['type'=>'city',  'icon'=>'bi-geo-alt-fill', 'label'=>'Dubai',     'sub'=>'BAE'],
-        ];
+        // Boş/kısa sorgu → yayındaki ürünlerden en çok ürün olan şehirler
+        $topCities = \App\Models\B2C\CatalogItem::published()
+            ->whereNotNull('destination_city')
+            ->where('destination_city', '!=', '')
+            ->selectRaw('destination_city, destination_country, COUNT(*) as cnt')
+            ->groupBy('destination_city', 'destination_country')
+            ->orderByDesc('cnt')
+            ->limit(6)
+            ->get();
+
+        foreach ($topCities as $c) {
+            $results['popular'][] = [
+                'type'  => 'city',
+                'icon'  => 'bi-geo-alt-fill',
+                'label' => $c->destination_city,
+                'sub'   => $c->destination_country ?: ($c->cnt . ' aktivite'),
+            ];
+        }
     } else {
         // Ürün ara
         $items = \App\Models\B2C\CatalogItem::published()
