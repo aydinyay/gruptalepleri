@@ -311,25 +311,69 @@ $talepeLink = match($item->product_type ?? '') {
     <div style="font-size:.95rem;color:#718096;margin-bottom:16px;">Fiyat bilgisi için talep oluşturun.</div>
     @endif
 
-    @if($bookingUrl)
-    <a href="{{ $bookingUrl }}" class="b2b-cta">
-        <i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap
-    </a>
-    @else
-    <a href="{{ $talepeLink }}" class="b2b-cta">
-        <i class="bi bi-send me-2"></i>Talep Oluştur
-    </a>
+    @if(session('booking_success'))
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:12px;font-size:.85rem;color:#166534;">
+        <i class="bi bi-check-circle-fill me-1"></i> {{ session('booking_success') }}
+    </div>
     @endif
+    @if($errors->any())
+    <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:10px;margin-bottom:10px;font-size:.82rem;color:#c53030;">
+        @foreach($errors->all() as $e)<div>• {{ $e }}</div>@endforeach
+    </div>
+    @endif
+
+    @php $isGroupPrice = in_array($subtype, ['private_jet','helicopter_tour','airport_transfer','intercity_transfer','yacht_charter']); @endphp
+
+    <form method="POST" action="{{ route('acente.product.book', $item->slug) }}">
+        @csrf
+        <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Hizmet Tarihi</label>
+            <input type="date" name="service_date" value="{{ old('service_date') }}"
+                   min="{{ now()->addDay()->format('Y-m-d') }}" required
+                   style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+        </div>
+        @if(!$isGroupPrice)
+        <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Kişi Sayısı</label>
+            <select name="pax_count" id="b2bPax" onchange="b2bCalc(this.value)"
+                    style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+                @for($p=($item->min_pax ?? 1);$p<=($item->max_pax ?? 50);$p++)
+                <option value="{{ $p }}" {{ old('pax_count',$item->min_pax ?? 1)==$p?'selected':'' }}>{{ $p }} kişi</option>
+                @endfor
+            </select>
+        </div>
+        @if($b2bPrice)
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding-top:8px;margin-bottom:10px;">
+            <span style="font-size:.85rem;color:#718096;">Toplam (B2B)</span>
+            <span id="b2bTotal" style="font-size:1.1rem;font-weight:800;color:#1a3c6b;">{{ number_format($b2bPrice * ($item->min_pax ?? 1),0,',','.') }} {{ $item->currency }}</span>
+        </div>
+        @endif
+        @else
+        <input type="hidden" name="pax_count" value="{{ $item->min_pax ?? 1 }}">
+        @endif
+        <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Müşteri Adı</label>
+            <input type="text" name="guest_name" value="{{ old('guest_name') }}" placeholder="Ad Soyad" required
+                   style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Telefon</label>
+            <input type="tel" name="guest_phone" value="{{ old('guest_phone') }}" placeholder="+90 5xx xxx xx xx" required
+                   style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+        </div>
+        <button type="submit" class="b2b-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Talep Et</button>
+    </form>
+
     @if($item->is_published)
     <a href="{{ url('https://'.config('b2c.domain','gruprezervasyonlari.com').'/urun/'.$item->slug) }}"
-       target="_blank" class="b2b-cta-sec">
+       target="_blank" class="b2b-cta-sec mt-2">
         <i class="bi bi-box-arrow-up-right me-1"></i> GR'de Görüntüle
     </a>
     @endif
 
     <div class="b2b-div"></div>
     <div class="b2b-trust"><i class="bi bi-check-circle-fill"></i> B2B Net Fiyatlarla Erişim</div>
-    <div class="b2b-trust"><i class="bi bi-check-circle-fill"></i> Anlık Teklif</div>
+    <div class="b2b-trust"><i class="bi bi-check-circle-fill"></i> Anında Talep</div>
     <div class="b2b-trust"><i class="bi bi-check-circle-fill"></i> Grup Talepleri Güvencesi</div>
 </div>
 </div>
@@ -371,6 +415,14 @@ $relImg   = $rel->cover_image ? (str_starts_with($rel->cover_image,'http') ? $re
 @include('acente.partials.theme-script')
 
 <script>
+var _b2bPrice = {{ (float)($b2bPrice ?? 0) }};
+var _currency = '{{ $item->currency }}';
+function b2bCalc(pax) {
+    var el = document.getElementById('b2bTotal');
+    if (!el || !_b2bPrice) return;
+    var total = Math.round(_b2bPrice * pax);
+    el.textContent = total.toLocaleString('tr-TR') + ' ' + _currency;
+}
 var _prdImgs = @json($_imgs);
 var _prdIdx  = 0;
 function prdLbOpen(i) {

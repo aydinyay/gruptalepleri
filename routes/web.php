@@ -1111,6 +1111,7 @@ Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function (
     // ── Unified B2B Katalog ───────────────────────────────────────────────
     Route::get('/katalog', [\App\Http\Controllers\Acente\CatalogProductController::class, 'index'])->name('catalog.index');
     Route::get('/urun/{slug}', [\App\Http\Controllers\Acente\CatalogProductController::class, 'show'])->name('product.show');
+    Route::post('/urun/{slug}/rezervasyon', [\App\Http\Controllers\Acente\CatalogProductController::class, 'book'])->name('product.book');
 
     // ── Dinner Cruise — GYG Katalog (yeni akış) ──────────────────────────
     Route::get('/dinner-cruise', [\App\Http\Controllers\Acente\DinnerCruiseCatalogController::class, 'catalog'])->name('dinner-cruise.catalog');
