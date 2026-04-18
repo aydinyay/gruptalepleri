@@ -51,8 +51,11 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
             <div class="gyg-pcard-tag featured">Öne Çıkan</div>
         @endif
 
-        <div class="gyg-pcard-heart" onclick="event.preventDefault();this.innerHTML=this.innerHTML.includes('fill')?'<i class=\'bi bi-heart\'></i>':'<i class=\'bi bi-heart-fill\' style=\'color:#e53e3e\'></i>'">
-            <i class="bi bi-heart"></i>
+        @php $isSaved = in_array($item->id, $savedIds ?? []); @endphp
+        <div class="gyg-pcard-heart {{ $isSaved ? 'saved' : '' }}"
+             data-item-id="{{ $item->id }}"
+             onclick="event.preventDefault();grtWishlistToggle(this)">
+            <i class="bi {{ $isSaved ? 'bi-heart-fill' : 'bi-heart' }}" {{ $isSaved ? 'style=color:#e53e3e' : '' }}></i>
         </div>
 
         <div class="gyg-pcard-badge">

@@ -199,7 +199,7 @@
     @else
         <div class="gyg-products-grid">
             @foreach($items as $item)
-                @include('b2c.home._product-card', ['item' => $item])
+                @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? []])
             @endforeach
         </div>
         <div style="margin-top:32px;">

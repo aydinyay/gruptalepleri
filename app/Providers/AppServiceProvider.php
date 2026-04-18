@@ -43,6 +43,16 @@ class AppServiceProvider extends ServiceProvider
             return route('acente.dashboard');
         });
 
+        // B2C navbar için istek listesi sayısı
+        View::composer('b2c.layouts.app', function ($view) {
+            try {
+                $wishlistCount = \App\Models\B2C\B2cWishlistItem::where('session_id', session()->getId())->count();
+            } catch (\Throwable $e) {
+                $wishlistCount = 0;
+            }
+            $view->with('_wishlistCount', $wishlistCount);
+        });
+
         // B2C navbar için kategoriler ve şehirler
         View::composer('b2c.layouts.app', function ($view) {
             static $navData = null;

@@ -114,6 +114,10 @@ Route::post('/tedarikci-ol', [SupplierApplyController::class, 'store'])
     ->name('b2c.supplier-apply.store')
     ->middleware('throttle:5,1');
 
+// ── İstek Listesi ──────────────────────────────────────────────────────────
+Route::get('/istek-listesi', [\App\Http\Controllers\B2C\WishlistController::class, 'index'])->name('b2c.wishlist.index');
+Route::post('/istek-listesi/toggle', [\App\Http\Controllers\B2C\WishlistController::class, 'toggle'])->name('b2c.wishlist.toggle')->middleware('throttle:60,1');
+
 // ── Hakkımızda / Statik Sayfalar ───────────────────────────────────────────
 Route::get('/hakkimizda', fn () => view('b2c.static.hakkimizda'))->name('b2c.hakkimizda');
 Route::get('/iletisim', function () {

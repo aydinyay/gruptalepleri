@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
+use App\Models\B2C\B2cWishlistItem;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
 use Illuminate\Http\Request;
@@ -47,7 +48,9 @@ class CatalogController extends Controller
             ->sort()
             ->values();
 
-        return view('b2c.catalog.index', compact('categories', 'items', 'cities'));
+        $savedIds = $this->savedIds();
+
+        return view('b2c.catalog.index', compact('categories', 'items', 'cities', 'savedIds'));
     }
 
     public function category(Request $request, string $slug)
@@ -64,7 +67,9 @@ class CatalogController extends Controller
 
         $subcategories = $category->children()->active()->ordered()->withCount(['publishedItems'])->get();
 
-        return view('b2c.catalog.category', compact('category', 'items', 'subcategories'));
+        $savedIds = $this->savedIds();
+
+        return view('b2c.catalog.category', compact('category', 'items', 'subcategories', 'savedIds'));
     }
 
     public function destination(Request $request, string $slug)
@@ -83,7 +88,17 @@ class CatalogController extends Controller
 
         $items = $query->paginate(12)->withQueryString();
 
-        return view('b2c.catalog.destination', compact('city', 'items', 'slug'));
+        $savedIds = $this->savedIds();
+
+        return view('b2c.catalog.destination', compact('city', 'items', 'slug', 'savedIds'));
+    }
+
+    private function savedIds(): array
+    {
+        return B2cWishlistItem::where('session_id', session()->getId())
+            ->pluck('catalog_item_id')
+            ->map(fn($id) => (int) $id)
+            ->all();
     }
 
     private function applySorting($query, ?string $sort): void

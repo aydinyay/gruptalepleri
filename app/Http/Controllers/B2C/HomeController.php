@@ -5,6 +5,7 @@ namespace App\Http\Controllers\B2C;
 use App\Http\Controllers\Controller;
 use App\Models\B2C\CatalogCategory;
 use App\Models\B2C\CatalogItem;
+use App\Models\B2C\B2cWishlistItem;
 use App\Models\BlogYazisi;
 use App\Models\SistemAyar;
 
@@ -56,6 +57,11 @@ class HomeController extends Controller
         $heroBgColor = SistemAyar::get('b2c_hero_bg_color', 'linear-gradient(135deg, #0f2444 0%, #1a3c6b 50%, #1e4d8c 100%)');
         $heroBgImage = SistemAyar::get('b2c_hero_bg_image', '');
 
+        $savedIds = B2cWishlistItem::where('session_id', session()->getId())
+            ->pluck('catalog_item_id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
         return view('b2c.home.index', compact(
             'categories',
             'allItems',
@@ -66,6 +72,7 @@ class HomeController extends Controller
             'blogPosts',
             'heroBgColor',
             'heroBgImage',
+            'savedIds',
         ));
     }
 }

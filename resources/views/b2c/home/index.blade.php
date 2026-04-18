@@ -564,7 +564,7 @@
         <div class="gyg-products-grid">
             @if($allItems->isNotEmpty())
                 @foreach($allItems as $item)
-                    @include('b2c.home._product-card', ['item' => $item])
+                    @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? []])
                 @endforeach
             @else
                 @php

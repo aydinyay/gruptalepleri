@@ -276,6 +276,22 @@
         }
         .gyg-icon-btn:hover { background: var(--gr-light); color: var(--gr-primary); }
         .gyg-icon-btn i { font-size: 1.2rem; }
+        .wishlist-badge {
+            position: absolute;
+            top: 4px; right: 4px;
+            background: var(--gr-accent);
+            color: #fff;
+            font-size: .6rem;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            pointer-events: none;
+        }
         .gyg-cta-btn {
             background: var(--gr-accent);
             color: #fff !important;
@@ -864,8 +880,11 @@
         {{-- ── Sağ aksiyonlar ── --}}
         <div class="gyg-nav-actions">
             {{-- İstek Listesi --}}
-            <a href="#" class="gyg-icon-btn" title="İstek Listesi">
+            <a href="{{ route('b2c.wishlist.index') }}" class="gyg-icon-btn" title="İstek Listesi" style="position:relative;">
                 <i class="bi bi-heart"></i>
+                @if(($_wishlistCount ?? 0) > 0)
+                    <span class="wishlist-badge">{{ $_wishlistCount }}</span>
+                @endif
                 <span>İstek Listesi</span>
             </a>
             {{-- Para Birimi --}}
@@ -1180,5 +1199,42 @@ function toggleMobileSection(head) {
 })();
 </script>
 @stack('scripts')
+<script>
+function grtWishlistToggle(btn) {
+    var itemId = btn.dataset.itemId;
+    var csrf   = document.querySelector('meta[name="csrf-token"]').content;
+    fetch('{{ route("b2c.wishlist.toggle") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+        body: JSON.stringify({item_id: parseInt(itemId)})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        var icon = btn.querySelector('i');
+        if (data.saved) {
+            btn.classList.add('saved');
+            icon.className = 'bi bi-heart-fill';
+            icon.style.color = '#e53e3e';
+        } else {
+            btn.classList.remove('saved');
+            icon.className = 'bi bi-heart';
+            icon.style.color = '';
+        }
+        var badge = document.querySelector('.wishlist-badge');
+        if (data.count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'wishlist-badge';
+                var heartBtn = document.querySelector('a[href*="istek-listesi"]');
+                if (heartBtn) heartBtn.appendChild(badge);
+            }
+            badge.textContent = data.count;
+        } else if (badge) {
+            badge.remove();
+        }
+    })
+    .catch(function(){});
+}
+</script>
 </body>
 </html>
