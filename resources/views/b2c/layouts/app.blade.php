@@ -550,7 +550,7 @@
         .gyg-pcard-rating { font-weight: 700; font-size: .85rem; }
         .gyg-pcard-reviews { color: var(--gr-muted); font-size: .82rem; }
         .gyg-pcard-price-label { font-size: .75rem; color: var(--gr-muted); margin-top: auto; padding-top: 8px; }
-        .gyg-pcard-price { font-size: 1.05rem; font-weight: 800; color: var(--gr-text); margin-bottom: 10px; }
+        .gyg-pcard-price { font-size: 1.05rem; font-weight: 800; color: var(--gr-accent); margin-bottom: 10px; }
         .gyg-pcard-cta {
             display: block; width: 100%;
             background: var(--gr-accent); color: #fff !important;

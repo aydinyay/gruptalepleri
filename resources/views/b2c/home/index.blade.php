@@ -327,7 +327,7 @@
 .gyg-pcard-rating { font-weight: 700; font-size: .88rem; color: #1a202c; }
 .gyg-pcard-reviews { font-size: .82rem; color: #718096; }
 .gyg-pcard-price-label { font-size: .75rem; color: #718096; margin-top: auto; padding-top: 8px; }
-.gyg-pcard-price { font-size: 1.05rem; font-weight: 700; color: #1a202c; }
+.gyg-pcard-price { font-size: 1.05rem; font-weight: 700; color: #FF5533; }
 
 /* ═══════════════════════════════════════════════════════
    DESTİNASYON KARTLARI

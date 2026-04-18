@@ -18,7 +18,7 @@
 .prd-item strong{font-size:.85rem;display:block;color:#1a202c}
 .prd-item span{font-size:.8rem;color:#718096}
 .pc{position:sticky;top:84px;background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-.pc-price{font-size:2rem;font-weight:800;color:#1a202c;line-height:1;margin-bottom:4px}
+.pc-price{font-size:2rem;font-weight:800;color:#FF5533;line-height:1;margin-bottom:4px}
 .pc-label{font-size:.8rem;color:#718096;margin-bottom:4px}
 .pc-per{font-size:.8rem;color:#718096;margin-bottom:16px}
 .pc-cta{display:block;width:100%;background:#FF5533;color:#fff;font-weight:700;font-size:1rem;padding:14px;border-radius:10px;text-align:center;text-decoration:none;margin-top:12px;border:0;cursor:pointer}
@@ -51,7 +51,7 @@
 .tr-vehicle-name{font-weight:700;font-size:.93rem;color:#1a202c;margin-bottom:2px}
 .tr-vehicle-meta{font-size:.78rem;color:#718096;display:flex;gap:10px;flex-wrap:wrap}
 .tr-vehicle-price{text-align:right;flex-shrink:0}
-.tr-vehicle-price .amount{font-size:1.3rem;font-weight:800;color:#1a202c}
+.tr-vehicle-price .amount{font-size:1.3rem;font-weight:800;color:#FF5533}
 .tr-vehicle-price .currency{font-size:.8rem;color:#718096}
 .tr-select-btn{display:block;margin-top:6px;background:#FF5533;color:#fff;font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:8px;text-decoration:none;text-align:center;white-space:nowrap}
 .tr-select-btn:hover{background:#e04420;color:#fff}
