@@ -42,6 +42,11 @@
 .prd-item i{font-size:1.1rem;color:#1a3c6b;flex-shrink:0;margin-top:2px}
 .prd-item strong{font-size:.85rem;display:block;color:#1a202c}
 .prd-item span{font-size:.8rem;color:#718096}
+.prd-full-desc h3{font-size:1rem;font-weight:700;color:#1a202c;margin:18px 0 8px}
+.prd-full-desc h2{font-size:1.1rem;font-weight:700;color:#1a202c;margin:20px 0 8px}
+.prd-full-desc ul{padding-left:20px;margin-bottom:10px}
+.prd-full-desc li{margin-bottom:4px}
+.prd-full-desc p{margin-bottom:10px}
 .pc{position:sticky;top:84px;background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
 .pc-price{font-size:2rem;font-weight:800;color:#FF5533;line-height:1;margin-bottom:4px}
 .pc-label{font-size:.8rem;color:#718096;margin-bottom:4px}
@@ -295,7 +300,7 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 
 @if($item->full_desc)
 <div class="prd-sec">Detaylı Açıklama</div>
-<div style="font-size:.95rem;color:#4a5568;line-height:1.8;">{!! nl2br(e($item->full_desc)) !!}</div>
+<div style="font-size:.95rem;color:#4a5568;line-height:1.8;" class="prd-full-desc">{!! $item->full_desc !!}</div>
 @endif
 </div>
 
