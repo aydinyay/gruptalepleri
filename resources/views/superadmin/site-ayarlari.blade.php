@@ -1028,7 +1028,7 @@
         @if(session('success'))
             <div class="alert alert-success py-2">{{ session('success') }}</div>
         @endif
-        <form method="POST" action="{{ route('finans.ayarlar.guncelle') }}">
+        <form method="POST" action="{{ route('superadmin.finans.ayarlar.guncelle') }}">
             @csrf
             <div class="mb-3">
                 <label class="form-label fw-600">1 USD = <span class="text-warning">? ₺</span></label>
