@@ -150,5 +150,15 @@ if (($_GET['action'] ?? '') === 'log') {
 foreach (glob("$webRoot/storage/framework/views/*.php") ?: [] as $f) {
     @unlink($f);
 }
+if (function_exists('opcache_invalidate')) {
+    foreach ([
+        "$webRoot/routes/web.php",
+        "$webRoot/routes/b2c.php",
+        "$webRoot/routes/auth.php",
+        "$webRoot/app/Http/Controllers/Acente/CatalogProductController.php",
+    ] as $f) {
+        opcache_invalidate($f, true);
+    }
+}
 if (function_exists('opcache_reset')) opcache_reset();
 echo "CACHE_CLEARED";
