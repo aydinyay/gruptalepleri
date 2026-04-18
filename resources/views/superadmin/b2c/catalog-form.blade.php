@@ -220,9 +220,37 @@
                             <div class="mb-3">
                                 <label class="form-label fw-600">Sahip Tipi</label>
                                 <select name="owner_type" class="form-select">
-                                    <option value="platform" {{ old('owner_type', $item->owner_type ?? 'platform') == 'platform' ? 'selected' : '' }}>Platform</option>
-                                    <option value="supplier" {{ old('owner_type', $item->owner_type ?? '') == 'supplier' ? 'selected' : '' }}>Tedarikçi</option>
+                                    <option value="platform" {{ old('owner_type', $item->owner_type ?? 'platform') == 'platform' ? 'selected' : '' }}>Platform (Grup Rezervasyonları)</option>
+                                    <option value="supplier" {{ old('owner_type', $item->owner_type ?? '') == 'supplier' ? 'selected' : '' }}>Tedarikçi / Acente</option>
                                 </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-600">Sağlayıcı Acente <span class="text-muted fw-normal">(B2B sistemindeki acente)</span></label>
+                                <select name="supplier_id" class="form-select">
+                                    <option value="">— Seç —</option>
+                                    @foreach($supplierUsers ?? [] as $su)
+                                    <option value="{{ $su['id'] }}" {{ old('supplier_id', $item->supplier_id ?? '') == $su['id'] ? 'selected' : '' }}>
+                                        {{ $su['label'] }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Acenteyi seçince adı otomatik gösterilir.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-600">Sağlayıcı Adı <span class="text-muted fw-normal">(override — sistemde yoksa yazın)</span></label>
+                                <input type="text" name="supplier_name" class="form-control"
+                                       placeholder="örn: Bestaway Tour"
+                                       value="{{ old('supplier_name', $item->supplier_name ?? '') }}">
+                                <div class="form-text">Dolu olursa yukarıdaki acente seçiminin önüne geçer.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-600">Sağlayıcı Logo URL <span class="text-muted fw-normal">(isteğe bağlı)</span></label>
+                                <input type="text" name="supplier_logo_url" class="form-control"
+                                       placeholder="https://..."
+                                       value="{{ old('supplier_logo_url', $item->supplier_logo_url ?? '') }}">
                             </div>
 
                             <div class="mb-3">

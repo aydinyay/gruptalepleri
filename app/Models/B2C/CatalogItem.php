@@ -17,6 +17,8 @@ class CatalogItem extends Model
         'category_id',
         'owner_type',
         'supplier_id',
+        'supplier_name',
+        'supplier_logo_url',
         'product_type',
         'product_subtype',
         'reference_type',
@@ -112,6 +114,34 @@ class CatalogItem extends Model
     public function supplier()
     {
         return $this->belongsTo(User::class, 'supplier_id');
+    }
+
+    /** Tedarikçinin acente profili (company_title, phone vb.) */
+    public function supplierAgency()
+    {
+        return $this->hasOneThrough(
+            \App\Models\Agency::class,
+            User::class,
+            'id',           // users.id
+            'user_id',      // agencies.user_id
+            'supplier_id',  // catalog_items.supplier_id
+            'id'            // users.id
+        );
+    }
+
+    /** Ürün sayfasında gösterilecek tedarikçi adı */
+    public function getSupplierDisplayNameAttribute(): string
+    {
+        if ($this->supplier_name) {
+            return $this->supplier_name;
+        }
+        if ($this->supplierAgency?->company_title) {
+            return $this->supplierAgency->company_title;
+        }
+        if ($this->supplier?->name) {
+            return $this->supplier->name;
+        }
+        return 'Grup Rezervasyonları';
     }
 
     /** Transfer rotası: havalimanı */

@@ -367,7 +367,8 @@ class B2cCatalogController extends Controller
     public function catalogCreate()
     {
         $categories = CatalogCategory::active()->ordered()->get();
-        return view('superadmin.b2c.catalog-form', compact('categories'));
+        $supplierUsers = $this->getSupplierUsers();
+        return view('superadmin.b2c.catalog-form', compact('categories', 'supplierUsers'));
     }
 
     public function catalogStore(Request $request)
@@ -399,9 +400,10 @@ class B2cCatalogController extends Controller
 
     public function catalogEdit(CatalogItem $item)
     {
-        $item->load('locations');
+        $item->load(['locations', 'supplierAgency']);
         $categories = CatalogCategory::active()->ordered()->get();
-        return view('superadmin.b2c.catalog-form', compact('item', 'categories'));
+        $supplierUsers = $this->getSupplierUsers();
+        return view('superadmin.b2c.catalog-form', compact('item', 'categories', 'supplierUsers'));
     }
 
     public function catalogUpdate(Request $request, CatalogItem $item)
@@ -697,6 +699,19 @@ class B2cCatalogController extends Controller
         return back()->with('success', 'Seans silindi.');
     }
 
+    private function getSupplierUsers(): \Illuminate\Support\Collection
+    {
+        return \App\Models\User::where('role', 'acente')
+            ->whereNull('parent_agency_id')
+            ->with('agency')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($u) => [
+                'id'    => $u->id,
+                'label' => $u->agency?->company_title ?: $u->name,
+            ]);
+    }
+
     private function parseGalleryUrls(string $raw): array
     {
         return array_values(array_slice(
@@ -711,6 +726,8 @@ class B2cCatalogController extends Controller
             'category_id'         => 'nullable|integer|exists:catalog_categories,id',
             'owner_type'          => 'required|in:platform,supplier',
             'supplier_id'         => 'nullable|integer|exists:users,id',
+            'supplier_name'       => 'nullable|string|max:150',
+            'supplier_logo_url'   => 'nullable|string|max:500',
             'product_type'        => 'required|in:transfer,charter,leisure,tour,hotel,visa,other',
             'product_subtype'     => 'nullable|string|max:40',
             'reference_type'      => 'nullable|string|max:80',
