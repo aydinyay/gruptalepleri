@@ -449,7 +449,6 @@ async function aiFillFields() {
         if (data.error) {
             stat.textContent = '⚠ ' + data.error;
             stat.style.color = '#dc3545';
-            console.log('AI debug:', JSON.stringify(data));
             return;
         }
 

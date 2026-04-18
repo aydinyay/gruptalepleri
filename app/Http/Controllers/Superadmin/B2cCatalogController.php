@@ -582,7 +582,8 @@ class B2cCatalogController extends Controller
                         'meta_description'    => ['type' => 'string'],
                     ],
                 ],
-                'maxOutputTokens' => 1024,
+                'maxOutputTokens'  => 2048,
+                'thinkingConfig'   => ['thinkingBudget' => 0],
             ],
         ]);
 
@@ -593,12 +594,7 @@ class B2cCatalogController extends Controller
         $metaRaw = trim(data_get($metaResp->json(), 'candidates.0.content.parts.0.text', ''));
         $data = json_decode($metaRaw, true);
         if (! is_array($data)) {
-            return response()->json([
-                'error'      => 'Gemini meta parse hatası.',
-                'raw'        => $metaRaw,
-                'full_resp'  => $metaResp->json(),
-                'json_err'   => json_last_error_msg(),
-            ], 200);
+            return response()->json(['error' => 'Gemini meta parse hatası.'], 502);
         }
 
         // Çağrı 2: HTML açıklama — düz metin olarak (JSON schema YOK)
@@ -609,7 +605,7 @@ class B2cCatalogController extends Controller
 
         $htmlResp = Http::timeout(30)->post($url, [
             'contents'         => [['parts' => [['text' => $htmlPrompt]]]],
-            'generationConfig' => ['maxOutputTokens' => 1024],
+            'generationConfig' => ['maxOutputTokens' => 2048, 'thinkingConfig' => ['thinkingBudget' => 0]],
         ]);
 
         if ($htmlResp->successful()) {
