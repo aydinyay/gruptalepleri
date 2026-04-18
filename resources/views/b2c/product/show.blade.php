@@ -237,11 +237,6 @@ $supplierCount    = $isPlatform
             @endif
         </div>
     </div>
-    @if($supplierPhone)
-    <a href="tel:{{ $supplierPhone }}" style="font-size:.82rem;color:#1a3c6b;font-weight:600;text-decoration:none;flex-shrink:0;">
-        <i class="bi bi-telephone-fill"></i> {{ $supplierPhone }}
-    </a>
-    @endif
 </div>
 </div>
 </div>
