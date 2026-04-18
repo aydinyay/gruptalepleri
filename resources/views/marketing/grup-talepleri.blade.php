@@ -295,6 +295,39 @@
         </div>
     </section>
 
+    <section style="background:#f7f7f7;padding:3rem 5%;border-top:1px solid #e8e8e8;">
+        <div style="max-width:960px;margin:0 auto;">
+            <div style="font-size:0.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#e63946;margin-bottom:0.5rem;">B2B Pazaryeri</div>
+            <div style="font-size:1.5rem;font-weight:800;color:#111;margin-bottom:0.4rem;">Uye Platformu — 12 Kategoride Hizmet</div>
+            <div style="color:#666;font-size:0.9rem;margin-bottom:1.8rem;">Grup uçuşu, transfer, yat, tur, otel, vize — tek platformda teklif alın, karşılaştırın, rezervasyon yapın.</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;margin-bottom:2rem;">
+                @foreach([
+                    ['fas fa-plane-departure','Grup Uçuşu'],
+                    ['fas fa-plane-circle-check','Charter Uçak'],
+                    ['fas fa-jet-fighter','Özel Jet'],
+                    ['fas fa-helicopter','Helikopter'],
+                    ['fas fa-car-side','VIP Transfer'],
+                    ['fas fa-van-shuttle','Şehirlerarası'],
+                    ['fas fa-ship','Yat Kiralama'],
+                    ['fas fa-anchor','Dinner Cruise'],
+                    ['fas fa-map-location-dot','Günübirlik Tur'],
+                    ['fas fa-masks-theater','Etkinlik & Show'],
+                    ['fas fa-building','Otel & Apart'],
+                    ['fas fa-passport','Vize'],
+                ] as [$icon, $label])
+                <div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:0.9rem 0.6rem;text-align:center;">
+                    <div style="font-size:1.3rem;color:#e63946;margin-bottom:0.3rem;"><i class="fas {{ $icon }}"></i></div>
+                    <div style="font-size:0.78rem;font-weight:700;color:#222;">{{ $label }}</div>
+                </div>
+                @endforeach
+            </div>
+            <div style="text-align:center;">
+                <a href="{{ route('register') }}" style="display:inline-block;background:#e63946;color:#fff;padding:0.75rem 2rem;border-radius:8px;font-weight:700;font-size:0.95rem;text-decoration:none;margin-right:0.75rem;">Ücretsiz Üye Ol</a>
+                <a href="{{ route('login') }}" style="display:inline-block;background:transparent;color:#e63946;border:1px solid #e63946;padding:0.75rem 2rem;border-radius:8px;font-weight:600;font-size:0.95rem;text-decoration:none;">Giriş Yap</a>
+            </div>
+        </div>
+    </section>
+
     <footer class="footer">
         <div class="container">
             Grup Talepleri Turizm San. ve Tic. Ltd. Sti. | Group Ticket |

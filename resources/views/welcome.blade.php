@@ -493,6 +493,26 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;padding-top:1.2rem;}
 .footer-text{font-size:0.75rem;color:rgba(255,255,255,0.25);}
 .footer-vergi{font-size:0.72rem;color:rgba(255,255,255,0.2);}
+.pazaryeri-section{background:#fff;padding:4.5rem 5%;border-top:1px solid #f0f0f0;}
+.pazaryeri-section .section-label{font-size:0.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:0.6rem;}
+.pazaryeri-section .section-title{font-size:2rem;font-weight:800;color:var(--dark);margin-bottom:0.5rem;}
+.pazaryeri-section .section-sub{color:#666;font-size:1rem;margin-bottom:2.5rem;}
+.pazar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2.5rem;}
+.pazar-card{background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:1.2rem 1rem;text-align:center;transition:box-shadow 0.2s,transform 0.2s;}
+.pazar-card:hover{box-shadow:0 6px 20px rgba(0,0,0,0.09);transform:translateY(-2px);}
+.pazar-icon{font-size:1.6rem;color:var(--red);margin-bottom:0.5rem;}
+.pazar-name{font-size:0.85rem;font-weight:700;color:var(--dark);margin-bottom:0.25rem;}
+.pazar-desc{font-size:0.75rem;color:#888;}
+.pazar-cta{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:16px;padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;}
+.pazar-cta-text h3{color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 0.3rem;}
+.pazar-cta-text p{color:rgba(255,255,255,0.65);font-size:0.9rem;margin:0;}
+.pazar-cta-btns{display:flex;gap:0.75rem;flex-wrap:wrap;}
+.pazar-cta-btns .btn-primary-cta{background:var(--red);color:#fff;border:none;padding:0.7rem 1.6rem;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;transition:opacity 0.2s;}
+.pazar-cta-btns .btn-primary-cta:hover{opacity:0.88;}
+.pazar-cta-btns .btn-outline-cta{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.3);padding:0.7rem 1.6rem;border-radius:8px;font-weight:600;font-size:0.9rem;text-decoration:none;transition:background 0.2s;}
+.pazar-cta-btns .btn-outline-cta:hover{background:rgba(255,255,255,0.1);}
+@@media(max-width:768px){.pazar-grid{grid-template-columns:repeat(3,1fr);}.pazar-cta{flex-direction:column;text-align:center;}.pazar-cta-btns{justify-content:center;}}
+@@media(max-width:480px){.pazar-grid{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
 <body>
@@ -736,6 +756,35 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 </section>
 
 {{-- NASIL ÇALIŞIR --}}
+<section class="pazaryeri-section" id="pazaryeri">
+    <div class="section-label">B2B Pazaryeri</div>
+    <div class="section-title">Üyeler Birbirlerine Satar</div>
+    <div class="section-sub">Transfer tedarikçisinden tur operatörüne, dinner cruise firmasından yat kiralama şirketine — platform üyeleri kendi hizmetlerini diğer acentelere ve gruplara sunar. 30'dan fazla kategoride B2B fiyatlarla erişim.</div>
+    <div class="pazar-grid">
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-plane-departure"></i></div><div class="pazar-name">Grup Uçuş Talebi</div><div class="pazar-desc">Tarifeli & charter, 10+ yolcu</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-plane-circle-check"></i></div><div class="pazar-name">Charter Uçak</div><div class="pazar-desc">Tam kabin, paket tur grupları</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-jet-fighter"></i></div><div class="pazar-name">Özel Jet</div><div class="pazar-desc">VIP & kurumsal seyahat</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-helicopter"></i></div><div class="pazar-name">Helikopter</div><div class="pazar-desc">VIP transfer & gezi turu</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-car-side"></i></div><div class="pazar-name">Havalimanı Transferi</div><div class="pazar-desc">VIP araç, kapıdan kapıya</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-van-shuttle"></i></div><div class="pazar-name">Şehirlerarası Transfer</div><div class="pazar-desc">Minibüs, otobüs, VIP</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-ship"></i></div><div class="pazar-name">Yat Kiralama</div><div class="pazar-desc">Özel yat, gulet, mavi yolculuk</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-anchor"></i></div><div class="pazar-name">Dinner Cruise</div><div class="pazar-desc">Boğaz, koy turu, gece etkinliği</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-map-location-dot"></i></div><div class="pazar-name">Günübirlik Turlar</div><div class="pazar-desc">Kapadokya, Sapanca, Bursa...</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-masks-theater"></i></div><div class="pazar-name">Etkinlik & Gösteri</div><div class="pazar-desc">Türk gecesi, konser, show</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-building"></i></div><div class="pazar-name">Otel & Apart</div><div class="pazar-desc">Grup konaklaması, kiralama</div></div>
+        <div class="pazar-card"><div class="pazar-icon"><i class="fas fa-passport"></i></div><div class="pazar-name">Vize Hizmetleri</div><div class="pazar-desc">Schengen, turist, iş vizesi</div></div>
+    </div>
+    <div class="pazar-cta">
+        <div class="pazar-cta-text">
+            <strong>Tedarikçi misiniz?</strong> Hizmetlerinizi platforma ekleyin, binlerce acenteye satın. <strong>Acente misiniz?</strong> Tüm hizmetlere B2B fiyatlarla tek panelden erişin.
+        </div>
+        <div class="pazar-cta-btns">
+            <a href="{{ route('register') }}" class="btn-acente">Tedarikçi Olarak Katıl</a>
+            <a href="{{ route('register') }}" class="btn-kurumsal">Acente Olarak Üye Ol</a>
+        </div>
+    </div>
+</section>
+
 <section class="how-section" id="nasil">
     <div class="section-label">Nasıl Çalışır</div>
     <div class="section-title">4 Adımda Grup Uçuşunuz Hazır</div>

@@ -105,5 +105,19 @@
     </div>
 </div>
 
+<div style="background:#1a1a2e;padding:2.5rem 5%;margin-top:2rem;">
+    <div style="max-width:900px;margin:0 auto;text-align:center;">
+        <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#e63946;margin-bottom:0.4rem;">B2B Platformu</div>
+        <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:0.4rem;">Grup Talepleri Pazaryeri</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.88rem;margin-bottom:1.5rem;">Charter uçağın yanı sıra transfer, yat, tur, otel ve daha fazlası. Üye acenteler tek platformdan tüm talepleri yönetir.</div>
+        <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem;">
+            @foreach(['✈ Charter Uçak','🚁 Özel Jet','🚌 Grup Transfer','⛵ Yat & Gemi','🗺 Turlar','🏨 Otel','🛂 Vize'] as $item)
+            <span style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.75);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.8rem;">{{ $item }}</span>
+            @endforeach
+        </div>
+        <a href="{{ route('register') }}" style="display:inline-block;background:#e63946;color:#fff;padding:0.65rem 1.8rem;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">Ücretsiz Üye Ol →</a>
+    </div>
+</div>
+
 </body>
 </html>

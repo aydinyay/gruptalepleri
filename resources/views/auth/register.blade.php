@@ -196,6 +196,25 @@
         <a href="/"><i class="fas fa-arrow-left me-1"></i>Ana Sayfaya Dön</a>
     </div>
 
+    <div style="background:linear-gradient(135deg,#f9f9f9,#fff);border:1px solid #eee;border-radius:14px;padding:1.5rem 1.8rem;margin-top:1.5rem;">
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#e63946;margin-bottom:0.4rem;">Platforma Katılınca</div>
+        <div style="font-size:1rem;font-weight:800;color:#111;margin-bottom:1rem;">12 Kategoride Teklif Alın</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            @foreach([
+                ['fas fa-plane','Grup Uçuşu & Charter'],
+                ['fas fa-car-side','VIP & Grup Transfer'],
+                ['fas fa-ship','Yat & Dinner Cruise'],
+                ['fas fa-map-location-dot','Günübirlik & Çok Günlü Turlar'],
+                ['fas fa-building','Otel & Apart Kiralama'],
+                ['fas fa-passport','Vize Hizmetleri'],
+            ] as [$icon, $label])
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:#444;">
+                <i class="fas {{ $icon }}" style="color:#e63946;width:14px;text-align:center;"></i> {{ $label }}
+            </div>
+            @endforeach
+        </div>
+    </div>
+
 </div>
 <script>
 async function tursabSorgula() {
