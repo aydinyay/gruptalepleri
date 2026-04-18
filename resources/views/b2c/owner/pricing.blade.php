@@ -4,264 +4,392 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fiyat Analizi — Özel Yönetim</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; margin: 0; }
-    .page-header {
-        background: linear-gradient(135deg, #0f2444, #1a3c6b);
-        color: #fff;
-        padding: 20px 32px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-    .page-header h1 { font-size: 1.1rem; font-weight: 700; margin: 0; }
-    .summary-bar {
-        background: #fff;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 12px 32px;
-        display: flex;
-        gap: 32px;
-        flex-wrap: wrap;
-    }
-    .stat { text-align: center; }
-    .stat-val { font-size: 1.3rem; font-weight: 800; color: #1a3c6b; }
-    .stat-lbl { font-size: .72rem; color: #718096; text-transform: uppercase; letter-spacing: .04em; }
-    .tbl-wrap { padding: 24px 32px; overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 8px rgba(0,0,0,.08); font-size: .85rem; }
-    th { background: #1a3c6b; color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: .75rem; white-space: nowrap; }
-    td { padding: 9px 12px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #f8faff; }
-    .type-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: .7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-    .type-transfer { background: #dbeafe; color: #1e40af; }
-    .type-charter  { background: #e0f2fe; color: #0369a1; }
-    .type-leisure  { background: #dcfce7; color: #15803d; }
-    .type-tour     { background: #fef9c3; color: #854d0e; }
-    .type-other    { background: #f3f4f6; color: #374151; }
-    .status-dot {
-        display: inline-block;
-        width: 8px; height: 8px;
-        border-radius: 50%;
-        margin-right: 5px;
-    }
-    .dot-on  { background: #22c55e; }
-    .dot-off { background: #d1d5db; }
-    .num-input {
-        width: 100px;
-        padding: 4px 8px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: .83rem;
-        text-align: right;
-    }
-    .num-input:focus { outline: none; border-color: #1a3c6b; }
-    .notes-input {
-        width: 180px;
-        padding: 4px 8px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: .78rem;
-    }
-    .notes-input:focus { outline: none; border-color: #1a3c6b; }
-    .save-btn {
-        background: #1a3c6b;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 5px 12px;
-        font-size: .78rem;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-    .save-btn:hover { background: #2a5298; }
-    .kazanc-pos { color: #15803d; font-weight: 700; }
-    .kazanc-neg { color: #dc2626; font-weight: 700; }
-    .kazanc-na  { color: #9ca3af; font-style: italic; }
-    .alert-success-custom {
-        background: #dcfce7;
-        border: 1px solid #86efac;
-        color: #15803d;
-        padding: 10px 20px;
-        border-radius: 8px;
-        margin: 0 32px 16px;
-        font-size: .85rem;
-    }
-    .pricing-type-badge {
-        font-size: .68rem;
-        padding: 1px 6px;
-        border-radius: 4px;
-        background: #f3f4f6;
-        color: #6b7280;
-    }
-    @media (max-width: 900px) { .tbl-wrap { padding: 12px 8px; } .page-header, .summary-bar { padding: 12px 16px; } }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
+
+.page-header {
+    background: linear-gradient(135deg, #0f2444, #1a3c6b);
+    color: #fff;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.page-header h1 { font-size: 1.05rem; font-weight: 700; }
+.page-header .sub { font-size: .72rem; opacity: .65; margin-top: 2px; }
+
+.summary-bar {
+    background: #fff;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 14px 32px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.stat { text-align: center; min-width: 80px; }
+.stat-val { font-size: 1.2rem; font-weight: 800; color: #1a3c6b; }
+.stat-lbl { font-size: .65rem; color: #718096; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+.stat-sep { width: 1px; height: 36px; background: #e2e8f0; }
+
+.kur-bar {
+    background: #fffbeb;
+    border-bottom: 1px solid #fde68a;
+    padding: 8px 32px;
+    font-size: .78rem;
+    color: #92400e;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.kur-bar b { color: #78350f; }
+
+.alert-ok {
+    background: #dcfce7; border: 1px solid #86efac; color: #15803d;
+    padding: 10px 32px; font-size: .83rem;
+}
+
+.tbl-wrap { padding: 20px 32px; overflow-x: auto; }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px rgba(0,0,0,.08);
+    font-size: .82rem;
+    min-width: 1100px;
+}
+th {
+    background: #1a3c6b;
+    color: #fff;
+    padding: 9px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: .72rem;
+    white-space: nowrap;
+}
+th.group-maliyet { background: #1e4d8c; }
+th.group-gt      { background: #1a6b3c; }
+th.group-gr      { background: #6b1a1a; }
+th.group-kazanc  { background: #4a1a6b; }
+
+td { padding: 8px 10px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f8faff; }
+
+.type-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+.type-transfer { background: #dbeafe; color: #1e40af; }
+.type-charter  { background: #e0f2fe; color: #0369a1; }
+.type-leisure  { background: #dcfce7; color: #15803d; }
+.type-tour     { background: #fef9c3; color: #854d0e; }
+.type-hotel    { background: #fce7f3; color: #9d174d; }
+.type-visa     { background: #ede9fe; color: #5b21b6; }
+.type-other    { background: #f3f4f6; color: #374151; }
+
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+.dot-on  { background: #22c55e; }
+.dot-off { background: #d1d5db; }
+
+.price-cell { min-width: 120px; }
+.price-input {
+    width: 90px; padding: 4px 7px;
+    border: 1px solid #d1d5db; border-radius: 6px;
+    font-size: .82rem; text-align: right;
+    background: #fff;
+}
+.price-input:focus { outline: none; border-color: #1a3c6b; box-shadow: 0 0 0 2px rgba(26,60,107,.1); }
+.price-try {
+    font-size: .67rem; color: #9ca3af; margin-top: 2px;
+    white-space: nowrap;
+}
+.curr-label { font-size: .72rem; color: #6b7280; margin-left: 3px; }
+
+.kazanc-cell { min-width: 90px; }
+.k-pos  { color: #15803d; font-weight: 700; }
+.k-neg  { color: #dc2626; font-weight: 700; }
+.k-na   { color: #9ca3af; font-style: italic; }
+
+.marj-chip {
+    display: inline-block; padding: 2px 8px; border-radius: 20px;
+    font-size: .72rem; font-weight: 700;
+}
+.marj-green { background: #dcfce7; color: #15803d; }
+.marj-yellow { background: #fef3c7; color: #d97706; }
+.marj-red   { background: #fee2e2; color: #dc2626; }
+.marj-na    { background: #f3f4f6; color: #9ca3af; }
+
+.notes-input {
+    width: 150px; padding: 4px 7px;
+    border: 1px solid #d1d5db; border-radius: 6px;
+    font-size: .75rem;
+}
+.notes-input:focus { outline: none; border-color: #1a3c6b; }
+
+.save-btn {
+    background: #1a3c6b; color: #fff; border: none;
+    border-radius: 6px; padding: 5px 12px;
+    font-size: .75rem; cursor: pointer; white-space: nowrap;
+}
+.save-btn:hover { background: #2a5298; }
+
+.cur-sel {
+    padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 6px;
+    font-size: .75rem; background: #fff; color: #374151;
+}
+.cur-sel:focus { outline: none; border-color: #1a3c6b; }
+
+.legend { display: flex; gap: 12px; align-items: center; padding: 16px 32px; font-size: .75rem; color: #6b7280; flex-wrap: wrap; }
+.legend span { padding: 2px 8px; border-radius: 4px; }
+.color-gt    { color: #1a6b3c; }
+.color-gr    { color: #6b1a1a; }
+.color-green { color: #15803d; }
+.color-na    { color: #9ca3af; }
+.stat-big    { font-size: 1.4rem; }
 </style>
 </head>
-<body>
+<body data-usd="{{ $usdKuru }}" data-eur="{{ $eurKuru }}">
 
 <div class="page-header">
     <div>
-        <h1><i class="bi bi-bar-chart-line-fill me-2"></i>Fiyat & Maliyet Analizi</h1>
-        <div style="font-size:.75rem;opacity:.7;margin-top:2px;">gruprezervasyonlari.com — Özel Yönetim Paneli</div>
+        <h1><i class="bi bi-bar-chart-line-fill" style="margin-right:8px;"></i>Fiyat & Maliyet Analizi</h1>
+        <div class="sub">gruprezervasyonlari.com — Özel Yönetim Paneli</div>
     </div>
-    <div style="font-size:.75rem;opacity:.6;">
-        <i class="bi bi-shield-lock-fill me-1"></i>Korumalı
-    </div>
+    <div style="font-size:.72rem;opacity:.6;"><i class="bi bi-shield-lock-fill" style="margin-right:4px;"></i>Korumalı</div>
 </div>
 
 @php
 $published = $items->where('is_published', true);
-$totalSale = $published->sum(fn($i) => (float)$i->base_price);
-$totalCost = $published->sum(fn($i) => (float)$i->cost_price);
-$totalKazanc = $totalSale - $totalCost;
-$avgMargin = $totalSale > 0 ? round(($totalKazanc / $totalSale) * 100, 1) : 0;
-$fixedCount = $published->where('pricing_type', 'fixed')->count();
-$quoteCount = $published->where('pricing_type', '!=', 'fixed')->count();
+$usdRate   = $usdKuru;
+$eurRate   = $eurKuru;
+
+function tryVal($price, $currency, $usdRate, $eurRate): float {
+    $price = (float) $price;
+    return match($currency) {
+        'USD' => $price * $usdRate,
+        'EUR' => $price * $eurRate,
+        'GBP' => $price * $eurRate * 1.15,
+        default => $price,
+    };
+}
+
+$totalGtKazancTry = 0;
+$totalGrKazancTry = 0;
+$totalKazancTry   = 0;
+foreach ($published as $item) {
+    $c = $item->currency ?? 'TRY';
+    $cost = (float) $item->cost_price;
+    $gt   = (float) $item->gt_price;
+    $gr   = (float) $item->base_price;
+    if ($cost > 0 && $gt > 0) $totalGtKazancTry += tryVal($gt - $cost, $c, $usdRate, $eurRate);
+    if ($gt > 0 && $gr > 0)   $totalGrKazancTry += tryVal($gr - $gt, $c, $usdRate, $eurRate);
+    if ($cost > 0 && $gr > 0) $totalKazancTry   += tryVal($gr - $cost, $c, $usdRate, $eurRate);
+}
+@endphp
+
+<div class="kur-bar">
+    <i class="bi bi-info-circle"></i>
+    <span>Kur (tahmini): <b>1 USD ≈ {{ number_format($usdKuru, 0) }} ₺</b></span>
+    <span><b>1 EUR ≈ {{ number_format($eurKuru, 0) }} ₺</b></span>
+    <span style="opacity:.7;">TRY karşılıkları bu kur ile hesaplanır. Kuru güncellemek için Site Ayarları → <code>usd_kuru</code> / <code>eur_kuru</code> ayarlarını düzenleyin.</span>
+</div>
+
+@php
+$statPublished = $published->count();
+$statAll       = $items->count();
+$statFixed     = $items->where('pricing_type', 'fixed')->count();
 @endphp
 
 <div class="summary-bar">
     <div class="stat">
-        <div class="stat-val">{{ $items->count() }}</div>
+        <div class="stat-val">{{ $statAll }}</div>
         <div class="stat-lbl">Toplam Ürün</div>
     </div>
     <div class="stat">
-        <div class="stat-val">{{ $published->count() }}</div>
+        <div class="stat-val">{{ $statPublished }}</div>
         <div class="stat-lbl">Yayında</div>
     </div>
     <div class="stat">
-        <div class="stat-val">{{ $fixedCount }}</div>
+        <div class="stat-val">{{ $statFixed }}</div>
         <div class="stat-lbl">Sabit Fiyatlı</div>
     </div>
+    <div class="stat-sep"></div>
     <div class="stat">
-        <div class="stat-val" style="color:{{ $totalCost > 0 ? '#1a3c6b' : '#9ca3af' }};">
-            {{ $totalCost > 0 ? number_format($totalCost, 0, ',', '.') . ' ₺' : '—' }}
+        <div class="stat-val {{ $totalGtKazancTry > 0 ? 'color-gt' : 'color-na' }}">
+            {{ $totalGtKazancTry > 0 ? number_format($totalGtKazancTry, 0, ',', '.') . ' ₺' : '—' }}
         </div>
-        <div class="stat-lbl">Toplam Maliyet</div>
+        <div class="stat-lbl">GT Toplam Kazanç</div>
     </div>
     <div class="stat">
-        <div class="stat-val" style="color:#1a3c6b;">
-            {{ $totalSale > 0 ? number_format($totalSale, 0, ',', '.') . ' ₺' : '—' }}
+        <div class="stat-val {{ $totalGrKazancTry > 0 ? 'color-gr' : 'color-na' }}">
+            {{ $totalGrKazancTry > 0 ? number_format($totalGrKazancTry, 0, ',', '.') . ' ₺' : '—' }}
         </div>
-        <div class="stat-lbl">Toplam Satış</div>
+        <div class="stat-lbl">GR Toplam Kazanç</div>
     </div>
+    <div class="stat-sep"></div>
     <div class="stat">
-        <div class="stat-val" style="color:{{ $totalKazanc >= 0 ? '#15803d' : '#dc2626' }};">
-            {{ $totalCost > 0 ? number_format($totalKazanc, 0, ',', '.') . ' ₺' : '—' }}
+        <div class="stat-val stat-big {{ $totalKazancTry > 0 ? 'color-green' : 'color-na' }}">
+            {{ $totalKazancTry > 0 ? number_format($totalKazancTry, 0, ',', '.') . ' ₺' : '—' }}
         </div>
-        <div class="stat-lbl">Toplam Kazanç</div>
-    </div>
-    <div class="stat">
-        <div class="stat-val" style="color:{{ $avgMargin >= 20 ? '#15803d' : ($avgMargin > 0 ? '#d97706' : '#9ca3af') }};">
-            {{ $totalCost > 0 ? '%' . $avgMargin : '—' }}
-        </div>
-        <div class="stat-lbl">Ort. Marj</div>
+        <div class="stat-lbl">Toplam Net Kazanç</div>
     </div>
 </div>
 
 @if(session('updated'))
-    <div class="alert-success-custom mt-3">
-        <i class="bi bi-check-circle-fill me-1"></i>{{ session('updated') }}
-    </div>
+    <div class="alert-ok"><i class="bi bi-check-circle-fill" style="margin-right:6px;"></i>{{ session('updated') }}</div>
 @endif
 
 <div class="tbl-wrap">
 <table>
     <thead>
         <tr>
-            <th>#</th>
-            <th>Ürün / Hizmet</th>
-            <th>Tip</th>
-            <th>Durum</th>
-            <th>Fiyat Tipi</th>
-            <th>Maliyet (₺)</th>
-            <th>Satış Fiyatı (₺)</th>
-            <th>Kazanç (₺)</th>
-            <th>Marj %</th>
-            <th>Not</th>
-            <th>Kaydet</th>
+            <th rowspan="2">#</th>
+            <th rowspan="2">Ürün / Hizmet</th>
+            <th rowspan="2">Tip</th>
+            <th rowspan="2">Durum</th>
+            <th rowspan="2">Para<br>Birimi</th>
+            <th class="group-maliyet">Maliyet</th>
+            <th class="group-gt">GT Satış Fiyatı</th>
+            <th class="group-gr">GR Satış Fiyatı</th>
+            <th class="group-kazanc">GT Kazancı</th>
+            <th class="group-kazanc">GR Kazancı</th>
+            <th class="group-kazanc">Top. Kazanç</th>
+            <th class="group-kazanc">Marj %</th>
+            <th rowspan="2">Not</th>
+            <th rowspan="2">Kaydet</th>
+        </tr>
+        <tr>
+            <th class="group-maliyet" style="font-size:.65rem;font-weight:400;opacity:.8;">tedarikçi</th>
+            <th class="group-gt" style="font-size:.65rem;font-weight:400;opacity:.8;">B2B acente</th>
+            <th class="group-gr" style="font-size:.65rem;font-weight:400;opacity:.8;">B2C müşteri</th>
+            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GT−maliyet</th>
+            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GR−GT</th>
+            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GR−maliyet</th>
+            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">top/GR</th>
         </tr>
     </thead>
     <tbody>
     @foreach($items as $i => $item)
         @php
-        $sale  = (float) $item->base_price;
-        $cost  = (float) $item->cost_price;
-        $kazanc = ($sale > 0 && $cost > 0) ? $sale - $cost : null;
-        $marj   = ($kazanc !== null && $sale > 0) ? round(($kazanc / $sale) * 100, 1) : null;
+        $curr     = $item->currency ?? 'TRY';
+        $cost     = (float) $item->cost_price;
+        $gtPrice  = (float) $item->gt_price;
+        $grPrice  = (float) $item->base_price;
+
+        $gtKazanc  = ($cost > 0 && $gtPrice > 0) ? $gtPrice - $cost : null;
+        $grKazanc  = ($gtPrice > 0 && $grPrice > 0) ? $grPrice - $gtPrice : null;
+        $topKazanc = ($cost > 0 && $grPrice > 0) ? $grPrice - $cost : null;
+        $marj      = ($topKazanc !== null && $grPrice > 0) ? round(($topKazanc / $grPrice) * 100, 1) : null;
+
+        $rate = match($curr) { 'USD' => $usdKuru, 'EUR' => $eurKuru, default => 1 };
         @endphp
         <form method="POST" action="{{ route('b2c.owner.pricing.update', [$item->id, 't' => $token]) }}">
             @csrf
             <tr>
-                <td style="color:#9ca3af;font-size:.75rem;">{{ $i+1 }}</td>
-                <td>
-                    <div style="font-weight:600;color:#1a202c;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <td style="color:#9ca3af;font-size:.72rem;">{{ $i+1 }}</td>
+                <td style="max-width:180px;">
+                    <div style="font-weight:600;color:#1a202c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;" title="{{ $item->title }}">
                         {{ $item->title }}
                     </div>
                     @if($item->destination_city)
-                        <div style="font-size:.72rem;color:#718096;">{{ $item->destination_city }}</div>
+                        <div style="font-size:.68rem;color:#718096;">{{ $item->destination_city }}</div>
                     @endif
                 </td>
-                <td>
-                    <span class="type-badge type-{{ $item->product_type }}">{{ $item->product_type }}</span>
-                </td>
-                <td>
+                <td><span class="type-badge type-{{ $item->product_type }}">{{ $item->product_type }}</span></td>
+                <td style="white-space:nowrap;">
                     <span class="status-dot {{ $item->is_published ? 'dot-on' : 'dot-off' }}"></span>
-                    {{ $item->is_published ? 'Yayında' : 'Taslak' }}
+                    {{ $item->is_published ? 'Yayın' : 'Taslak' }}
                 </td>
                 <td>
-                    <span class="pricing-type-badge">
-                        {{ ['fixed'=>'Sabit','quote'=>'Teklif','request'=>'Talep'][$item->pricing_type] ?? $item->pricing_type }}
-                    </span>
+                    <select name="currency" class="cur-sel">
+                        @foreach(['TRY','USD','EUR','GBP'] as $c)
+                            <option value="{{ $c }}" {{ $curr === $c ? 'selected' : '' }}>{{ $c }}</option>
+                        @endforeach
+                    </select>
                 </td>
-                <td>
-                    <input type="number" name="cost_price" class="num-input"
-                           value="{{ $item->cost_price ? number_format((float)$item->cost_price, 0, '.', '') : '' }}"
-                           placeholder="0" min="0" step="1">
+                <td class="price-cell">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <input type="number" name="cost_price" class="price-input" data-field="cost"
+                               value="{{ $cost > 0 ? number_format($cost, 2, '.', '') : '' }}"
+                               placeholder="0" min="0" step="0.01">
+                        <span class="curr-label curr-display">{{ $curr }}</span>
+                    </div>
+                    <div class="price-try try-cost">
+                        @if($cost > 0 && $curr !== 'TRY')≈ {{ number_format($cost * $rate, 0, ',', '.') }} ₺@endif
+                    </div>
                 </td>
-                <td>
-                    <input type="number" name="base_price" class="num-input"
-                           value="{{ $item->base_price ? number_format((float)$item->base_price, 0, '.', '') : '' }}"
-                           placeholder="0" min="0" step="1">
+                <td class="price-cell">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <input type="number" name="gt_price" class="price-input" data-field="gt"
+                               value="{{ $gtPrice > 0 ? number_format($gtPrice, 2, '.', '') : '' }}"
+                               placeholder="0" min="0" step="0.01">
+                        <span class="curr-label curr-display">{{ $curr }}</span>
+                    </div>
+                    <div class="price-try try-gt">
+                        @if($gtPrice > 0 && $curr !== 'TRY')≈ {{ number_format($gtPrice * $rate, 0, ',', '.') }} ₺@endif
+                    </div>
                 </td>
-                <td>
-                    @if($kazanc !== null)
-                        <span class="{{ $kazanc >= 0 ? 'kazanc-pos' : 'kazanc-neg' }}">
-                            {{ number_format($kazanc, 0, ',', '.') }}
-                        </span>
-                    @else
-                        <span class="kazanc-na">—</span>
+                <td class="price-cell">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <input type="number" name="base_price" class="price-input" data-field="gr"
+                               value="{{ $grPrice > 0 ? number_format($grPrice, 2, '.', '') : '' }}"
+                               placeholder="0" min="0" step="0.01">
+                        <span class="curr-label curr-display">{{ $curr }}</span>
+                    </div>
+                    <div class="price-try try-gr">
+                        @if($grPrice > 0 && $curr !== 'TRY')≈ {{ number_format($grPrice * $rate, 0, ',', '.') }} ₺@endif
+                    </div>
+                </td>
+                <td class="kazanc-cell">
+                    <div class="kaz-gt-val {{ $gtKazanc !== null ? ($gtKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
+                        @if($gtKazanc !== null){{ number_format($gtKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
+                    </div>
+                    @if($gtKazanc !== null && $curr !== 'TRY')
+                    <div class="price-try">≈ {{ number_format($gtKazanc * $rate, 0, ',', '.') }} ₺</div>
+                    @endif
+                </td>
+                <td class="kazanc-cell">
+                    <div class="kaz-gr-val {{ $grKazanc !== null ? ($grKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
+                        @if($grKazanc !== null){{ number_format($grKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
+                    </div>
+                    @if($grKazanc !== null && $curr !== 'TRY')
+                    <div class="price-try">≈ {{ number_format($grKazanc * $rate, 0, ',', '.') }} ₺</div>
+                    @endif
+                </td>
+                <td class="kazanc-cell">
+                    <div class="kaz-top-val {{ $topKazanc !== null ? ($topKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
+                        @if($topKazanc !== null){{ number_format($topKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
+                    </div>
+                    @if($topKazanc !== null && $curr !== 'TRY')
+                    <div class="price-try">≈ {{ number_format($topKazanc * $rate, 0, ',', '.') }} ₺</div>
                     @endif
                 </td>
                 <td>
                     @if($marj !== null)
-                        <span style="font-weight:700;color:{{ $marj >= 30 ? '#15803d' : ($marj >= 15 ? '#d97706' : '#dc2626') }};">
+                        <span class="marj-chip {{ $marj >= 30 ? 'marj-green' : ($marj >= 15 ? 'marj-yellow' : 'marj-red') }}">
                             %{{ $marj }}
                         </span>
                     @else
-                        <span class="kazanc-na">—</span>
+                        <span class="marj-chip marj-na">—</span>
                     @endif
                 </td>
                 <td>
                     <input type="text" name="pricing_notes" class="notes-input"
-                           value="{{ $item->pricing_notes }}"
-                           placeholder="Not ekle...">
+                           value="{{ $item->pricing_notes }}" placeholder="Not...">
                 </td>
                 <td>
-                    <button type="submit" class="save-btn">
-                        <i class="bi bi-check2"></i> Kaydet
-                    </button>
+                    <button type="submit" class="save-btn"><i class="bi bi-check2"></i> Kaydet</button>
                 </td>
             </tr>
         </form>
@@ -270,40 +398,104 @@ $quoteCount = $published->where('pricing_type', '!=', 'fixed')->count();
 </table>
 </div>
 
-<div style="text-align:center;padding:24px;color:#9ca3af;font-size:.75rem;">
-    Kazanç ve marj değerleri maliyet ve satış fiyatına göre otomatik hesaplanır.
-    <span style="background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;margin-left:8px;">Yeşil ≥%30</span>
-    <span style="background:#fef3c7;color:#d97706;padding:2px 6px;border-radius:4px;margin-left:4px;">Sarı %15–30</span>
-    <span style="background:#fee2e2;color:#dc2626;padding:2px 6px;border-radius:4px;margin-left:4px;">Kırmızı &lt;%15</span>
+<div class="legend">
+    <span style="background:#dcfce7;color:#15803d;">Yeşil: ≥%30 marj</span>
+    <span style="background:#fef3c7;color:#d97706;">Sarı: %15–30</span>
+    <span style="background:#fee2e2;color:#dc2626;">Kırmızı: &lt;%15</span>
+    <span style="color:#6b7280;">GT Kazancı = GT Fiyatı − Maliyet &nbsp;|&nbsp; GR Kazancı = GR Fiyatı − GT Fiyatı &nbsp;|&nbsp; Top. Kazanç = GR Fiyatı − Maliyet</span>
 </div>
 
 <script>
-// Kazanç alanlarını canlı güncelle
-document.querySelectorAll('form').forEach(form => {
-    const costInput = form.querySelector('[name="cost_price"]');
-    const saleInput = form.querySelector('[name="base_price"]');
-    const kazancCell = form.querySelector('tr td:nth-child(8)');
-    const marjCell   = form.querySelector('tr td:nth-child(9)');
+(function() {
+    var USD_RATE = parseFloat(document.body.dataset.usd) || 34;
+    var EUR_RATE = parseFloat(document.body.dataset.eur) || 37;
 
-    function recalc() {
-        const cost = parseFloat(costInput.value) || 0;
-        const sale = parseFloat(saleInput.value) || 0;
-        if (cost > 0 && sale > 0) {
-            const kaz  = sale - cost;
-            const marj = Math.round((kaz / sale) * 1000) / 10;
-            const kazColor = kaz >= 0 ? '#15803d' : '#dc2626';
-            const marjColor = marj >= 30 ? '#15803d' : (marj >= 15 ? '#d97706' : '#dc2626');
-            kazancCell.innerHTML = '<span style="font-weight:700;color:' + kazColor + '">' + kaz.toLocaleString('tr-TR') + '</span>';
-            marjCell.innerHTML   = '<span style="font-weight:700;color:' + marjColor + '">%' + marj + '</span>';
-        } else {
-            kazancCell.innerHTML = '<span style="color:#9ca3af;font-style:italic">—</span>';
-            marjCell.innerHTML   = '<span style="color:#9ca3af;font-style:italic">—</span>';
-        }
+    function getRate(curr) {
+        if (curr === 'USD') return USD_RATE;
+        if (curr === 'EUR') return EUR_RATE;
+        if (curr === 'GBP') return EUR_RATE * 1.15;
+        return 1;
     }
 
-    costInput && costInput.addEventListener('input', recalc);
-    saleInput && saleInput.addEventListener('input', recalc);
-});
+    function fmtTRY(val, rate) {
+        return '≈ ' + Math.round(val * rate).toLocaleString('tr-TR') + ' ₺';
+    }
+
+    function fmtNum(val, curr) {
+        return val.toLocaleString('tr-TR', {maximumFractionDigits: 0}) + ' ' + curr;
+    }
+
+    function marjClass(m) {
+        if (m >= 30) return 'marj-chip marj-green';
+        if (m >= 15) return 'marj-chip marj-yellow';
+        return 'marj-chip marj-red';
+    }
+
+    document.querySelectorAll('form').forEach(function(form) {
+        var costIn  = form.querySelector('[name="cost_price"]');
+        var gtIn    = form.querySelector('[name="gt_price"]');
+        var grIn    = form.querySelector('[name="base_price"]');
+        var curSel  = form.querySelector('[name="currency"]');
+        var tryCost = form.querySelector('.try-cost');
+        var tryGt   = form.querySelector('.try-gt');
+        var tryGr   = form.querySelector('.try-gr');
+        var kazGt   = form.querySelector('.kaz-gt-val');
+        var kazGr   = form.querySelector('.kaz-gr-val');
+        var kazTop  = form.querySelector('.kaz-top-val');
+        var marjEl  = form.querySelector('.marj-chip');
+        var currLabels = form.querySelectorAll('.curr-display');
+
+        function recalc() {
+            var curr  = curSel.value;
+            var rate  = getRate(curr);
+            var cost  = parseFloat(costIn.value) || 0;
+            var gt    = parseFloat(gtIn.value)   || 0;
+            var gr    = parseFloat(grIn.value)   || 0;
+
+            // Update currency labels
+            currLabels.forEach(function(el) { el.textContent = curr; });
+
+            // TRY equivalents
+            tryCost.textContent = (cost > 0 && curr !== 'TRY') ? fmtTRY(cost, rate) : '';
+            tryGt.textContent   = (gt > 0 && curr !== 'TRY')   ? fmtTRY(gt, rate)   : '';
+            tryGr.textContent   = (gr > 0 && curr !== 'TRY')   ? fmtTRY(gr, rate)   : '';
+
+            // Kazanç
+            if (cost > 0 && gt > 0) {
+                var kgt = gt - cost;
+                kazGt.className = 'kaz-gt-val ' + (kgt >= 0 ? 'k-pos' : 'k-neg');
+                kazGt.textContent = fmtNum(kgt, curr);
+            } else {
+                kazGt.className = 'kaz-gt-val k-na'; kazGt.textContent = '—';
+            }
+            if (gt > 0 && gr > 0) {
+                var kgr = gr - gt;
+                kazGr.className = 'kaz-gr-val ' + (kgr >= 0 ? 'k-pos' : 'k-neg');
+                kazGr.textContent = fmtNum(kgr, curr);
+            } else {
+                kazGr.className = 'kaz-gr-val k-na'; kazGr.textContent = '—';
+            }
+            if (cost > 0 && gr > 0) {
+                var ktop = gr - cost;
+                kazTop.className = 'kaz-top-val ' + (ktop >= 0 ? 'k-pos' : 'k-neg');
+                kazTop.textContent = fmtNum(ktop, curr);
+                if (marjEl) {
+                    var m = Math.round((ktop / gr) * 1000) / 10;
+                    marjEl.className = marjClass(m);
+                    marjEl.textContent = '%' + m;
+                }
+            } else {
+                kazTop.className = 'kaz-top-val k-na'; kazTop.textContent = '—';
+                if (marjEl) { marjEl.className = 'marj-chip marj-na'; marjEl.textContent = '—'; }
+            }
+        }
+
+        [costIn, gtIn, grIn, curSel].forEach(function(el) {
+            el && el.addEventListener('input', recalc);
+            el && el.addEventListener('change', recalc);
+        });
+    });
+})();
 </script>
 </body>
 </html>

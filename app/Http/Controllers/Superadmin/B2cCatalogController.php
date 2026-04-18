@@ -543,6 +543,7 @@ class B2cCatalogController extends Controller
             'cover_image'         => 'nullable|string|max:255',
             'cover_image_file'    => 'nullable|image|max:4096',
             'pricing_type'        => 'required|in:fixed,quote,request',
+            'gt_price'            => 'nullable|numeric|min:0',
             'base_price'          => 'nullable|numeric|min:0',
             'currency'            => 'required|string|size:3',
             'is_active'           => 'boolean',

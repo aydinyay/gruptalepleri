@@ -4,6 +4,7 @@ namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
 use App\Models\B2C\CatalogItem;
+use App\Models\SistemAyar;
 use Illuminate\Http\Request;
 
 class OwnerDashboardController extends Controller
@@ -27,9 +28,11 @@ class OwnerDashboardController extends Controller
             ->orderBy('title')
             ->get();
 
-        $token = $request->get('t');
+        $token   = $request->get('t');
+        $usdKuru = (float) SistemAyar::get('usd_kuru', '34');
+        $eurKuru = (float) SistemAyar::get('eur_kuru', '37');
 
-        return view('b2c.owner.pricing', compact('items', 'token'));
+        return view('b2c.owner.pricing', compact('items', 'token', 'usdKuru', 'eurKuru'));
     }
 
     public function pricingUpdate(Request $request, CatalogItem $item)
@@ -40,6 +43,7 @@ class OwnerDashboardController extends Controller
 
         $data = $request->validate([
             'cost_price'     => 'nullable|numeric|min:0',
+            'gt_price'       => 'nullable|numeric|min:0',
             'base_price'     => 'nullable|numeric|min:0',
             'pricing_notes'  => 'nullable|string|max:500',
         ]);

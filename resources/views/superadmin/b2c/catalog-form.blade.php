@@ -91,9 +91,16 @@
                                     </select>
                                 </div>
                                 <div class="col-md-4" id="priceFields">
-                                    <label class="form-label fw-600">Baz Fiyat</label>
+                                    <label class="form-label fw-600">GT Satış Fiyatı <small class="text-muted">(Acente / B2B)</small></label>
+                                    <input type="number" name="gt_price" class="form-control" step="0.01" min="0"
+                                           value="{{ old('gt_price', $item->gt_price ?? '') }}"
+                                           placeholder="Acente fiyatı">
+                                </div>
+                                <div class="col-md-4" id="grPriceField">
+                                    <label class="form-label fw-600">GR Satış Fiyatı <small class="text-muted">(Müşteri / B2C)</small></label>
                                     <input type="number" name="base_price" class="form-control" step="0.01" min="0"
-                                           value="{{ old('base_price', $item->base_price ?? '') }}">
+                                           value="{{ old('base_price', $item->base_price ?? '') }}"
+                                           placeholder="Müşteri fiyatı">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-600">Para Birimi</label>
