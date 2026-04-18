@@ -386,7 +386,7 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls', ''));
+        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
 
         $item = CatalogItem::create($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
@@ -404,7 +404,6 @@ class B2cCatalogController extends Controller
 
     public function catalogUpdate(Request $request, CatalogItem $item)
     {
-        try {
         $validated = $this->validateCatalogItem($request, $item->id);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
@@ -425,20 +424,13 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls', ''));
+        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
 
         $item->update($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
 
         return redirect()->route('superadmin.b2c.catalog')
             ->with('success', 'Ürün güncellendi.');
-        } catch (\Throwable $e) {
-            return response('<pre style="background:#fff;padding:20px;font-size:13px;color:red">'
-                . 'HATA: ' . get_class($e) . "\n"
-                . $e->getMessage() . "\n\n"
-                . $e->getTraceAsString()
-                . '</pre>', 500);
-        }
     }
 
     public function catalogTogglePublish(CatalogItem $item)
