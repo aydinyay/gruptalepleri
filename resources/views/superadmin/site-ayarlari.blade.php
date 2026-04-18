@@ -96,6 +96,10 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link tab-btn {{ $activeTab === 'finans' ? 'active' : 'btn btn-outline-secondary' }}"
+               href="{{ route('superadmin.site.ayarlar', ['sekme' => 'finans']) }}">
+                <i class="fas fa-coins me-1"></i> Döviz Kurları
+            </a>
             <a class="nav-link tab-btn {{ $activeTab === 'sirket' ? 'active' : 'btn btn-outline-secondary' }}"
                href="{{ route('superadmin.site.ayarlar', ['sekme' => 'sirket']) }}">
                 <i class="fas fa-building me-1"></i>Şirket Bilgileri
@@ -1015,6 +1019,44 @@
             </button>
         </div>
     </form>
+    @elseif($activeTab === 'finans')
+    <div class="card border-0 shadow-sm p-4" style="max-width:480px;">
+        <h6 class="fw-bold mb-1"><i class="fas fa-coins me-2 text-warning"></i>Döviz Kurları</h6>
+        <p class="text-muted small mb-3">GR fiyat analiz tablosunda TRY karşılıkları bu kurlarla hesaplanır.</p>
+        @if(session('success'))
+            <div class="alert alert-success py-2">{{ session('success') }}</div>
+        @endif
+        <form method="POST" action="{{ route('finans.ayarlar.guncelle') }}">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label fw-600">1 USD = <span class="text-warning">? ₺</span></label>
+                <div class="input-group">
+                    <span class="input-group-text">₺</span>
+                    <input type="number" name="usd_kuru" class="form-control" step="0.01" min="1"
+                           value="{{ $finansAyarlari['usd_kuru'] ?? '34' }}" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-600">1 EUR = <span class="text-warning">? ₺</span></label>
+                <div class="input-group">
+                    <span class="input-group-text">₺</span>
+                    <input type="number" name="eur_kuru" class="form-control" step="0.01" min="1"
+                           value="{{ $finansAyarlari['eur_kuru'] ?? '37' }}" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-600">1 GBP = <span class="text-warning">? ₺</span></label>
+                <div class="input-group">
+                    <span class="input-group-text">₺</span>
+                    <input type="number" name="gbp_kuru" class="form-control" step="0.01" min="1"
+                           value="{{ $finansAyarlari['gbp_kuru'] ?? '43' }}" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Kurları Kaydet
+            </button>
+        </form>
+    </div>
     @endif
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -433,7 +433,7 @@ class SuperadminController extends Controller
 
     public function siteAyarlari(Request $request)
     {
-        $allowedTabs = ['bildirim', 'sms', 'duyuru', 'rapor', 'ai', 'sirket'];
+        $allowedTabs = ['bildirim', 'sms', 'duyuru', 'rapor', 'ai', 'sirket', 'finans'];
         $activeTab = $request->query('sekme', 'bildirim');
         if (! in_array($activeTab, $allowedTabs, true)) {
             $activeTab = 'bildirim';
@@ -514,6 +514,15 @@ class SuperadminController extends Controller
             ];
         }
 
+        $finansAyarlari = [];
+        if ($activeTab === 'finans') {
+            $finansAyarlari = [
+                'usd_kuru'  => SistemAyar::get('usd_kuru', '34'),
+                'eur_kuru'  => SistemAyar::get('eur_kuru', '37'),
+                'gbp_kuru'  => SistemAyar::get('gbp_kuru', '43'),
+            ];
+        }
+
         $sirketBilgileri = [];
         if ($activeTab === 'sirket') {
             $sirketKeys = [
@@ -552,9 +561,24 @@ class SuperadminController extends Controller
                 'aiCampaigns',
                 'aiDismissedCampaigns',
                 'aiStats',
-                'sirketBilgileri'
+                'sirketBilgileri',
+                'finansAyarlari'
             )
         );
+    }
+
+    public function finansAyarlariGuncelle(Request $request)
+    {
+        $request->validate([
+            'usd_kuru' => 'required|numeric|min:1',
+            'eur_kuru' => 'required|numeric|min:1',
+            'gbp_kuru' => 'required|numeric|min:1',
+        ]);
+        SistemAyar::set('usd_kuru', (string) $request->usd_kuru);
+        SistemAyar::set('eur_kuru', (string) $request->eur_kuru);
+        SistemAyar::set('gbp_kuru', (string) $request->gbp_kuru);
+        return redirect()->route('superadmin.site.ayarlar', ['sekme' => 'finans'])
+            ->with('success', 'Döviz kurları güncellendi.');
     }
 
     public function sirketBilgileriGuncelle(Request $request)

@@ -662,6 +662,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/site-ayarlari/aktif-adim-yenile', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'aktifAdimYenile'])->name('aktif.adim.yenile');
     Route::post('/site-ayarlari/airline-senkronize', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'airlineSenkronize'])->name('airline.senkronize');
     Route::post('/site-ayarlari/sirket', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'sirketBilgileriGuncelle'])->name('sirket.guncelle');
+    Route::post('/site-ayarlari/finans', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'finansAyarlariGuncelle'])->name('finans.ayarlar.guncelle');
     Route::get('/leisure-ayarlar', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'index'])->name('leisure.settings.index');
     Route::post('/leisure-ayarlar/paketler', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'storePackage'])->name('leisure.settings.packages.store');
     Route::patch('/leisure-ayarlar/paketler/{template}', [\App\Http\Controllers\Superadmin\LeisureSettingsController::class, 'updatePackage'])->name('leisure.settings.packages.update');
