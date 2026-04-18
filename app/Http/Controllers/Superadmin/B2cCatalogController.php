@@ -555,29 +555,31 @@ class B2cCatalogController extends Controller
         }
 
         $prompt = <<<PROMPT
-Sen bir Türkçe içerik analiz asistanısın. Aşağıdaki ürün/hizmet açıklamasını analiz et ve JSON formatında yapılandırılmış veri döndür. Türkçe yazılmış metinleri anlamaya çalış.
+Sen bir Türkçe içerik analiz asistanısın. Aşağıdaki ham ürün/hizmet metnini analiz et.
 
 Metin:
 {$text}
 
-Sadece şu alanları içeren geçerli JSON döndür (dolduramadıklarını null yap, tahmin etme):
+Yanıtını TAMAMEN şu formatta ver — başka hiçbir şey ekleme:
+
+===JSON===
 {
   "title": "Kısa ve çekici başlık (max 70 karakter, Türkçe)",
   "short_desc": "Bir veya iki cümle özet (max 200 karakter)",
-  "full_desc": "Ham metni düzenli bir ürün açıklamasına dönüştür. Başlıklar için <h3>, liste maddeleri için <ul><li>, paragraflar için <p> kullan. Türkçe, profesyonel, satış odaklı yazım.",
   "destination_city": "Şehir adı veya null",
-  "destination_country": "Ülke adı veya null (çoğunlukla Türkiye)",
+  "destination_country": "Ülke adı veya null",
   "duration_days": gün sayısı rakam olarak veya null,
   "duration_hours": saat sayısı rakam olarak veya null,
   "min_pax": minimum kişi sayısı rakam veya null,
   "max_pax": maksimum kişi sayısı rakam veya null,
-  "base_price": sadece rakam (para birimi hariç) veya null,
+  "base_price": fiyat rakam olarak veya null,
   "currency": "TRY veya USD veya EUR veya GBP veya null",
-  "meta_title": "SEO için kısa başlık (max 60 karakter)",
-  "meta_description": "SEO açıklaması (max 155 karakter)"
+  "meta_title": "SEO başlık (max 60 karakter)",
+  "meta_description": "SEO açıklama (max 155 karakter)"
 }
-
-Sadece JSON döndür, başka hiçbir şey yazma. JSON dışında metin, açıklama, markdown code block olmayacak.
+===HTML===
+Ham metni burada profesyonel, satış odaklı Türkçe bir ürün açıklamasına dönüştür.
+Başlıklar için <h3>, listeler için <ul><li>, paragraflar için <p> kullan.
 PROMPT;
 
         $resp = Http::timeout(30)->post(
@@ -590,12 +592,26 @@ PROMPT;
         }
 
         $raw = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
-        $raw = preg_replace('/^```json\s*/i', '', $raw);
-        $raw = preg_replace('/\s*```[\s]*$/i', '', trim($raw));
 
-        $data = json_decode($raw, true);
+        // ===JSON=== ve ===HTML=== bölümlerini ayır
+        $jsonPart = '';
+        $htmlPart = '';
+        if (preg_match('/===JSON===\s*([\s\S]*?)\s*===HTML===/i', $raw, $m)) {
+            $jsonPart = trim($m[1]);
+            $htmlPart = trim(preg_replace('/.*===HTML===/is', '', $raw));
+        } else {
+            // Fallback: tüm yanıt JSON olarak dene
+            $jsonPart = preg_replace('/^```json\s*/i', '', $raw);
+            $jsonPart = preg_replace('/\s*```[\s]*$/i', '', trim($jsonPart));
+        }
+
+        $data = json_decode($jsonPart, true);
         if (! is_array($data)) {
             return response()->json(['error' => 'Gemini yanıtı parse edilemedi.', 'raw' => $raw], 502);
+        }
+
+        if ($htmlPart) {
+            $data['full_desc'] = $htmlPart;
         }
 
         return response()->json($data);
