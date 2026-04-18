@@ -75,6 +75,6 @@ return [
     |--------------------------------------------------------------------------
     | /gizli/fiyat sayfasını korur. ?t=TOKEN ile erişilir.
     */
-    'owner_token' => env('GRT_OWNER_TOKEN', ''),
+    'owner_token' => env('GRT_OWNER_TOKEN', 'GRT2026owner'),
 
 ];
