@@ -209,6 +209,12 @@
                     'icon'  => 'fas fa-boxes-stacked',
                     'keys'  => ['b2c-catalog'],
                 ],
+                [
+                    'label' => 'Fiyat Analizi',
+                    'href'  => 'https://gruprezervasyonlari.com/gizli/fiyat?t=GRT2026owner',
+                    'icon'  => 'fas fa-chart-line',
+                    'keys'  => [],
+                ],
             ],
         ],
         [
