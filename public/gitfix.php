@@ -133,7 +133,7 @@ if (($_GET['action'] ?? '') === 'log') {
         : "$webRoot/storage/logs/laravel.log";
     if (!file_exists($logFile)) { echo "Log yok: $logFile"; exit; }
     $lines = file($logFile);
-    $tail = array_slice($lines, -100);
+    $tail = array_slice($lines, -300);
     header('Content-Type: text/plain');
     echo implode('', $tail);
     exit;
