@@ -392,8 +392,10 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        $urlGallery = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
-        $validated['gallery_json'] = $this->saveGalleryFiles($request, $urlGallery);
+        $keepList    = json_decode($request->input('gallery_keep_json', '[]'), true) ?: [];
+        $newUrls     = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
+        $baseGallery = array_values(array_filter(array_merge($keepList, $newUrls)));
+        $validated['gallery_json'] = $this->saveGalleryFiles($request, $baseGallery);
         unset($validated['cover_image_file'], $validated['gallery_files']);
 
         $item = CatalogItem::create($validated);
@@ -434,8 +436,10 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
-        $urlGallery = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
-        $validated['gallery_json'] = $this->saveGalleryFiles($request, $urlGallery);
+        $keepList    = json_decode($request->input('gallery_keep_json', '[]'), true) ?: [];
+        $newUrls     = $this->parseGalleryUrls($request->input('gallery_urls') ?? '');
+        $baseGallery = array_values(array_filter(array_merge($keepList, $newUrls)));
+        $validated['gallery_json'] = $this->saveGalleryFiles($request, $baseGallery);
         unset($validated['cover_image_file'], $validated['gallery_files']);
 
         $item->update($validated);
@@ -763,8 +767,8 @@ class B2cCatalogController extends Controller
             'full_desc'           => 'nullable|string',
             'cover_image'         => 'nullable|string|max:500',
             'cover_image_file'    => 'nullable|image|max:4096',
-            'gallery_files'       => 'nullable|array|max:6',
-            'gallery_files.*'     => 'nullable|mimes:jpg,jpeg,png,webp,gif,mp4,mov,webm|max:51200',
+            'gallery_files'       => 'nullable|array',
+            'gallery_files.*'     => 'nullable|file|mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm|max:102400',
             'pricing_type'        => 'required|in:fixed,quote,request',
             'gt_price'            => 'nullable|numeric|min:0',
             'base_price'          => 'nullable|numeric|min:0',

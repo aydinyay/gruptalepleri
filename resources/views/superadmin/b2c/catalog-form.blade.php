@@ -314,35 +314,58 @@
                         <div class="card border-0 shadow-sm p-4 mb-3">
                             <div class="section-title mt-0">Galeri Görselleri</div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-600 form-label-sm">Dosya Yükle (maks. 6 adet)</label>
-                                <input type="file" name="gallery_files[]" multiple
-                                       accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
-                                       class="form-control form-control-sm">
-                                <div class="form-text">JPG/PNG/WEBP/GIF · MP4/MOV/WEBM · Maks. 6 dosya, her biri 50MB. Mevcut galeriye eklenir.</div>
-                            </div>
-
                             @php
-                            $galleryUrls = isset($item) && $item->gallery_json
-                                ? implode("\n", array_filter((array) $item->gallery_json))
-                                : old('gallery_urls', '');
+                            $galList = isset($item) && $item->gallery_json
+                                ? array_values(array_filter((array) $item->gallery_json))
+                                : [];
                             @endphp
 
-                            @if(isset($item) && $item->gallery_json)
-                            <div class="d-flex flex-wrap gap-2 mb-2">
-                                @foreach((array)$item->gallery_json as $gUrl)
-                                @if($gUrl)
-                                <img src="{{ str_starts_with($gUrl,'http') ? $gUrl : asset('uploads/'.$gUrl) }}"
-                                     style="height:70px;width:100px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
-                                @endif
+                            {{-- Mevcut galeri (silinebilir) --}}
+                            <input type="hidden" name="gallery_keep_json" id="galKeepJson"
+                                   value="{{ json_encode($galList) }}">
+
+                            @if(count($galList))
+                            <div id="galPreview" class="d-flex flex-wrap gap-2 mb-3">
+                                @foreach($galList as $gUrl)
+                                @php
+                                $gExt = strtolower(pathinfo($gUrl, PATHINFO_EXTENSION));
+                                $gIsVid = in_array($gExt, ['mp4','mov','webm']);
+                                $gFull = str_starts_with($gUrl,'http') ? $gUrl : asset('uploads/'.$gUrl);
+                                @endphp
+                                <div class="gal-item position-relative" style="width:100px;" data-url="{{ $gUrl }}">
+                                    @if($gIsVid)
+                                    <div style="height:70px;width:100px;background:#0d1117;border-radius:6px;border:1px solid #dee2e6;display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas fa-play-circle" style="font-size:1.6rem;color:#e8a020;"></i>
+                                    </div>
+                                    <div style="font-size:.65rem;color:#6c757d;text-align:center;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $gExt }}</div>
+                                    @else
+                                    <img src="{{ $gFull }}" alt=""
+                                         style="height:70px;width:100px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
+                                    @endif
+                                    <button type="button" title="Galeriden sil"
+                                            onclick="galRemove(this)"
+                                            style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#dc3545;border:none;color:#fff;font-size:.65rem;line-height:20px;text-align:center;padding:0;cursor:pointer;">✕</button>
+                                </div>
                                 @endforeach
                             </div>
+                            @else
+                            <div id="galPreview" class="d-flex flex-wrap gap-2 mb-3"></div>
                             @endif
 
-                            <label class="form-label fw-600 form-label-sm">veya URL listesi (her satıra bir URL)</label>
-                            <textarea name="gallery_urls" class="form-control form-control-sm" rows="4"
-                                      placeholder="https://gruptalepleri.com/uploads/leisure/foto1.jpg&#10;https://...">{{ $galleryUrls }}</textarea>
-                            <div class="form-text">URL eklerseniz yüklenen dosyalarla birleştirilir.</div>
+                            {{-- Yeni dosya yükle --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-600 form-label-sm">Yeni Dosya Ekle</label>
+                                <input type="file" name="gallery_files[]" id="galleryFilesInput" multiple
+                                       accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
+                                       class="form-control form-control-sm">
+                                <div class="form-text">JPG/PNG/WEBP/GIF · MP4/MOV/WEBM · Her biri maks. 50MB.</div>
+                                <div id="galFileList" class="d-flex flex-wrap gap-1 mt-1"></div>
+                            </div>
+
+                            {{-- Yeni URL ekle --}}
+                            <label class="form-label fw-600 form-label-sm">veya Yeni URL Ekle <small class="text-muted fw-normal">(her satıra bir URL — mevcut galeriye eklenir)</small></label>
+                            <textarea name="gallery_urls" class="form-control form-control-sm" rows="3"
+                                      placeholder="https://...">{{ old('gallery_urls', '') }}</textarea>
                         </div>
 
                         <div class="card border-0 shadow-sm p-4 mb-3">
@@ -488,6 +511,30 @@ function updateSubtypes() {
 }
 productTypeSel.addEventListener('change', updateSubtypes);
 updateSubtypes();
+
+// ── Galeri Yönetimi ────────────────────────────────────────────────────────
+window.galRemove = function(btn) {
+    const item = btn.closest('.gal-item');
+    const url  = item.dataset.url;
+    const inp  = document.getElementById('galKeepJson');
+    let list = JSON.parse(inp.value || '[]');
+    list = list.filter(u => u !== url);
+    inp.value = JSON.stringify(list);
+    item.remove();
+};
+
+document.getElementById('galleryFilesInput')?.addEventListener('change', function() {
+    const box = document.getElementById('galFileList');
+    box.innerHTML = '';
+    Array.from(this.files).forEach(f => {
+        const sp = document.createElement('span');
+        sp.className = 'badge bg-secondary text-truncate d-inline-block';
+        sp.style.maxWidth = '200px';
+        sp.title = f.name;
+        sp.textContent = f.name + ' (' + (f.size/1048576).toFixed(1) + ' MB)';
+        box.appendChild(sp);
+    });
+});
 
 // ── AI Doldur ──────────────────────────────────────────────────────────────
 async function aiFillFields() {
