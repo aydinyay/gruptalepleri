@@ -405,7 +405,6 @@ class B2cCatalogController extends Controller
 
     public function catalogUpdate(Request $request, CatalogItem $item)
     {
-        try {
         $validated = $this->validateCatalogItem($request, $item->id);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
@@ -433,9 +432,6 @@ class B2cCatalogController extends Controller
 
         return redirect()->route('superadmin.b2c.catalog')
             ->with('success', 'Ürün güncellendi.');
-        } catch (\Throwable $e) {
-            return response('<pre style="padding:20px;color:red">' . get_class($e) . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString() . '</pre>', 500);
-        }
     }
 
     public function catalogTogglePublish(CatalogItem $item)
