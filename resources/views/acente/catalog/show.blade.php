@@ -311,9 +311,15 @@ $talepeLink = match($item->product_type ?? '') {
     <div style="font-size:.95rem;color:#718096;margin-bottom:16px;">Fiyat bilgisi için talep oluşturun.</div>
     @endif
 
+    @if($bookingUrl)
+    <a href="{{ $bookingUrl }}" class="b2b-cta">
+        <i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap
+    </a>
+    @else
     <a href="{{ $talepeLink }}" class="b2b-cta">
         <i class="bi bi-send me-2"></i>Talep Oluştur
     </a>
+    @endif
     @if($item->is_published)
     <a href="{{ url('https://'.config('b2c.domain','gruprezervasyonlari.com').'/urun/'.$item->slug) }}"
        target="_blank" class="b2b-cta-sec">

@@ -39,6 +39,7 @@ class CatalogProductController extends Controller
             ->get();
 
         $extraGallery = collect();
+        $bookingUrl   = null;
         $leisureRefTypes = ['leisure_package', 'leisure_package_template'];
 
         if (in_array($item->reference_type, $leisureRefTypes, true) && $item->reference_id) {
@@ -53,9 +54,16 @@ class CatalogProductController extends Controller
                     ->where('is_active', true)
                     ->orderBy('sort_order')
                     ->get();
+
+                $bookingUrl = match($package->product_type) {
+                    'dinner_cruise'  => route('acente.dinner-cruise.show-product', $package->code),
+                    'yacht_charter'  => route('acente.yacht-charter.show-product', $package->code),
+                    'day_tour', 'multi_day_tour', 'activity_tour' => route('acente.tour.show-product', $package->code),
+                    default          => null,
+                };
             }
         }
 
-        return view('acente.catalog.show', compact('item', 'relatedItems', 'extraGallery'));
+        return view('acente.catalog.show', compact('item', 'relatedItems', 'extraGallery', 'bookingUrl'));
     }
 }
