@@ -223,7 +223,7 @@
 .gyg-hero-card .hc-title { font-weight: 700; font-size: .9rem; line-height: 1.4; margin-bottom: 6px; color: #1a202c; }
 .gyg-hero-card .hc-meta { font-size: .78rem; color: #718096; margin-bottom: 8px; }
 .gyg-hero-card .hc-stars { color: #f4a418; font-size: .82rem; }
-.gyg-hero-card .hc-price { font-weight: 800; font-size: 1.05rem; color: #1a202c; }
+.gyg-hero-card .hc-price { font-weight: 800; font-size: 1.05rem; color: #FF5533; }
 .gyg-hero-card .hc-price-label { font-size: .7rem; color: #718096; }
 @@media (max-width: 680px) {
     .gyg-hero-card { max-width: 100%; width: 100%; flex: 1 1 100%; }
