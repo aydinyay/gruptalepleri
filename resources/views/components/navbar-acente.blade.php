@@ -54,6 +54,12 @@
                     'icon' => 'fas fa-file-circle-plus',
                     'keys' => ['create', 'show', 'requests'],
                 ],
+                [
+                    'label' => 'Rezervasyonlarım',
+                    'href' => route('acente.rezervasyonlarim.index'),
+                    'icon' => 'fas fa-calendar-check',
+                    'keys' => ['rezervasyonlarim'],
+                ],
             ],
         ],
         [
@@ -137,27 +143,19 @@
             ],
         ],
         [
-            'id' => 'rezervasyonlarim',
-            'label' => 'Rezervasyonlarım',
-            'icon' => 'fas fa-calendar-check',
-            'href' => route('acente.rezervasyonlarim.index'),
-            'items' => [
-                [
-                    'label' => 'Tüm Rezervasyonlarım',
-                    'href' => route('acente.rezervasyonlarim.index'),
-                    'icon' => 'fas fa-list-check',
-                    'keys' => ['rezervasyonlarim'],
-                ],
-            ],
-        ],
-        [
             'id' => 'b2c',
-            'label' => 'B2C',
+            'label' => 'Katalog',
             'icon' => 'fas fa-store',
-            'href' => route('acente.b2c.index'),
+            'href' => route('acente.catalog.index'),
             'items' => [
                 [
-                    'label' => 'GrupRezervasyonları',
+                    'label' => 'B2B Katalog',
+                    'href'  => route('acente.catalog.index'),
+                    'icon'  => 'fas fa-boxes-stacked',
+                    'keys'  => ['katalog', 'catalog'],
+                ],
+                [
+                    'label' => 'GR B2C Vitrin',
                     'href'  => route('acente.b2c.index'),
                     'icon'  => 'fas fa-globe',
                     'keys'  => ['b2c'],
