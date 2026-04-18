@@ -12,21 +12,27 @@
 <style>
 /* ── Galeri ── */
 .prd-gallery{max-width:1280px;margin:0 auto;padding:16px 24px 0;position:relative;}
-.prd-gal-1{height:420px;border-radius:12px;overflow:hidden;}
-.prd-gal-2{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
-.prd-gal-3{display:grid;grid-template-columns:2fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
-.prd-gal-3-right{display:grid;grid-rows:1fr 1fr;gap:4px;}
-.prd-gal-4{display:grid;grid-template-columns:2fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
-.prd-gal-4-right{display:grid;grid-template-rows:1fr 1fr 1fr;gap:4px;}
-.prd-gal-n{display:grid;grid-template-columns:2fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
-.prd-gal-n-right{display:grid;grid-template-rows:1fr 1fr;gap:4px;}
+.prd-gal-gyg{position:relative;border-radius:12px;overflow:hidden;}
+.prd-gal-gyg.lay-1{height:440px;}
+.prd-gal-gyg.lay-2{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:440px;}
+.prd-gal-gyg.lay-3{display:grid;grid-template-columns:2fr 1fr;grid-auto-rows:1fr;gap:4px;height:440px;}
+.prd-gal-gyg.lay-3 .g-main{grid-row:1/-1;}
+.prd-gal-gyg.lay-5{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;height:440px;}
+.prd-gal-gyg.lay-5 .g-main{grid-row:1/3;}
+.prd-gal-gyg.lay-vid{display:grid;grid-template-columns:1fr 2fr 1fr;grid-template-rows:1fr 1fr;gap:4px;height:440px;}
+.prd-gal-gyg.lay-vid .g-vid,.prd-gal-gyg.lay-vid .g-main{grid-row:1/3;}
 .prd-gal-img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;transition:transform .2s;}
 .prd-gal-img:hover{transform:scale(1.02);}
 .prd-gal-thumb{overflow:hidden;position:relative;cursor:pointer;}
-.prd-gal-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .2s;}
-.prd-gal-thumb:hover img{transform:scale(1.04);}
+.prd-gal-thumb img,.prd-gal-thumb video{width:100%;height:100%;object-fit:cover;transition:transform .2s;display:block;}
+.prd-gal-thumb:hover img,.prd-gal-thumb:hover video{transform:scale(1.04);}
 .prd-gal-more{position:absolute;inset:0;background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:800;}
-.prd-gal-btn{position:absolute;bottom:14px;right:36px;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;border-radius:8px;padding:6px 14px;font-size:.82rem;font-weight:700;color:#1a202c;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.prd-gal-btn{position:absolute;bottom:14px;right:14px;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;border-radius:8px;padding:6px 14px;font-size:.82rem;font-weight:700;color:#1a202c;cursor:pointer;display:flex;align-items:center;gap:5px;z-index:5;}
+.prd-gal-btn:hover{background:#fff;}
+.prd-vid-thumb{position:relative;}
+.prd-vid-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);transition:background .2s;pointer-events:none;}
+.prd-vid-play i{font-size:3rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.prd-vid-thumb:hover .prd-vid-play{background:rgba(0,0,0,.15);}
 /* Lightbox */
 .prd-lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;}
 .prd-lb.open{display:flex;}
@@ -76,7 +82,7 @@
 .rel-card-body{padding:12px 14px}
 .rel-card-title{font-size:.88rem;font-weight:700;margin-bottom:4px}
 .rel-card-price{font-size:.82rem;color:#1a3c6b;font-weight:700}
-@@media(max-width:768px){.prd-wrap{grid-template-columns:1fr}.rel-grid{grid-template-columns:repeat(2,1fr)}.prd-gal-1,.prd-gal-2,.prd-gal-3,.prd-gal-4,.prd-gal-n{height:240px;border-radius:8px;}}
+@@media(max-width:768px){.prd-wrap{grid-template-columns:1fr}.rel-grid{grid-template-columns:repeat(2,1fr)}.prd-gal-gyg{height:220px!important;border-radius:8px;}}
 </style>
 </head>
 <body>
@@ -116,56 +122,83 @@ foreach (($extraGallery ?? collect()) as $_ea) {
 $_imgCount = count($_imgs);
 @endphp
 
+@php
+$_vexts      = ['mp4','mov','webm'];
+$_videos     = array_values(array_filter($_imgs, fn($u) => in_array(strtolower(pathinfo($u, PATHINFO_EXTENSION)), $_vexts)));
+$_photos     = array_values(array_filter($_imgs, fn($u) => !in_array(strtolower(pathinfo($u, PATHINFO_EXTENSION)), $_vexts)));
+$_hasVideo   = count($_videos) > 0;
+$_photoCount = count($_photos);
+if ($_hasVideo)          { $_galLayout = 'vid'; }
+elseif ($_imgCount === 1){ $_galLayout = '1'; }
+elseif ($_imgCount === 2){ $_galLayout = '2'; }
+elseif ($_imgCount <= 4) { $_galLayout = '3'; }
+else                     { $_galLayout = '5'; }
+@endphp
+
 {{-- Lightbox --}}
 <div class="prd-lb" id="prdLb">
     <button class="prd-lb-close" onclick="prdLbClose()">✕</button>
     <button class="prd-lb-prev" onclick="prdLbMove(-1)">‹</button>
-    <img class="prd-lb-img" id="prdLbImg" src="" alt="">
+    <img class="prd-lb-img" id="prdLbImg" src="" alt="" style="display:none;">
+    <video class="prd-lb-img" id="prdLbVid" src="" controls playsinline style="display:none;max-width:92vw;max-height:88vh;border-radius:8px;"></video>
     <button class="prd-lb-next" onclick="prdLbMove(1)">›</button>
     <div class="prd-lb-count" id="prdLbCount"></div>
 </div>
 
 @if($_imgCount > 0)
 <div class="prd-gallery">
-@if($_imgCount === 1)
-<div class="prd-gal-1"><img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)"></div>
-@elseif($_imgCount === 2)
-<div class="prd-gal-2">
+
+@if($_galLayout === '1')
+<div class="prd-gal-gyg lay-1">
+    <img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)">
+</div>
+@elseif($_galLayout === '2')
+<div class="prd-gal-gyg lay-2">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
 </div>
-@elseif($_imgCount === 3)
-<div class="prd-gal-3">
-    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
-    <div class="prd-gal-3-right">
-        <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
-        <div class="prd-gal-thumb" onclick="prdLbOpen(2)"><img src="{{ $_imgs[2] }}" alt="{{ $item->title }}"></div>
-    </div>
+@elseif($_galLayout === '3')
+<div class="prd-gal-gyg lay-3">
+    <div class="prd-gal-thumb g-main" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
+    @foreach(array_slice($_imgs, 1, 3) as $_ri => $_rs)
+    <div class="prd-gal-thumb" onclick="prdLbOpen({{ $_ri + 1 }})"><img src="{{ $_rs }}" alt="{{ $item->title }}"></div>
+    @endforeach
 </div>
-@elseif($_imgCount === 4)
-<div class="prd-gal-4">
-    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
-    <div class="prd-gal-4-right">
-        <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
-        <div class="prd-gal-thumb" onclick="prdLbOpen(2)"><img src="{{ $_imgs[2] }}" alt="{{ $item->title }}"></div>
-        <div class="prd-gal-thumb" onclick="prdLbOpen(3)"><img src="{{ $_imgs[3] }}" alt="{{ $item->title }}"></div>
+@elseif($_galLayout === '5')
+<div class="prd-gal-gyg lay-5">
+    <div class="prd-gal-thumb g-main" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
+    @foreach(array_slice($_imgs, 1, 4) as $_ri => $_rs)
+    <div class="prd-gal-thumb" onclick="prdLbOpen({{ $_ri + 1 }})">
+        <img src="{{ $_rs }}" alt="{{ $item->title }}">
+        @if($_ri === 3 && $_imgCount > 5)
+        <div class="prd-gal-more">+{{ $_imgCount - 5 }} fotoğraf</div>
+        @endif
     </div>
+    @endforeach
+    <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})</button>
 </div>
 @else
-<div class="prd-gal-n">
-    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
-    <div class="prd-gal-n-right">
-        <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
-        <div class="prd-gal-thumb" onclick="prdLbOpen(2)">
-            <img src="{{ $_imgs[2] }}" alt="{{ $item->title }}">
-            @if($_imgCount > 3)
-            <div class="prd-gal-more">+{{ $_imgCount - 3 }} fotoğraf</div>
-            @endif
-        </div>
+@php $_vidSrc = $_videos[0]; $_vidOrigIdx = array_search($_vidSrc, $_imgs); @endphp
+<div class="prd-gal-gyg lay-vid">
+    <div class="prd-gal-thumb g-vid prd-vid-thumb" onclick="prdLbOpen({{ is_int($_vidOrigIdx) ? $_vidOrigIdx : 0 }})">
+        <video src="{{ $_vidSrc }}" muted preload="metadata" playsinline></video>
+        <div class="prd-vid-play"><i class="bi bi-play-circle-fill"></i></div>
     </div>
-    <button class="prd-gal-btn" onclick="prdLbOpen(0)">
-        <i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})
-    </button>
+    @if($_photoCount > 0)
+    <div class="prd-gal-thumb g-main" onclick="prdLbOpen({{ array_search($_photos[0], $_imgs) }})">
+        <img src="{{ $_photos[0] }}" alt="{{ $item->title }}">
+    </div>
+    @endif
+    @foreach(array_slice($_photos, 1, 2) as $_ri => $_rs)
+    @php $_origIdx = array_search($_rs, $_imgs); @endphp
+    <div class="prd-gal-thumb" onclick="prdLbOpen({{ is_int($_origIdx) ? $_origIdx : 0 }})">
+        <img src="{{ $_rs }}" alt="{{ $item->title }}">
+        @if($_ri === 1 && $_photoCount > 3)
+        <div class="prd-gal-more">+{{ $_photoCount - 3 }} fotoğraf</div>
+        @endif
+    </div>
+    @endforeach
+    <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-play-circle"></i> Tüm medya ({{ $_imgCount }})</button>
 </div>
 @endif
 </div>
@@ -425,17 +458,39 @@ function b2bCalc(pax) {
 }
 var _prdImgs = @json($_imgs);
 var _prdIdx  = 0;
+var _lbImg   = document.getElementById('prdLbImg');
+var _lbVid   = document.getElementById('prdLbVid');
+var _lbCnt   = document.getElementById('prdLbCount');
+function prdLbShow(i) {
+    var src = _prdImgs[i];
+    var isVid = /\.(mp4|mov|webm)(\?|$)/i.test(src);
+    if (isVid) {
+        _lbImg.style.display = 'none';
+        _lbVid.style.display = 'block';
+        _lbVid.src = src;
+        _lbVid.play();
+    } else {
+        if (_lbVid) { _lbVid.pause(); _lbVid.src = ''; _lbVid.style.display = 'none'; }
+        _lbImg.style.display = 'block';
+        _lbImg.src = src;
+    }
+    _lbCnt.textContent = (i+1) + ' / ' + _prdImgs.length;
+}
 function prdLbOpen(i) {
     _prdIdx = i;
+    prdLbShow(_prdIdx);
     document.getElementById('prdLb').classList.add('open');
-    document.getElementById('prdLbImg').src = _prdImgs[i];
-    document.getElementById('prdLbCount').textContent = (i+1) + ' / ' + _prdImgs.length;
+    document.body.style.overflow = 'hidden';
 }
-function prdLbClose() { document.getElementById('prdLb').classList.remove('open'); }
+function prdLbClose() {
+    document.getElementById('prdLb').classList.remove('open');
+    document.body.style.overflow = '';
+    if (_lbVid) { _lbVid.pause(); _lbVid.src = ''; _lbVid.style.display = 'none'; }
+    _lbImg.style.display = 'none';
+}
 function prdLbMove(d) {
     _prdIdx = (_prdIdx + d + _prdImgs.length) % _prdImgs.length;
-    document.getElementById('prdLbImg').src = _prdImgs[_prdIdx];
-    document.getElementById('prdLbCount').textContent = (_prdIdx+1) + ' / ' + _prdImgs.length;
+    prdLbShow(_prdIdx);
 }
 document.getElementById('prdLb').addEventListener('click', function(e) {
     if (e.target === this) prdLbClose();
