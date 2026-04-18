@@ -125,6 +125,38 @@ if (($_GET['action'] ?? '') === 'setenv') {
     exit;
 }
 
+// Route listesi diagnostiği
+if (($_GET['action'] ?? '') === 'routes') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    header('Content-Type: text/plain');
+    $routes = \Illuminate\Support\Facades\Route::getRoutes();
+    foreach ($routes as $route) {
+        $name = $route->getName();
+        if ($name && str_contains($name, 'acente')) {
+            echo $route->methods()[0] . ' ' . $route->uri() . ' → ' . $name . "\n";
+        }
+    }
+    exit;
+}
+
+// web.php satır kontrolü
+if (($_GET['action'] ?? '') === 'checkweb') {
+    header('Content-Type: text/plain');
+    $webphp = file("$webRoot/routes/web.php");
+    echo "Total lines: " . count($webphp) . "\n";
+    echo "mtime: " . date('Y-m-d H:i:s', filemtime("$webRoot/routes/web.php")) . "\n\n";
+    foreach ($webphp as $i => $line) {
+        if (str_contains($line, 'katalog') || str_contains($line, 'CatalogProduct') || str_contains($line, 'acente.catalog') || str_contains($line, 'acente.product')) {
+            echo ($i+1) . ': ' . $line;
+        }
+    }
+    exit;
+}
+
 // Hata logu okuma
 if (($_GET['action'] ?? '') === 'log') {
     $which = $_GET['which'] ?? 'laravel';
