@@ -247,7 +247,7 @@ Route::get('/mig-sm-2026', function () {
 // Kampanya link takibi — public, auth gerektirmez
 Route::get('/iz/{token}', [\App\Http\Controllers\KampanyaTiklamaController::class, 'izle'])->name('kampanya.izle');
 
-// Blog — public
+// Blog / Rehber — public
 Route::get('/blog',                           [\App\Http\Controllers\BlogPublicController::class, 'index'])->name('blog.index');
 Route::get('/blog/kategori/{kategori:slug}',  [\App\Http\Controllers\BlogPublicController::class, 'kategori'])->name('blog.kategori');
 Route::get('/blog/{slug}',                    [\App\Http\Controllers\BlogPublicController::class, 'show'])->name('blog.show');
