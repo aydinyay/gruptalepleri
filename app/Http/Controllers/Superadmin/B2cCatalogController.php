@@ -555,55 +555,62 @@ class B2cCatalogController extends Controller
             return response()->json(['error' => 'GEMINI_API_KEY tanımlı değil.'], 500);
         }
 
-        $prompt = 'Sen bir Türkçe içerik analiz asistanısın. Aşağıdaki ham ürün/hizmet metnini analiz et ve şu JSON şemasına uygun geçerli JSON döndür.'
-            . ' Bilemediğin alanlar için null kullan, tahmin etme.'
-            . ' full_desc alanında ham metni profesyonel satış odaklı HTML\'e dönüştür:'
-            . ' başlıklar için <h3>, listeler için <ul><li>, paragraflar için <p> kullan, HTML attribute\'larında çift tırnak kullan.'
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        // Çağrı 1: Yapısal alanlar — JSON schema ile (full_desc hariç)
+        $metaPrompt = 'Türkçe ürün/hizmet metni aşağıda. Bilemediğin alanlara null döndür, tahmin etme.'
             . "\n\nMetin:\n" . $text;
 
-        $resp = Http::timeout(45)->post(
-            "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-            [
-                'contents' => [['parts' => [['text' => $prompt]]]],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                    'responseSchema'   => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'title'              => ['type' => 'string'],
-                            'short_desc'         => ['type' => 'string'],
-                            'full_desc'          => ['type' => 'string'],
-                            'destination_city'   => ['type' => 'string'],
-                            'destination_country'=> ['type' => 'string'],
-                            'duration_days'      => ['type' => 'integer'],
-                            'duration_hours'     => ['type' => 'integer'],
-                            'min_pax'            => ['type' => 'integer'],
-                            'max_pax'            => ['type' => 'integer'],
-                            'base_price'         => ['type' => 'number'],
-                            'currency'           => ['type' => 'string'],
-                            'meta_title'         => ['type' => 'string'],
-                            'meta_description'   => ['type' => 'string'],
-                        ],
+        $metaResp = Http::timeout(30)->post($url, [
+            'contents'         => [['parts' => [['text' => $metaPrompt]]]],
+            'generationConfig' => [
+                'responseMimeType' => 'application/json',
+                'responseSchema'   => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'title'               => ['type' => 'string'],
+                        'short_desc'          => ['type' => 'string'],
+                        'destination_city'    => ['type' => 'string'],
+                        'destination_country' => ['type' => 'string'],
+                        'duration_days'       => ['type' => 'integer'],
+                        'duration_hours'      => ['type' => 'integer'],
+                        'min_pax'             => ['type' => 'integer'],
+                        'max_pax'             => ['type' => 'integer'],
+                        'base_price'          => ['type' => 'number'],
+                        'currency'            => ['type' => 'string'],
+                        'meta_title'          => ['type' => 'string'],
+                        'meta_description'    => ['type' => 'string'],
                     ],
-                    'maxOutputTokens' => 2048,
                 ],
-            ]
-        );
+                'maxOutputTokens' => 1024,
+            ],
+        ]);
 
-        if (! $resp->successful()) {
-            return response()->json(['error' => 'Gemini API hatası: ' . $resp->status(), 'detail' => $resp->body()], 502);
+        if (! $metaResp->successful()) {
+            return response()->json(['error' => 'Gemini API hatası: ' . $metaResp->status()], 502);
         }
 
-        $raw = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
-
-        // Bazen markdown code block içinde gelir
-        $clean = preg_replace('/^```(?:json)?\s*/i', '', $raw);
-        $clean = preg_replace('/\s*```\s*$/i', '', trim($clean));
-
-        $data = json_decode($clean, true);
-
+        $data = json_decode(trim(data_get($metaResp->json(), 'candidates.0.content.parts.0.text', '')), true);
         if (! is_array($data)) {
-            return response()->json(['error' => 'parse_failed', 'raw' => $raw, 'clean' => $clean, 'json_error' => json_last_error_msg()], 200);
+            return response()->json(['error' => 'Gemini meta parse hatası.'], 502);
+        }
+
+        // Çağrı 2: HTML açıklama — düz metin olarak (JSON schema YOK)
+        $htmlPrompt = 'Aşağıdaki ham metni profesyonel, satış odaklı Türkçe bir ürün açıklamasına dönüştür.'
+            . ' Başlıklar için <h3>, listeler için <ul><li>, paragraflar için <p> kullan.'
+            . ' Sadece HTML döndür, başka hiçbir şey yazma.'
+            . "\n\nMetin:\n" . $text;
+
+        $htmlResp = Http::timeout(30)->post($url, [
+            'contents'         => [['parts' => [['text' => $htmlPrompt]]]],
+            'generationConfig' => ['maxOutputTokens' => 1024],
+        ]);
+
+        if ($htmlResp->successful()) {
+            $html = trim(data_get($htmlResp->json(), 'candidates.0.content.parts.0.text', ''));
+            $html = preg_replace('/^```html?\s*/i', '', $html);
+            $html = preg_replace('/\s*```\s*$/i', '', trim($html));
+            if ($html) $data['full_desc'] = $html;
         }
 
         return response()->json($data);

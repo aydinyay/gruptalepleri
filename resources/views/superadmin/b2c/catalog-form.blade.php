@@ -449,8 +449,6 @@ async function aiFillFields() {
         if (data.error) {
             stat.textContent = '⚠ ' + data.error;
             stat.style.color = '#dc3545';
-            if (data.raw) console.log('Gemini raw:', data.raw);
-            if (data.json_error) console.log('JSON error:', data.json_error);
             return;
         }
 
