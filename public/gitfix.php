@@ -40,6 +40,7 @@ if (($_GET['action'] ?? '') === 'seed') {
         'B2cSampleDataSeeder',
         'TransferVehicleTypeSeeder',
         'TransferAirportSeeder',
+        'EventCategorySeeder',
     ];
     if (!in_array($seeder, $allowedSeeders, true)) {
         header('Content-Type: text/plain');
