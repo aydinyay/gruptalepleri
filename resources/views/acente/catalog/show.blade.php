@@ -282,7 +282,7 @@ $priceLabel = match($subtype) {
     default                        => '/ kişi başı',
 };
 $talepeLink = match($item->product_type ?? '') {
-    'leisure' => route('dinner-cruise.create'),
+    'leisure' => route('acente.dinner-cruise.create'),
     'transfer'=> route('acente.dashboard'),
     default   => route('acente.dashboard'),
 };
