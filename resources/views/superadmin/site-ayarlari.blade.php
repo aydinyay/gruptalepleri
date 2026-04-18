@@ -1019,6 +1019,8 @@
             </button>
         </div>
     </form>
+    @endif
+
     @if($activeTab === 'finans')
     <div class="card border-0 shadow-sm p-4" style="max-width:480px;">
         <h6 class="fw-bold mb-1"><i class="fas fa-coins me-2 text-warning"></i>Döviz Kurları</h6>
