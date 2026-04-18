@@ -547,9 +547,11 @@ class B2cCatalogController extends Controller
     {
         $text = $request->validate(['text' => 'required|string|max:12000'])['text'];
 
-        $apiKey = config('services.anthropic.key');
+        $apiKey = config('services.gemini.key');
+        $model  = config('services.gemini.text_model', 'gemini-2.5-flash');
+
         if (! $apiKey) {
-            return response()->json(['error' => 'ANTHROPIC_API_KEY tanımlı değil.'], 500);
+            return response()->json(['error' => 'GEMINI_API_KEY tanımlı değil.'], 500);
         }
 
         $prompt = <<<PROMPT
@@ -577,28 +579,22 @@ Sadece şu alanları içeren geçerli JSON döndür (dolduramadıklarını null 
 Sadece JSON döndür, başka hiçbir şey yazma. JSON dışında metin, açıklama, markdown code block olmayacak.
 PROMPT;
 
-        $resp = Http::timeout(30)->withHeaders([
-            'x-api-key'         => $apiKey,
-            'anthropic-version' => '2023-06-01',
-            'content-type'      => 'application/json',
-        ])->post('https://api.anthropic.com/v1/messages', [
-            'model'      => 'claude-haiku-4-5-20251001',
-            'max_tokens' => 1024,
-            'messages'   => [['role' => 'user', 'content' => $prompt]],
-        ]);
+        $resp = Http::timeout(30)->post(
+            "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+            ['contents' => [['parts' => [['text' => $prompt]]]]]
+        );
 
         if (! $resp->successful()) {
-            return response()->json(['error' => 'Claude API hatası: ' . $resp->status()], 502);
+            return response()->json(['error' => 'Gemini API hatası: ' . $resp->status()], 502);
         }
 
-        $raw = trim($resp->json('content.0.text') ?? '');
-        // Markdown code block varsa temizle
+        $raw = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
         $raw = preg_replace('/^```json\s*/i', '', $raw);
-        $raw = preg_replace('/\s*```$/i', '', $raw);
+        $raw = preg_replace('/\s*```[\s]*$/i', '', trim($raw));
 
         $data = json_decode($raw, true);
         if (! is_array($data)) {
-            return response()->json(['error' => 'Claude yanıtı parse edilemedi.', 'raw' => $raw], 502);
+            return response()->json(['error' => 'Gemini yanıtı parse edilemedi.', 'raw' => $raw], 502);
         }
 
         return response()->json($data);
