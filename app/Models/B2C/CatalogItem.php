@@ -18,6 +18,7 @@ class CatalogItem extends Model
         'owner_type',
         'supplier_id',
         'product_type',
+        'product_subtype',
         'reference_type',
         'reference_id',
         'title',

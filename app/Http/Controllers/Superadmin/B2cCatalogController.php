@@ -150,28 +150,38 @@ class B2cCatalogController extends Controller
             ->where('reference_id', $template->id)
             ->first();
 
+        $subtype = match ($template->product_type) {
+            'dinner_cruise' => 'dinner_cruise',
+            'yacht_charter' => 'yacht_charter',
+            'day_tour'      => 'day_tour',
+            'evening_show'  => 'evening_show',
+            'activity_tour' => 'activity_tour',
+            default         => 'day_tour',
+        };
+
         if ($existing) {
             $nowPublished = ! $existing->is_published;
             $existing->update([
-                'is_published' => $nowPublished,
-                'published_at' => $nowPublished ? now() : $existing->published_at,
-                // Fiyat/görsel değişmiş olabilir — tazele
-                'title'       => $template->name_tr,
-                'short_desc'  => $template->summary_tr,
-                'cover_image' => $this->absoluteImageUrl($template->hero_image_url),
-                'base_price'  => $template->base_price_per_person,
-                'currency'    => $template->currency ?? 'EUR',
+                'is_published'   => $nowPublished,
+                'published_at'   => $nowPublished ? now() : $existing->published_at,
+                'title'          => $template->name_tr,
+                'short_desc'     => $template->summary_tr,
+                'cover_image'    => $this->absoluteImageUrl($template->hero_image_url),
+                'base_price'     => $template->base_price_per_person,
+                'currency'       => $template->currency ?? 'EUR',
                 'duration_hours' => $template->duration_hours,
-                'max_pax'     => $template->max_pax,
-                'rating_avg'  => $template->rating ?? 0,
-                'review_count' => $template->review_count ?? 0,
+                'max_pax'        => $template->max_pax,
+                'rating_avg'     => $template->rating ?? 0,
+                'review_count'   => $template->review_count ?? 0,
+                'product_subtype' => $subtype,
             ]);
             $msg = $nowPublished ? '"' . $template->name_tr . '" B2C\'de yayına alındı.' : '"' . $template->name_tr . '" yayından kaldırıldı.';
         } else {
             $productType = match ($template->product_type) {
-                'dinner_cruise'  => 'leisure',
-                'yacht_charter'  => 'charter',
-                default          => 'tour',
+                'dinner_cruise' => 'leisure',
+                'yacht_charter' => 'leisure',
+                'evening_show'  => 'leisure',
+                default         => 'tour',
             };
 
             $slug = Str::slug($template->name_tr);
@@ -187,6 +197,7 @@ class B2cCatalogController extends Controller
                 'short_desc'          => $template->summary_tr,
                 'cover_image'         => $this->absoluteImageUrl($template->hero_image_url),
                 'product_type'        => $productType,
+                'product_subtype'     => $subtype,
                 'owner_type'          => 'platform',
                 'pricing_type'        => 'fixed',
                 'base_price'          => $template->base_price_per_person,
@@ -534,6 +545,7 @@ class B2cCatalogController extends Controller
             'owner_type'          => 'required|in:platform,supplier',
             'supplier_id'         => 'nullable|integer|exists:users,id',
             'product_type'        => 'required|in:transfer,charter,leisure,tour,hotel,visa,other',
+            'product_subtype'     => 'nullable|string|max:40',
             'reference_type'      => 'nullable|string|max:80',
             'reference_id'        => 'nullable|integer',
             'title'               => 'required|string|max:200',

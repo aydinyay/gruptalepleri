@@ -23,9 +23,14 @@ class ProductController extends Controller
             ->limit(3)
             ->get();
 
-        // Leisure ürünü → B2B tasarımıyla özel B2C sayfası
-        $leisureTypes = ['leisure_package', 'leisure_package_template'];
-        if (in_array($item->reference_type, $leisureTypes, true) && $item->reference_id) {
+        // Yacht charter: saatlik özel şablon (leisure-show) — diğer leisure/tour subtypelar show.blade.php kullanır
+        $yachtSubtypes   = ['yacht_charter'];
+        $leisureRefTypes = ['leisure_package', 'leisure_package_template'];
+
+        if (in_array($item->product_subtype, $yachtSubtypes, true)
+            && in_array($item->reference_type, $leisureRefTypes, true)
+            && $item->reference_id) {
+
             $package = LeisurePackageTemplate::find($item->reference_id);
 
             if ($package) {
@@ -52,6 +57,21 @@ class ProductController extends Controller
                 return view('b2c.product.leisure-show', compact(
                     'item', 'package', 'relatedItems', 'galleryPhotos', 'mediaAssets', 'allPackages'
                 ));
+            }
+        }
+
+        // Leisure/tour referanslı ürünler subtype'a göre show.blade.php ile görüntülenir:
+        // dinner_cruise, evening_show, day_tour, activity_tour, multi_day_tour
+        // Eğer reference_type var ama yacht_charter değilse → show.blade.php
+        // Diğer tüm ürünler (transfer, charter, hotel, visa) → show.blade.php
+        if (in_array($item->reference_type, $leisureRefTypes, true) && $item->reference_id) {
+            $package = LeisurePackageTemplate::find($item->reference_id);
+            if ($package) {
+                // CatalogItem'daki base_price yoksa package'dan al
+                if (! $item->base_price) {
+                    $item->base_price = $package->base_price_per_person ?? $package->original_price_per_person;
+                    $item->currency   = $item->currency ?: ($package->currency ?? 'EUR');
+                }
             }
         }
 

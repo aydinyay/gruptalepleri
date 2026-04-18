@@ -180,11 +180,19 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-600">Ürün Tipi *</label>
-                                <select name="product_type" class="form-select" required>
+                                <select name="product_type" id="productType" class="form-select" required>
                                     @foreach(['transfer'=>'Transfer','charter'=>'Charter & Uçuş','leisure'=>'Deniz & Eğlence','tour'=>'Tur','hotel'=>'Otel','visa'=>'Vize','other'=>'Diğer'] as $v => $l)
                                     <option value="{{ $v }}" {{ old('product_type', $item->product_type ?? '') == $v ? 'selected' : '' }}>{{ $l }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-600">Ürün Alt Tipi</label>
+                                <select name="product_subtype" id="productSubtype" class="form-select">
+                                    <option value="">— Otomatik / Seçin —</option>
+                                </select>
+                                <div class="form-text">Fiyat birimi ve rezervasyon formunu belirler.</div>
                             </div>
 
                             <div class="mb-3">
@@ -346,6 +354,36 @@ document.querySelector('[name=title]').addEventListener('blur', function() {
             .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
     }
 });
+
+// Ürün tipi → alt tip filtrele
+const subtypeMap = {
+    transfer: [['airport_transfer','Havalimanı Transferi'],['intercity_transfer','Şehirlerarası Transfer']],
+    charter:  [['private_jet','Özel Jet'],['helicopter_tour','Helikopter Turu']],
+    leisure:  [['dinner_cruise','Dinner Cruise'],['evening_show','Akşam Gösterisi'],['yacht_charter','Yat Kiralama']],
+    tour:     [['day_tour','Günübirlik Tur'],['multi_day_tour','Çok Günlük Tur'],['activity_tour','Aktivite Turu']],
+    hotel:    [['hotel_room','Otel Odası']],
+    visa:     [['visa_service','Vize Hizmeti']],
+    other:    [['corporate_event','Kurumsal Etkinlik']],
+};
+const currentSubtype = '{{ old('product_subtype', $item->product_subtype ?? '') }}';
+const subtypeSel = document.getElementById('productSubtype');
+const productTypeSel = document.getElementById('productType');
+
+function updateSubtypes() {
+    const type = productTypeSel.value;
+    const options = subtypeMap[type] || [];
+    subtypeSel.innerHTML = '<option value="">— Otomatik / Seçin —</option>';
+    options.forEach(([val, label]) => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = label;
+        if (val === currentSubtype) opt.selected = true;
+        subtypeSel.appendChild(opt);
+    });
+    if (options.length === 1 && !currentSubtype) subtypeSel.value = options[0][0];
+}
+productTypeSel.addEventListener('change', updateSubtypes);
+updateSubtypes();
 </script>
 </body>
 </html>
