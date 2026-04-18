@@ -132,6 +132,33 @@ body{background:var(--bg);color:var(--txt);}
         @endforeach
     </div>
 
+    @php
+    $supName     = $item->supplier_display_name;
+    $supInitials = collect(explode(' ', $supName))->filter()->take(2)->map(fn($w) => strtoupper(mb_substr($w,0,1)))->implode('');
+    $supLogo     = $item->supplier_logo_url ?? null;
+    $supCount    = ($item->owner_type === 'platform' && ! $item->supplier_id && ! $item->supplier_name)
+        ? \App\Models\B2C\CatalogItem::published()->where('owner_type','platform')->count()
+        : ($item->supplier_id
+            ? \App\Models\B2C\CatalogItem::published()->where('supplier_id',$item->supplier_id)->count()
+            : 1);
+    @endphp
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 0 14px;border-bottom:1px solid #f0f0f0;margin-bottom:16px;">
+        @if($supLogo)
+        <img src="{{ $supLogo }}" alt="{{ $supName }}"
+             style="width:44px;height:44px;border-radius:8px;object-fit:contain;border:1px solid #e5e5e5;background:#fff;flex-shrink:0;">
+        @else
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1a3c6b,#2d5282);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;flex-shrink:0;">{{ $supInitials }}</div>
+        @endif
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.75rem;color:#718096;margin-bottom:1px;">Hizmet Sağlayıcı</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:.95rem;font-weight:700;color:#1a202c;">{{ $supName }}</span>
+                <span style="font-size:.75rem;color:#38a169;font-weight:600;"><i class="bi bi-patch-check-fill"></i> Doğrulanmış</span>
+                @if($supCount > 1)<span style="font-size:.75rem;color:#718096;">· {{ $supCount }} aktif hizmet</span>@endif
+            </div>
+        </div>
+    </div>
+
     <div class="lp-layout">
         {{-- Sol: İçerik --}}
         <div>
