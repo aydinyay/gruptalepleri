@@ -2,8 +2,33 @@
 @section('title', $item->meta_title ?? $item->title)
 @section('content')
 <style>
-.prd-hero{position:relative;height:400px;overflow:hidden;background:linear-gradient(135deg,#0f2444,#1a3c6b)}
-.prd-hero img{width:100%;height:100%;object-fit:cover}
+/* GYG Galeri */
+.prd-gallery{max-width:1280px;margin:0 auto;padding:16px 24px 0;position:relative;}
+.prd-gal-1{height:420px;border-radius:12px;overflow:hidden;}
+.prd-gal-2{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
+.prd-gal-3{display:grid;grid-template-columns:2fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
+.prd-gal-3-right{display:grid;grid-rows:1fr 1fr;gap:4px;}
+.prd-gal-4{display:grid;grid-template-columns:2fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
+.prd-gal-4-right{display:grid;grid-template-rows:1fr 1fr 1fr;gap:4px;}
+.prd-gal-n{display:grid;grid-template-columns:2fr 1fr;gap:4px;height:420px;border-radius:12px;overflow:hidden;}
+.prd-gal-n-right{display:grid;grid-template-rows:1fr 1fr;gap:4px;}
+.prd-gal-img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;transition:transform .2s;}
+.prd-gal-img:hover{transform:scale(1.02);}
+.prd-gal-thumb{overflow:hidden;position:relative;cursor:pointer;}
+.prd-gal-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .2s;}
+.prd-gal-thumb:hover img{transform:scale(1.04);}
+.prd-gal-more{position:absolute;inset:0;background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:800;}
+.prd-gal-btn{position:absolute;bottom:14px;right:36px;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;border-radius:8px;padding:6px 14px;font-size:.82rem;font-weight:700;color:#1a202c;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.prd-gal-btn:hover{background:#fff;}
+@@media(max-width:600px){.prd-gal-1,.prd-gal-2,.prd-gal-3,.prd-gal-4,.prd-gal-n{height:240px;border-radius:8px;}}
+/* Lightbox */
+.prd-lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;}
+.prd-lb.open{display:flex;}
+.prd-lb-img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:8px;}
+.prd-lb-close{position:fixed;top:14px;right:18px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;}
+.prd-lb-prev,.prd-lb-next{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;padding:.3rem .7rem;border-radius:8px;cursor:pointer;}
+.prd-lb-prev{left:10px;}.prd-lb-next{right:10px;}
+.prd-lb-count{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);color:#fff;font-size:.82rem;background:rgba(0,0,0,.5);padding:.2rem .55rem;border-radius:999px;}
 .prd-wrap{max-width:1280px;margin:0 auto;padding:32px 24px 64px;display:grid;grid-template-columns:1fr 360px;gap:40px}
 .prd-title{font-size:1.9rem;font-weight:800;color:#1a202c;line-height:1.25;margin-bottom:12px}
 .prd-badge{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#1a3c6b;font-size:.8rem;font-weight:600;padding:4px 12px;border-radius:50px;margin-bottom:10px}
@@ -74,19 +99,83 @@
 </div>
 </div>
 
-<div class="prd-hero">
-@if($item->cover_image)
-<img src="{{ str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image }}" alt="{{ $item->title }}">
-@else
 @php
-$_bg=['transfer'=>'#1a3c6b','charter'=>'#0c3547','leisure'=>'#0e4d6b','tour'=>'#1e4d1e','hotel'=>'#4d1e1e','visa'=>'#3d1a6b'];
-$_ic=['transfer'=>'bi-car-front-fill','charter'=>'bi-airplane-fill','leisure'=>'bi-water','tour'=>'bi-map-fill','hotel'=>'bi-building','visa'=>'bi-passport'];
+$_imgs = [];
+if ($item->cover_image) {
+    $_imgs[] = str_starts_with($item->cover_image,'http')
+        ? $item->cover_image
+        : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image;
+}
+foreach (($item->gallery_json ?? []) as $_gi) {
+    $_gu = is_array($_gi) ? ($_gi['url'] ?? $_gi['path'] ?? '') : $_gi;
+    if ($_gu) $_imgs[] = str_starts_with($_gu,'http') ? $_gu : rtrim(config('app.url'),'/').'/uploads/'.$_gu;
+}
+$_imgCount = count($_imgs);
 @endphp
-<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:{{ $_bg[$item->product_type] ?? '#1a3c6b' }};">
-<i class="bi {{ $_ic[$item->product_type] ?? 'bi-grid' }}" style="font-size:5rem;color:rgba(255,255,255,.3);"></i>
+
+@if($_imgCount > 0)
+<div class="prd-gallery">
+
+{{-- Lightbox --}}
+<div class="prd-lb" id="prdLb">
+    <button class="prd-lb-close" onclick="prdLbClose()">✕</button>
+    <button class="prd-lb-prev" onclick="prdLbMove(-1)">‹</button>
+    <img class="prd-lb-img" id="prdLbImg" src="" alt="">
+    <button class="prd-lb-next" onclick="prdLbMove(1)">›</button>
+    <div class="prd-lb-count" id="prdLbCount"></div>
+</div>
+
+@if($_imgCount === 1)
+<div class="prd-gal-1">
+    <img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)">
+</div>
+
+@elseif($_imgCount === 2)
+<div class="prd-gal-2">
+    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
+    <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
+</div>
+
+@elseif($_imgCount === 3)
+<div class="prd-gal-3">
+    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
+    <div class="prd-gal-3-right">
+        <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
+        <div class="prd-gal-thumb" onclick="prdLbOpen(2)"><img src="{{ $_imgs[2] }}" alt="{{ $item->title }}"></div>
+    </div>
+</div>
+
+@elseif($_imgCount === 4)
+<div class="prd-gal-4">
+    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
+    <div class="prd-gal-4-right">
+        <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
+        <div class="prd-gal-thumb" onclick="prdLbOpen(2)"><img src="{{ $_imgs[2] }}" alt="{{ $item->title }}"></div>
+        <div class="prd-gal-thumb" onclick="prdLbOpen(3)"><img src="{{ $_imgs[3] }}" alt="{{ $item->title }}"></div>
+    </div>
+</div>
+
+@else
+{{-- 5+ görsel: büyük sol + 2 küçük sağ + "+N daha" overlay --}}
+<div class="prd-gal-n" style="position:relative;">
+    <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
+    <div class="prd-gal-n-right">
+        <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
+        <div class="prd-gal-thumb" onclick="prdLbOpen(2)">
+            <img src="{{ $_imgs[2] }}" alt="{{ $item->title }}">
+            @if($_imgCount > 3)
+            <div class="prd-gal-more">+{{ $_imgCount - 3 }} fotoğraf</div>
+            @endif
+        </div>
+    </div>
+    <button class="prd-gal-btn" onclick="prdLbOpen(0)">
+        <i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})
+    </button>
 </div>
 @endif
+
 </div>
+@endif
 
 <div style="background:#fff;">
 <div class="prd-wrap">
@@ -583,5 +672,40 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+
+<script>
+(function(){
+    var _imgs = @json($_imgs ?? []);
+    var _idx  = 0;
+    var lb    = document.getElementById('prdLb');
+    var lbImg = document.getElementById('prdLbImg');
+    var lbCnt = document.getElementById('prdLbCount');
+    if (!lb) return;
+
+    window.prdLbOpen = function(i) {
+        _idx = i;
+        lbImg.src = _imgs[_idx];
+        lbCnt.textContent = (_idx + 1) + ' / ' + _imgs.length;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+    window.prdLbClose = function() {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+    };
+    window.prdLbMove = function(d) {
+        _idx = (_idx + d + _imgs.length) % _imgs.length;
+        lbImg.src = _imgs[_idx];
+        lbCnt.textContent = (_idx + 1) + ' / ' + _imgs.length;
+    };
+    lb.addEventListener('click', function(e){ if(e.target===lb) prdLbClose(); });
+    document.addEventListener('keydown', function(e){
+        if (!lb.classList.contains('open')) return;
+        if (e.key==='Escape') prdLbClose();
+        if (e.key==='ArrowLeft') prdLbMove(-1);
+        if (e.key==='ArrowRight') prdLbMove(1);
+    });
+})();
+</script>
 
 @endsection
