@@ -554,64 +554,50 @@ class B2cCatalogController extends Controller
             return response()->json(['error' => 'GEMINI_API_KEY tanımlı değil.'], 500);
         }
 
-        $prompt = <<<PROMPT
-Sen bir Türkçe içerik analiz asistanısın. Aşağıdaki ham ürün/hizmet metnini analiz et.
+        $prompt = 'Sen bir Türkçe içerik analiz asistanısın. Aşağıdaki ham ürün/hizmet metnini analiz et ve şu JSON şemasına uygun geçerli JSON döndür.'
+            . ' Bilemediğin alanlar için null kullan, tahmin etme.'
+            . ' full_desc alanında ham metni profesyonel satış odaklı HTML\'e dönüştür:'
+            . ' başlıklar için <h3>, listeler için <ul><li>, paragraflar için <p> kullan, HTML attribute\'larında çift tırnak kullan.'
+            . "\n\nMetin:\n" . $text;
 
-Metin:
-{$text}
-
-Yanıtını TAMAMEN şu formatta ver — başka hiçbir şey ekleme:
-
-===JSON===
-{
-  "title": "Kısa ve çekici başlık (max 70 karakter, Türkçe)",
-  "short_desc": "Bir veya iki cümle özet (max 200 karakter)",
-  "destination_city": "Şehir adı veya null",
-  "destination_country": "Ülke adı veya null",
-  "duration_days": gün sayısı rakam olarak veya null,
-  "duration_hours": saat sayısı rakam olarak veya null,
-  "min_pax": minimum kişi sayısı rakam veya null,
-  "max_pax": maksimum kişi sayısı rakam veya null,
-  "base_price": fiyat rakam olarak veya null,
-  "currency": "TRY veya USD veya EUR veya GBP veya null",
-  "meta_title": "SEO başlık (max 60 karakter)",
-  "meta_description": "SEO açıklama (max 155 karakter)"
-}
-===HTML===
-Ham metni burada profesyonel, satış odaklı Türkçe bir ürün açıklamasına dönüştür.
-Başlıklar için <h3>, listeler için <ul><li>, paragraflar için <p> kullan.
-PROMPT;
-
-        $resp = Http::timeout(30)->post(
+        $resp = Http::timeout(45)->post(
             "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-            ['contents' => [['parts' => [['text' => $prompt]]]], 'generationConfig' => ['maxOutputTokens' => 2048]]
+            [
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => [
+                    'responseMimeType' => 'application/json',
+                    'responseSchema'   => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'title'              => ['type' => 'string'],
+                            'short_desc'         => ['type' => 'string'],
+                            'full_desc'          => ['type' => 'string'],
+                            'destination_city'   => ['type' => 'string'],
+                            'destination_country'=> ['type' => 'string'],
+                            'duration_days'      => ['type' => 'integer'],
+                            'duration_hours'     => ['type' => 'integer'],
+                            'min_pax'            => ['type' => 'integer'],
+                            'max_pax'            => ['type' => 'integer'],
+                            'base_price'         => ['type' => 'number'],
+                            'currency'           => ['type' => 'string'],
+                            'meta_title'         => ['type' => 'string'],
+                            'meta_description'   => ['type' => 'string'],
+                        ],
+                    ],
+                    'maxOutputTokens' => 2048,
+                ],
+            ]
         );
 
         if (! $resp->successful()) {
-            return response()->json(['error' => 'Gemini API hatası: ' . $resp->status()], 502);
+            return response()->json(['error' => 'Gemini API hatası: ' . $resp->status(), 'detail' => $resp->body()], 502);
         }
 
-        $raw = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
+        $raw  = trim(data_get($resp->json(), 'candidates.0.content.parts.0.text', ''));
+        $data = json_decode($raw, true);
 
-        // ===JSON=== ve ===HTML=== bölümlerini ayır
-        $jsonPart = '';
-        $htmlPart = '';
-        if (preg_match('/===JSON===\s*([\s\S]*?)\s*===HTML===/i', $raw, $m)) {
-            $jsonPart = trim($m[1]);
-            $htmlPart = trim(preg_replace('/.*===HTML===/is', '', $raw));
-        } else {
-            // Fallback: tüm yanıt JSON olarak dene
-            $jsonPart = preg_replace('/^```json\s*/i', '', $raw);
-            $jsonPart = preg_replace('/\s*```[\s]*$/i', '', trim($jsonPart));
-        }
-
-        $data = json_decode($jsonPart, true);
         if (! is_array($data)) {
             return response()->json(['error' => 'Gemini yanıtı parse edilemedi.', 'raw' => $raw], 502);
-        }
-
-        if ($htmlPart) {
-            $data['full_desc'] = $htmlPart;
         }
 
         return response()->json($data);
