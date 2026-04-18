@@ -157,34 +157,40 @@ $_imgCount = count($_imgs);
     <div class="prd-lb-count" id="prdLbCount"></div>
 </div>
 
+@php $heartBtn = '<div class="prd-heart-btn ' . (($isSaved ?? false) ? 'saved' : '') . '" data-item-id="' . $item->id . '" onclick="grtWishlistToggle(this)" title="İstek listesine ekle"><i class="bi ' . (($isSaved ?? false) ? 'bi-heart-fill' : 'bi-heart') . '"></i></div>'; @endphp
+
 @if($_imgCount === 1)
-<div class="prd-gal-1">
+<div class="prd-gal-1" style="position:relative;">
     <img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)">
+    {!! $heartBtn !!}
 </div>
 
 @elseif($_imgCount === 2)
-<div class="prd-gal-2">
+<div class="prd-gal-2" style="position:relative;">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
+    {!! $heartBtn !!}
 </div>
 
 @elseif($_imgCount === 3)
-<div class="prd-gal-3">
+<div class="prd-gal-3" style="position:relative;">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-3-right">
         <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
         <div class="prd-gal-thumb" onclick="prdLbOpen(2)"><img src="{{ $_imgs[2] }}" alt="{{ $item->title }}"></div>
     </div>
+    {!! $heartBtn !!}
 </div>
 
 @elseif($_imgCount === 4)
-<div class="prd-gal-4">
+<div class="prd-gal-4" style="position:relative;">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-4-right">
         <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
         <div class="prd-gal-thumb" onclick="prdLbOpen(2)"><img src="{{ $_imgs[2] }}" alt="{{ $item->title }}"></div>
         <div class="prd-gal-thumb" onclick="prdLbOpen(3)"><img src="{{ $_imgs[3] }}" alt="{{ $item->title }}"></div>
     </div>
+    {!! $heartBtn !!}
 </div>
 
 @else
