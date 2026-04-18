@@ -564,6 +564,7 @@ Sadece şu alanları içeren geçerli JSON döndür (dolduramadıklarını null 
 {
   "title": "Kısa ve çekici başlık (max 70 karakter, Türkçe)",
   "short_desc": "Bir veya iki cümle özet (max 200 karakter)",
+  "full_desc": "Ham metni düzenli bir ürün açıklamasına dönüştür. Başlıklar için <h3>, liste maddeleri için <ul><li>, paragraflar için <p> kullan. Türkçe, profesyonel, satış odaklı yazım.",
   "destination_city": "Şehir adı veya null",
   "destination_country": "Ülke adı veya null (çoğunlukla Türkiye)",
   "duration_days": gün sayısı rakam olarak veya null,
@@ -581,7 +582,7 @@ PROMPT;
 
         $resp = Http::timeout(30)->post(
             "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-            ['contents' => [['parts' => [['text' => $prompt]]]]]
+            ['contents' => [['parts' => [['text' => $prompt]]]], 'generationConfig' => ['maxOutputTokens' => 2048]]
         );
 
         if (! $resp->successful()) {

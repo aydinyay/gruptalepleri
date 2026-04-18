@@ -461,6 +461,7 @@ async function aiFillFields() {
 
         fill('[name=title]',               data.title);
         fill('[name=short_desc]',          data.short_desc);
+        fill('#fullDesc',                  data.full_desc);
         fill('[name=destination_city]',    data.destination_city);
         fill('[name=destination_country]', data.destination_country);
         fill('[name=duration_days]',       data.duration_days);
