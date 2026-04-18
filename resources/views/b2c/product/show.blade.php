@@ -67,6 +67,13 @@
 .rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .breadcrumb-bar{background:#f8f9fc;border-bottom:1px solid #e5e5e5;padding:10px 0;font-size:.84rem;color:#718096}
 .breadcrumb-bar a{color:#718096;text-decoration:none}
+/* Sağlayıcı kartı */
+.prd-supplier-card{display:flex;align-items:center;gap:16px;padding:16px 18px;background:#f8f9fc;border-radius:12px;border:1px solid #e5e5e5;margin-bottom:8px}
+.prd-supplier-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3c6b,#2d5282);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;flex-shrink:0;letter-spacing:.04em}
+.prd-supplier-name{font-size:1rem;font-weight:700;color:#1a202c;margin-bottom:2px}
+.prd-supplier-badge{font-size:.78rem;color:#38a169;font-weight:600}
+.prd-supplier-badge i{font-size:.82rem}
+.prd-supplier-meta{font-size:.78rem;color:#718096;margin-top:2px}
 .breadcrumb-bar a:hover{color:#1a3c6b}
 /* Transfer Canlı Fiyat */
 .tr-route-box{background:linear-gradient(135deg,#eef2ff,#f0f4ff);border:1px solid #c7d2fe;border-radius:12px;padding:16px 20px;margin-bottom:16px}
@@ -307,6 +314,46 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 <div class="prd-sec">Detaylı Açıklama</div>
 <div style="font-size:.95rem;color:#4a5568;line-height:1.8;" class="prd-full-desc">{!! $item->full_desc !!}</div>
 @endif
+
+@php
+$supplierName = $item->owner_type === 'platform'
+    ? 'Grup Rezervasyonları'
+    : ($item->supplier?->name ?? 'Grup Rezervasyonları');
+
+$supplierInitials = collect(explode(' ', $supplierName))
+    ->filter()
+    ->take(2)
+    ->map(fn($w) => strtoupper(mb_substr($w, 0, 1)))
+    ->implode('');
+
+$isPlatform = $item->owner_type === 'platform' || ! $item->supplier_id;
+
+$supplierProductCount = $isPlatform
+    ? \App\Models\B2C\CatalogItem::published()->where('owner_type', 'platform')->count()
+    : \App\Models\B2C\CatalogItem::published()->where('supplier_id', $item->supplier_id)->count();
+@endphp
+
+<div class="prd-sec">Hizmet Sağlayıcı</div>
+<div class="prd-supplier-card">
+    <div class="prd-supplier-avatar">{{ $supplierInitials }}</div>
+    <div style="flex:1;min-width:0;">
+        <div class="prd-supplier-name">{{ $supplierName }}</div>
+        <div class="prd-supplier-badge">
+            <i class="bi bi-patch-check-fill"></i>
+            Doğrulanmış {{ $isPlatform ? 'Platform' : 'Tedarikçi' }}
+        </div>
+        @if($supplierProductCount > 1)
+        <div class="prd-supplier-meta">{{ $supplierProductCount }} aktif hizmet sunuyor</div>
+        @endif
+    </div>
+    @if(! $isPlatform && $item->supplier?->phone)
+    <div style="text-align:right;flex-shrink:0;">
+        <a href="tel:{{ $item->supplier->phone }}" style="font-size:.82rem;color:#1a3c6b;font-weight:600;text-decoration:none;">
+            <i class="bi bi-telephone-fill"></i> {{ $item->supplier->phone }}
+        </a>
+    </div>
+    @endif
+</div>
 </div>
 
 {{-- SAĞ KOLON: Fiyat / Rezervasyon --}}
@@ -555,10 +602,12 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 <div class="pc-trust"><i class="bi bi-check-circle-fill"></i> Güvenli ödeme</div>
 <div class="pc-div"></div>
 <div style="display:flex;align-items:center;gap:10px;">
-<div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-building" style="color:#1a3c6b;"></i></div>
+<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a3c6b,#2d5282);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.82rem;font-weight:800;color:#fff;">
+    {{ collect(explode(' ', $item->owner_type === 'platform' ? 'Grup Rezervasyonları' : ($item->supplier?->name ?? 'GR')))->filter()->take(2)->map(fn($w) => strtoupper(mb_substr($w,0,1)))->implode('') }}
+</div>
 <div>
-<div style="font-size:.82rem;font-weight:700;color:#1a202c;">{{ $item->supplier?->name ?? 'Grup Rezervasyonları' }}</div>
-<div style="font-size:.75rem;color:#718096;"><i class="bi bi-patch-check-fill" style="color:#48bb78;"></i> Doğrulanmış Tedarikçi</div>
+<div style="font-size:.82rem;font-weight:700;color:#1a202c;">{{ $item->owner_type === 'platform' ? 'Grup Rezervasyonları' : ($item->supplier?->name ?? 'Grup Rezervasyonları') }}</div>
+<div style="font-size:.75rem;color:#38a169;font-weight:600;"><i class="bi bi-patch-check-fill"></i> Doğrulanmış {{ $item->owner_type === 'platform' ? 'Platform' : 'Tedarikçi' }}</div>
 </div>
 </div>
 </div>
