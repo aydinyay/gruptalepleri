@@ -841,6 +841,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::get('/katalog',              [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalog'])->name('catalog');
         Route::get('/katalog/yeni',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogCreate'])->name('catalog.create');
         Route::post('/katalog',             [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogStore'])->name('catalog.store');
+        Route::post('/katalog/ai-doldur',   [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'aiFieldSuggest'])->name('catalog.ai-fill');
         Route::get('/katalog/{item}/duzenle', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogEdit'])->name('catalog.edit');
         Route::put('/katalog/{item}',        [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogUpdate'])->name('catalog.update');
         Route::post('/katalog/{item}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogTogglePublish'])->name('catalog.toggle-publish');

@@ -14,6 +14,7 @@ use App\Models\LeisurePackageTemplate;
 use App\Models\TransferVehicleType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
@@ -540,6 +541,67 @@ class B2cCatalogController extends Controller
         $file->move($dest, basename($name));
 
         return $name; // örn: "catalog/AbCdEfGh12345678.jpg"
+    }
+
+    public function aiFieldSuggest(Request $request)
+    {
+        $text = $request->validate(['text' => 'required|string|max:12000'])['text'];
+
+        $apiKey = config('services.anthropic.key');
+        if (! $apiKey) {
+            return response()->json(['error' => 'ANTHROPIC_API_KEY tanımlı değil.'], 500);
+        }
+
+        $prompt = <<<PROMPT
+Sen bir Türkçe içerik analiz asistanısın. Aşağıdaki ürün/hizmet açıklamasını analiz et ve JSON formatında yapılandırılmış veri döndür. Türkçe yazılmış metinleri anlamaya çalış.
+
+Metin:
+{$text}
+
+Sadece şu alanları içeren geçerli JSON döndür (dolduramadıklarını null yap, tahmin etme):
+{
+  "title": "Kısa ve çekici başlık (max 70 karakter, Türkçe)",
+  "short_desc": "Bir veya iki cümle özet (max 200 karakter)",
+  "destination_city": "Şehir adı veya null",
+  "destination_country": "Ülke adı veya null (çoğunlukla Türkiye)",
+  "duration_days": gün sayısı rakam olarak veya null,
+  "duration_hours": saat sayısı rakam olarak veya null,
+  "min_pax": minimum kişi sayısı rakam veya null,
+  "max_pax": maksimum kişi sayısı rakam veya null,
+  "base_price": sadece rakam (para birimi hariç) veya null,
+  "currency": "TRY veya USD veya EUR veya GBP veya null",
+  "meta_title": "SEO için kısa başlık (max 60 karakter)",
+  "meta_description": "SEO açıklaması (max 155 karakter)"
+}
+
+Sadece JSON döndür, başka hiçbir şey yazma. JSON dışında metin, açıklama, markdown code block olmayacak.
+PROMPT;
+
+        $resp = Http::timeout(30)->withHeaders([
+            'x-api-key'         => $apiKey,
+            'anthropic-version' => '2023-06-01',
+            'content-type'      => 'application/json',
+        ])->post('https://api.anthropic.com/v1/messages', [
+            'model'      => 'claude-haiku-4-5-20251001',
+            'max_tokens' => 1024,
+            'messages'   => [['role' => 'user', 'content' => $prompt]],
+        ]);
+
+        if (! $resp->successful()) {
+            return response()->json(['error' => 'Claude API hatası: ' . $resp->status()], 502);
+        }
+
+        $raw = trim($resp->json('content.0.text') ?? '');
+        // Markdown code block varsa temizle
+        $raw = preg_replace('/^```json\s*/i', '', $raw);
+        $raw = preg_replace('/\s*```$/i', '', $raw);
+
+        $data = json_decode($raw, true);
+        if (! is_array($data)) {
+            return response()->json(['error' => 'Claude yanıtı parse edilemedi.', 'raw' => $raw], 502);
+        }
+
+        return response()->json($data);
     }
 
     private function parseGalleryUrls(string $raw): array

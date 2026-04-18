@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($item) ? 'Ürün Düzenle' : 'Yeni Ürün' }} — Süperadmin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -76,7 +77,17 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-600">Tam Açıklama</label>
-                                <textarea name="full_desc" class="form-control" rows="6">{{ old('full_desc', $item->full_desc ?? '') }}</textarea>
+                                <textarea name="full_desc" id="fullDesc" class="form-control" rows="6">{{ old('full_desc', $item->full_desc ?? '') }}</textarea>
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <button type="button" id="aiFillBtn"
+                                            onclick="aiFillFields()"
+                                            class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                            title="Tam açıklamadan diğer alanları otomatik doldur">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                                        <span id="aiFillBtnText">AI ile Doldur</span>
+                                    </button>
+                                    <span id="aiStatus" class="text-muted" style="font-size:.8rem;"></span>
+                                </div>
                             </div>
 
                             <div class="section-title">Fiyatlandırma</div>
@@ -402,6 +413,90 @@ function updateSubtypes() {
 }
 productTypeSel.addEventListener('change', updateSubtypes);
 updateSubtypes();
+
+// ── AI Doldur ──────────────────────────────────────────────────────────────
+async function aiFillFields() {
+    const text = document.getElementById('fullDesc').value.trim();
+    if (!text) {
+        alert('Önce Tam Açıklama alanına ürün metnini yapıştırın.');
+        return;
+    }
+
+    const btn  = document.getElementById('aiFillBtn');
+    const stat = document.getElementById('aiStatus');
+    btn.disabled = true;
+    document.getElementById('aiFillBtnText').textContent = 'Analiz ediliyor…';
+    stat.textContent = '';
+
+    try {
+        const resp = await fetch('{{ route('superadmin.b2c.catalog.ai-fill') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content
+                    || '{{ csrf_token() }}',
+            },
+            body: JSON.stringify({ text }),
+        });
+
+        const data = await resp.json();
+
+        if (data.error) {
+            stat.textContent = '⚠ ' + data.error;
+            stat.style.color = '#dc3545';
+            return;
+        }
+
+        let filled = 0;
+
+        function fill(selector, value) {
+            if (value === null || value === undefined || value === '') return;
+            const el = document.querySelector(selector);
+            if (!el) return;
+            el.value = value;
+            el.classList.add('ai-filled');
+            setTimeout(() => el.classList.remove('ai-filled'), 3000);
+            filled++;
+        }
+
+        fill('[name=title]',               data.title);
+        fill('[name=short_desc]',          data.short_desc);
+        fill('[name=destination_city]',    data.destination_city);
+        fill('[name=destination_country]', data.destination_country);
+        fill('[name=duration_days]',       data.duration_days);
+        fill('[name=duration_hours]',      data.duration_hours);
+        fill('[name=min_pax]',             data.min_pax);
+        fill('[name=max_pax]',             data.max_pax);
+        fill('[name=meta_title]',          data.meta_title);
+        fill('[name=meta_description]',    data.meta_description);
+
+        if (data.base_price) fill('[name=base_price]', data.base_price);
+        if (data.currency)   fill('[name=currency]',   data.currency);
+
+        // Slug yeniden üret (başlık değiştiyse)
+        const slugField = document.querySelector('[name=slug]');
+        if (data.title && slugField && !slugField.value) {
+            slugField.value = data.title
+                .toLowerCase()
+                .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
+                .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+                .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+        }
+
+        stat.textContent = `✓ ${filled} alan dolduruldu — kontrol edip kaydet`;
+        stat.style.color = '#198754';
+
+    } catch(e) {
+        stat.textContent = '⚠ Bağlantı hatası: ' + e.message;
+        stat.style.color = '#dc3545';
+    } finally {
+        btn.disabled = false;
+        document.getElementById('aiFillBtnText').textContent = 'AI ile Doldur';
+    }
+}
 </script>
+<style>
+.ai-filled { transition: background .3s; background: #fffbe6 !important; }
+</style>
 </body>
 </html>
