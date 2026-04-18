@@ -5,6 +5,7 @@ namespace App\Http\Controllers\B2C;
 use App\Http\Controllers\Controller;
 use App\Models\B2C\B2cOrder;
 use App\Models\B2C\B2cPayment;
+use App\Models\B2C\CatalogSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -38,10 +39,22 @@ class CheckoutController extends Controller
         // Faz 5'te çok ürünlü sipariş mantığı eklenecek
         $row  = array_values($cart)[0];
 
+        $session      = null;
+        $sessionLabel = null;
+        if (! empty($row['session_id'])) {
+            $session = CatalogSession::find($row['session_id']);
+            if ($session) {
+                $sessionLabel = $session->label
+                    ?? ($session->session_date->format('d.m.Y') . ($session->session_time ? ' ' . substr($session->session_time, 0, 5) : ''));
+            }
+        }
+
         $order = B2cOrder::create([
             'order_ref'       => 'GRZ-' . date('Y') . '-' . strtoupper(Str::random(6)),
             'b2c_user_id'     => $user->id,
             'catalog_item_id' => $row['catalog_item_id'],
+            'session_id'      => $session?->id,
+            'session_label'   => $sessionLabel,
             'pax_count'       => $row['pax_count'],
             'service_date'    => $row['service_date'] ?? null,
             'unit_price'      => $row['base_price'],
@@ -50,6 +63,10 @@ class CheckoutController extends Controller
             'status'          => $row['pricing_type'] === 'fixed' ? 'pending' : 'pending_quote',
             'payment_status'  => 'unpaid',
         ]);
+
+        if ($session) {
+            $session->increment('booked_count', (int) $row['pax_count']);
+        }
 
         // Sepeti temizle
         session()->forget('b2c_cart');

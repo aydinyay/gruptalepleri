@@ -2,6 +2,7 @@
 
 namespace App\Models\B2C;
 
+use App\Models\B2C\CatalogSession;
 use Illuminate\Database\Eloquent\Model;
 
 class B2cOrder extends Model
@@ -12,6 +13,8 @@ class B2cOrder extends Model
         'order_ref',
         'b2c_user_id',
         'catalog_item_id',
+        'session_id',
+        'session_label',
         'item_title',
         'product_type',
         'guest_name',
@@ -54,6 +57,11 @@ class B2cOrder extends Model
     public function item()
     {
         return $this->belongsTo(CatalogItem::class, 'catalog_item_id');
+    }
+
+    public function catalogSession()
+    {
+        return $this->belongsTo(CatalogSession::class, 'session_id');
     }
 
     public function passengers()
