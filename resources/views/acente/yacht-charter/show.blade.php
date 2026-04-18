@@ -247,7 +247,13 @@
         {{-- Sağ: Rezervasyon paneli --}}
         <div>
             <div class="yc-panel">
-                <div class="yc-panel-label">B2B fiyat</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                    <span style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a3c6b;background:#eef2ff;padding:4px 10px;border-radius:6px;">B2B Net Fiyat</span>
+                    @if($package->original_price_per_person && $package->base_price_per_person && $package->base_price_per_person < $package->original_price_per_person)
+                    @php $margin = round((($package->original_price_per_person - $package->base_price_per_person) / $package->original_price_per_person) * 100); @endphp
+                    <span style="font-size:.72rem;font-weight:700;color:#38a169;background:#f0fdf4;border:1px solid #86efac;padding:4px 10px;border-radius:6px;">%{{ $margin }} kazanç</span>
+                    @endif
+                </div>
                 <div class="yc-panel-price" id="displayPrice">{{ number_format($pricePerHour,0,',','.') }} {{ $currency }}</div>
                 <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">/ saat · grup başına</div>
 
