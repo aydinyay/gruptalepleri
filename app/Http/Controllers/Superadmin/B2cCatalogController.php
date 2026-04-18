@@ -603,7 +603,7 @@ class B2cCatalogController extends Controller
         $data = json_decode($clean, true);
 
         if (! is_array($data)) {
-            return response()->json(['error' => 'Gemini yanıtı parse edilemedi.', 'raw' => $raw], 502);
+            return response()->json(['error' => 'parse_failed', 'raw' => $raw, 'clean' => $clean, 'json_error' => json_last_error_msg()], 200);
         }
 
         return response()->json($data);
