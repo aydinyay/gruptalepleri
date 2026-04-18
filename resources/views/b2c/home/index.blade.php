@@ -434,14 +434,17 @@
             <div class="gyg-suggest-box" id="heroSuggestBox"></div>
         </div>
 
+        @php
+        $popularTags = $categories->filter(fn($c) => $c->published_items_count > 0)->take(6);
+        @endphp
+        @if($popularTags->isNotEmpty())
         <div class="gyg-hero-tags">
             <span>Popüler:</span>
-            <a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}" class="gyg-hero-tag">Dinner Cruise</a>
-            <a href="{{ route('b2c.catalog.category', 'transfer') }}" class="gyg-hero-tag">Havalimanı Transferi</a>
-            <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" class="gyg-hero-tag">Yat Kiralama</a>
-            <a href="{{ route('b2c.catalog.category', 'helikopter') }}" class="gyg-hero-tag">Helikopter Turu</a>
-            <a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-hero-tag">Kapadokya</a>
+            @foreach($popularTags as $tag)
+            <a href="{{ route('b2c.catalog.category', $tag->slug) }}" class="gyg-hero-tag">{{ $tag->name }}</a>
+            @endforeach
         </div>
+        @endif
 
         {{-- Hero kartları — sadece Vizyon etiketliler, max 3 --}}
         @if($heroItems->isNotEmpty())
