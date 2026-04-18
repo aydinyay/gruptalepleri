@@ -69,4 +69,12 @@ return [
     'mail_from_address' => env('B2C_MAIL_FROM_ADDRESS', 'noreply@gruprezervasyonlari.com'),
     'mail_from_name'    => env('B2C_MAIL_FROM_NAME',    'Grup Rezervasyonları'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Sahip Paneli Token
+    |--------------------------------------------------------------------------
+    | /gizli/fiyat sayfasını korur. ?t=TOKEN ile erişilir.
+    */
+    'owner_token' => env('GRT_OWNER_TOKEN', ''),
+
 ];

@@ -41,6 +41,8 @@ class CatalogItem extends Model
         'min_pax',
         'max_pax',
         'sort_order',
+        'cost_price',
+        'pricing_notes',
         'rating_avg',
         'review_count',
         'meta_title',
@@ -59,6 +61,7 @@ class CatalogItem extends Model
             'is_published'  => 'boolean',
             'published_at'  => 'datetime',
             'base_price'    => 'decimal:2',
+            'cost_price'    => 'decimal:2',
             'sort_order'    => 'integer',
         ];
     }
