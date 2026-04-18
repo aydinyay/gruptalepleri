@@ -406,7 +406,6 @@ class B2cCatalogController extends Controller
 
     public function catalogUpdate(Request $request, CatalogItem $item)
     {
-        try {
         $validated = $this->validateCatalogItem($request, $item->id);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
@@ -435,13 +434,6 @@ class B2cCatalogController extends Controller
 
         return redirect()->route('superadmin.b2c.catalog')
             ->with('success', 'Ürün güncellendi.');
-        } catch (\Throwable $e) {
-            \Log::error('catalogUpdate hatası', ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return response('<pre style="padding:20px;color:red;white-space:pre-wrap">'
-                . get_class($e) . ': ' . e($e->getMessage()) . "\n\n"
-                . e(collect(explode("\n", $e->getTraceAsString()))->take(10)->implode("\n"))
-                . '</pre>', 500);
-        }
     }
 
     public function catalogTogglePublish(CatalogItem $item)
@@ -746,8 +738,8 @@ class B2cCatalogController extends Controller
             'sort_order'          => 'integer|min:0',
             'rating_avg'          => 'nullable|numeric|min:0|max:5',
             'review_count'        => 'nullable|integer|min:0',
-            'meta_title'          => 'nullable|string|max:120',
-            'meta_description'    => 'nullable|string|max:250',
+            'meta_title'          => 'nullable|string|max:500',
+            'meta_description'    => 'nullable|string|max:1000',
             'cost_price'          => 'nullable|numeric|min:0',
         ]);
     }
