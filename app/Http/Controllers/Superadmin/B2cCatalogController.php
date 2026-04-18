@@ -590,9 +590,15 @@ class B2cCatalogController extends Controller
             return response()->json(['error' => 'Gemini API hatası: ' . $metaResp->status()], 502);
         }
 
-        $data = json_decode(trim(data_get($metaResp->json(), 'candidates.0.content.parts.0.text', '')), true);
+        $metaRaw = trim(data_get($metaResp->json(), 'candidates.0.content.parts.0.text', ''));
+        $data = json_decode($metaRaw, true);
         if (! is_array($data)) {
-            return response()->json(['error' => 'Gemini meta parse hatası.'], 502);
+            return response()->json([
+                'error'      => 'Gemini meta parse hatası.',
+                'raw'        => $metaRaw,
+                'full_resp'  => $metaResp->json(),
+                'json_err'   => json_last_error_msg(),
+            ], 200);
         }
 
         // Çağrı 2: HTML açıklama — düz metin olarak (JSON schema YOK)
