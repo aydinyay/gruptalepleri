@@ -48,6 +48,14 @@
 .prd-meta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;font-size:.88rem;color:#4a5568}
 .prd-pill{display:flex;align-items:center;gap:5px;background:#f7f8fc;border-radius:50px;padding:4px 12px}
 .prd-stars{color:#f4a418}
+/* Sosyal Paylaşım */
+.prd-share{display:flex;align-items:center;gap:7px;margin:16px 0 20px;flex-wrap:wrap;}
+.prd-share-label{font-size:.8rem;color:#718096;font-weight:600;margin-right:2px;}
+.prd-share-btn{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;cursor:pointer;border:none;transition:transform .15s,opacity .15s;flex-shrink:0;}
+.prd-share-btn:hover{transform:translateY(-2px);opacity:.85;color:inherit;}
+.shr-fb{background:#1877F2;color:#fff;}.shr-tw{background:#000;color:#fff;}.shr-li{background:#0A66C2;color:#fff;}
+.shr-wa{background:#25D366;color:#fff;}.shr-tg{background:#229ED9;color:#fff;}.shr-pin{background:#E60023;color:#fff;}
+.shr-em{background:#718096;color:#fff;}.shr-cp{background:#eef2ff;color:#1a3c6b;}
 .prd-sec{font-size:1.05rem;font-weight:700;color:var(--gt-text,#1a202c);margin:24px 0 10px;padding-bottom:8px;border-bottom:2px solid #e5e5e5}
 .prd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
 .prd-item{display:flex;align-items:flex-start;gap:10px;background:#f8f9fc;border-radius:10px;padding:12px}
@@ -266,6 +274,19 @@ $supplierInitials = collect(explode(' ', $supplierName))->filter()->take(2)->map
 @endif
 </div>
 
+{{-- Sosyal Paylaşım --}}
+<div class="prd-share">
+    <span class="prd-share-label"><i class="bi bi-share-fill"></i> Paylaş:</span>
+    <a class="prd-share-btn shr-fb" onclick="grtShare('facebook')" title="Facebook"><i class="bi bi-facebook"></i></a>
+    <a class="prd-share-btn shr-tw" onclick="grtShare('twitter')" title="Twitter / X"><i class="bi bi-twitter-x"></i></a>
+    <a class="prd-share-btn shr-li" onclick="grtShare('linkedin')" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+    <a class="prd-share-btn shr-wa" onclick="grtShare('whatsapp')" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+    <a class="prd-share-btn shr-tg" onclick="grtShare('telegram')" title="Telegram"><i class="bi bi-telegram"></i></a>
+    <a class="prd-share-btn shr-pin" onclick="grtShare('pinterest')" title="Pinterest"><i class="bi bi-pinterest"></i></a>
+    <a class="prd-share-btn shr-em" onclick="grtShare('email')" title="E-posta"><i class="bi bi-envelope-fill"></i></a>
+    <button class="prd-share-btn shr-cp" id="grtCopyBtn" onclick="grtCopyLink()" title="Linki Kopyala"><i class="bi bi-link-45deg"></i></button>
+</div>
+
 @if($item->short_desc)
 <p style="font-size:1rem;color:#4a5568;line-height:1.7;margin-bottom:0;">{{ $item->short_desc }}</p>
 @endif
@@ -448,6 +469,29 @@ $relImg   = $rel->cover_image ? (str_starts_with($rel->cover_image,'http') ? $re
 @include('acente.partials.theme-script')
 
 <script>
+function grtShare(platform) {
+    var url   = encodeURIComponent(window.location.href);
+    var title = encodeURIComponent(document.title);
+    var img   = encodeURIComponent(document.querySelector('meta[property="og:image"]')?.content || '');
+    var map = {
+        facebook:  'https://www.facebook.com/sharer/sharer.php?u=' + url,
+        twitter:   'https://twitter.com/intent/tweet?url=' + url + '&text=' + title,
+        linkedin:  'https://www.linkedin.com/sharing/share-offsite/?url=' + url,
+        whatsapp:  'https://api.whatsapp.com/send?text=' + title + '%20' + url,
+        telegram:  'https://t.me/share/url?url=' + url + '&text=' + title,
+        pinterest: 'https://pinterest.com/pin/create/button/?url=' + url + '&media=' + img + '&description=' + title,
+        email:     'mailto:?subject=' + title + '&body=' + url,
+    };
+    if (map[platform]) window.open(map[platform], '_blank', 'width=620,height=520,noopener,noreferrer');
+}
+function grtCopyLink() {
+    var btn = document.getElementById('grtCopyBtn');
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        btn.innerHTML = '<i class="bi bi-check2"></i>';
+        btn.style.cssText += 'background:#dcfce7;color:#166534;';
+        setTimeout(function(){ btn.innerHTML='<i class="bi bi-link-45deg"></i>'; btn.style.background=''; btn.style.color=''; }, 2200);
+    }).catch(function(){ window.prompt('Linki kopyala:', window.location.href); });
+}
 var _b2bPrice = {{ (float)($b2bPrice ?? 0) }};
 var _currency = '{{ $item->currency }}';
 function b2bCalc(pax) {
