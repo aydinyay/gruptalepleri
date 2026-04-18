@@ -282,11 +282,31 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="mb-2">
-                                <div class="form-check">
-                                    <input type="checkbox" name="is_published" value="1" class="form-check-input" id="isPublished"
-                                           {{ old('is_published', $item->is_published ?? false) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="isPublished"><i class="fas fa-eye text-success me-1"></i>Yayında</label>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Yayın Durumu</label>
+                                @php $ps = old('publish_status', $item->publish_status ?? 'draft'); @endphp
+                                <div class="d-flex flex-column gap-2 mt-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_status" id="ps_draft" value="draft" {{ $ps === 'draft' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="ps_draft">
+                                            <span class="badge bg-secondary me-1">Taslak</span>
+                                            <small class="text-muted">Hiçbir yerde görünmez</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_status" id="ps_b2b" value="b2b" {{ $ps === 'b2b' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="ps_b2b">
+                                            <span class="badge me-1" style="background:#1a3c6b;">GT Yayında</span>
+                                            <small class="text-muted">Sadece acente kataloğunda</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_status" id="ps_b2c" value="b2c" {{ $ps === 'b2c' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="ps_b2c">
+                                            <span class="badge bg-success me-1">GR Yayında</span>
+                                            <small class="text-muted">GR vitrin + acente kataloğu</small>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -36,6 +36,7 @@ class CatalogItem extends Model
         'is_featured',
         'badge_label',
         'is_published',
+        'publish_status',
         'published_at',
         'destination_city',
         'destination_country',
@@ -71,11 +72,29 @@ class CatalogItem extends Model
         ];
     }
 
+    // ── publish_status sabitleri ───────────────────────────────────────────
+    const STATUS_DRAFT = 'draft';
+    const STATUS_B2B   = 'b2b';
+    const STATUS_B2C   = 'b2c';
+
     // ── Scope'lar ──────────────────────────────────────────────────────────
 
+    /** GR B2C vitrin: sadece 'b2c' */
+    public function scopeB2cVisible(Builder $query): Builder
+    {
+        return $query->where('publish_status', self::STATUS_B2C)->where('is_active', true);
+    }
+
+    /** GT acente katalog: 'b2b' veya 'b2c' */
+    public function scopeB2bVisible(Builder $query): Builder
+    {
+        return $query->whereIn('publish_status', [self::STATUS_B2B, self::STATUS_B2C])->where('is_active', true);
+    }
+
+    /** Geriye dönük uyumluluk — eski scopePublished çağrıları b2cVisible'a yönlenir */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('is_published', true)->where('is_active', true);
+        return $this->scopeB2cVisible($query);
     }
 
     public function scopeFeatured(Builder $query): Builder

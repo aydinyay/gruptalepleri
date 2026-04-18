@@ -234,8 +234,11 @@ $supplierInitials = collect(explode(' ', $supplierName))->filter()->take(2)->map
         </div>
     </div>
     <div style="margin-left:auto;">
-        @if($item->is_published)
-        <span style="background:#f0fdf4;border:1px solid #86efac;color:#166534;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;"><i class="bi bi-broadcast-pin me-1"></i>Yayında</span>
+        @php $ps = $item->publish_status ?? ($item->is_published ? 'b2c' : 'draft'); @endphp
+        @if($ps === 'b2c')
+        <span style="background:#f0fdf4;border:1px solid #86efac;color:#166534;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;"><i class="bi bi-broadcast-pin me-1"></i>GR Yayında</span>
+        @elseif($ps === 'b2b')
+        <span style="background:#eef2ff;border:1px solid #c7d2fe;color:#1a3c6b;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;"><i class="bi bi-building me-1"></i>GT Yayında</span>
         @else
         <span style="background:#fefce8;border:1px solid #fde047;color:#854d0e;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;"><i class="bi bi-pencil me-1"></i>Taslak</span>
         @endif
@@ -418,7 +421,7 @@ $talepeLink = match($item->product_type ?? '') {
         <button type="submit" class="b2b-cta"><i class="bi bi-calendar-check me-2"></i>Rezervasyon Talep Et</button>
     </form>
 
-    @if($item->is_published)
+    @if(($item->publish_status ?? '') === 'b2c')
     <a href="{{ url('https://'.config('b2c.domain','gruprezervasyonlari.com').'/urun/'.$item->slug) }}"
        target="_blank" class="b2b-cta-sec mt-2">
         <i class="bi bi-box-arrow-up-right me-1"></i> GR'de Görüntüle

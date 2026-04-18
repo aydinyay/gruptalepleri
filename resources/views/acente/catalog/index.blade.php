@@ -29,7 +29,8 @@
 .prd-card-amount{font-size:1.15rem;font-weight:800;color:var(--gt-blue);}
 .prd-card-per{font-size:.75rem;color:#718096;}
 .prd-card-pub{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:4px;}
-.pub-yes{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
+.pub-b2c{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
+.pub-b2b{background:#eef2ff;color:#1a3c6b;border:1px solid #c7d2fe;}
 .pub-no{background:#fefce8;color:#854d0e;border:1px solid #fde047;}
 .empty-state{text-align:center;padding:4rem 1rem;color:#718096;}
 </style>
@@ -40,7 +41,7 @@
 <div class="cat-hero">
 <div class="container">
     <h1><i class="bi bi-grid-3x3-gap-fill me-2"></i>B2B Hizmet Kataloğu</h1>
-    <p>Tüm ürün ve hizmetler — B2B net fiyatlarıyla. Taslak ürünler yalnızca siz görürsünüz.</p>
+    <p>Tüm ürün ve hizmetler — B2B net fiyatlarıyla.</p>
 </div>
 </div>
 
@@ -85,9 +86,12 @@ $priceLabel = match($subtype) {
             @if($item->category)
             <span class="prd-card-cat">{{ $item->category->name }}</span>
             @endif
-            <span class="prd-card-pub {{ $item->is_published ? 'pub-yes' : 'pub-no' }}">
-                {{ $item->is_published ? 'Yayında' : 'Taslak' }}
-            </span>
+            @php
+            $ps = $item->publish_status ?? ($item->is_published ? 'b2c' : 'draft');
+            $pubClass = ['b2c' => 'pub-b2c', 'b2b' => 'pub-b2b', 'draft' => 'pub-no'][$ps] ?? 'pub-no';
+            $pubLabel = ['b2c' => 'GR Yayında', 'b2b' => 'GT Yayında', 'draft' => 'Taslak'][$ps] ?? 'Taslak';
+            @endphp
+            <span class="prd-card-pub {{ $pubClass }}">{{ $pubLabel }}</span>
         </div>
         <div class="prd-card-title">{{ $item->title }}</div>
         <div class="prd-card-meta">

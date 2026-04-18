@@ -56,8 +56,9 @@
         <div class="col-md-2">
             <select name="durum" class="form-select form-select-sm">
                 <option value="">Tüm Durumlar</option>
-                <option value="published" {{ request('durum')=='published' ? 'selected' : '' }}>Yayında</option>
-                <option value="unpublished" {{ request('durum')=='unpublished' ? 'selected' : '' }}>Taslak</option>
+                <option value="b2c" {{ request('durum')=='b2c' ? 'selected' : '' }}>GR Yayında</option>
+                <option value="b2b" {{ request('durum')=='b2b' ? 'selected' : '' }}>GT Yayında</option>
+                <option value="draft" {{ request('durum')=='draft' ? 'selected' : '' }}>Taslak</option>
             </select>
         </div>
         <div class="col-auto">
@@ -124,8 +125,11 @@
                         @endif
                     </td>
                     <td>
-                        @if($item->is_published)
-                            <span class="badge bg-success">Yayında</span>
+                        @php $ps = $item->publish_status ?? ($item->is_published ? 'b2c' : 'draft'); @endphp
+                        @if($ps === 'b2c')
+                            <span class="badge bg-success">GR Yayında</span>
+                        @elseif($ps === 'b2b')
+                            <span class="badge text-white" style="background:#1a3c6b;">GT Yayında</span>
                         @else
                             <span class="badge bg-warning text-dark">Taslak</span>
                         @endif
@@ -140,9 +144,9 @@
                             </a>
                             <form method="POST" action="{{ route('superadmin.b2c.catalog.toggle-publish', $item) }}">
                                 @csrf
-                                <button type="submit" class="btn btn-sm {{ $item->is_published ? 'btn-outline-warning' : 'btn-outline-success' }}"
-                                        title="{{ $item->is_published ? 'Yayından Al' : 'Yayına Al' }}">
-                                    <i class="fas {{ $item->is_published ? 'fa-eye-slash' : 'fa-eye' }}"></i>
+                                <button type="submit" class="btn btn-sm {{ $ps === 'b2c' ? 'btn-outline-warning' : 'btn-outline-success' }}"
+                                        title="{{ $ps === 'b2c' ? 'Taslağa Al' : 'GR\'ye Al' }}">
+                                    <i class="fas {{ $ps === 'b2c' ? 'fa-eye-slash' : 'fa-eye' }}"></i>
                                 </button>
                             </form>
                             <a href="{{ route('b2c.product.show', $item->slug) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Sitede Gör">

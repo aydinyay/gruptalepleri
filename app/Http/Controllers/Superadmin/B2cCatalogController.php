@@ -33,8 +33,9 @@ class B2cCatalogController extends Controller
         $activeQ = fn () => CatalogItem::where(fn ($q) => $q->where('is_active', true)->orWhereNull('is_active'));
         $stats = [
             'total_items'           => $activeQ()->count(),
-            'published_items'       => $activeQ()->where('is_published', true)->count(),
-            'pending_publish'       => $activeQ()->where('is_published', false)->count(),
+            'published_items'       => $activeQ()->where('publish_status', 'b2c')->count(),
+            'b2b_items'             => $activeQ()->where('publish_status', 'b2b')->count(),
+            'pending_publish'       => $activeQ()->where('publish_status', 'draft')->count(),
             'total_categories'      => CatalogCategory::count(),
             'pending_supplier_apps' => SupplierApplication::where('status', 'pending')->count(),
         ];
@@ -352,9 +353,10 @@ class B2cCatalogController extends Controller
             ->when($request->get('kategori'), fn ($q, $v) => $q->where('category_id', $v))
             ->when($request->get('tip'),      fn ($q, $v) => $q->where('product_type', $v))
             ->when($request->get('durum'),    fn ($q, $v) => match ($v) {
-                'published'   => $q->where('is_published', true),
-                'unpublished' => $q->where('is_published', false),
-                default       => $q,
+                'b2c'   => $q->where('publish_status', 'b2c'),
+                'b2b'   => $q->where('publish_status', 'b2b'),
+                'draft' => $q->where('publish_status', 'draft'),
+                default => $q,
             })
             ->latest();
 
@@ -376,9 +378,11 @@ class B2cCatalogController extends Controller
         $validated = $this->validateCatalogItem($request);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
-        $validated['is_active']    = $request->boolean('is_active');
-        $validated['is_featured']  = $request->boolean('is_featured');
-        $validated['is_published'] = $request->boolean('is_published');
+        $validated['is_active']       = $request->boolean('is_active');
+        $validated['is_featured']     = $request->boolean('is_featured');
+        $validated['publish_status']  = in_array($request->input('publish_status'), ['draft','b2b','b2c'])
+                                         ? $request->input('publish_status') : 'draft';
+        $validated['is_published']    = $validated['publish_status'] === 'b2c';
 
         if ($validated['is_published']) {
             $validated['published_at'] = now();
@@ -412,10 +416,11 @@ class B2cCatalogController extends Controller
         $validated = $this->validateCatalogItem($request, $item->id);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
-        // Checkbox alanları: işaretlenmeyince HTTP'de gelmez — boolean() false döner
-        $validated['is_active']    = $request->boolean('is_active');
-        $validated['is_featured']  = $request->boolean('is_featured');
-        $validated['is_published'] = $request->boolean('is_published');
+        $validated['is_active']      = $request->boolean('is_active');
+        $validated['is_featured']    = $request->boolean('is_featured');
+        $validated['publish_status'] = in_array($request->input('publish_status'), ['draft','b2b','b2c'])
+                                        ? $request->input('publish_status') : 'draft';
+        $validated['is_published']   = $validated['publish_status'] === 'b2c';
 
         if ($validated['is_published'] && ! $item->is_published) {
             $validated['published_at'] = now();
@@ -442,13 +447,16 @@ class B2cCatalogController extends Controller
 
     public function catalogTogglePublish(CatalogItem $item)
     {
+        // Döngü: draft → b2c → draft
+        $next = $item->publish_status === 'b2c' ? 'draft' : 'b2c';
         $item->update([
-            'is_published' => ! $item->is_published,
-            'published_at' => ! $item->is_published ? now() : $item->published_at,
+            'publish_status' => $next,
+            'is_published'   => $next === 'b2c',
+            'published_at'   => $next === 'b2c' ? now() : $item->published_at,
         ]);
 
-        $msg = $item->is_published ? 'Ürün yayına alındı.' : 'Ürün yayından kaldırıldı.';
-        return back()->with('success', $msg);
+        $labels = ['draft' => 'Taslak', 'b2b' => 'GT Yayında', 'b2c' => 'GR Yayında'];
+        return back()->with('success', '"' . $item->title . '" → ' . ($labels[$next] ?? $next));
     }
 
     public function catalogToggleFeatured(CatalogItem $item): RedirectResponse

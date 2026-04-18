@@ -15,13 +15,13 @@ class CatalogProductController extends Controller
 {
     public function index()
     {
-        $items = CatalogItem::where('is_active', true)
+        $items = CatalogItem::b2bVisible()
             ->with('category')
             ->ordered()
             ->get();
 
         $categories = CatalogCategory::withCount([
-            'items as active_count' => fn($q) => $q->where('is_active', true),
+            'items as active_count' => fn($q) => $q->b2bVisible(),
         ])->orderBy('sort_order')->get();
 
         return view('acente.catalog.index', compact('items', 'categories'));
@@ -29,12 +29,12 @@ class CatalogProductController extends Controller
 
     public function show(string $slug)
     {
-        $item = CatalogItem::where('slug', $slug)
-            ->where('is_active', true)
+        $item = CatalogItem::b2bVisible()
+            ->where('slug', $slug)
             ->with(['category', 'supplier'])
             ->firstOrFail();
 
-        $relatedItems = CatalogItem::where('is_active', true)
+        $relatedItems = CatalogItem::b2bVisible()
             ->where('category_id', $item->category_id)
             ->where('id', '!=', $item->id)
             ->ordered()
@@ -72,7 +72,7 @@ class CatalogProductController extends Controller
 
     public function book(Request $request, string $slug, GtpnrService $gtpnrService)
     {
-        $item = CatalogItem::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $item = CatalogItem::b2bVisible()->where('slug', $slug)->firstOrFail();
 
         $validated = $request->validate([
             'service_date' => 'required|date|after_or_equal:today',
