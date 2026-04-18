@@ -385,6 +385,8 @@ class B2cCatalogController extends Controller
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
 
+        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls', ''));
+
         $item = CatalogItem::create($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
 
@@ -420,6 +422,8 @@ class B2cCatalogController extends Controller
             }
             $validated['cover_image'] = $this->saveCoverImage($request);
         }
+
+        $validated['gallery_json'] = $this->parseGalleryUrls($request->input('gallery_urls', ''));
 
         $item->update($validated);
         $this->syncLocations($item, $request->input('locations_json', '[]'));
@@ -538,6 +542,14 @@ class B2cCatalogController extends Controller
         return $name; // örn: "catalog/AbCdEfGh12345678.jpg"
     }
 
+    private function parseGalleryUrls(string $raw): array
+    {
+        return array_values(array_slice(
+            array_filter(array_map('trim', explode("\n", $raw))),
+            0, 6
+        ));
+    }
+
     private function validateCatalogItem(Request $request, ?int $ignoreId = null): array
     {
         return $request->validate([
@@ -573,6 +585,7 @@ class B2cCatalogController extends Controller
             'review_count'        => 'nullable|integer|min:0',
             'meta_title'          => 'nullable|string|max:120',
             'meta_description'    => 'nullable|string|max:250',
+            'cost_price'          => 'nullable|numeric|min:0',
         ]);
     }
 }

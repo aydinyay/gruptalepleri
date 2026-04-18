@@ -367,8 +367,12 @@ $priceLabel = match($subtype) {
     'private_jet'                  => 'sefer başı — tüm yolcular dahil',
     'helicopter_tour'              => 'sefer başı — tüm yolcular dahil',
     'hotel_room'                   => '/ oda · gecelik',
+    'apart_rental'                 => '/ gece',
+    'admission_ticket'             => '/ kişi (giriş)',
+    'event_ticket'                 => '/ kişi (etkinlik)',
+    'timed_experience'             => '/ kişi başı',
     'visa_service'                 => '/ başvuru',
-    default                        => '/ kişi başı — toplam aşağıda hesaplanır',
+    default                        => '/ kişi başı',
 };
 $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 @endphp

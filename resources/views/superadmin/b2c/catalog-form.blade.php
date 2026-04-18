@@ -110,6 +110,12 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-600">Maliyet Fiyatı <small class="text-muted">(İç kullanım)</small></label>
+                                    <input type="number" name="cost_price" class="form-control" step="0.01" min="0"
+                                           value="{{ old('cost_price', $item->cost_price ?? '') }}"
+                                           placeholder="Tedarikçi maliyeti">
+                                </div>
                             </div>
 
                             <div class="section-title">Destinasyon & Süre</div>
@@ -242,6 +248,18 @@
                         </div>
 
                         <div class="card border-0 shadow-sm p-4 mb-3">
+                            <div class="section-title mt-0">Galeri Görselleri</div>
+                            <div class="form-text mb-2">Kapak görselinden sonra gösterilecek ek fotoğraflar (maks. 6). Her satıra bir URL yazın.</div>
+                            @php
+                            $galleryUrls = isset($item) && $item->gallery_json
+                                ? implode("\n", array_filter((array) $item->gallery_json))
+                                : old('gallery_urls', '');
+                            @endphp
+                            <textarea name="gallery_urls" class="form-control form-control-sm" rows="6"
+                                      placeholder="https://gruptalepleri.com/uploads/leisure/foto1.jpg&#10;https://...">{{ $galleryUrls }}</textarea>
+                        </div>
+
+                        <div class="card border-0 shadow-sm p-4 mb-3">
                             <div class="section-title mt-0">Kapak Görseli</div>
                             @if(isset($item) && $item->cover_image)
                             <img src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('uploads/'.$item->cover_image) }}" class="img-fluid rounded mb-2" style="max-height:180px;object-fit:cover;" alt="Kapak">
@@ -361,9 +379,9 @@ const subtypeMap = {
     charter:  [['private_jet','Özel Jet'],['helicopter_tour','Helikopter Turu']],
     leisure:  [['dinner_cruise','Dinner Cruise'],['evening_show','Akşam Gösterisi'],['yacht_charter','Yat Kiralama']],
     tour:     [['day_tour','Günübirlik Tur'],['multi_day_tour','Çok Günlük Tur'],['activity_tour','Aktivite Turu']],
-    hotel:    [['hotel_room','Otel Odası']],
+    hotel:    [['hotel_room','Otel Odası'],['apart_rental','Apart Kiralama']],
     visa:     [['visa_service','Vize Hizmeti']],
-    other:    [['corporate_event','Kurumsal Etkinlik']],
+    other:    [['corporate_event','Kurumsal Etkinlik'],['event_ticket','Etkinlik Bileti'],['admission_ticket','Müze / Giriş Bileti'],['timed_experience','Deneyim Turu (Tadım, Workshop vb.)']],
 };
 const currentSubtype = '{{ old('product_subtype', $item->product_subtype ?? '') }}';
 const subtypeSel = document.getElementById('productSubtype');
