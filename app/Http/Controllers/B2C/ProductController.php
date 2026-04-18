@@ -64,17 +64,25 @@ class ProductController extends Controller
         // dinner_cruise, evening_show, day_tour, activity_tour, multi_day_tour
         // Eğer reference_type var ama yacht_charter değilse → show.blade.php
         // Diğer tüm ürünler (transfer, charter, hotel, visa) → show.blade.php
+        $extraGallery = collect();
+
         if (in_array($item->reference_type, $leisureRefTypes, true) && $item->reference_id) {
             $package = LeisurePackageTemplate::find($item->reference_id);
             if ($package) {
-                // CatalogItem'daki base_price yoksa package'dan al
                 if (! $item->base_price) {
                     $item->base_price = $package->base_price_per_person ?? $package->original_price_per_person;
                     $item->currency   = $item->currency ?: ($package->currency ?? 'EUR');
                 }
+
+                // Leisure şablonunun galeri fotoğraflarını da gönder
+                $extraGallery = LeisureMediaAsset::where('package_code', $package->code)
+                    ->where('category', 'gallery')
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get();
             }
         }
 
-        return view('b2c.product.show', compact('item', 'relatedItems'));
+        return view('b2c.product.show', compact('item', 'relatedItems', 'extraGallery'));
     }
 }

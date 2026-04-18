@@ -110,6 +110,18 @@ foreach (($item->gallery_json ?? []) as $_gi) {
     $_gu = is_array($_gi) ? ($_gi['url'] ?? $_gi['path'] ?? '') : $_gi;
     if ($_gu) $_imgs[] = str_starts_with($_gu,'http') ? $_gu : rtrim(config('app.url'),'/').'/uploads/'.$_gu;
 }
+// Leisure şablonu galeri fotoğrafları (gruptalepleri.com sunucusunda)
+foreach (($extraGallery ?? collect()) as $_ea) {
+    $_eu = method_exists($_ea, 'resolvedUrl') ? $_ea->resolvedUrl() : ($_ea->url ?? '');
+    if ($_eu) {
+        $_eu = str_replace(
+            ['gruprezervasyonlari.com', config('b2c.domain','gruprezervasyonlari.com')],
+            'gruptalepleri.com', $_eu
+        );
+        if (!str_starts_with($_eu,'http')) $_eu = 'https://gruptalepleri.com/'.ltrim($_eu,'/');
+        $_imgs[] = $_eu;
+    }
+}
 $_imgCount = count($_imgs);
 @endphp
 
