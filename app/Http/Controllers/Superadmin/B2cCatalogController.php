@@ -597,10 +597,18 @@ class B2cCatalogController extends Controller
             return response()->json(['error' => 'Gemini meta parse hatası.'], 502);
         }
 
+        // currency normalize: "euro" → "EUR" vb.
+        $currencyMap = ['euro'=>'EUR','eur'=>'EUR','usd'=>'USD','dolar'=>'USD','try'=>'TRY','tl'=>'TRY','lira'=>'TRY','gbp'=>'GBP','sterlin'=>'GBP'];
+        if (isset($data['currency'])) {
+            $c = strtolower(trim($data['currency'] ?? ''));
+            $data['currency'] = $currencyMap[$c] ?? strtoupper(substr($c, 0, 3));
+        }
+
         // Çağrı 2: HTML açıklama — düz metin olarak (JSON schema YOK)
         $htmlPrompt = 'Aşağıdaki ham metni profesyonel, satış odaklı Türkçe bir ürün açıklamasına dönüştür.'
             . ' Başlıklar için <h3>, listeler için <ul><li>, paragraflar için <p> kullan.'
-            . ' Sadece HTML döndür, başka hiçbir şey yazma.'
+            . ' SADECE HTML body içeriği döndür — <!DOCTYPE>, <html>, <head>, <body> tagleri OLMAYACAK.'
+            . ' Başka hiçbir şey yazma.'
             . "\n\nMetin:\n" . $text;
 
         $htmlResp = Http::timeout(30)->post($url, [
@@ -612,7 +620,14 @@ class B2cCatalogController extends Controller
             $html = trim(data_get($htmlResp->json(), 'candidates.0.content.parts.0.text', ''));
             $html = preg_replace('/^```html?\s*/i', '', $html);
             $html = preg_replace('/\s*```\s*$/i', '', trim($html));
-            if ($html) $data['full_desc'] = $html;
+            // Tam HTML dökümanı gelirse sadece body içeriğini al
+            if (preg_match('/<body[^>]*>([\s\S]*?)<\/body>/i', $html, $bm)) {
+                $html = trim($bm[1]);
+            }
+            // DOCTYPE / html / head taglarını temizle
+            $html = preg_replace('/<!(DOCTYPE)[^>]*>/i', '', $html);
+            $html = preg_replace('/<\/?(html|head|body)[^>]*>/i', '', $html);
+            if ($html) $data['full_desc'] = trim($html);
         }
 
         return response()->json($data);
@@ -707,7 +722,7 @@ class B2cCatalogController extends Controller
             'pricing_type'        => 'required|in:fixed,quote,request',
             'gt_price'            => 'nullable|numeric|min:0',
             'base_price'          => 'nullable|numeric|min:0',
-            'currency'            => 'required|string|size:3',
+            'currency'            => 'required|string|max:3',
             'is_active'           => 'boolean',
             'is_featured'         => 'boolean',
             'badge_label'         => 'nullable|string|max:40',
