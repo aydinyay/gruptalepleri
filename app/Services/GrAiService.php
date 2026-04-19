@@ -85,10 +85,11 @@ class GrAiService
 
         // Redirect slug'ı doğrula — Gemini uydurmuş olabilir
         if ($redirect) {
-            $slug = ltrim(str_replace('/urun/', '', $redirect), '/');
+            $slug = ltrim(str_replace('/urun/', '', parse_url($redirect, PHP_URL_PATH) ?? $redirect), '/');
             $exists = CatalogItem::published()->where('slug', $slug)->exists();
             if (! $exists) {
-                $redirect = null;
+                // Fallback: products listesindeki ilk slug'ı kullan
+                $redirect = ! empty($slugs) ? '/urun/' . $slugs[0] : null;
             }
         }
 
