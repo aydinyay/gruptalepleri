@@ -53,8 +53,8 @@ class GrAiService
         $systemPrompt = $this->buildSystemPrompt($memories, $timeCtx, $userCtx, $relevantItems);
 
         // Gemini'ye gönder
-        Log::info('GrAi products: ' . implode(' | ', $relevantItems));
         $raw = $this->callGemini($apiKey, $systemPrompt, $history, $message);
+        Log::info('GrAi raw: ' . mb_substr((string)$raw, 0, 300));
         if (! $raw) {
             return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
         }
@@ -139,19 +139,25 @@ class GrAiService
 
     private function fetchRelevantProducts(string $message): array
     {
-        // Kısa mesajlarda DB sorgusu yapma
         if (mb_strlen($message) < 3) return [];
 
-        $words = array_filter(
-            preg_split('/\s+/', mb_strtolower($message)),
-            fn ($w) => mb_strlen($w) >= 3
-        );
+        $stopwords = ['bir', 'var', 'mış', 'mı', 'mi', 'mu', 'mü', 'ne', 'bu', 'da', 'de',
+                      've', 'ile', 'için', 'ama', 'ben', 'sen', 'biz', 'siz', 'selam',
+                      'merhaba', 'evet', 'hayır', 'tamam', 'acaba', 'gibi', 'çok', 'daha',
+                      'varmış', 'istiyorum', 'arıyorum', 'bulmak', 'nedir', 'nasıl', 'hala'];
+
+        $allWords = preg_split('/\s+/', mb_strtolower($message, 'UTF-8'));
+        // Önce stopword'suz anlamlı kelimeler
+        $meaningful = array_values(array_filter($allWords, fn($w) =>
+            mb_strlen($w, 'UTF-8') >= 3 && !in_array($w, $stopwords)
+        ));
+        // Fallback: tüm kelimeler
+        $words = !empty($meaningful) ? $meaningful : array_filter($allWords, fn($w) => mb_strlen($w) >= 3);
         if (empty($words)) return [];
 
+        // Önce anlamlı kelimelerle dene; sonuç 0 ise tüm kelimelerle
         $query = CatalogItem::published()
-            ->where(function ($q) use ($message, $words) {
-                $q->where('title', 'like', "%{$message}%")
-                  ->orWhere('destination_city', 'like', "%{$message}%");
+            ->where(function ($q) use ($words) {
                 foreach ($words as $w) {
                     $q->orWhere('title', 'like', "%{$w}%")
                       ->orWhere('destination_city', 'like', "%{$w}%")
