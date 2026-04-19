@@ -54,9 +54,6 @@ class GrAiService
 
         // Gemini'ye gönder
         $raw = $this->callGemini($apiKey, $systemPrompt, $history, $message);
-        Log::info('GrAi raw[' . mb_strlen((string)$raw) . ']: ' . str_replace("\n", '↵', mb_substr((string)$raw, 0, 500)));
-        $testDecode = json_decode((string)$raw, true);
-        Log::info('GrAi json_err: ' . json_last_error() . ' / has_reply: ' . (is_array($testDecode) && isset($testDecode['reply']) ? 'YES' : 'NO'));
         if (! $raw) {
             return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
         }
@@ -210,7 +207,7 @@ class GrAiService
         return CatalogItem::published()
             ->whereIn('slug', array_slice($slugs, 0, 3))
             ->get(['slug', 'title', 'destination_city', 'base_price', 'currency',
-                   'cover_image', 'rating', 'duration_days', 'duration_hours'])
+                   'cover_image', 'duration_days', 'duration_hours'])
             ->toArray();
     }
 
