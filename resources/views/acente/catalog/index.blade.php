@@ -75,12 +75,14 @@ $priceLabel = match($subtype) {
     default                        => '/ kişi',
 };
 @endphp
-<a href="{{ route('acente.product.show', $item->slug) }}" class="prd-card" data-cat="{{ $catSlug }}">
-    @if($img)
-    <img class="prd-card-img" src="{{ $img }}" alt="{{ $item->title }}">
-    @else
-    <div class="prd-card-img-ph"><i class="bi bi-image" style="font-size:2rem;color:#c7d2fe;"></i></div>
-    @endif
+<div class="prd-card" data-cat="{{ $catSlug }}">
+    <a href="{{ route('acente.product.show', $item->slug) }}" class="text-decoration-none" style="color:inherit;">
+        @if($img)
+        <img class="prd-card-img" src="{{ $img }}" alt="{{ $item->title }}">
+        @else
+        <div class="prd-card-img-ph"><i class="bi bi-image" style="font-size:2rem;color:#c7d2fe;"></i></div>
+        @endif
+    </a>
     <div class="prd-card-body">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
             @if($item->category)
@@ -93,22 +95,29 @@ $priceLabel = match($subtype) {
             @endphp
             <span class="prd-card-pub {{ $pubClass }}">{{ $pubLabel }}</span>
         </div>
-        <div class="prd-card-title">{{ $item->title }}</div>
+        <a href="{{ route('acente.product.show', $item->slug) }}" class="text-decoration-none" style="color:inherit;">
+            <div class="prd-card-title">{{ $item->title }}</div>
+        </a>
         <div class="prd-card-meta">
             @if($item->destination_city)<span><i class="bi bi-geo-alt"></i> {{ $item->destination_city }}</span>@endif
             @if($item->duration_days)<span><i class="bi bi-clock"></i> {{ $item->duration_days }} gün</span>@elseif($item->duration_hours)<span><i class="bi bi-clock"></i> {{ $item->duration_hours }} saat</span>@endif
             @if($item->min_pax)<span><i class="bi bi-people"></i> Min {{ $item->min_pax }}</span>@endif
         </div>
         @if($price)
-        <div class="prd-card-price">
+        <div class="prd-card-price mb-3">
             <span class="prd-card-amount">{{ number_format($price,0,',','.') }} {{ $item->currency }}</span>
             <span class="prd-card-per">{{ $priceLabel }}</span>
         </div>
         @else
-        <div style="font-size:.8rem;color:#718096;margin-top:auto;">Fiyat taleple belirlenir</div>
+        <div style="font-size:.8rem;color:#718096;margin-bottom:.75rem;">Fiyat taleple belirlenir</div>
         @endif
+        <a href="{{ route('acente.product.show', $item->slug) }}#rezervasyon"
+           class="btn btn-sm w-100"
+           style="background:#1a3c6b;color:#fff;font-weight:600;border-radius:8px;">
+            <i class="bi bi-calendar2-check me-1"></i>Rezervasyon Yap
+        </a>
     </div>
-</a>
+</div>
 @empty
 <div class="empty-state col-span-full" style="grid-column:1/-1;">
     <i class="bi bi-inbox" style="font-size:3rem;display:block;margin-bottom:1rem;color:#c7d2fe;"></i>
@@ -125,7 +134,7 @@ function filterCat(btn) {
     document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     var cat = btn.dataset.cat;
-    var cards = document.querySelectorAll('#prdGrid .prd-card');
+    var cards = document.querySelectorAll('#prdGrid [data-cat]');
     var count = 0;
     cards.forEach(c => {
         var show = cat === 'all' || c.dataset.cat === cat;
