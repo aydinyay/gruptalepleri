@@ -61,13 +61,15 @@ class GrAiService
         // JSON parse — kesik gelirse regex ile reply'ı kurtar
         $data  = json_decode($raw, true);
         if (is_array($data) && isset($data['reply'])) {
-            $reply = $data['reply'];
-            $learn = isset($data['learn']) ? (array) $data['learn'] : [];
-            $slugs = isset($data['products']) ? (array) $data['products'] : [];
+            $reply    = $data['reply'];
+            $learn    = isset($data['learn']) ? (array) $data['learn'] : [];
+            $slugs    = isset($data['products']) ? (array) $data['products'] : [];
+            $redirect = isset($data['redirect']) ? (string) $data['redirect'] : null;
         } elseif (preg_match('/"reply"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/su', $raw, $m)) {
-            $reply = stripslashes($m[1]);
-            $learn = [];
-            $slugs = [];
+            $reply    = stripslashes($m[1]);
+            $learn    = [];
+            $slugs    = [];
+            $redirect = null;
         } else {
             return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
         }
@@ -84,6 +86,7 @@ class GrAiService
         return [
             'reply'    => $reply,
             'products' => $suggestedProducts,
+            'redirect' => $redirect ?? null,
             'error'    => false,
         ];
     }
@@ -271,12 +274,14 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
   "learn": [
     {"key": "anahtar", "value": "öğrenilen değer"}
   ],
-  "products": ["slug1", "slug2"]
+  "products": ["slug1", "slug2"],
+  "redirect": "/urun/slug"
 }
 
 "learn" alanı: bu mesajdan yeni bir şey öğrendiysen doldur. Boş bırakabilirsin.
   Geçerli key'ler: ilgi_alanlari, sehir, butce (dusuk/orta/yuksek), tercih_zaman, grup_boyutu, not
 "products": varsa önerilen ürünlerin slug'larını buraya koy (max 3). Öneri yoksa boş bırak.
+"redirect": kullanıcı bir ürünü açmak istediğinde (evet, aç, göster, git, incele gibi onay verdiğinde) "/urun/slug" yaz. Sayfa otomatik açılır. Sadece kullanıcı açıkça onay verdiğinde doldur, boş bırakabilirsin.
 
 Sadece JSON döndür, başka hiçbir şey yazma.
 PROMPT;

@@ -303,6 +303,11 @@
             removeTyping();
             if (data && data.reply) {
                 addMessage('assistant', data.reply, data.products || []);
+                if (data.redirect) {
+                    setTimeout(function () {
+                        window.location.href = data.redirect;
+                    }, 1200);
+                }
             } else {
                 addMessage('assistant', 'Şu an cevap üretemiyorum, birazdan tekrar dene.');
             }
