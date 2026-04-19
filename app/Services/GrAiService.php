@@ -83,7 +83,15 @@ class GrAiService
         // Önerilen ürünlerin detaylarını çek
         $suggestedProducts = $this->fetchProductsBySlug($slugs);
 
-        Log::info('GrAi redirect: ' . ($redirect ?? 'null'));
+        // Redirect slug'ı doğrula — Gemini uydurmuş olabilir
+        if ($redirect) {
+            $slug = ltrim(str_replace('/urun/', '', $redirect), '/');
+            $exists = CatalogItem::published()->where('slug', $slug)->exists();
+            if (! $exists) {
+                $redirect = null;
+            }
+        }
+
         return [
             'reply'    => $reply,
             'products' => $suggestedProducts,
@@ -282,7 +290,7 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
 "learn" alanı: bu mesajdan yeni bir şey öğrendiysen doldur. Boş bırakabilirsin.
   Geçerli key'ler: ilgi_alanlari, sehir, butce (dusuk/orta/yuksek), tercih_zaman, grup_boyutu, not
 "products": varsa önerilen ürünlerin slug'larını buraya koy (max 3). Öneri yoksa boş bırak.
-"redirect": kullanıcı bir ürünü açmak istediğinde (evet, aç, göster, git, incele gibi onay verdiğinde) "/urun/slug" yaz. Sayfa otomatik açılır. Sadece kullanıcı açıkça onay verdiğinde doldur, boş bırakabilirsin.
+"redirect": kullanıcı bir ürünü açmak istediğinde "/urun/SLUG" yaz — SLUG değeri mutlaka yukarıdaki ürün listesindeki [slug:...] değerinden alınmalı, asla uydurma. Sayfa otomatik açılır. Sadece kullanıcı açıkça onay verdiğinde doldur.
 
 Sadece JSON döndür, başka hiçbir şey yazma.
 PROMPT;
