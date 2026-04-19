@@ -86,24 +86,26 @@
 
 .gr-product-cards {
     display: flex; flex-direction: column; gap: 6px; margin-top: 6px;
+    width: 100%; box-sizing: border-box;
 }
 .gr-product-card {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
-    padding: 8px 10px; display: flex; gap: 8px; align-items: center;
+    background: #2a4d7a; border: 1px solid #3a6099; border-radius: 10px;
+    padding: 7px 9px; display: flex; gap: 8px; align-items: center;
     text-decoration: none; transition: border-color .15s;
+    width: 100%; box-sizing: border-box; overflow: hidden;
 }
 .gr-product-card:hover { border-color: #f4a418; }
 .gr-product-card .gr-card-img {
-    width: 42px; height: 42px; border-radius: 7px;
-    object-fit: cover; flex-shrink: 0; background: #e2e8f0;
+    width: 38px; height: 38px; border-radius: 6px;
+    object-fit: cover; flex-shrink: 0; background: #1e3a5f;
 }
-.gr-product-card .gr-card-info { flex: 1; min-width: 0; }
+.gr-product-card .gr-card-info { flex: 1; min-width: 0; overflow: hidden; }
 .gr-product-card .gr-card-title {
-    font-size: .77rem; font-weight: 600; color: #1a202c;
+    font-size: .75rem; font-weight: 600; color: #e8f0fb;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.gr-product-card .gr-card-sub { font-size: .7rem; color: #64748b; }
-.gr-product-card .gr-card-price { font-size: .77rem; font-weight: 700; color: #f4a418; white-space: nowrap; }
+.gr-product-card .gr-card-sub { font-size: .68rem; color: #8aaed4; }
+.gr-product-card .gr-card-price { font-size: .75rem; font-weight: 700; color: #f4a418; white-space: nowrap; flex-shrink: 0; }
 
 #gr-footer {
     padding: 10px 12px; border-top: 1px solid #c8d8e8; background: #1e3a5f;
