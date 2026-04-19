@@ -24,8 +24,8 @@
 #gr-panel {
     position: fixed; bottom: 96px; right: 24px; z-index: 9998;
     width: 360px; max-width: calc(100vw - 32px);
-    background: #fff; border-radius: 18px;
-    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    background: #f0f4f8; border-radius: 18px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.28); border: 1px solid #d1dce8;
     display: flex; flex-direction: column; overflow: hidden;
     transform: scale(.92) translateY(16px); opacity: 0;
     pointer-events: none; transition: transform .22s ease, opacity .22s ease;
@@ -106,7 +106,7 @@
 .gr-product-card .gr-card-price { font-size: .77rem; font-weight: 700; color: #f4a418; white-space: nowrap; }
 
 #gr-footer {
-    padding: 10px 12px; border-top: 1px solid #e2e8f0;
+    padding: 10px 12px; border-top: 1px solid #c8d8e8; background: #f0f4f8;
     display: flex; gap: 8px; align-items: flex-end;
 }
 #gr-input {
