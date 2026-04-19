@@ -53,6 +53,7 @@ class GrAiService
         $systemPrompt = $this->buildSystemPrompt($memories, $timeCtx, $userCtx, $relevantItems);
 
         // Gemini'ye gönder
+        Log::info('GrAi products: ' . implode(' | ', $relevantItems));
         $raw = $this->callGemini($apiKey, $systemPrompt, $history, $message);
         if (! $raw) {
             return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
