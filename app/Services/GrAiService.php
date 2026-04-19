@@ -166,8 +166,8 @@ class GrAiService
         // Yaklaşan seansları çek
         $itemIds  = $query->pluck('id')->all();
         $sessions = CatalogSession::whereIn('catalog_item_id', $itemIds)
-            ->upcoming()->orderBy('starts_at')->limit(4)
-            ->get(['catalog_item_id', 'starts_at']);
+            ->upcoming()->limit(4)
+            ->get(['catalog_item_id', 'session_date']);
 
         $now   = Carbon::now('Europe/Istanbul');
         $lines = [];
@@ -180,7 +180,9 @@ class GrAiService
 
             $sess = $sessions->firstWhere('catalog_item_id', $item->id);
             if ($sess) {
-                $diff = (int) $now->diffInDays($sess->starts_at, false);
+                $diff = (int) $now->startOfDay()->diffInDays(
+                    Carbon::parse($sess->session_date)->startOfDay(), false
+                );
                 if ($diff === 0)     $line .= ' [BUGÜN]';
                 elseif ($diff === 1) $line .= ' [YARIN]';
                 elseif ($diff > 0)   $line .= " [{$diff} gün sonra]";
