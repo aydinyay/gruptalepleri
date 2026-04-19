@@ -60,9 +60,8 @@ Route::get('/api/b2c/hero-react', function (\Illuminate\Http\Request $request) {
     if (count($itemIds)) {
         $sessions = \App\Models\B2C\CatalogSession::whereIn('catalog_item_id', $itemIds)
             ->upcoming()
-            ->orderBy('starts_at')
             ->limit(3)
-            ->get(['catalog_item_id','starts_at','available_seats']);
+            ->get(['catalog_item_id','session_date','available_seats']);
     }
 
     // Ürün özetini metin olarak hazırla
@@ -82,7 +81,9 @@ Route::get('/api/b2c/hero-react', function (\Illuminate\Http\Request $request) {
 
             $sess = $sessions->firstWhere('catalog_item_id', $item->id);
             if ($sess) {
-                $diff = (int) $now->diffInDays($sess->starts_at, false);
+                $diff = (int) $now->startOfDay()->diffInDays(
+                    \Carbon\Carbon::parse($sess->session_date)->startOfDay(), false
+                );
                 if ($diff === 0)  $line .= " ← BUGÜN SEANS VAR!";
                 elseif ($diff === 1) $line .= " ← YARIN SEANS!";
                 elseif ($diff > 0)   $line .= " ← {$diff} gün sonra seans";
