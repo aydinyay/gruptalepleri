@@ -136,6 +136,39 @@ if (($_GET['action'] ?? '') === 'setenv') {
     exit;
 }
 
+// Gemini API key + model listesi kontrolü
+if (($_GET['action'] ?? '') === 'geminicheck') {
+    header('Content-Type: text/plain');
+    $envFile = "$webRoot/.env";
+    $content = file_get_contents($envFile);
+    preg_match('/^GEMINI_API_KEY=(.*)$/m', $content, $m);
+    $key = trim($m[1] ?? '');
+    if (!$key) { echo "GEMINI_API_KEY .env'de yok veya boş!\n"; exit; }
+    echo "Key bulundu: " . substr($key, 0, 8) . "...\n\n";
+    // ListModels çağrısı
+    $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models?key={$key}");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $resp = curl_exec($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    echo "HTTP: $http\n";
+    $data = json_decode($resp, true);
+    if (isset($data['models'])) {
+        echo "Kullanılabilir modeller:\n";
+        foreach ($data['models'] as $model) {
+            $name = $model['name'] ?? '';
+            $methods = implode(',', $model['supportedGenerationMethods'] ?? []);
+            if (str_contains($methods, 'generateContent')) {
+                echo "  ✓ $name\n";
+            }
+        }
+    } else {
+        echo $resp;
+    }
+    exit;
+}
+
 // Route listesi diagnostiği
 if (($_GET['action'] ?? '') === 'routes') {
     define('LARAVEL_START', microtime(true));
