@@ -24,7 +24,7 @@
 #gr-panel {
     position: fixed; bottom: 96px; right: 24px; z-index: 9998;
     width: 360px; max-width: calc(100vw - 32px);
-    background: #f0f4f8; border-radius: 18px;
+    background: #dce6f2; border-radius: 18px;
     box-shadow: 0 8px 40px rgba(0,0,0,.28); border: 1px solid #d1dce8;
     display: flex; flex-direction: column; overflow: hidden;
     transform: scale(.92) translateY(16px); opacity: 0;
@@ -67,8 +67,8 @@
     padding: 9px 13px; border-radius: 14px; font-size: .83rem; line-height: 1.45;
 }
 .gr-msg.assistant .gr-bubble {
-    background: #f1f5f9; color: #1a202c; border-bottom-left-radius: 4px;
-    border: 1px solid #e2e8f0;
+    background: #ffffff; color: #1a202c; border-bottom-left-radius: 4px;
+    border: 1px solid #c8d8e8;
 }
 .gr-msg.user .gr-bubble {
     background: linear-gradient(135deg, #f4a418, #e8890a);
@@ -106,7 +106,7 @@
 .gr-product-card .gr-card-price { font-size: .77rem; font-weight: 700; color: #f4a418; white-space: nowrap; }
 
 #gr-footer {
-    padding: 10px 12px; border-top: 1px solid #c8d8e8; background: #f0f4f8;
+    padding: 10px 12px; border-top: 1px solid #c8d8e8; background: #dce6f2;
     display: flex; gap: 8px; align-items: flex-end;
 }
 #gr-input {
