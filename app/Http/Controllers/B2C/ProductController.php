@@ -58,6 +58,10 @@ class ProductController extends Controller
 
                 $isSaved = B2cWishlistItem::where('session_id', session()->getId())->where('catalog_item_id', $item->id)->exists();
 
+                if ($item->category) {
+                    session(['b2c_last_category' => $item->category->name]);
+                }
+
                 return view('b2c.product.leisure-show', compact(
                     'item', 'package', 'relatedItems', 'galleryPhotos', 'mediaAssets', 'allPackages', 'isSaved'
                 ));
@@ -93,6 +97,10 @@ class ProductController extends Controller
             : collect();
 
         $isSaved = B2cWishlistItem::where('session_id', session()->getId())->where('catalog_item_id', $item->id)->exists();
+
+        if ($item->category) {
+            session(['b2c_last_category' => $item->category->name]);
+        }
 
         return view('b2c.product.show', compact('item', 'relatedItems', 'extraGallery', 'sessions', 'isSaved'));
     }

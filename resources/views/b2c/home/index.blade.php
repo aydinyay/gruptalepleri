@@ -418,8 +418,8 @@
     <div class="gyg-hero-bg"></div>
     <div class="gyg-hero-content">
         <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
-        <h1>Keşfedin, karşılaştırın,<br><span style="color:var(--gr-accent,#f4a418);">rezervasyon yapın.</span></h1>
-        <p class="hero-sub">Transfer'den charter'a, dinner cruise'dan yat kiralama'ya — hepsi burada.</p>
+        <h1>{{ $heroText['baslik1'] }}<br><span style="color:var(--gr-accent,#f4a418);">{{ $heroText['baslik2'] }}</span></h1>
+        <p class="hero-sub">{{ $heroText['alt'] }}</p>
 
         <div class="gyg-search-wrap">
             <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
@@ -958,6 +958,35 @@
             box.classList.remove('visible');
         }
     });
+})();
+</script>
+
+<script>
+// Geolocation → şehri session'a kaydet (sadece 1 kez / session)
+(function() {
+    if (!navigator.geolocation) return;
+    if (sessionStorage.getItem('gr_city_set')) return;
+
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=tr')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                var city = d.city || d.locality || d.principalSubdivision || '';
+                if (!city) return;
+                return fetch('{{ route("b2c.api.hero-city") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ city: city })
+                });
+            })
+            .then(function() { sessionStorage.setItem('gr_city_set', '1'); })
+            .catch(function() {});
+    }, function() {}, { timeout: 5000 });
 })();
 </script>
 @endpush

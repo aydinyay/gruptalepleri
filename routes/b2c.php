@@ -30,6 +30,15 @@ use Illuminate\Support\Facades\Route;
 // NOT: / rotası web.php'de tanımlıdır (her iki domain'i de yönetir).
 // b2c.php sonradan yüklendiğinden burada tekrar tanımlanmamalı — ezip bozar.
 
+// ── Hero Şehir Güncelleme (Geolocation) ───────────────────────────────────
+Route::post('/api/b2c/hero-city', function (\Illuminate\Http\Request $request) {
+    $city = trim($request->input('city', ''));
+    if ($city && mb_strlen($city) < 60) {
+        session(['b2c_user_city' => $city]);
+    }
+    return response()->json(['ok' => true]);
+})->name('b2c.api.hero-city');
+
 // ── Arama Autocomplete API ─────────────────────────────────────────────────
 Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {
     $q = trim($request->get('q', ''));
