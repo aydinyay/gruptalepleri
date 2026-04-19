@@ -104,11 +104,22 @@ tr:hover td { background: #f8faff; }
 .price-cell { min-width: 100px; }
 .price-input {
     width: 78px; padding: 4px 5px;
-    border: 1px solid #d1d5db; border-radius: 6px;
+    border: 1.5px solid #d1d5db; border-radius: 6px;
     font-size: .82rem; text-align: right;
-    background: #fff;
+    background: #fff; transition: border-color .15s, background .15s;
 }
 .price-input:focus { outline: none; border-color: #1a3c6b; box-shadow: 0 0 0 2px rgba(26,60,107,.1); }
+.price-input.p-ok   { border-color: #22c55e !important; background: #f0fdf4 !important; }
+.price-input.p-warn { border-color: #f59e0b !important; background: #fffbeb !important; }
+.price-input.p-err  { border-color: #ef4444 !important; background: #fef2f2 !important; }
+
+.row-light { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; font-size:.72rem; font-weight:700; }
+.rl-ok   { background:#dcfce7; color:#15803d; }
+.rl-warn { background:#fef3c7; color:#d97706; }
+.rl-err  { background:#fee2e2; color:#dc2626; }
+.rl-na   { background:#f3f4f6; color:#9ca3af; }
+
+.save-btn:disabled { background:#9ca3af; cursor:not-allowed; }
 .price-try {
     font-size: .67rem; color: #9ca3af; margin-top: 2px;
     white-space: nowrap;
@@ -312,7 +323,10 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
         <form method="POST" action="{{ route('b2c.owner.pricing.update', [$item->id, 't' => $token]) }}">
             @csrf
             <tr>
-                <td style="color:#9ca3af;font-size:.72rem;">{{ $i+1 }}</td>
+                <td style="color:#9ca3af;font-size:.72rem;text-align:center;">
+                    <span class="row-light rl-na" title="Fiyat girilmedi">?</span>
+                    <div style="font-size:.65rem;color:#d1d5db;margin-top:2px;">{{ $i+1 }}</div>
+                </td>
                 <td style="max-width:180px;">
                     <div style="font-weight:600;color:#1a202c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;" title="{{ $item->title }}">
                         {{ $item->title }}
@@ -456,6 +470,20 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
         });
     });
 
+    function setInputState(input, state, title) {
+        input.classList.remove('p-ok', 'p-warn', 'p-err');
+        if (state) input.classList.add(state);
+        input.title = title || '';
+    }
+
+    function setRowLight(form, state, msg) {
+        var rl = form.closest('tr').querySelector('.row-light');
+        if (!rl) return;
+        rl.className = 'row-light ' + (state === 'ok' ? 'rl-ok' : state === 'warn' ? 'rl-warn' : state === 'err' ? 'rl-err' : 'rl-na');
+        rl.textContent = state === 'ok' ? '✓' : state === 'warn' ? '!' : state === 'err' ? '✗' : '?';
+        rl.title = msg || '';
+    }
+
     document.querySelectorAll('form').forEach(function(form) {
         var costIn  = form.querySelector('[name="cost_price"]');
         var gtIn    = form.querySelector('[name="gt_price"]');
@@ -469,6 +497,82 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
         var kazTop  = form.querySelector('.kaz-top-val');
         var marjEl  = form.querySelector('.marj-chip');
         var currLabels = form.querySelectorAll('.curr-display');
+        var saveBtn = form.querySelector('.save-btn');
+
+        function validate(cost, gt, gr) {
+            var errors = [], warnings = [];
+            var costState = '', gtState = '', grState = '';
+            var costMsg = '', gtMsg = '', grMsg = '';
+
+            if (cost <= 0 && gt <= 0 && gr <= 0) {
+                // nothing filled yet — neutral
+                setInputState(costIn, '', ''); setInputState(gtIn, '', ''); setInputState(grIn, '', '');
+                setRowLight(form, 'na', 'Fiyat girilmemiş');
+                if (saveBtn) saveBtn.disabled = false;
+                return;
+            }
+
+            // Maliyet
+            if (cost <= 0) {
+                costState = 'p-err'; costMsg = 'Maliyet 0 olamaz';
+                errors.push(costMsg);
+            } else if (gt > 0 && cost >= gt) {
+                costState = 'p-err'; costMsg = 'Maliyet GT fiyatına eşit veya yüksek';
+                errors.push(costMsg);
+            } else if (gr > 0 && cost >= gr) {
+                costState = 'p-err'; costMsg = 'Maliyet GR fiyatına eşit veya yüksek';
+                errors.push(costMsg);
+            } else {
+                costState = 'p-ok'; costMsg = 'Maliyet OK';
+            }
+
+            // GT
+            if (gt <= 0) {
+                gtState = 'p-err'; gtMsg = 'GT fiyatı 0 olamaz';
+                errors.push(gtMsg);
+            } else if (cost > 0 && gt <= cost) {
+                gtState = 'p-err'; gtMsg = 'GT fiyatı maliyetle eşit veya düşük';
+                errors.push(gtMsg);
+            } else if (gr > 0 && gt > gr) {
+                gtState = 'p-err'; gtMsg = 'GT fiyatı GR fiyatının üstünde olamaz';
+                errors.push(gtMsg);
+            } else if (gr > 0 && gt === gr) {
+                gtState = 'p-warn'; gtMsg = 'GT = GR: Acente kazancı yok';
+                warnings.push(gtMsg);
+            } else {
+                gtState = 'p-ok'; gtMsg = 'GT fiyatı OK';
+            }
+
+            // GR
+            if (gr <= 0) {
+                grState = 'p-err'; grMsg = 'GR fiyatı 0 olamaz';
+                errors.push(grMsg);
+            } else if (cost > 0 && gr <= cost) {
+                grState = 'p-err'; grMsg = 'GR fiyatı maliyetle eşit veya düşük';
+                errors.push(grMsg);
+            } else if (gt > 0 && gr <= gt) {
+                grState = (gr === gt) ? 'p-warn' : 'p-err';
+                grMsg = (gr === gt) ? 'GR = GT: Acente kazancı yok' : 'GR fiyatı GT fiyatının altında';
+                if (gr === gt) warnings.push(grMsg); else errors.push(grMsg);
+            } else {
+                grState = 'p-ok'; grMsg = 'GR fiyatı OK';
+            }
+
+            setInputState(costIn, costState, costMsg);
+            setInputState(gtIn, gtState, gtMsg);
+            setInputState(grIn, grState, grMsg);
+
+            if (errors.length > 0) {
+                setRowLight(form, 'err', errors[0]);
+                if (saveBtn) saveBtn.disabled = true;
+            } else if (warnings.length > 0) {
+                setRowLight(form, 'warn', warnings[0]);
+                if (saveBtn) saveBtn.disabled = false;
+            } else {
+                setRowLight(form, 'ok', 'Fiyatlar geçerli');
+                if (saveBtn) saveBtn.disabled = false;
+            }
+        }
 
         function recalc() {
             var curr  = curSel.value;
@@ -513,12 +617,17 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
                 kazTop.className = 'kaz-top-val k-na'; kazTop.textContent = '—';
                 if (marjEl) { marjEl.className = 'marj-chip marj-na'; marjEl.textContent = '—'; }
             }
+
+            validate(cost, gt, gr);
         }
 
         [costIn, gtIn, grIn, curSel].forEach(function(el) {
             el && el.addEventListener('input', recalc);
             el && el.addEventListener('change', recalc);
         });
+
+        // Run on load
+        recalc();
     });
 })();
 </script>
