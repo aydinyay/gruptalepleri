@@ -214,7 +214,7 @@ PROMPT;
 
         try {
             $response = Http::timeout(8)->post(
-                "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={$apiKey}",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key={$apiKey}",
                 [
                     'contents'         => [['parts' => [['text' => $prompt]]]],
                     'generationConfig' => ['temperature' => 0.95, 'maxOutputTokens' => 200],
@@ -250,7 +250,7 @@ PROMPT;
 
         try {
             $response = Http::timeout(12)->post(
-                "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={$apiKey}",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key={$apiKey}",
                 [
                     'contents'         => [['parts' => [['text' => $prompt]]]],
                     'generationConfig' => ['temperature' => 1.0, 'maxOutputTokens' => 900],

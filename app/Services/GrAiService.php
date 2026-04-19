@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class GrAiService
 {
-    private const GEMINI_MODEL = 'gemini-1.5-flash';
+    private const GEMINI_MODEL = 'gemini-2.0-flash-001';
     private const MAX_HISTORY  = 12; // son kaç mesaj context'e girer
 
     // ── Ana giriş noktası ────────────────────────────────────────────────────
@@ -285,7 +285,7 @@ PROMPT;
 
         try {
             $response = Http::timeout(12)->post(
-                "https://generativelanguage.googleapis.com/v1/models/" . self::GEMINI_MODEL . ":generateContent?key={$apiKey}",
+                "https://generativelanguage.googleapis.com/v1beta/models/" . self::GEMINI_MODEL . ":generateContent?key={$apiKey}",
                 [
                     'contents'         => [['parts' => [['text' => $fullPrompt]]]],
                     'generationConfig' => [
