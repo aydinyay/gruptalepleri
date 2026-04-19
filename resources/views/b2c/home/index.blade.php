@@ -418,8 +418,15 @@
     <div class="gyg-hero-bg"></div>
     <div class="gyg-hero-content">
         <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
-        <h1>{{ $heroText['baslik1'] }}<br><span style="color:var(--gr-accent,#f4a418);">{{ $heroText['baslik2'] }}</span></h1>
-        <p class="hero-sub">{{ $heroText['alt'] }}</p>
+        <h1>
+            <span id="hero-b1"></span><br>
+            <span style="color:var(--gr-accent,#f4a418);" id="hero-b2"></span>
+        </h1>
+        <p class="hero-sub" id="hero-alt" style="opacity:0;transition:opacity .5s ease;"></p>
+        <template id="hero-data"
+            data-b1="{{ $heroText['baslik1'] }}"
+            data-b2="{{ $heroText['baslik2'] }}"
+            data-alt="{{ $heroText['alt'] }}"></template>
 
         <div class="gyg-search-wrap">
             <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
@@ -957,6 +964,50 @@
         if (!input.closest('.gyg-search-wrap').contains(e.target)) {
             box.classList.remove('visible');
         }
+    });
+})();
+</script>
+
+<script>
+// Daktilo efekti
+(function() {
+    var tpl = document.getElementById('hero-data');
+    if (!tpl) return;
+    var b1  = tpl.dataset.b1  || '';
+    var b2  = tpl.dataset.b2  || '';
+    var alt = tpl.dataset.alt || '';
+
+    var elB1  = document.getElementById('hero-b1');
+    var elB2  = document.getElementById('hero-b2');
+    var elAlt = document.getElementById('hero-alt');
+
+    var SPEED    = 42;  // ms / karakter
+    var PAUSE    = 180; // b1 bitti, b2 başlamadan önce bekle
+
+    function type(el, text, speed, done) {
+        var i = 0;
+        function tick() {
+            if (i <= text.length) {
+                el.textContent = text.slice(0, i);
+                i++;
+                setTimeout(tick, speed + Math.random() * 18 - 9); // hafif titreme
+            } else if (done) {
+                done();
+            }
+        }
+        tick();
+    }
+
+    // b1 → kısa duraklama → b2 → alt yazı fade-in
+    type(elB1, b1, SPEED, function() {
+        setTimeout(function() {
+            type(elB2, b2, SPEED, function() {
+                setTimeout(function() {
+                    elAlt.textContent = alt;
+                    elAlt.style.opacity = '1';
+                }, 120);
+            });
+        }, PAUSE);
     });
 })();
 </script>
