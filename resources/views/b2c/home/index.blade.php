@@ -250,6 +250,8 @@
     gap: 4px;
     overflow-x: auto;
     scrollbar-width: none;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 .gyg-pills::-webkit-scrollbar { display: none; }
 .gyg-pill {
