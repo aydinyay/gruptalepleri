@@ -290,7 +290,8 @@ PROMPT;
                     'contents'         => [['parts' => [['text' => $fullPrompt]]]],
                     'generationConfig' => [
                         'temperature'     => 0.85,
-                        'maxOutputTokens' => 600,
+                        'maxOutputTokens' => 1200,
+                        'responseMimeType' => 'application/json',
                     ],
                 ]
             );
@@ -301,7 +302,12 @@ PROMPT;
             }
 
             $text = $response->json('candidates.0.content.parts.0.text', '');
-            return trim(preg_replace('/```json|```/i', '', $text));
+            $text = trim(preg_replace('/```json|```/i', '', $text));
+            // JSON bloğunu çıkar (bazen Gemini önüne/sonuna text ekler)
+            if (preg_match('/\{.*\}/s', $text, $m)) {
+                $text = $m[0];
+            }
+            return $text;
         } catch (\Throwable $e) {
             Log::warning('GrAiService exception: ' . $e->getMessage());
             return null;
