@@ -9,7 +9,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; overflow-x: hidden; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
 
 .page-subheader {
     background: linear-gradient(135deg, #0f2444, #1a3c6b);
@@ -55,7 +55,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; over
     padding: 10px 32px; font-size: .83rem;
 }
 
-.tbl-wrap { padding: 12px 16px 24px; overflow-x: auto; max-width: 100vw; }
+.tbl-wrap { padding: 12px 16px 24px; }
+.tbl-scroll { overflow-x: auto; width: 100%; }
 
 table {
     border-collapse: collapse;
@@ -65,7 +66,7 @@ table {
     overflow: hidden;
     box-shadow: 0 1px 8px rgba(0,0,0,.08);
     font-size: .78rem;
-    min-width: 900px;
+    min-width: 820px;
 }
 th {
     background: #1a3c6b;
@@ -277,21 +278,18 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
 @endif
 
 <div class="tbl-wrap">
+<div class="tbl-scroll">
 <table>
     <thead>
         <tr>
             <th rowspan="2">#</th>
             <th rowspan="2">Ürün / Hizmet</th>
-            <th rowspan="2">Tip</th>
             <th rowspan="2">Durum</th>
-            <th rowspan="2">Para<br>Birimi</th>
+            <th rowspan="2">₺</th>
             <th class="group-maliyet">Maliyet</th>
-            <th class="group-gt">GT Satış Fiyatı</th>
-            <th class="group-gr">GR Satış Fiyatı</th>
-            <th class="group-kazanc">GT Kazancı</th>
-            <th class="group-kazanc">GR Kazancı</th>
-            <th class="group-kazanc">Top. Kazanç</th>
-            <th class="group-kazanc">Marj %</th>
+            <th class="group-gt">GT Fiyatı</th>
+            <th class="group-gr">GR Fiyatı</th>
+            <th class="group-kazanc" colspan="2">Kazanç Analizi</th>
             <th rowspan="2">Not</th>
             <th rowspan="2">Kaydet</th>
         </tr>
@@ -299,10 +297,8 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
             <th class="group-maliyet" style="font-size:.65rem;font-weight:400;opacity:.8;">tedarikçi</th>
             <th class="group-gt" style="font-size:.65rem;font-weight:400;opacity:.8;">B2B acente</th>
             <th class="group-gr" style="font-size:.65rem;font-weight:400;opacity:.8;">B2C müşteri</th>
-            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GT−maliyet</th>
-            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GR−GT</th>
-            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GR−maliyet</th>
-            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">top/GR</th>
+            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GT / GR / Net</th>
+            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">Marj %</th>
         </tr>
     </thead>
     <tbody>
@@ -335,7 +331,6 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
                         <div style="font-size:.68rem;color:#718096;">{{ $item->destination_city }}</div>
                     @endif
                 </td>
-                <td><span class="type-badge type-{{ $item->product_type }}">{{ $item->product_type }}</span></td>
                 <td style="white-space:nowrap;">
                     @php $ps = $item->publish_status ?? ($item->is_published ? 'b2c' : 'draft'); @endphp
                     <select name="publish_status" class="status-sel" data-current="{{ $ps }}">
@@ -384,29 +379,19 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
                         @if($grPrice > 0 && $curr !== 'TRY')≈ {{ number_format($grPrice * $rate, 0, ',', '.') }} ₺@endif
                     </div>
                 </td>
-                <td class="kazanc-cell">
+                <td class="kazanc-cell" style="min-width:110px;">
+                    <div style="font-size:.68rem;color:#6b7280;margin-bottom:1px;">GT:</div>
                     <div class="kaz-gt-val {{ $gtKazanc !== null ? ($gtKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
                         @if($gtKazanc !== null){{ number_format($gtKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
                     </div>
-                    @if($gtKazanc !== null && $curr !== 'TRY')
-                    <div class="price-try">≈ {{ number_format($gtKazanc * $rate, 0, ',', '.') }} ₺</div>
-                    @endif
-                </td>
-                <td class="kazanc-cell">
+                    <div style="font-size:.68rem;color:#6b7280;margin-top:3px;margin-bottom:1px;">GR:</div>
                     <div class="kaz-gr-val {{ $grKazanc !== null ? ($grKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
                         @if($grKazanc !== null){{ number_format($grKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
                     </div>
-                    @if($grKazanc !== null && $curr !== 'TRY')
-                    <div class="price-try">≈ {{ number_format($grKazanc * $rate, 0, ',', '.') }} ₺</div>
-                    @endif
-                </td>
-                <td class="kazanc-cell">
+                    <div style="font-size:.68rem;color:#6b7280;margin-top:3px;margin-bottom:1px;">Net:</div>
                     <div class="kaz-top-val {{ $topKazanc !== null ? ($topKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
                         @if($topKazanc !== null){{ number_format($topKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
                     </div>
-                    @if($topKazanc !== null && $curr !== 'TRY')
-                    <div class="price-try">≈ {{ number_format($topKazanc * $rate, 0, ',', '.') }} ₺</div>
-                    @endif
                 </td>
                 <td>
                     @if($marj !== null)
@@ -429,6 +414,7 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
     @endforeach
     </tbody>
 </table>
+</div>
 </div>
 
 <div class="legend">
