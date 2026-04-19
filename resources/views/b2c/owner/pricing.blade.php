@@ -289,16 +289,13 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
             <th class="group-maliyet">Maliyet</th>
             <th class="group-gt">GT Fiyatı</th>
             <th class="group-gr">GR Fiyatı</th>
-            <th class="group-kazanc" colspan="2">Kazanç Analizi</th>
             <th rowspan="2">Not</th>
             <th rowspan="2">Kaydet</th>
         </tr>
         <tr>
             <th class="group-maliyet" style="font-size:.65rem;font-weight:400;opacity:.8;">tedarikçi</th>
-            <th class="group-gt" style="font-size:.65rem;font-weight:400;opacity:.8;">B2B acente</th>
-            <th class="group-gr" style="font-size:.65rem;font-weight:400;opacity:.8;">B2C müşteri</th>
-            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">GT / GR / Net</th>
-            <th class="group-kazanc" style="font-size:.65rem;font-weight:400;opacity:.8;">Marj %</th>
+            <th class="group-gt" style="font-size:.65rem;font-weight:400;opacity:.8;">B2B acente · GT kazancı</th>
+            <th class="group-gr" style="font-size:.65rem;font-weight:400;opacity:.8;">B2C müşteri · GR kazancı · marj</th>
         </tr>
     </thead>
     <tbody>
@@ -367,6 +364,9 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
                     <div class="price-try try-gt">
                         @if($gtPrice > 0 && $curr !== 'TRY')≈ {{ number_format($gtPrice * $rate, 0, ',', '.') }} ₺@endif
                     </div>
+                    <div class="price-try kaz-gt-val {{ $gtKazanc !== null ? ($gtKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}" style="margin-top:3px;">
+                        @if($gtKazanc !== null)<span style="color:#6b7280;font-weight:400;">kazanç: </span>{{ number_format($gtKazanc, 0, ',', '.') }} {{ $curr }}@endif
+                    </div>
                 </td>
                 <td class="price-cell">
                     <div style="display:flex;align-items:center;gap:3px;">
@@ -378,29 +378,14 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
                     <div class="price-try try-gr">
                         @if($grPrice > 0 && $curr !== 'TRY')≈ {{ number_format($grPrice * $rate, 0, ',', '.') }} ₺@endif
                     </div>
-                </td>
-                <td class="kazanc-cell" style="min-width:110px;">
-                    <div style="font-size:.68rem;color:#6b7280;margin-bottom:1px;">GT:</div>
-                    <div class="kaz-gt-val {{ $gtKazanc !== null ? ($gtKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
-                        @if($gtKazanc !== null){{ number_format($gtKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
+                    <div class="price-try kaz-gr-val {{ $grKazanc !== null ? ($grKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}" style="margin-top:3px;">
+                        @if($grKazanc !== null)<span style="color:#6b7280;font-weight:400;">acente: </span>{{ number_format($grKazanc, 0, ',', '.') }} {{ $curr }}@endif
                     </div>
-                    <div style="font-size:.68rem;color:#6b7280;margin-top:3px;margin-bottom:1px;">GR:</div>
-                    <div class="kaz-gr-val {{ $grKazanc !== null ? ($grKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
-                        @if($grKazanc !== null){{ number_format($grKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
+                    <div class="price-try kaz-top-val {{ $topKazanc !== null ? ($topKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
+                        @if($topKazanc !== null)<span style="color:#6b7280;font-weight:400;">net: </span>{{ number_format($topKazanc, 0, ',', '.') }} {{ $curr }}
+                        @if($marj !== null) &nbsp;<span class="marj-chip {{ $marj >= 30 ? 'marj-green' : ($marj >= 15 ? 'marj-yellow' : 'marj-red') }}" style="font-size:.65rem;padding:1px 5px;">%{{ $marj }}</span>@endif
+                        @endif
                     </div>
-                    <div style="font-size:.68rem;color:#6b7280;margin-top:3px;margin-bottom:1px;">Net:</div>
-                    <div class="kaz-top-val {{ $topKazanc !== null ? ($topKazanc >= 0 ? 'k-pos' : 'k-neg') : 'k-na' }}">
-                        @if($topKazanc !== null){{ number_format($topKazanc, 0, ',', '.') }} {{ $curr }}@else—@endif
-                    </div>
-                </td>
-                <td>
-                    @if($marj !== null)
-                        <span class="marj-chip {{ $marj >= 30 ? 'marj-green' : ($marj >= 15 ? 'marj-yellow' : 'marj-red') }}">
-                            %{{ $marj }}
-                        </span>
-                    @else
-                        <span class="marj-chip marj-na">—</span>
-                    @endif
                 </td>
                 <td>
                     <input type="text" name="pricing_notes" class="notes-input"
@@ -463,7 +448,7 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
     }
 
     function setRowLight(form, state, msg) {
-        var rl = form.closest('tr').querySelector('.row-light');
+        var rl = form.querySelector('.row-light');
         if (!rl) return;
         rl.className = 'row-light ' + (state === 'ok' ? 'rl-ok' : state === 'warn' ? 'rl-warn' : state === 'err' ? 'rl-err' : 'rl-na');
         rl.textContent = state === 'ok' ? '✓' : state === 'warn' ? '!' : state === 'err' ? '✗' : '?';
@@ -575,32 +560,31 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
             tryGt.textContent   = (gt > 0 && curr !== 'TRY')   ? fmtTRY(gt, rate)   : '';
             tryGr.textContent   = (gr > 0 && curr !== 'TRY')   ? fmtTRY(gr, rate)   : '';
 
-            // Kazanç
+            // Kazanç (divler içinde, prefix span korunarak innerHTML ile güncelle)
             if (cost > 0 && gt > 0) {
                 var kgt = gt - cost;
-                kazGt.className = 'kaz-gt-val ' + (kgt >= 0 ? 'k-pos' : 'k-neg');
-                kazGt.textContent = fmtNum(kgt, curr);
+                kazGt.className = 'price-try kaz-gt-val ' + (kgt >= 0 ? 'k-pos' : 'k-neg');
+                kazGt.innerHTML = '<span style="color:#6b7280;font-weight:400;">kazanç: </span>' + fmtNum(kgt, curr);
             } else {
-                kazGt.className = 'kaz-gt-val k-na'; kazGt.textContent = '—';
+                kazGt.className = 'price-try kaz-gt-val k-na'; kazGt.innerHTML = '';
             }
             if (gt > 0 && gr > 0) {
                 var kgr = gr - gt;
-                kazGr.className = 'kaz-gr-val ' + (kgr >= 0 ? 'k-pos' : 'k-neg');
-                kazGr.textContent = fmtNum(kgr, curr);
+                kazGr.className = 'price-try kaz-gr-val ' + (kgr >= 0 ? 'k-pos' : 'k-neg');
+                kazGr.innerHTML = '<span style="color:#6b7280;font-weight:400;">acente: </span>' + fmtNum(kgr, curr);
             } else {
-                kazGr.className = 'kaz-gr-val k-na'; kazGr.textContent = '—';
+                kazGr.className = 'price-try kaz-gr-val k-na'; kazGr.innerHTML = '';
             }
             if (cost > 0 && gr > 0) {
                 var ktop = gr - cost;
-                kazTop.className = 'kaz-top-val ' + (ktop >= 0 ? 'k-pos' : 'k-neg');
-                kazTop.textContent = fmtNum(ktop, curr);
-                if (marjEl) {
-                    var m = Math.round((ktop / gr) * 1000) / 10;
-                    marjEl.className = marjClass(m);
-                    marjEl.textContent = '%' + m;
-                }
+                var m = Math.round((ktop / gr) * 1000) / 10;
+                var mClass = m >= 30 ? 'marj-green' : m >= 15 ? 'marj-yellow' : 'marj-red';
+                kazTop.className = 'price-try kaz-top-val ' + (ktop >= 0 ? 'k-pos' : 'k-neg');
+                kazTop.innerHTML = '<span style="color:#6b7280;font-weight:400;">net: </span>' + fmtNum(ktop, curr)
+                    + ' &nbsp;<span class="marj-chip ' + mClass + '" style="font-size:.65rem;padding:1px 5px;">%' + m + '</span>';
+                if (marjEl) { marjEl.className = 'marj-chip ' + mClass; marjEl.textContent = '%' + m; }
             } else {
-                kazTop.className = 'kaz-top-val k-na'; kazTop.textContent = '—';
+                kazTop.className = 'price-try kaz-top-val k-na'; kazTop.innerHTML = '';
                 if (marjEl) { marjEl.className = 'marj-chip marj-na'; marjEl.textContent = '—'; }
             }
 
