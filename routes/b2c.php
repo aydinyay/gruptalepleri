@@ -30,6 +30,16 @@ use Illuminate\Support\Facades\Route;
 // NOT: / rotası web.php'de tanımlıdır (her iki domain'i de yönetir).
 // b2c.php sonradan yüklendiğinden burada tekrar tanımlanmamalı — ezip bozar.
 
+// ── Hero Arama Tepkisi (AI search reaction) ───────────────────────────────
+Route::get('/api/b2c/hero-react', function (\Illuminate\Http\Request $request) {
+    $q = trim($request->input('q', ''));
+    if (mb_strlen($q) < 3 || mb_strlen($q) > 80) {
+        return response()->json(['ok' => false], 400);
+    }
+    $result = (new \App\Services\HeroTextService())->heroReact($q);
+    return response()->json($result);
+})->name('b2c.api.hero-react');
+
 // ── Hero Şehir Güncelleme (Geolocation) ───────────────────────────────────
 Route::post('/api/b2c/hero-city', function (\Illuminate\Http\Request $request) {
     $city = trim($request->input('city', ''));

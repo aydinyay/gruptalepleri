@@ -425,10 +425,7 @@
             <span style="color:var(--gr-accent,#f4a418);" id="hero-b2"></span>
         </h1>
         <p class="hero-sub" id="hero-alt" style="opacity:0;transition:opacity .5s ease;"></p>
-        <template id="hero-data"
-            data-b1="{{ $heroText['baslik1'] }}"
-            data-b2="{{ $heroText['baslik2'] }}"
-            data-alt="{{ $heroText['alt'] }}"></template>
+        <script id="hero-pool-data" type="application/json">{!! json_encode($heroPool ?? [$heroText], JSON_UNESCAPED_UNICODE) !!}</script>
 
         <div class="gyg-search-wrap">
             <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
@@ -971,45 +968,145 @@
 </script>
 
 <script>
-// Daktilo efekti
 (function() {
-    var tpl = document.getElementById('hero-data');
-    if (!tpl) return;
-    var b1  = tpl.dataset.b1  || '';
-    var b2  = tpl.dataset.b2  || '';
-    var alt = tpl.dataset.alt || '';
+    var poolEl = document.getElementById('hero-pool-data');
+    if (!poolEl) return;
+
+    var pool;
+    try { pool = JSON.parse(poolEl.textContent); } catch(e) { return; }
+    if (!pool || !pool.length) return;
 
     var elB1  = document.getElementById('hero-b1');
     var elB2  = document.getElementById('hero-b2');
     var elAlt = document.getElementById('hero-alt');
+    var searchInput = document.getElementById('heroSearchInput');
 
-    var SPEED    = 42;  // ms / karakter
-    var PAUSE    = 180; // b1 bitti, b2 başlamadan önce bekle
+    var SPEED      = 40;   // ms/karakter
+    var PAUSE      = 160;  // satırlar arası
+    var ROTATE_MS  = 20000; // 20sn rotasyon
+    var ERASE_SPEED = 22;  // backspace hızı
 
-    function type(el, text, speed, done) {
-        var i = 0;
+    var currentIdx    = 0;
+    var typing        = false;
+    var rotateTimer   = null;
+    var reactDebounce = null;
+    var reacting      = false;
+
+    // --- Yardımcı: karakter yaz ---
+    function typeText(el, text, done) {
+        var i = el.textContent.length; // kaldığı yerden başla (erase sonrası 0 olur)
         function tick() {
             if (i <= text.length) {
-                el.textContent = text.slice(0, i);
-                i++;
-                setTimeout(tick, speed + Math.random() * 18 - 9); // hafif titreme
-            } else if (done) {
-                done();
-            }
+                el.textContent = text.slice(0, i++);
+                setTimeout(tick, SPEED + (Math.random() * 16 - 8));
+            } else { done && done(); }
         }
         tick();
     }
 
-    // b1 → kısa duraklama → b2 → alt yazı fade-in
-    type(elB1, b1, SPEED, function() {
-        setTimeout(function() {
-            type(elB2, b2, SPEED, function() {
+    // --- Yardımcı: sil (backspace) ---
+    function eraseText(el, done) {
+        function tick() {
+            if (el.textContent.length > 0) {
+                el.textContent = el.textContent.slice(0, -1);
+                setTimeout(tick, ERASE_SPEED);
+            } else { done && done(); }
+        }
+        tick();
+    }
+
+    // --- Tam hero metni yaz ---
+    function showHero(item, onFinish) {
+        typing = true;
+        elAlt.style.opacity = '0';
+        typeText(elB1, item.baslik1, function() {
+            setTimeout(function() {
+                typeText(elB2, item.baslik2, function() {
+                    setTimeout(function() {
+                        elAlt.textContent = item.alt;
+                        elAlt.style.opacity = '1';
+                        typing = false;
+                        onFinish && onFinish();
+                    }, 120);
+                });
+            }, PAUSE);
+        });
+    }
+
+    // --- Önce sil, sonra yeni metni yaz ---
+    function changeHero(item) {
+        if (typing) return;
+        typing = true;
+        clearRotation();
+        elAlt.style.opacity = '0';
+        eraseText(elB2, function() {
+            eraseText(elB1, function() {
                 setTimeout(function() {
-                    elAlt.textContent = alt;
-                    elAlt.style.opacity = '1';
+                    showHero(item, function() {
+                        if (!reacting) startRotation();
+                    });
                 }, 120);
             });
-        }, PAUSE);
+        });
+    }
+
+    // --- Rotasyon ---
+    function startRotation() {
+        clearRotation();
+        rotateTimer = setTimeout(function rotate() {
+            if (!reacting && !typing) {
+                currentIdx = (currentIdx + 1) % pool.length;
+                changeHero(pool[currentIdx]);
+            } else {
+                rotateTimer = setTimeout(rotate, ROTATE_MS);
+            }
+        }, ROTATE_MS);
+    }
+
+    function clearRotation() {
+        if (rotateTimer) { clearTimeout(rotateTimer); rotateTimer = null; }
+    }
+
+    // --- Arama tepkisi ---
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var q = this.value.trim();
+            clearTimeout(reactDebounce);
+
+            if (q.length < 3) {
+                if (reacting) {
+                    reacting = false;
+                    changeHero(pool[currentIdx]);
+                }
+                return;
+            }
+
+            reacting = true;
+            clearRotation();
+
+            reactDebounce = setTimeout(function() {
+                fetch('/api/b2c/hero-react?q=' + encodeURIComponent(q))
+                    .then(function(r) { return r.ok ? r.json() : null; })
+                    .then(function(data) {
+                        if (data && data.baslik1) {
+                            changeHero(data);
+                        }
+                    })
+                    .catch(function() {});
+            }, 700);
+        });
+
+        searchInput.addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                reacting = false;
+                startRotation();
+            }
+        });
+    }
+
+    // --- İlk yükleme ---
+    showHero(pool[0], function() {
+        startRotation();
     });
 })();
 </script>

@@ -63,8 +63,15 @@ class HomeController extends Controller
             ->map(fn($id) => (int) $id)
             ->all();
 
+        // Ürün özeti — Gemini prompt'a gerçek ürün/kategori bilgisi ver
+        $productSummary = $categories->pluck('name')->filter()->implode(', ')
+            . ' | '
+            . $allItems->take(10)->pluck('title')->filter()->implode(' / ');
+
         $heroCtx  = HeroTextService::buildContext();
-        $heroText = (new HeroTextService())->getHeroText($heroCtx);
+        $heroService = new HeroTextService();
+        $heroPool = $heroService->getHeroPool($heroCtx, $productSummary);
+        $heroText = $heroPool[0];
 
         return view('b2c.home.index', compact(
             'categories',
@@ -78,6 +85,7 @@ class HomeController extends Controller
             'heroBgImage',
             'savedIds',
             'heroText',
+            'heroPool',
         ));
     }
 }

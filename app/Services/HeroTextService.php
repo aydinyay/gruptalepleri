@@ -78,9 +78,40 @@ class HeroTextService
         '12_31' => 'yilbasi_arife',
     ];
 
+    public function getHeroPool(array $ctx, string $productSummary = ''): array
+    {
+        $poolKey = 'hero_v4_pool_' . md5(implode('|', [
+            $ctx['zaman']         ?? '',
+            $ctx['gun']           ?? '',
+            $ctx['mevsim']        ?? '',
+            $ctx['ozel_gun']      ?? '',
+            $ctx['haftasonu_yak'] ?? '',
+            $ctx['cinsiyet']      ?? '',
+            $ctx['son_kategori']  ?? '',
+            $ctx['sehir']         ?? '',
+            $ctx['user_id']       ?? 'guest',
+            md5($productSummary),
+        ]));
+
+        $ttl = isset($ctx['user_id']) ? 600 : 1800;
+
+        return Cache::remember($poolKey, $ttl, function () use ($ctx, $productSummary) {
+            return $this->callGeminiPool($ctx, $productSummary);
+        });
+    }
+
+    public function heroReact(string $query): array
+    {
+        $cacheKey = 'hero_react_' . md5(mb_strtolower(trim($query)));
+
+        return Cache::remember($cacheKey, 3600, function () use ($query) {
+            return $this->callGeminiReact($query) ?? $this->randomFallback();
+        });
+    }
+
     public function getHeroText(array $ctx): array
     {
-        $key = 'hero_v3_' . md5(implode('|', [
+        $poolKey = 'hero_v3_pool_' . md5(implode('|', [
             $ctx['zaman']         ?? '',
             $ctx['gun']           ?? '',
             $ctx['mevsim']        ?? '',
@@ -92,11 +123,19 @@ class HeroTextService
             $ctx['user_id']       ?? 'guest',
         ]));
 
-        $ttl = isset($ctx['user_id']) ? 600 : 1800; // giriş yaptıysa 10dk, misafir 30dk
-
-        return Cache::remember($key, $ttl, function () use ($ctx) {
-            return $this->callGemini($ctx) ?? $this->randomFallback();
+        $ttl  = isset($ctx['user_id']) ? 600 : 1800;
+        $pool = Cache::remember($poolKey, $ttl, function () use ($ctx) {
+            return $this->callGeminiPool($ctx);
         });
+
+        // Her yenilemede pool'dan farklı bir metin — son kullanılan index session'da
+        $sessionKey = 'hero_pool_idx_' . substr($poolKey, -8);
+        $lastIdx    = session($sessionKey, -1);
+        $count      = count($pool);
+        $nextIdx    = ($lastIdx + 1) % $count;
+        session([$sessionKey => $nextIdx]);
+
+        return $pool[$nextIdx];
     }
 
     public static function buildContext(): array
@@ -171,26 +210,77 @@ class HeroTextService
         return 'bilinmiyor';
     }
 
-    private function callGemini(array $ctx): ?array
+    private function callGeminiReact(string $query): ?array
     {
         $key = config('services.gemini.key');
         if (! $key) return null;
 
-        $prompt = $this->buildPrompt($ctx);
+        $prompt = <<<PROMPT
+Kullanıcı gruprezervasyonlari.com'da arama kutusuna "{$query}" yazıyor.
+Platform: yat, tekne, dinner cruise, transfer, özel jet, tur, charter, viski tadımı — Türkiye'nin lider grup seyahat sitesi.
+
+Kullanıcının aradığı şeye "ah, o mu?" der gibi zeki, meraklı, hafif esprili bir hero başlığı yaz.
+Sanki ekrandan kullanıcıyı izliyormuş gibi — samimi, sürpriz, beklenmedik.
+Soru sorabilir, ipucu verebilir, hafifçe heyecanlanabilir.
+
+KISITLAR:
+- baslik1: max 32 karakter
+- baslik2: max 28 karakter (turuncu vurgu, en güçlü kısım)
+- alt: max 85 karakter, "{$query}" ile ilgili, platforma özgü
+- Türkçe, doğal, konuşma dili
+
+SADECE JSON döndür:
+{"baslik1":"...","baslik2":"...","alt":"..."}
+PROMPT;
 
         try {
-            $response = Http::timeout(8)->post(
+            $response = Http::timeout(6)->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$key}",
                 [
-                    'contents' => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => [
-                        'temperature'     => 0.9,
-                        'maxOutputTokens' => 200,
-                    ],
+                    'contents'         => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => ['temperature' => 1.0, 'maxOutputTokens' => 150],
                 ]
             );
 
             if (! $response->successful()) return null;
+
+            $text = trim(preg_replace('/```json|```/i', '', $response->json('candidates.0.content.parts.0.text', '')));
+            $data = json_decode($text, true);
+
+            if (is_array($data) && isset($data['baslik1'], $data['baslik2'], $data['alt'])) {
+                return [
+                    'baslik1' => htmlspecialchars($data['baslik1'], ENT_QUOTES, 'UTF-8'),
+                    'baslik2' => htmlspecialchars($data['baslik2'], ENT_QUOTES, 'UTF-8'),
+                    'alt'     => htmlspecialchars($data['alt'],     ENT_QUOTES, 'UTF-8'),
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('HeroTextService react error: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    private function callGeminiPool(array $ctx, string $productSummary = ''): array
+    {
+        $key = config('services.gemini.key');
+        if (! $key) return static::$fallbacks;
+
+        $prompt = $this->buildPrompt($ctx, 5, $productSummary);
+
+        try {
+            $response = Http::timeout(12)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$key}",
+                [
+                    'contents' => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => [
+                        'temperature'     => 1.0,
+                        'maxOutputTokens' => 800,
+                    ],
+                ]
+            );
+
+            if (! $response->successful()) return static::$fallbacks;
 
             $text = $response->json('candidates.0.content.parts.0.text', '');
             $text = preg_replace('/```json|```/i', '', $text);
@@ -198,28 +288,33 @@ class HeroTextService
 
             $data = json_decode($text, true);
 
-            if (
-                is_array($data)
-                && isset($data['baslik1'], $data['baslik2'], $data['alt'])
-                && mb_strlen($data['baslik1']) <= 40
-                && mb_strlen($data['baslik2']) <= 36
-                && mb_strlen($data['alt'])     <= 100
-            ) {
-                return [
-                    'baslik1' => htmlspecialchars($data['baslik1'], ENT_QUOTES, 'UTF-8'),
-                    'baslik2' => htmlspecialchars($data['baslik2'], ENT_QUOTES, 'UTF-8'),
-                    'alt'     => htmlspecialchars($data['alt'],     ENT_QUOTES, 'UTF-8'),
-                ];
+            if (! is_array($data)) return static::$fallbacks;
+
+            $pool = [];
+            foreach ($data as $item) {
+                if (
+                    is_array($item)
+                    && isset($item['baslik1'], $item['baslik2'], $item['alt'])
+                    && mb_strlen($item['baslik1']) <= 40
+                    && mb_strlen($item['baslik2']) <= 36
+                    && mb_strlen($item['alt'])     <= 100
+                ) {
+                    $pool[] = [
+                        'baslik1' => htmlspecialchars($item['baslik1'], ENT_QUOTES, 'UTF-8'),
+                        'baslik2' => htmlspecialchars($item['baslik2'], ENT_QUOTES, 'UTF-8'),
+                        'alt'     => htmlspecialchars($item['alt'],     ENT_QUOTES, 'UTF-8'),
+                    ];
+                }
             }
 
-            return null;
+            return count($pool) >= 2 ? $pool : static::$fallbacks;
         } catch (\Throwable $e) {
             Log::warning('HeroTextService Gemini error: ' . $e->getMessage());
-            return null;
+            return static::$fallbacks;
         }
     }
 
-    private function buildPrompt(array $ctx): string
+    private function buildPrompt(array $ctx, int $count = 5, string $productSummary = ''): string
     {
         $bağlam = [];
         $bağlam[] = "Zaman: {$ctx['zaman']} ({$ctx['gun']})";
@@ -249,8 +344,14 @@ class HeroTextService
 
         $bağlamStr = implode("\n- ", $bağlam);
 
+        $countLine   = "{$count} FARKLI metin üret (hepsi farklı yaklaşım, farklı ton, farklı yapı).";
+        $productLine = $productSummary
+            ? "\nPLATFORMDAKİ GERÇEK ÜRÜN/KATEGORİLER (alt yazıda bunlara atıfta bulun):\n{$productSummary}\n"
+            : '';
+
         return <<<PROMPT
 Sen gruprezervasyonlari.com'un anasayfa hero başlığını yazıyorsun.
+{$countLine}{$productLine}
 Platform: Türkiye'nin lider grup seyahat sitesi — yat, tekne, dinner cruise, transfer, özel jet, tur, charter, viski tadımı ve daha fazlası.
 
 BAĞLAM:
@@ -282,8 +383,8 @@ KISITLAR:
 - Türkçe, doğal konuşma dili
 - Bağlamı kullan ama zorlamadan — doğal geliyorsa kişisel hitap ekle
 
-SADECE JSON döndür:
-{"baslik1":"...","baslik2":"...","alt":"..."}
+SADECE JSON array döndür ({$count} eleman), başka hiçbir şey yazma:
+[{"baslik1":"...","baslik2":"...","alt":"..."},{"baslik1":"...","baslik2":"...","alt":"..."},...]
 PROMPT;
     }
 
