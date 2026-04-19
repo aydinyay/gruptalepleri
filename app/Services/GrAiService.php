@@ -154,18 +154,23 @@ class GrAiService
         $words = !empty($meaningful) ? $meaningful : array_filter($allWords, fn($w) => mb_strlen($w) >= 3);
         if (empty($words)) return [];
 
-        // Önce anlamlı kelimelerle dene; sonuç 0 ise tüm kelimelerle
-        $query = CatalogItem::published()
-            ->where(function ($q) use ($words) {
-                foreach ($words as $w) {
-                    $q->orWhere('title', 'like', "%{$w}%")
+        // Her anlamlı kelime için ayrı sorgu — böylece "viski" "turu" tarafından ezilmez
+        $collected = collect();
+        foreach ($words as $w) {
+            if ($collected->count() >= 4) break;
+            $hits = CatalogItem::published()
+                ->where(function ($q) use ($w) {
+                    $q->where('title', 'like', "%{$w}%")
                       ->orWhere('destination_city', 'like', "%{$w}%")
                       ->orWhere('short_desc', 'like', "%{$w}%");
-                }
-            })
-            ->limit(4)
-            ->get(['id', 'slug', 'title', 'destination_city', 'base_price', 'currency',
-                   'duration_days', 'duration_hours', 'product_subtype']);
+                })
+                ->whereNotIn('id', $collected->pluck('id')->all())
+                ->limit(4 - $collected->count())
+                ->get(['id', 'slug', 'title', 'destination_city', 'base_price', 'currency',
+                       'duration_days', 'duration_hours', 'product_subtype']);
+            $collected = $collected->merge($hits);
+        }
+        $query = $collected->unique('id');
 
         if ($query->isEmpty()) return [];
 
