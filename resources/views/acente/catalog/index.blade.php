@@ -111,10 +111,17 @@ $priceLabel = match($subtype) {
         @else
         <div style="font-size:.8rem;color:#718096;margin-bottom:.75rem;">Fiyat taleple belirlenir</div>
         @endif
+        @php
+        [$btnIcon, $btnLabel] = match($item->pricing_type) {
+            'quote'   => ['bi-tag',            'Teklif Al'],
+            'request' => ['bi-send',           'Talep Oluştur'],
+            default   => ['bi-calendar2-check','Rezervasyon Yap'],
+        };
+        @endphp
         <a href="{{ route('acente.product.show', $item->slug) }}#rezervasyon"
            class="btn btn-sm w-100"
            style="background:#1a3c6b;color:#fff;font-weight:600;border-radius:8px;">
-            <i class="bi bi-calendar2-check me-1"></i>Rezervasyon Yap
+            <i class="bi {{ $btnIcon }} me-1"></i>{{ $btnLabel }}
         </a>
     </div>
 </div>
