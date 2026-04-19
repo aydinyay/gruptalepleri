@@ -35,6 +35,7 @@ class GrChatController extends Controller
         $response = response()->json([
             'reply'    => $result['reply'],
             'products' => $result['products'],
+            'redirect' => $result['redirect'] ?? null,
             'error'    => $result['error'],
         ]);
 
