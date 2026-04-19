@@ -87,16 +87,29 @@ class GrAiService
         if ($redirect) {
             $rSlug = trim(str_replace('/urun/', '', parse_url($redirect, PHP_URL_PATH) ?? $redirect), '/');
             if (! CatalogItem::published()->where('slug', $rSlug)->exists()) {
-                // $slugs içinde geçerli bir slug ara
-                $fallbackSlug = collect($slugs)->first(fn($s) =>
-                    CatalogItem::published()->where('slug', $s)->exists()
-                );
-                // Yoksa $relevantItems'dan parse et
+                $fallbackSlug = null;
+                // 1) $slugs içinde geçerli bir slug ara
+                foreach ($slugs as $s) {
+                    if (CatalogItem::published()->where('slug', $s)->exists()) {
+                        $fallbackSlug = $s; break;
+                    }
+                }
+                // 2) Bu mesajdaki ürün context'inden al
                 if (! $fallbackSlug) {
                     foreach ($relevantItems as $line) {
                         if (preg_match('/\[slug:([^\]]+)\]/', $line, $sm)) {
-                            $fallbackSlug = $sm[1];
-                            break;
+                            $fallbackSlug = $sm[1]; break;
+                        }
+                    }
+                }
+                // 3) Son asistan mesajındaki önerilen slug'ları tara
+                if (! $fallbackSlug) {
+                    $lastAssistant = collect($history)->last(fn($m) => $m['role'] === 'assistant');
+                    $prevSlugs = $lastAssistant['suggested_slugs'] ?? [];
+                    if (is_string($prevSlugs)) $prevSlugs = json_decode($prevSlugs, true) ?? [];
+                    foreach ((array)$prevSlugs as $s) {
+                        if (CatalogItem::published()->where('slug', $s)->exists()) {
+                            $fallbackSlug = $s; break;
                         }
                     }
                 }
