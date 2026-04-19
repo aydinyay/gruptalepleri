@@ -103,14 +103,6 @@ $priceLabel = match($subtype) {
             @if($item->duration_days)<span><i class="bi bi-clock"></i> {{ $item->duration_days }} gün</span>@elseif($item->duration_hours)<span><i class="bi bi-clock"></i> {{ $item->duration_hours }} saat</span>@endif
             @if($item->min_pax)<span><i class="bi bi-people"></i> Min {{ $item->min_pax }}</span>@endif
         </div>
-        @if($price)
-        <div class="prd-card-price mb-3">
-            <span class="prd-card-amount">{{ number_format($price,0,',','.') }} {{ $item->currency }}</span>
-            <span class="prd-card-per">{{ $priceLabel }}</span>
-        </div>
-        @else
-        <div style="font-size:.8rem;color:#718096;margin-bottom:.75rem;">Fiyat taleple belirlenir</div>
-        @endif
         @php
         [$btnIcon, $btnLabel] = match($item->pricing_type) {
             'quote'   => ['bi-tag',            'Teklif Al'],
@@ -118,11 +110,21 @@ $priceLabel = match($subtype) {
             default   => ['bi-calendar2-check','Rezervasyon Yap'],
         };
         @endphp
-        <a href="{{ route('acente.product.show', $item->slug) }}#rezervasyon"
-           class="btn btn-sm w-100"
-           style="background:#1a3c6b;color:#fff;font-weight:600;border-radius:8px;">
-            <i class="bi {{ $btnIcon }} me-1"></i>{{ $btnLabel }}
-        </a>
+        <div style="margin-top:auto;">
+            @if($price)
+            <div class="prd-card-price mb-2">
+                <span class="prd-card-amount">{{ number_format($price,0,',','.') }} {{ $item->currency }}</span>
+                <span class="prd-card-per">{{ $priceLabel }}</span>
+            </div>
+            @else
+            <div style="font-size:.8rem;color:#718096;margin-bottom:.5rem;">Fiyat taleple belirlenir</div>
+            @endif
+            <a href="{{ route('acente.product.show', $item->slug) }}#rezervasyon"
+               class="btn btn-sm w-100"
+               style="background:#1a3c6b;color:#fff;font-weight:600;border-radius:8px;">
+                <i class="bi {{ $btnIcon }} me-1"></i>{{ $btnLabel }}
+            </a>
+        </div>
     </div>
 </div>
 @empty
