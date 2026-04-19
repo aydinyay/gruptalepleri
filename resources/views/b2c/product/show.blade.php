@@ -188,13 +188,38 @@ else                     { $_galLayout = '5'; }
     <div class="prd-lb-count" id="prdLbCount"></div>
 </div>
 
-@php $heartBtn = '<div class="prd-heart-btn ' . (($isSaved ?? false) ? 'saved' : '') . '" data-item-id="' . $item->id . '" onclick="grtWishlistToggle(this)" title="İstek listesine ekle"><i class="bi ' . (($isSaved ?? false) ? 'bi-heart-fill' : 'bi-heart') . '"></i></div>'; @endphp
+@php
+$heartBtn = '<div class="prd-heart-btn ' . (($isSaved ?? false) ? 'saved' : '') . '" data-item-id="' . $item->id . '" onclick="grtWishlistToggle(this)" title="İstek listesine ekle"><i class="bi ' . (($isSaved ?? false) ? 'bi-heart-fill' : 'bi-heart') . '"></i></div>';
+
+$_badgeColorMap = [
+    'Yeni'       => '#10b981',
+    'Popüler'    => '#f59e0b',
+    'Vizyon'     => '#6366f1',
+    'Son Fırsat' => '#ef4444',
+    'İndirim'    => '#8b5cf6',
+    'Sınırlı'   => '#dc2626',
+];
+$_badgeIconMap = [
+    'Yeni'       => 'bi-stars',
+    'Popüler'    => 'bi-fire',
+    'Vizyon'     => 'bi-eye-fill',
+    'Son Fırsat' => 'bi-alarm-fill',
+    'İndirim'    => 'bi-tag-fill',
+    'Sınırlı'   => 'bi-exclamation-circle-fill',
+];
+$_bl    = $item->badge_label ?? null;
+$_blClr = $_bl ? ($_badgeColorMap[$_bl] ?? '#1a3c6b') : '';
+$_blIco = $_bl ? ($_badgeIconMap[$_bl]  ?? 'bi-bookmark-fill') : '';
+$badgeOverlay = $_bl
+    ? '<div style="position:absolute;top:14px;left:14px;z-index:10;background:' . $_blClr . ';color:#fff;padding:5px 13px;border-radius:50px;font-size:.8rem;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.25);"><i class="bi ' . $_blIco . '"></i> ' . e($_bl) . '</div>'
+    : '';
+@endphp
 
 @if($_galLayout === '1')
 {{-- Tek görsel --}}
 <div class="prd-gal-gyg lay-1">
     <img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)">
-    {!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 
 @elseif($_galLayout === '2')
@@ -202,7 +227,7 @@ else                     { $_galLayout = '5'; }
 <div class="prd-gal-gyg lay-2">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
-    {!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 
 @elseif($_galLayout === '3')
@@ -212,7 +237,7 @@ else                     { $_galLayout = '5'; }
     @foreach(array_slice($_imgs, 1, 3) as $_ri => $_rs)
     <div class="prd-gal-thumb" onclick="prdLbOpen({{ $_ri + 1 }})"><img src="{{ $_rs }}" alt="{{ $item->title }}"></div>
     @endforeach
-    {!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 
 @elseif($_galLayout === '5')
@@ -228,7 +253,7 @@ else                     { $_galLayout = '5'; }
     </div>
     @endforeach
     <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})</button>
-    {!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 
 @else
@@ -254,7 +279,7 @@ else                     { $_galLayout = '5'; }
     </div>
     @endforeach
     <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-play-circle"></i> Tüm medya ({{ $_imgCount }})</button>
-    {!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 @endif
 
@@ -300,9 +325,21 @@ $supplierCount    = $isPlatform
 <div class="prd-wrap">
 
 <div>
-@if($item->category)
-<div class="prd-badge"><i class="bi {{ $item->category->icon ?? 'bi-grid' }}"></i> {{ $item->category->name }}</div>
-@endif
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;">
+    @if($item->category)
+    <div class="prd-badge" style="margin-bottom:0;"><i class="bi {{ $item->category->icon ?? 'bi-grid' }}"></i> {{ $item->category->name }}</div>
+    @endif
+    @if($_bl)
+    <div style="display:inline-flex;align-items:center;gap:5px;background:{{ $_blClr }};color:#fff;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:50px;letter-spacing:.04em;">
+        <i class="bi {{ $_blIco }}"></i> {{ $_bl }}
+    </div>
+    @endif
+    @if($item->is_featured)
+    <div style="display:inline-flex;align-items:center;gap:5px;background:#f59e0b;color:#fff;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:50px;">
+        <i class="bi bi-star-fill"></i> Öne Çıkan
+    </div>
+    @endif
+</div>
 
 <h1 class="prd-title">{{ $item->title }}</h1>
 
