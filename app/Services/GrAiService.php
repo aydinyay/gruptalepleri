@@ -267,36 +267,27 @@ PROMPT;
 
     private function callGemini(string $apiKey, string $systemPrompt, array $history, string $userMessage): ?string
     {
-        // System prompt'u ilk user mesajı olarak gönder (en geniş model uyumluluğu)
-        $contents   = [];
-        $contents[] = ['role' => 'user',  'parts' => [['text' => $systemPrompt]]];
-        $contents[] = ['role' => 'model', 'parts' => [['text' => 'Anladım, hazırım.']]];
-
-        // Geçmiş mesajlar — mevcut user mesajı HARİÇ (DB'ye kaydedildi ama sona ekleyeceğiz)
-        // history: en eski → en yeni, son eleman az önce kaydedilen user mesajı
-        $historyWithoutLast = array_slice($history, 0, -1);
-
-        foreach ($historyWithoutLast as $msg) {
-            $geminiRole = $msg['role'] === 'user' ? 'user' : 'model';
-            // Ardışık aynı rol varsa model için boş echo ekle (Gemini alternan ister)
-            if (! empty($contents) && end($contents)['role'] === $geminiRole) {
-                $filler = $geminiRole === 'user' ? 'model' : 'user';
-                $contents[] = ['role' => $filler, 'parts' => [['text' => '...']]];
+        // Geçmiş mesajları (mevcut user mesajı hariç) metin olarak göm
+        $historyText = '';
+        $past = array_slice($history, 0, -1); // son eleman = az önce kaydedilen user mesajı
+        if (! empty($past)) {
+            $historyText .= "\n\nSOHBET GEÇMİŞİ:\n";
+            foreach ($past as $msg) {
+                $who          = $msg['role'] === 'user' ? 'Kullanıcı' : 'GR';
+                $historyText .= "{$who}: {$msg['message']}\n";
             }
-            $contents[] = ['role' => $geminiRole, 'parts' => [['text' => $msg['message']]]];
+            $historyText .= "\n";
         }
 
-        // Mevcut kullanıcı mesajı (son)
-        if (! empty($contents) && end($contents)['role'] === 'user') {
-            $contents[] = ['role' => 'model', 'parts' => [['text' => '...']]];
-        }
-        $contents[] = ['role' => 'user', 'parts' => [['text' => $userMessage]]];
+        $fullPrompt = $systemPrompt . $historyText
+            . "\nKullanıcının şu anki mesajı: \"{$userMessage}\"\n"
+            . "\nYanıtını SADECE JSON olarak ver: {\"reply\":\"...\",\"learn\":[],\"products\":[]}";
 
         try {
             $response = Http::timeout(12)->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/" . self::GEMINI_MODEL . ":generateContent?key={$apiKey}",
                 [
-                    'contents'         => $contents,
+                    'contents'         => [['parts' => [['text' => $fullPrompt]]]],
                     'generationConfig' => [
                         'temperature'     => 0.85,
                         'maxOutputTokens' => 600,
@@ -305,7 +296,7 @@ PROMPT;
             );
 
             if (! $response->successful()) {
-                Log::warning('GrAiService Gemini HTTP ' . $response->status() . ': ' . mb_substr($response->body(), 0, 300));
+                Log::warning('GrAiService Gemini HTTP ' . $response->status() . ': ' . mb_substr($response->body(), 0, 400));
                 return null;
             }
 
