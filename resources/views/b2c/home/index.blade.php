@@ -1057,9 +1057,23 @@
             inSearch = true;
             cancelAll(); // mevcut animasyonu anında kes
 
-            // Beklerken b2'ye küçük bir "..." göster
-            elB1.textContent = 'Arıyorum…';
-            elB2.textContent = '';
+            // Beklerken esprili bir "selamlama" göster
+            var greetings = [
+                ['Şimdi benimle', 'konuşmanın yolunu çözdün.'],
+                ['Ohoo, yazmaya', 'başladın demek.'],
+                ['Güzel, dinliyorum.', 'Devam et…'],
+                ['Merak ettim,', 'ne arıyorsun?'],
+                ['Gel bakalım,', 'seni duyuyorum.'],
+                ['Hm, ilginç bir', 'arama bu.'],
+                ['Sabırsızlandım,', 'devam et.'],
+                ['Hop, fark ettim.', 'Söyle bakalım…'],
+            ];
+            var g = greetings[Math.floor(Math.random() * greetings.length)];
+            cancelAll();
+            elB1.textContent = g[0];
+            elB2.textContent = g[1];
+            elAlt.textContent = '';
+            elAlt.style.opacity = '0';
 
             reactDebounce = setTimeout(function() {
                 fetch('/api/b2c/hero-react?q=' + encodeURIComponent(q))
