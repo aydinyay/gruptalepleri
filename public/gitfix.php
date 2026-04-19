@@ -61,6 +61,16 @@ if (($_GET['action'] ?? '') === 'seed') {
     exit;
 }
 
+// Laravel log — son 80 satır
+if (($_GET['action'] ?? '') === 'log') {
+    header('Content-Type: text/plain; charset=utf-8');
+    $logFile = "$webRoot/storage/logs/laravel.log";
+    if (!file_exists($logFile)) { echo "Log dosyası bulunamadı."; exit; }
+    $lines = file($logFile);
+    echo implode('', array_slice($lines, -80));
+    exit;
+}
+
 // Compiled view diagnostiği
 if (($_GET['action'] ?? '') === 'diag') {
     header('Content-Type: text/plain');
