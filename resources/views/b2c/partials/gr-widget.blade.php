@@ -68,6 +68,7 @@
 }
 .gr-msg.assistant .gr-bubble {
     background: #f1f5f9; color: #1a202c; border-bottom-left-radius: 4px;
+    border: 1px solid #e2e8f0;
 }
 .gr-msg.user .gr-bubble {
     background: linear-gradient(135deg, #f4a418, #e8890a);
