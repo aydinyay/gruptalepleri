@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class GrAiService
 {
-    private const GEMINI_MODEL = 'gemini-2.0-flash-lite';
+    private const GEMINI_MODEL = 'gemini-1.5-flash';
     private const MAX_HISTORY  = 12; // son kaç mesaj context'e girer
 
     // ── Ana giriş noktası ────────────────────────────────────────────────────
