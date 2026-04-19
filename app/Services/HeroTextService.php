@@ -11,29 +11,29 @@ class HeroTextService
 {
     private static array $fallbacks = [
         [
-            'baslik1' => 'Keşfedin, karşılaştırın,',
-            'baslik2' => 'rezervasyon yapın.',
-            'alt'     => "Transfer'den charter'a, dinner cruise'dan yat kiralama'ya — hepsi burada.",
+            'baslik1' => 'Boğaz\'da akşam olmak',
+            'baslik2' => 'başka bir şeydir.',
+            'alt'     => 'Yat turundan dinner cruise\'a, transferden charter\'a — tam istediğiniz gibi.',
         ],
         [
-            'baslik1' => 'Türkiye\'nin dört bir yanında',
-            'baslik2' => 'grup seyahati burada.',
-            'alt'     => 'Havalimanı transferinden özel yat turuna — en iyi grup fiyatları için doğru adres.',
+            'baslik1' => 'Plan yok mu?',
+            'baslik2' => 'Düzeltelim.',
+            'alt'     => 'Tekne, tur, özel jet, viski tadımı... Grubunuz için ne lazımsa burada.',
         ],
         [
-            'baslik1' => 'Grubunuzla unutulmaz',
-            'baslik2' => 'anlar yaratın.',
-            'alt'     => 'Dinner cruise, tur, charter ve daha fazlası — tek platformda, en uygun fiyatla.',
+            'baslik1' => 'Hafta sonu bu kadar mı?',
+            'baslik2' => 'Olmaz öyle.',
+            'alt'     => 'Dinner cruise\'dan Kapadokya turuna dakikalar içinde rezervasyon.',
         ],
         [
-            'baslik1' => 'Her grup için özel',
-            'baslik2' => 'seyahat çözümleri.',
-            'alt'     => 'İstanbul\'dan Kapadokya\'ya, transferden yat turuna — grubunuza özel fiyatlar burada.',
+            'baslik1' => 'Özel hissettirmek için',
+            'baslik2' => 'doğru yerdesiniz.',
+            'alt'     => 'Yat, charter, transfer ve daha fazlası — grubunuza özel fiyatlarla.',
         ],
         [
-            'baslik1' => 'Seyahat planlamak',
-            'baslik2' => 'artık çok kolay.',
-            'alt'     => 'Türkiye\'nin en büyük grup seyahat platformunda tüm aktiviteler tek tıkla.',
+            'baslik1' => 'Akşamı kurtarmak mı,',
+            'baslik2' => 'haftayı mı?',
+            'alt'     => 'Dinner cruise\'dan özel jet\'e, tek platform — anında rezervasyon.',
         ],
     ];
 
@@ -80,7 +80,7 @@ class HeroTextService
 
     public function getHeroText(array $ctx): array
     {
-        $key = 'hero_' . md5(implode('|', [
+        $key = 'hero_v3_' . md5(implode('|', [
             $ctx['zaman']         ?? '',
             $ctx['gun']           ?? '',
             $ctx['mevsim']        ?? '',
@@ -221,52 +221,70 @@ class HeroTextService
 
     private function buildPrompt(array $ctx): string
     {
-        $lines = [
-            "Sen gruprezervasyonlari.com için anasayfa hero metni yazıyorsun.",
-            "Bu, Türkiye'nin lider grup seyahat platformudur (yat, transfer, tur, dinner cruise, charter vb.).",
-            "",
-            "BAĞLAM:",
-            "- Zaman: {$ctx['zaman']} ({$ctx['gun']})",
-            "- Mevsim: {$ctx['mevsim']}",
-        ];
+        $bağlam = [];
+        $bağlam[] = "Zaman: {$ctx['zaman']} ({$ctx['gun']})";
+        $bağlam[] = "Mevsim: {$ctx['mevsim']}";
 
         if ($ctx['haftasonu_yak']) {
-            $lines[] = "- Hafta sonu yaklaşıyor (Perşembe/Cuma)";
+            $bağlam[] = "Hafta sonu yaklaşıyor";
         }
         if (in_array($ctx['gun_tur'] ?? '', ['cumartesi', 'pazar'])) {
-            $lines[] = "- Bugün hafta sonu";
+            $bağlam[] = "Bugün hafta sonu";
         }
         if ($ctx['ozel_gun']) {
-            $lines[] = "- Özel gün: {$ctx['ozel_gun']}";
+            $bağlam[] = "Özel gün: {$ctx['ozel_gun']}";
         }
         if ($ctx['ad'] && $ctx['cinsiyet'] !== 'bilinmiyor') {
-            $unvan  = $ctx['cinsiyet'] === 'erkek' ? 'Bey' : 'Hanım';
-            $lines[] = "- Giriş yapmış kullanıcı: {$ctx['ad']} {$unvan}";
+            $unvan    = $ctx['cinsiyet'] === 'erkek' ? 'Bey' : 'Hanım';
+            $bağlam[] = "Kullanıcı: {$ctx['ad']} {$unvan} (giriş yapmış)";
         } elseif ($ctx['ad']) {
-            $lines[] = "- Giriş yapmış kullanıcı: {$ctx['ad']}";
+            $bağlam[] = "Kullanıcı: {$ctx['ad']} (giriş yapmış)";
         }
         if ($ctx['son_kategori']) {
-            $lines[] = "- Son baktığı kategori: {$ctx['son_kategori']}";
+            $bağlam[] = "Az önce baktığı: {$ctx['son_kategori']}";
         }
         if ($ctx['sehir']) {
-            $lines[] = "- Kullanıcı şehri: {$ctx['sehir']}";
+            $bağlam[] = "Şehir: {$ctx['sehir']}";
         }
 
-        $lines = array_merge($lines, [
-            "",
-            "KISITLAR:",
-            "- baslik1: maksimum 32 karakter, merak uyandırıcı, ilk satır",
-            "- baslik2: maksimum 28 karakter, turuncu vurgu rengiyle gösterilecek, güçlü kapanış",
-            "- alt: maksimum 85 karakter, platformun çeşitliliğini/avantajını 1 cümlede yansıt",
-            "- Ton: sıcak, samimi, keşif odaklı (satış baskısı yok)",
-            "- Dil: Türkçe, doğal akıcı",
-            "- Kişisel hitap varsa doğal kullan, yoksa genel yaz",
-            "",
-            "SADECE geçerli JSON döndür, başka hiçbir şey yazma:",
-            '{"baslik1":"...","baslik2":"...","alt":"..."}',
-        ]);
+        $bağlamStr = implode("\n- ", $bağlam);
 
-        return implode("\n", $lines);
+        return <<<PROMPT
+Sen gruprezervasyonlari.com'un anasayfa hero başlığını yazıyorsun.
+Platform: Türkiye'nin lider grup seyahat sitesi — yat, tekne, dinner cruise, transfer, özel jet, tur, charter, viski tadımı ve daha fazlası.
+
+BAĞLAM:
+- {$bağlamStr}
+
+TON VE KİŞİLİK — BU ÇOK ÖNEMLİ:
+Zeki, espirili, kendi kendine güvenen bir ses. Reklam gibi değil, akıllı bir arkadaş gibi konuş.
+Sloganlar kısa, vurucu, beklenmedik olmalı. Okuyunca "evet aynen" ya da hafif gülümseme bırakmalı.
+Cümle yapısı alışılmadık olabilir. Soru sorabilir. Kontrast kurabilir. İma edebilir.
+
+ASLA YAPMA:
+- "Türkiye'nin lider..." gibi kurumsal laflar
+- "Burada bulabilirsiniz" / "hepsi burada" gibi bayat kapanışlar
+- "Grup seyahati" / "rezervasyon yapın" gibi generik ifadeler
+- İki satır aynı ritimde bitmesin ("...yanında / ...burada")
+- Klişe motivasyon sloganı ("Hayallerinizi yaşayın" vb.)
+
+İYİ ÖRNEKLER (ilham için, kopyalama):
+- "Boğaz'da akşam olmak / başka bir şeydir." / "Yat, cruise, transfer — tam zamanı."
+- "Cuma akşamı planı yok mu? / Düzeltelim." / "Dinner cruise'dan yat turuna, dakikalar içinde."
+- "Ayşe Hanım, geçen hafta / ne kaçırdınız biliyor musunuz?" / "Yat Turları kategorisine bakın deriz."
+- "Kış ortasında Boğaz turu / çılgın mı? Tam da öyle." / "Özel tekne, sıcak çorba, harika manzara."
+- "Plan değişti, program bozuldu mu? / Bizimkiler bozulmaz." / "Transfer'den charter'a anında rezervasyon."
+
+KISITLAR:
+- baslik1: maksimum 32 karakter
+- baslik2: maksimum 28 karakter (turuncu renkte gösterilecek, en kuvvetli kısım burası)
+- alt: maksimum 85 karakter, bağlamla ilgili, platforma özgü
+- Türkçe, doğal konuşma dili
+- Bağlamı kullan ama zorlamadan — doğal geliyorsa kişisel hitap ekle
+
+SADECE JSON döndür:
+{"baslik1":"...","baslik2":"...","alt":"..."}
+PROMPT;
     }
 
     private function randomFallback(): array

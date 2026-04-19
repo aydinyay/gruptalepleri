@@ -44,11 +44,13 @@
     line-height: 1.2;
     margin-bottom: .6rem;
     letter-spacing: -.02em;
+    min-height: calc(2.8rem * 1.2 * 2 + .6rem); /* 2 satır + margin — layout kilitli */
 }
 .gyg-hero .hero-sub {
     font-size: 1.15rem;
     color: rgba(255,255,255,.8);
     margin-bottom: 2rem;
+    min-height: calc(1.15rem * 1.6); /* 1 satır yüksekliği sabit */
 }
 
 /* Arama kutusu */
