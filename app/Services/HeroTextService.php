@@ -61,21 +61,21 @@ class HeroTextService
         'hacer','meral','münire','raziye','safiye','selma','ümran','vesile','zübeyde','kevser',
     ];
 
-    // Özel günler: [ay, gün] => açıklama
+    // Özel günler: "ay_gun" => açıklama
     private static array $specialDays = [
-        [1,  1]  => 'yilbasi',
-        [2,  14] => 'sevgililer_gunu',
-        [3,  8]  => 'kadinlar_gunu',
-        [4,  23] => 'cocuk_bayrami',
-        [5,  1]  => 'emek_bayrami',
-        [5,  19] => 'genclik_bayrami',
-        [6,  21] => 'yaz_gundonu',
-        [8,  30] => 'zafer_bayrami',
-        [10, 29] => 'cumhuriyet_bayrami',
-        [11, 10] => 'ataturk_anma',
-        [12, 24] => 'noel_arife',
-        [12, 25] => 'noel',
-        [12, 31] => 'yilbasi_arife',
+        '1_1'   => 'yilbasi',
+        '2_14'  => 'sevgililer_gunu',
+        '3_8'   => 'kadinlar_gunu',
+        '4_23'  => 'cocuk_bayrami',
+        '5_1'   => 'emek_bayrami',
+        '5_19'  => 'genclik_bayrami',
+        '6_21'  => 'yaz_gundonu',
+        '8_30'  => 'zafer_bayrami',
+        '10_29' => 'cumhuriyet_bayrami',
+        '11_10' => 'ataturk_anma',
+        '12_24' => 'noel_arife',
+        '12_25' => 'noel',
+        '12_31' => 'yilbasi_arife',
     ];
 
     public function getHeroText(array $ctx): array
@@ -134,7 +134,7 @@ class HeroTextService
         $haftasonuYak = in_array($dow, [4, 5]) ? true : false; // Perşembe veya Cuma
 
         // Özel gün
-        $ozelGun = static::$specialDays[[$month, $day]] ?? null;
+        $ozelGun = static::$specialDays["{$month}_{$day}"] ?? null;
 
         // Auth
         $user   = auth('b2c')->user();
