@@ -285,7 +285,7 @@ PROMPT;
 
         try {
             $response = Http::timeout(12)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/" . self::GEMINI_MODEL . ":generateContent?key={$apiKey}",
+                "https://generativelanguage.googleapis.com/v1/models/" . self::GEMINI_MODEL . ":generateContent?key={$apiKey}",
                 [
                     'contents'         => [['parts' => [['text' => $fullPrompt]]]],
                     'generationConfig' => [
