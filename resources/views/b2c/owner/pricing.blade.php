@@ -9,7 +9,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; overflow-x: hidden; }
 
 .page-subheader {
     background: linear-gradient(135deg, #0f2444, #1a3c6b);
@@ -55,7 +55,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
     padding: 10px 32px; font-size: .83rem;
 }
 
-.tbl-wrap { padding: 12px 24px 24px; overflow-x: auto; }
+.tbl-wrap { padding: 12px 16px 24px; overflow-x: auto; max-width: 100vw; }
 
 table {
     border-collapse: collapse;
@@ -101,9 +101,9 @@ tr:hover td { background: #f8faff; }
 .dot-on  { background: #22c55e; }
 .dot-off { background: #d1d5db; }
 
-.price-cell { min-width: 120px; }
+.price-cell { min-width: 100px; }
 .price-input {
-    width: 90px; padding: 4px 7px;
+    width: 78px; padding: 4px 5px;
     border: 1px solid #d1d5db; border-radius: 6px;
     font-size: .82rem; text-align: right;
     background: #fff;
@@ -115,7 +115,7 @@ tr:hover td { background: #f8faff; }
 }
 .curr-label { font-size: .72rem; color: #6b7280; margin-left: 3px; }
 
-.kazanc-cell { min-width: 90px; }
+.kazanc-cell { min-width: 72px; }
 .k-pos  { color: #15803d; font-weight: 700; }
 .k-neg  { color: #dc2626; font-weight: 700; }
 .k-na   { color: #9ca3af; font-style: italic; }
@@ -130,7 +130,7 @@ tr:hover td { background: #f8faff; }
 .marj-na    { background: #f3f4f6; color: #9ca3af; }
 
 .notes-input {
-    width: 110px; padding: 3px 6px;
+    width: 90px; padding: 3px 5px;
     border: 1px solid #d1d5db; border-radius: 6px;
     font-size: .72rem;
 }
@@ -171,7 +171,7 @@ tr:hover td { background: #f8faff; }
 </div>
 
 @php
-$published = $items->where('is_published', true);
+$published = $items->whereIn('publish_status', ['b2c', 'b2b']);
 $usdRate   = $usdKuru;
 $eurRate   = $eurKuru;
 

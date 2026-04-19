@@ -23,8 +23,8 @@ class OwnerDashboardController extends Controller
         }
 
         $items = CatalogItem::with('category')
+            ->orderByRaw("FIELD(publish_status,'b2c','b2b','draft')")
             ->orderBy('product_type')
-            ->orderByDesc('is_published')
             ->orderBy('title')
             ->get();
 
