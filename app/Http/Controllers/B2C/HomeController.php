@@ -19,7 +19,8 @@ class HomeController extends Controller
             ->rootCategories()
             ->ordered()
             ->withCount(['publishedItems'])
-            ->limit(8)
+            ->having('published_items_count', '>', 0)
+            ->limit(12)
             ->get();
 
         // Tüm yayındaki ürünler — öne çıkanlar önce
