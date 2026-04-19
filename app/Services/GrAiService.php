@@ -83,6 +83,7 @@ class GrAiService
         // Önerilen ürünlerin detaylarını çek
         $suggestedProducts = $this->fetchProductsBySlug($slugs);
 
+        Log::info('GrAi redirect: ' . ($redirect ?? 'null'));
         return [
             'reply'    => $reply,
             'products' => $suggestedProducts,
