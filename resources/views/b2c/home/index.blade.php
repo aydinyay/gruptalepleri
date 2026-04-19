@@ -1043,59 +1043,85 @@
     }
 
     // --- Arama tepkisi ---
+    var greetings = [
+        ['Şimdi benimle', 'konuşmanın yolunu çözdün.'],
+        ['Ohoo, yazmaya', 'başladın demek.'],
+        ['Güzel, dinliyorum.', 'Devam et…'],
+        ['Merak ettim,', 'ne arıyorsun?'],
+        ['Gel bakalım,', 'seni duyuyorum.'],
+        ['Hm, ilginç bir', 'arama bu.'],
+        ['Sabırsızlandım,', 'devam et.'],
+        ['Hop, fark ettim.', 'Söyle bakalım…'],
+    ];
+    var lastShownQ = ''; // hangi query için API zaten çağrıldı
+
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             var q = this.value.trim();
             clearTimeout(reactDebounce);
-            clearTimeout(rotateTimer); // rotasyonu durdur
+            clearTimeout(rotateTimer);
 
             if (q.length < 3) {
-                inSearch = false;
+                if (inSearch) {
+                    inSearch = false;
+                    cancelAll();
+                    lastShownQ = '';
+                    showHero(pool[currentIdx], function() { startRotation(); });
+                }
                 return;
             }
 
             inSearch = true;
-            cancelAll(); // mevcut animasyonu anında kes
 
-            // Beklerken esprili bir "selamlama" göster
-            var greetings = [
-                ['Şimdi benimle', 'konuşmanın yolunu çözdün.'],
-                ['Ohoo, yazmaya', 'başladın demek.'],
-                ['Güzel, dinliyorum.', 'Devam et…'],
-                ['Merak ettim,', 'ne arıyorsun?'],
-                ['Gel bakalım,', 'seni duyuyorum.'],
-                ['Hm, ilginç bir', 'arama bu.'],
-                ['Sabırsızlandım,', 'devam et.'],
-                ['Hop, fark ettim.', 'Söyle bakalım…'],
-            ];
-            var g = greetings[Math.floor(Math.random() * greetings.length)];
-            cancelAll();
-            elB1.textContent = g[0];
-            elB2.textContent = g[1];
-            elAlt.textContent = '';
-            elAlt.style.opacity = '0';
+            // Sadece yeni bir kelime yazıldıysa greeting göster
+            if (q !== lastShownQ) {
+                cancelAll();
+                var g = greetings[Math.floor(Math.random() * greetings.length)];
+                elB1.textContent = g[0];
+                elB2.textContent = g[1];
+                elAlt.style.opacity = '0';
+            }
 
+            // 1200ms durunca (gerçek "yazmayı bitirdi") AI'yi çağır
             reactDebounce = setTimeout(function() {
+                if (!inSearch) return;
+                var reactGen = gen; // bu çağrıyı iptal etmek için
+
+                // Beklenirken "bakıyorum" hissi — alt satırda
+                elAlt.textContent = '…bakıyorum';
+                elAlt.style.opacity = '0.5';
+
                 fetch('/api/b2c/hero-react?q=' + encodeURIComponent(q))
                     .then(function(r) { return r.ok ? r.json() : null; })
                     .then(function(data) {
+                        if (!inSearch || reactGen !== gen) return;
+                        lastShownQ = q;
+                        cancelAll();
+                        var show = (data && data.baslik1) ? data : {
+                            baslik1: 'Aradım, baktım,',
+                            baslik2: 'ilginç şeyler var.',
+                            alt: 'Kategorilere göz at — istediğini mutlaka bulursun.'
+                        };
+                        showHero(show, function() { /* rotasyon başlamaz */ });
+                    })
+                    .catch(function() {
                         if (!inSearch) return;
                         cancelAll();
-                        showHero(data && data.baslik1 ? data : pool[currentIdx], function() {
-                            // tepki gösterildi, rotasyon başlamaz (kullanıcı hâlâ kutuda)
-                        });
-                    })
-                    .catch(function() {});
-            }, 420); // daha hızlı debounce
+                        showHero({
+                            baslik1: 'Aradım, baktım,',
+                            baslik2: 'ilginç şeyler var.',
+                            alt: 'Kategorilere göz at — istediğini mutlaka bulursun.'
+                        }, function() {});
+                    });
+            }, 1200);
         });
 
         searchInput.addEventListener('blur', function() {
             clearTimeout(reactDebounce);
             inSearch = false;
+            lastShownQ = '';
             cancelAll();
-            showHero(pool[currentIdx], function() {
-                startRotation();
-            });
+            showHero(pool[currentIdx], function() { startRotation(); });
         });
     }
 
