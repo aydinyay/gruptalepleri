@@ -11,6 +11,7 @@ use App\Http\Controllers\B2C\OrderController;
 use App\Http\Controllers\B2C\SupplierApplyController;
 use App\Http\Controllers\B2C\OwnerDashboardController;
 use App\Http\Controllers\B2C\QuickLeadController;
+use App\Http\Controllers\B2C\GrChatController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -94,6 +95,11 @@ Route::get('/api/b2c/hero-react', function (\Illuminate\Http\Request $request) {
     $result = (new \App\Services\HeroTextService())->heroReact($q, $productContext);
     return response()->json($result);
 })->name('b2c.api.hero-react');
+
+// ── GR AI Asistan ─────────────────────────────────────────────────────────
+Route::post('/api/b2c/gr-chat',         [GrChatController::class, 'chat'])->name('b2c.api.gr-chat');
+Route::post('/api/b2c/gr-merge',        [GrChatController::class, 'mergeGuestMemory'])->name('b2c.api.gr-merge');
+Route::post('/api/b2c/gr-clear',        [GrChatController::class, 'clearHistory'])->name('b2c.api.gr-clear');
 
 // ── Hero Şehir Güncelleme (Geolocation) ───────────────────────────────────
 Route::post('/api/b2c/hero-city', function (\Illuminate\Http\Request $request) {

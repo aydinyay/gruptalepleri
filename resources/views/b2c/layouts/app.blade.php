@@ -1246,5 +1246,7 @@ function grtWishlistToggle(btn) {
     .catch(function(){});
 }
 </script>
+{{-- GR AI Asistan — tüm sayfalarda tek widget, sayfa değişiminden etkilenmez --}}
+@include('b2c.partials.gr-widget')
 </body>
 </html>
