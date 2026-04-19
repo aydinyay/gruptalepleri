@@ -89,7 +89,7 @@
     width: 100%; box-sizing: border-box;
 }
 .gr-product-card {
-    background: #2a4d7a; border: 1px solid #3a6099; border-radius: 10px;
+    background: #ffffff; border: 1px solid #3a6099; border-radius: 10px;
     padding: 7px 9px; display: flex; gap: 8px; align-items: center;
     text-decoration: none; transition: border-color .15s;
     width: 100%; box-sizing: border-box; overflow: hidden;
@@ -101,10 +101,10 @@
 }
 .gr-product-card .gr-card-info { flex: 1; min-width: 0; overflow: hidden; }
 .gr-product-card .gr-card-title {
-    font-size: .75rem; font-weight: 600; color: #e8f0fb;
+    font-size: .75rem; font-weight: 600; color: #1a202c;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.gr-product-card .gr-card-sub { font-size: .68rem; color: #8aaed4; }
+.gr-product-card .gr-card-sub { font-size: .68rem; color: #64748b; }
 .gr-product-card .gr-card-price { font-size: .75rem; font-weight: 700; color: #f4a418; white-space: nowrap; flex-shrink: 0; }
 
 #gr-footer {
