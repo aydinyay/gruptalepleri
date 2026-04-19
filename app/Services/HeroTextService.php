@@ -102,7 +102,7 @@ class HeroTextService
 
     public function heroReact(string $query): array
     {
-        $cacheKey = 'hero_react_' . md5(mb_strtolower(trim($query)));
+        $cacheKey = 'hero_react_v2_' . md5(mb_strtolower(trim($query)));
 
         return Cache::remember($cacheKey, 3600, function () use ($query) {
             return $this->callGeminiReact($query) ?? $this->randomFallback();
@@ -216,18 +216,25 @@ class HeroTextService
         if (! $key) return null;
 
         $prompt = <<<PROMPT
-Kullanıcı gruprezervasyonlari.com'da arama kutusuna "{$query}" yazıyor.
-Platform: yat, tekne, dinner cruise, transfer, özel jet, tur, charter, viski tadımı — Türkiye'nin lider grup seyahat sitesi.
+Kullanıcı gruprezervasyonlari.com'da arama kutusuna "{$query}" yazdı.
+Platform: yat, tekne, dinner cruise, havalimanı transferi, özel jet, Boğaz turu, charter, viski tadımı, Kapadokya turu — Türkiye'nin lider grup seyahat sitesi.
 
-Kullanıcının aradığı şeye "ah, o mu?" der gibi zeki, meraklı, hafif esprili bir hero başlığı yaz.
-Sanki ekrandan kullanıcıyı izliyormuş gibi — samimi, sürpriz, beklenmedik.
-Soru sorabilir, ipucu verebilir, hafifçe heyecanlanabilir.
+Sana düşen görev: bu aramayı görünce heyecanlanan, tatil seven, seyahat aşığı bir arkadaş gibi tepki ver.
+Sanki az önce mesaj gelmiş ve "ooo!" diyeceksin.
+Cümle bir soru OLABİLİR, ama olmak zorunda değil. Sürpriz, merak, hafif kıskançlık, heves — bunlar olabilir.
+
+ÖRNEK YAKLAŞIMLAR (kopyalama ama ilham al):
+- "yat" → "Yat tatili mi özledin?" / "Rüzgar bile seni bekliyor."
+- "yat" → "Yatı görünce içim sıkıştı." / "Hadi rezervasyonu at!"
+- "transfer" → "Havalimanında bekleme devri bitti." / "Araç kapıda, sen hazır ol."
+- "dinner" → "Akşam yemeğini Boğaz'da yesene." / "Masa senin, Boğaz manzarası bedava."
 
 KISITLAR:
-- baslik1: max 32 karakter
-- baslik2: max 28 karakter (turuncu vurgu, en güçlü kısım)
-- alt: max 85 karakter, "{$query}" ile ilgili, platforma özgü
-- Türkçe, doğal, konuşma dili
+- baslik1: max 32 karakter, sıcak ve kişisel
+- baslik2: max 28 karakter, turuncu vurgu — punch line burası, en güçlü kısım
+- alt: max 85 karakter, "{$query}" temasıyla platforma özgü bir ipucu ya da çağrı
+- Türkçe, günlük konuşma dili, ama zekice
+- Asla kurumsal, asla "burada bulabilirsiniz", asla "hepsi burada"
 
 SADECE JSON döndür:
 {"baslik1":"...","baslik2":"...","alt":"..."}
