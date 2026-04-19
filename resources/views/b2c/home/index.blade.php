@@ -971,7 +971,6 @@
 (function() {
     var poolEl = document.getElementById('hero-pool-data');
     if (!poolEl) return;
-
     var pool;
     try { pool = JSON.parse(poolEl.textContent); } catch(e) { return; }
     if (!pool || !pool.length) return;
@@ -981,90 +980,66 @@
     var elAlt = document.getElementById('hero-alt');
     var searchInput = document.getElementById('heroSearchInput');
 
-    var SPEED      = 40;   // ms/karakter
-    var PAUSE      = 160;  // satırlar arası
-    var ROTATE_MS  = 20000; // 20sn rotasyon
-    var ERASE_SPEED = 22;  // backspace hızı
+    var SPEED      = 40;
+    var ROTATE_MS  = 20000;
 
+    var gen           = 0;   // her yeni animasyon jenerasyonu — eski tick'ler kendini durdurur
     var currentIdx    = 0;
-    var typing        = false;
     var rotateTimer   = null;
     var reactDebounce = null;
-    var reacting      = false;
+    var inSearch      = false;
 
-    // --- Yardımcı: karakter yaz ---
-    function typeText(el, text, done) {
-        var i = el.textContent.length; // kaldığı yerden başla (erase sonrası 0 olur)
+    // --- Animasyonu anında iptal et, metinleri temizle ---
+    function cancelAll() {
+        gen++;
+        elAlt.style.opacity = '0';
+    }
+
+    // --- Karakter karakter yaz (gen kontrolü ile) ---
+    function typeText(myGen, el, text, done) {
+        el.textContent = '';
+        var i = 0;
         function tick() {
+            if (myGen !== gen) return; // iptal edildi
+            el.textContent = text.slice(0, i++);
             if (i <= text.length) {
-                el.textContent = text.slice(0, i++);
-                setTimeout(tick, SPEED + (Math.random() * 16 - 8));
-            } else { done && done(); }
+                setTimeout(tick, SPEED + (Math.random() * 14 - 7));
+            } else {
+                done && done(myGen);
+            }
         }
-        tick();
+        setTimeout(tick, 0);
     }
 
-    // --- Yardımcı: sil (backspace) ---
-    function eraseText(el, done) {
-        function tick() {
-            if (el.textContent.length > 0) {
-                el.textContent = el.textContent.slice(0, -1);
-                setTimeout(tick, ERASE_SPEED);
-            } else { done && done(); }
-        }
-        tick();
-    }
-
-    // --- Tam hero metni yaz ---
+    // --- Hero göster: b1 → b2 → alt ---
     function showHero(item, onFinish) {
-        typing = true;
+        var myGen = gen;
         elAlt.style.opacity = '0';
-        typeText(elB1, item.baslik1, function() {
+        typeText(myGen, elB1, item.baslik1, function(g) {
+            if (g !== gen) return;
             setTimeout(function() {
-                typeText(elB2, item.baslik2, function() {
-                    setTimeout(function() {
-                        elAlt.textContent = item.alt;
-                        elAlt.style.opacity = '1';
-                        typing = false;
-                        onFinish && onFinish();
-                    }, 120);
+                if (gen !== myGen) return;
+                typeText(myGen, elB2, item.baslik2, function(g2) {
+                    if (g2 !== gen) return;
+                    elAlt.textContent = item.alt;
+                    elAlt.style.opacity = '1';
+                    onFinish && onFinish();
                 });
-            }, PAUSE);
-        });
-    }
-
-    // --- Önce sil, sonra yeni metni yaz ---
-    function changeHero(item) {
-        if (typing) return;
-        typing = true;
-        clearRotation();
-        elAlt.style.opacity = '0';
-        eraseText(elB2, function() {
-            eraseText(elB1, function() {
-                setTimeout(function() {
-                    showHero(item, function() {
-                        if (!reacting) startRotation();
-                    });
-                }, 120);
-            });
+            }, 160);
         });
     }
 
     // --- Rotasyon ---
     function startRotation() {
-        clearRotation();
-        rotateTimer = setTimeout(function rotate() {
-            if (!reacting && !typing) {
-                currentIdx = (currentIdx + 1) % pool.length;
-                changeHero(pool[currentIdx]);
-            } else {
-                rotateTimer = setTimeout(rotate, ROTATE_MS);
-            }
+        clearTimeout(rotateTimer);
+        rotateTimer = setTimeout(function() {
+            if (inSearch) return;
+            currentIdx = (currentIdx + 1) % pool.length;
+            cancelAll();
+            showHero(pool[currentIdx], function() {
+                startRotation();
+            });
         }, ROTATE_MS);
-    }
-
-    function clearRotation() {
-        if (rotateTimer) { clearTimeout(rotateTimer); rotateTimer = null; }
     }
 
     // --- Arama tepkisi ---
@@ -1072,30 +1047,45 @@
         searchInput.addEventListener('input', function() {
             var q = this.value.trim();
             clearTimeout(reactDebounce);
-            clearRotation(); // kullanıcı yazarken rotasyon durur
+            clearTimeout(rotateTimer); // rotasyonu durdur
 
-            if (q.length < 3) return;
+            if (q.length < 3) {
+                inSearch = false;
+                return;
+            }
 
-            reacting = true;
+            inSearch = true;
+            cancelAll(); // mevcut animasyonu anında kes
+
+            // Beklerken b2'ye küçük bir "..." göster
+            elB1.textContent = 'Arıyorum…';
+            elB2.textContent = '';
+
             reactDebounce = setTimeout(function() {
                 fetch('/api/b2c/hero-react?q=' + encodeURIComponent(q))
                     .then(function(r) { return r.ok ? r.json() : null; })
                     .then(function(data) {
-                        if (data && data.baslik1) changeHero(data);
+                        if (!inSearch) return;
+                        cancelAll();
+                        showHero(data && data.baslik1 ? data : pool[currentIdx], function() {
+                            // tepki gösterildi, rotasyon başlamaz (kullanıcı hâlâ kutuda)
+                        });
                     })
                     .catch(function() {});
-            }, 700);
+            }, 420); // daha hızlı debounce
         });
 
-        // Kutudan çıkınca rotasyonu sıfırdan başlat
         searchInput.addEventListener('blur', function() {
             clearTimeout(reactDebounce);
-            reacting = false;
-            if (!typing) startRotation();
+            inSearch = false;
+            cancelAll();
+            showHero(pool[currentIdx], function() {
+                startRotation();
+            });
         });
     }
 
-    // --- İlk yükleme ---
+    // --- Başlangıç ---
     showHero(pool[0], function() {
         startRotation();
     });
