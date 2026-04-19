@@ -58,11 +58,19 @@ class GrAiService
             return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
         }
 
-        // JSON parse
+        // JSON parse — kesik gelirse regex ile reply'ı kurtar
         $data  = json_decode($raw, true);
-        $reply = is_array($data) && isset($data['reply']) ? $data['reply'] : $raw;
-        $learn = is_array($data) && isset($data['learn']) ? (array) $data['learn'] : [];
-        $slugs = is_array($data) && isset($data['products']) ? (array) $data['products'] : [];
+        if (is_array($data) && isset($data['reply'])) {
+            $reply = $data['reply'];
+            $learn = isset($data['learn']) ? (array) $data['learn'] : [];
+            $slugs = isset($data['products']) ? (array) $data['products'] : [];
+        } elseif (preg_match('/"reply"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/su', $raw, $m)) {
+            $reply = stripslashes($m[1]);
+            $learn = [];
+            $slugs = [];
+        } else {
+            return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
+        }
 
         // Yanıtı kaydet
         GrAiSession::addMessage($userId, $guestUuid, 'assistant', $reply, $slugs ?: null);
@@ -301,8 +309,7 @@ PROMPT;
                     'contents'         => [['parts' => [['text' => $fullPrompt]]]],
                     'generationConfig' => [
                         'temperature'     => 0.85,
-                        'maxOutputTokens' => 1200,
-                        'responseMimeType' => 'application/json',
+                        'maxOutputTokens' => 2048,
                     ],
                 ]
             );
