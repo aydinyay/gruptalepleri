@@ -100,12 +100,14 @@ class HeroTextService
         });
     }
 
-    public function heroReact(string $query): array
+    public function heroReact(string $query, string $productContext = ''): array
     {
-        $cacheKey = 'hero_react_v2_' . md5(mb_strtolower(trim($query)));
+        // Cache key product context'e göre farklılaşır (aynı sorgu, farklı ürün = farklı yanıt)
+        $cacheKey = 'hero_react_v3_' . md5(mb_strtolower(trim($query)) . '|' . $productContext);
+        $ttl = $productContext ? 900 : 3600; // ürün verisi varsa 15dk, yoksa 1saat
 
-        return Cache::remember($cacheKey, 3600, function () use ($query) {
-            return $this->callGeminiReact($query) ?? $this->randomFallback();
+        return Cache::remember($cacheKey, $ttl, function () use ($query, $productContext) {
+            return $this->callGeminiReact($query, $productContext) ?? $this->randomFallback();
         });
     }
 
@@ -210,21 +212,29 @@ class HeroTextService
         return 'bilinmiyor';
     }
 
-    private function callGeminiReact(string $query): ?array
+    private function callGeminiReact(string $query, string $productContext = ''): ?array
     {
         $key = config('services.gemini.key');
         if (! $key) return null;
 
-        $prompt = <<<PROMPT
-Kullanıcı gruprezervasyonlari.com'da arama kutusuna "{$query}" yazdı.
-Platform: yat, tekne, dinner cruise, havalimanı transferi, özel jet, Boğaz turu, charter, viski tadımı, Kapadokya turu — Türkiye'nin lider grup seyahat sitesi.
+        $productSection = $productContext
+            ? "\nPLATFORMDA BULUNAN EŞLEŞEN ÜRÜNLER (bunlara doğal biçimde değin, tarih/fiyat gerçekse kullan):\n{$productContext}\n"
+            : '';
 
-Sana düşen görev: bu aramayı görünce heyecanlanan, tatil seven, seyahat aşığı bir arkadaş gibi tepki ver.
-Sanki az önce mesaj gelmiş ve "ooo!" diyeceksin.
-Cümle bir soru OLABİLİR, ama olmak zorunda değil. Sürpriz, merak, hafif kıskançlık, heves — bunlar olabilir.
+        $noMatchNote = str_contains($productContext, 'eşleşen ürün bulunamadı')
+            ? "\nBu arama için sistemde ürün yok — ama platformun diğer zenginliklerine yönlendir.\n"
+            : '';
+
+        $prompt = <<<PROMPT
+Kullanıcı gruprezervasyonlari.com'da arama kutusuna "{$query}" yazdı ve aramayı bitirdi.
+Platform: yat, tekne, dinner cruise, havalimanı transferi, özel jet, Boğaz turu, charter, viski tadımı, Kapadokya turu — Türkiye'nin lider grup seyahat sitesi.
+{$productSection}{$noMatchNote}
+Sana düşen görev: aramayı görünce heyecanlanan, tatil seven, seyahat aşığı bir arkadaş gibi tepki ver.
+Eğer gerçek ürün/tarih verisi verilmişse — bunu doğal biçimde cümleye yedir. ("3 gün sonra seans var", fiyat vs.)
+Eğer ürün yoksa — başka neler olduğundan hafifçe bahset.
 
 ÖRNEK YAKLAŞIMLAR (kopyalama ama ilham al):
-- "yat" → "Yat tatili mi özledin?" / "Rüzgar bile seni bekliyor."
+- "bursa turu" (3 gün sonra seans var) → "3 gün sonra Bursa'dasın." / "Erken kalanın yeri var."
 - "yat" → "Yatı görünce içim sıkıştı." / "Hadi rezervasyonu at!"
 - "transfer" → "Havalimanında bekleme devri bitti." / "Araç kapıda, sen hazır ol."
 - "dinner" → "Akşam yemeğini Boğaz'da yesene." / "Masa senin, Boğaz manzarası bedava."
@@ -232,7 +242,7 @@ Cümle bir soru OLABİLİR, ama olmak zorunda değil. Sürpriz, merak, hafif kı
 KISITLAR:
 - baslik1: max 32 karakter, sıcak ve kişisel
 - baslik2: max 28 karakter, turuncu vurgu — punch line burası, en güçlü kısım
-- alt: max 85 karakter, "{$query}" temasıyla platforma özgü bir ipucu ya da çağrı
+- alt: max 85 karakter, "{$query}" temasıyla platforma özgü bir ipucu ya da çağrı (varsa gerçek tarihi/fiyatı yansıt)
 - Türkçe, günlük konuşma dili, ama zekice
 - Asla kurumsal, asla "burada bulabilirsiniz", asla "hepsi burada"
 
