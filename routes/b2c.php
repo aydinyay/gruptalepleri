@@ -36,7 +36,62 @@ Route::get('/api/b2c/hero-react', function (\Illuminate\Http\Request $request) {
     if (mb_strlen($q) < 3 || mb_strlen($q) > 80) {
         return response()->json(['ok' => false], 400);
     }
-    $result = (new \App\Services\HeroTextService())->heroReact($q);
+
+    // Veritabanından eşleşen ürünleri çek — tam ifade + her kelime ayrı aranır
+    $words = array_filter(preg_split('/\s+/', mb_strtolower($q)), fn($w) => mb_strlen($w) >= 3);
+    $items = \App\Models\B2C\CatalogItem::published()
+        ->where(function($query) use ($q, $words) {
+            $query->where('title', 'like', "%{$q}%")
+                  ->orWhere('destination_city', 'like', "%{$q}%")
+                  ->orWhere('short_desc', 'like', "%{$q}%");
+            foreach ($words as $word) {
+                $query->orWhere('title', 'like', "%{$word}%")
+                      ->orWhere('destination_city', 'like', "%{$word}%");
+            }
+        })
+        ->with('category')
+        ->limit(5)
+        ->get(['id','title','destination_city','base_price','currency','pricing_type','duration_days','duration_hours','product_subtype']);
+
+    // Yaklaşan seansları çek (varsa)
+    $itemIds = $items->pluck('id')->all();
+    $sessions = collect();
+    if (count($itemIds)) {
+        $sessions = \App\Models\B2C\CatalogSession::whereIn('catalog_item_id', $itemIds)
+            ->upcoming()
+            ->orderBy('starts_at')
+            ->limit(3)
+            ->get(['catalog_item_id','starts_at','available_seats']);
+    }
+
+    // Ürün özetini metin olarak hazırla
+    $productContext = '';
+    $productCount   = $items->count();
+    if ($items->isEmpty()) {
+        $productContext = "SONUÇ: '{$q}' için platformda hiç ürün yok.";
+    } else {
+        $now = \Carbon\Carbon::now('Europe/Istanbul');
+        $lines = [];
+        foreach ($items as $item) {
+            $line = "• {$item->title}";
+            if ($item->destination_city) $line .= " ({$item->destination_city})";
+            if ($item->base_price)       $line .= " — " . number_format($item->base_price, 0, ',', '.') . " {$item->currency}";
+            if ($item->duration_days)    $line .= ", {$item->duration_days} gün";
+            elseif ($item->duration_hours) $line .= ", {$item->duration_hours} saat";
+
+            $sess = $sessions->firstWhere('catalog_item_id', $item->id);
+            if ($sess) {
+                $diff = (int) $now->diffInDays($sess->starts_at, false);
+                if ($diff === 0)  $line .= " ← BUGÜN SEANS VAR!";
+                elseif ($diff === 1) $line .= " ← YARIN SEANS!";
+                elseif ($diff > 0)   $line .= " ← {$diff} gün sonra seans";
+            }
+            $lines[] = $line;
+        }
+        $productContext = "SONUÇ: '{$q}' için {$productCount} ürün bulundu:\n" . implode("\n", $lines);
+    }
+
+    $result = (new \App\Services\HeroTextService())->heroReact($q, $productContext);
     return response()->json($result);
 })->name('b2c.api.hero-react');
 

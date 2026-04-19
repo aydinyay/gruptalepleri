@@ -1043,17 +1043,23 @@
     }
 
     // --- Arama tepkisi ---
-    var greetings = [
-        ['Şimdi benimle', 'konuşmanın yolunu çözdün.'],
-        ['Ohoo, yazmaya', 'başladın demek.'],
-        ['Güzel, dinliyorum.', 'Devam et…'],
-        ['Merak ettim,', 'ne arıyorsun?'],
-        ['Gel bakalım,', 'seni duyuyorum.'],
-        ['Hm, ilginç bir', 'arama bu.'],
-        ['Sabırsızlandım,', 'devam et.'],
-        ['Hop, fark ettim.', 'Söyle bakalım…'],
-    ];
-    var lastShownQ = ''; // hangi query için API zaten çağrıldı
+    var lastShownQ = '';
+
+    function reactFallback() {
+        return { baslik1: 'Baktım, bakıyorum,', baslik2: 'buluyorum hemen.', alt: 'Kategorilere göz at — aradığını mutlaka bulursun.' };
+    }
+
+    // Yazarken anlık gösterim: query'yi yansıt
+    function showTypingHint(q) {
+        cancelAll();
+        // b1: sorgunun ilk 2 kelimesi + "…" (max 32 kar)
+        var words = q.split(' ');
+        var hint  = words.slice(0, 2).join(' ');
+        if (hint.length > 28) hint = hint.substring(0, 27);
+        elB1.textContent = hint + '…';
+        elB2.textContent = 'bakıyorum hemen.';
+        elAlt.style.opacity = '0';
+    }
 
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -1072,23 +1078,14 @@
             }
 
             inSearch = true;
+            showTypingHint(q); // anlık: "Sapanca Turu… / bakıyorum hemen."
 
-            // Sadece yeni bir kelime yazıldıysa greeting göster
-            if (q !== lastShownQ) {
-                cancelAll();
-                var g = greetings[Math.floor(Math.random() * greetings.length)];
-                elB1.textContent = g[0];
-                elB2.textContent = g[1];
-                elAlt.style.opacity = '0';
-            }
-
-            // 1200ms durunca (gerçek "yazmayı bitirdi") AI'yi çağır
+            // 1000ms durunca AI çağır
             reactDebounce = setTimeout(function() {
                 if (!inSearch) return;
-                var reactGen = gen; // bu çağrıyı iptal etmek için
+                var reactGen = ++gen; // bu fetch'e özel nesil
 
-                // Beklenirken "bakıyorum" hissi — alt satırda
-                elAlt.textContent = '…bakıyorum';
+                elAlt.textContent = '…kontrol ediyorum';
                 elAlt.style.opacity = '0.5';
 
                 fetch('/api/b2c/hero-react?q=' + encodeURIComponent(q))
@@ -1097,23 +1094,14 @@
                         if (!inSearch || reactGen !== gen) return;
                         lastShownQ = q;
                         cancelAll();
-                        var show = (data && data.baslik1) ? data : {
-                            baslik1: 'Aradım, baktım,',
-                            baslik2: 'ilginç şeyler var.',
-                            alt: 'Kategorilere göz at — istediğini mutlaka bulursun.'
-                        };
-                        showHero(show, function() { /* rotasyon başlamaz */ });
+                        showHero((data && data.baslik1) ? data : reactFallback(), function() {});
                     })
                     .catch(function() {
-                        if (!inSearch) return;
+                        if (!inSearch || reactGen !== gen) return;
                         cancelAll();
-                        showHero({
-                            baslik1: 'Aradım, baktım,',
-                            baslik2: 'ilginç şeyler var.',
-                            alt: 'Kategorilere göz at — istediğini mutlaka bulursun.'
-                        }, function() {});
+                        showHero(reactFallback(), function() {});
                     });
-            }, 1200);
+            }, 1000);
         });
 
         searchInput.addEventListener('blur', function() {

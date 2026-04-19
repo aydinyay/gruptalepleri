@@ -103,7 +103,7 @@ class HeroTextService
     public function heroReact(string $query, string $productContext = ''): array
     {
         // Cache key product context'e göre farklılaşır (aynı sorgu, farklı ürün = farklı yanıt)
-        $cacheKey = 'hero_react_v3_' . md5(mb_strtolower(trim($query)) . '|' . $productContext);
+        $cacheKey = 'hero_react_v4_' . md5(mb_strtolower(trim($query)) . '|' . $productContext);
         $ttl = $productContext ? 900 : 3600; // ürün verisi varsa 15dk, yoksa 1saat
 
         return Cache::remember($cacheKey, $ttl, function () use ($query, $productContext) {
@@ -217,38 +217,55 @@ class HeroTextService
         $key = config('services.gemini.key');
         if (! $key) return null;
 
-        $productSection = $productContext
-            ? "\nPLATFORMDA BULUNAN EŞLEŞEN ÜRÜNLER (bunlara doğal biçimde değin, tarih/fiyat gerçekse kullan):\n{$productContext}\n"
-            : '';
+        $hasProducts = $productContext && !str_contains($productContext, 'hiç ürün yok');
 
-        $noMatchNote = str_contains($productContext, 'eşleşen ürün bulunamadı')
-            ? "\nBu arama için sistemde ürün yok — ama platformun diğer zenginliklerine yönlendir.\n"
-            : '';
+        if ($hasProducts) {
+            $prompt = <<<PROMPT
+Sen gruprezervasyonlari.com'un anasayfasında canlı izleyen bir asistansın.
+Kullanıcı az önce "{$query}" yazdı ve durdu. Sistemi kontrol ettin, şu sonuç çıktı:
 
-        $prompt = <<<PROMPT
-Kullanıcı gruprezervasyonlari.com'da arama kutusuna "{$query}" yazdı ve aramayı bitirdi.
-Platform: yat, tekne, dinner cruise, havalimanı transferi, özel jet, Boğaz turu, charter, viski tadımı, Kapadokya turu — Türkiye'nin lider grup seyahat sitesi.
-{$productSection}{$noMatchNote}
-Sana düşen görev: aramayı görünce heyecanlanan, tatil seven, seyahat aşığı bir arkadaş gibi tepki ver.
-Eğer gerçek ürün/tarih verisi verilmişse — bunu doğal biçimde cümleye yedir. ("3 gün sonra seans var", fiyat vs.)
-Eğer ürün yoksa — başka neler olduğundan hafifçe bahset.
+{$productContext}
 
-ÖRNEK YAKLAŞIMLAR (kopyalama ama ilham al):
-- "bursa turu" (3 gün sonra seans var) → "3 gün sonra Bursa'dasın." / "Erken kalanın yeri var."
-- "yat" → "Yatı görünce içim sıkıştı." / "Hadi rezervasyonu at!"
-- "transfer" → "Havalimanında bekleme devri bitti." / "Araç kapıda, sen hazır ol."
-- "dinner" → "Akşam yemeğini Boğaz'da yesene." / "Masa senin, Boğaz manzarası bedava."
+GÖREV: Kullanıcıya sanki sistemi az önce kontrol ettip bulmuşsun gibi SOMUT, kişisel cevap ver.
+- Kaç ürün/seçenek olduğunu SAY ("tam 2 tur var", "3 seçenek buldum" vb.)
+- Varsa tarihi/fiyatı cümleye yedir: "45 EUR'dan", "3 gün sonra kalkış" vb.
+- Ürünün adını/şehrini kısaltarak kullanabilirsin
+- Ton: az önce mesaj atmış heyecanlı bir arkadaş — "oha baktım!" enerji
+
+ASLA: "burada bulabilirsiniz", "rezervasyon yapın", klişe slogan, kurumsal laf
+
+ÖRNEKLER (kopyalama, sadece ilham):
+"Sapanca Turu" (2 tur var, 45 EUR) → baslik1:"Baktım, 2 Sapanca turun var." baslik2:"Fiyat da makul." alt:"45 EUR'dan başlıyor — hafta sonu güzel olur."
+"Boğaz Turu" (2 dinner cruise var, 55 EUR) → baslik1:"Boğaz için 2 seçenek var." baslik2:"Akşama karar ver." alt:"Alkolsüz veya alkollü — ikisi de 55 EUR civarı."
+"yat" (3 yat var) → baslik1:"Yat mı? 3 tane var." baslik2:"Hangisi sana yakın?" alt:"Günlük kiralama, Boğaz turu ve haftalık — hepsi burada."
 
 KISITLAR:
-- baslik1: max 32 karakter, sıcak ve kişisel
-- baslik2: max 28 karakter, turuncu vurgu — punch line burası, en güçlü kısım
-- alt: max 85 karakter, "{$query}" temasıyla platforma özgü bir ipucu ya da çağrı (varsa gerçek tarihi/fiyatı yansıt)
-- Türkçe, günlük konuşma dili, ama zekice
-- Asla kurumsal, asla "burada bulabilirsiniz", asla "hepsi burada"
+- baslik1: max 32 karakter
+- baslik2: max 28 karakter (turuncu renkte)
+- alt: max 85 karakter, somut bilgi içermeli
+- Türkçe, konuşma dili
+
+SADECE JSON döndür, başka hiçbir şey yazma:
+{"baslik1":"...","baslik2":"...","alt":"..."}
+PROMPT;
+        } else {
+            $prompt = <<<PROMPT
+Sen gruprezervasyonlari.com'un anasayfasında canlı izleyen bir asistansın.
+Kullanıcı "{$query}" yazdı ama bu terimle eşleşen ürün sistemde yok.
+
+Dürüstçe ve sempatikçe söyle — ama platformun zenginliğine yönlendir.
+"Tam bu isimde yok ama benzer şeyler var" veya "Henüz eklenmemiş, ama şunlara bak" gibi.
+
+KISITLAR:
+- baslik1: max 32 karakter
+- baslik2: max 28 karakter (turuncu)
+- alt: max 85 karakter, alternatif öner
+- Türkçe, dürüst ama pozitif
 
 SADECE JSON döndür:
 {"baslik1":"...","baslik2":"...","alt":"..."}
 PROMPT;
+        }
 
         try {
             $response = Http::timeout(6)->post(
