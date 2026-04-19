@@ -76,12 +76,33 @@ $priceLabel = match($subtype) {
 };
 @endphp
 <div class="prd-card" data-cat="{{ $catSlug }}">
-    <a href="{{ route('acente.product.show', $item->slug) }}" class="text-decoration-none" style="color:inherit;">
+    <a href="{{ route('acente.product.show', $item->slug) }}" class="text-decoration-none" style="color:inherit;position:relative;display:block;">
         @if($img)
         <img class="prd-card-img" src="{{ $img }}" alt="{{ $item->title }}">
         @else
         <div class="prd-card-img-ph"><i class="bi bi-image" style="font-size:2rem;color:#c7d2fe;"></i></div>
         @endif
+        @if($item->badge_label)
+        @php
+        $_idxClr = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626'];
+        $_idxIco = ['Yeni'=>'bi-stars','Popüler'=>'bi-fire','Vizyon'=>'bi-eye-fill','Son Fırsat'=>'bi-alarm-fill','İndirim'=>'bi-tag-fill','Sınırlı'=>'bi-exclamation-circle-fill'];
+        $_ic = $_idxClr[$item->badge_label] ?? '#1a3c6b';
+        $_ii = $_idxIco[$item->badge_label] ?? 'bi-bookmark-fill';
+        @endphp
+        <span style="position:absolute;top:10px;left:10px;background:{{ $_ic }};color:#fff;padding:4px 11px;border-radius:50px;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 6px rgba(0,0,0,.2);">
+            <i class="bi {{ $_ii }}"></i> {{ $item->badge_label }}
+        </span>
+        @endif
+        @if($item->is_featured)
+        <span style="position:absolute;top:10px;{{ $item->badge_label ? 'right' : 'left' }}:10px;background:#f59e0b;color:#fff;padding:4px 11px;border-radius:50px;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 6px rgba(0,0,0,.2);">
+            <i class="bi bi-star-fill"></i> Öne Çıkan
+        </span>
+        @endif
+        <button type="button" onclick="event.preventDefault();gtFavToggle(this,{{ $item->id }})"
+                class="gt-fav-btn"
+                style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:transform .15s;">
+            <i class="bi bi-heart" style="color:#e53e3e;"></i>
+        </button>
     </a>
     <div class="prd-card-body">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
@@ -139,6 +160,31 @@ $priceLabel = match($subtype) {
 @include('acente.partials.leisure-footer')
 @include('acente.partials.theme-script')
 <script>
+function gtFavToggle(btn, id) {
+    var key = 'gt_favs';
+    var favs = JSON.parse(localStorage.getItem(key) || '[]');
+    var idx  = favs.indexOf(id);
+    var icon = btn.querySelector('i');
+    if (idx >= 0) {
+        favs.splice(idx, 1);
+        icon.className = 'bi bi-heart';
+        btn.title = 'Favorilere ekle';
+    } else {
+        favs.push(id);
+        icon.className = 'bi bi-heart-fill';
+        btn.title = 'Favorilerden çıkar';
+    }
+    localStorage.setItem(key, JSON.stringify(favs));
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var favs = JSON.parse(localStorage.getItem('gt_favs') || '[]');
+    document.querySelectorAll('.gt-fav-btn').forEach(function(btn) {
+        var id = parseInt(btn.getAttribute('onclick').match(/\d+/)[0]);
+        if (favs.indexOf(id) >= 0) {
+            btn.querySelector('i').className = 'bi bi-heart-fill';
+        }
+    });
+});
 function filterCat(btn) {
     document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');

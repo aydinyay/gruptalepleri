@@ -141,6 +141,16 @@ elseif ($_imgCount === 1){ $_galLayout = '1'; }
 elseif ($_imgCount === 2){ $_galLayout = '2'; }
 elseif ($_imgCount <= 4) { $_galLayout = '3'; }
 else                     { $_galLayout = '5'; }
+
+$_badgeColorMap = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626'];
+$_badgeIconMap  = ['Yeni'=>'bi-stars','Popüler'=>'bi-fire','Vizyon'=>'bi-eye-fill','Son Fırsat'=>'bi-alarm-fill','İndirim'=>'bi-tag-fill','Sınırlı'=>'bi-exclamation-circle-fill'];
+$_bl    = $item->badge_label ?? null;
+$_blClr = $_bl ? ($_badgeColorMap[$_bl] ?? '#1a3c6b') : '';
+$_blIco = $_bl ? ($_badgeIconMap[$_bl]  ?? 'bi-bookmark-fill') : '';
+$badgeOverlay = $_bl
+    ? '<div style="position:absolute;top:14px;left:14px;z-index:10;background:'.$_blClr.';color:#fff;padding:5px 13px;border-radius:50px;font-size:.8rem;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.25);"><i class="bi '.$_blIco.'"></i> '.e($_bl).'</div>'
+    : '';
+$heartBtn = '<button type="button" onclick="gtFavToggle(this,'.$item->id.')" class="gt-fav-btn-detail" title="Favorilere ekle" style="position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid #e5e5e5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:transform .15s;z-index:10;"><i class="bi bi-heart" style="color:#e53e3e;"></i></button>';
 @endphp
 
 {{-- Lightbox --}}
@@ -159,11 +169,13 @@ else                     { $_galLayout = '5'; }
 @if($_galLayout === '1')
 <div class="prd-gal-gyg lay-1">
     <img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)">
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 @elseif($_galLayout === '2')
 <div class="prd-gal-gyg lay-2">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 @elseif($_galLayout === '3')
 <div class="prd-gal-gyg lay-3">
@@ -171,6 +183,7 @@ else                     { $_galLayout = '5'; }
     @foreach(array_slice($_imgs, 1, 3) as $_ri => $_rs)
     <div class="prd-gal-thumb" onclick="prdLbOpen({{ $_ri + 1 }})"><img src="{{ $_rs }}" alt="{{ $item->title }}"></div>
     @endforeach
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 @elseif($_galLayout === '5')
 <div class="prd-gal-gyg lay-5">
@@ -184,6 +197,7 @@ else                     { $_galLayout = '5'; }
     </div>
     @endforeach
     <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})</button>
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 @else
 @php $_vidSrc = $_videos[0]; $_vidOrigIdx = array_search($_vidSrc, $_imgs); @endphp
@@ -207,6 +221,7 @@ else                     { $_galLayout = '5'; }
     </div>
     @endforeach
     <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-play-circle"></i> Tüm medya ({{ $_imgCount }})</button>
+    {!! $badgeOverlay !!}{!! $heartBtn !!}
 </div>
 @endif
 </div>
@@ -253,9 +268,21 @@ $supplierInitials = collect(explode(' ', $supplierName))->filter()->take(2)->map
 
 {{-- Sol: Ürün Detayı --}}
 <div>
-@if($item->category)
-<div class="prd-badge"><i class="bi {{ $item->category->icon ?? 'bi-grid' }}"></i> {{ $item->category->name }}</div>
-@endif
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;">
+    @if($item->category)
+    <div class="prd-badge" style="margin-bottom:0;"><i class="bi {{ $item->category->icon ?? 'bi-grid' }}"></i> {{ $item->category->name }}</div>
+    @endif
+    @if($_bl)
+    <div style="display:inline-flex;align-items:center;gap:5px;background:{{ $_blClr }};color:#fff;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:50px;letter-spacing:.04em;">
+        <i class="bi {{ $_blIco }}"></i> {{ $_bl }}
+    </div>
+    @endif
+    @if($item->is_featured)
+    <div style="display:inline-flex;align-items:center;gap:5px;background:#f59e0b;color:#fff;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:50px;">
+        <i class="bi bi-star-fill"></i> Öne Çıkan
+    </div>
+    @endif
+</div>
 
 <h1 class="prd-title">{{ $item->title }}</h1>
 
@@ -495,6 +522,24 @@ function grtCopyLink() {
         setTimeout(function(){ btn.innerHTML='<i class="bi bi-link-45deg"></i>'; btn.style.background=''; btn.style.color=''; }, 2200);
     }).catch(function(){ window.prompt('Linki kopyala:', window.location.href); });
 }
+function gtFavToggle(btn, id) {
+    var key  = 'gt_favs';
+    var favs = JSON.parse(localStorage.getItem(key) || '[]');
+    var idx  = favs.indexOf(id);
+    var icon = btn.querySelector('i');
+    if (idx >= 0) { favs.splice(idx,1); icon.className='bi bi-heart'; btn.title='Favorilere ekle'; }
+    else          { favs.push(id);      icon.className='bi bi-heart-fill'; btn.title='Favorilerden çıkar'; }
+    localStorage.setItem(key, JSON.stringify(favs));
+    btn.style.transform = 'scale(1.3)';
+    setTimeout(function(){ btn.style.transform=''; }, 200);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var favs = JSON.parse(localStorage.getItem('gt_favs') || '[]');
+    document.querySelectorAll('.gt-fav-btn-detail').forEach(function(btn) {
+        var m = (btn.getAttribute('onclick') || '').match(/\d+/);
+        if (m && favs.indexOf(parseInt(m[0])) >= 0) btn.querySelector('i').className = 'bi bi-heart-fill';
+    });
+});
 var _b2bPrice = {{ (float)($b2bPrice ?? 0) }};
 var _currency = '{{ $item->currency }}';
 function b2bCalc(pax) {
