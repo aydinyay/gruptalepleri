@@ -1072,35 +1072,26 @@
         searchInput.addEventListener('input', function() {
             var q = this.value.trim();
             clearTimeout(reactDebounce);
+            clearRotation(); // kullanıcı yazarken rotasyon durur
 
-            if (q.length < 3) {
-                if (reacting) {
-                    reacting = false;
-                    changeHero(pool[currentIdx]);
-                }
-                return;
-            }
+            if (q.length < 3) return;
 
             reacting = true;
-            clearRotation();
-
             reactDebounce = setTimeout(function() {
                 fetch('/api/b2c/hero-react?q=' + encodeURIComponent(q))
                     .then(function(r) { return r.ok ? r.json() : null; })
                     .then(function(data) {
-                        if (data && data.baslik1) {
-                            changeHero(data);
-                        }
+                        if (data && data.baslik1) changeHero(data);
                     })
                     .catch(function() {});
             }, 700);
         });
 
+        // Kutudan çıkınca rotasyonu sıfırdan başlat
         searchInput.addEventListener('blur', function() {
-            if (!this.value.trim()) {
-                reacting = false;
-                startRotation();
-            }
+            clearTimeout(reactDebounce);
+            reacting = false;
+            if (!typing) startRotation();
         });
     }
 
