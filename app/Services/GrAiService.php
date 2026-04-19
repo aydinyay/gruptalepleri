@@ -24,6 +24,16 @@ class GrAiService
      */
     public function chat(string $message, ?int $userId, string $guestUuid): array
     {
+        try {
+            return $this->doChat($message, $userId, $guestUuid);
+        } catch (\Throwable $e) {
+            Log::error('GrAiService::chat fatal: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
+            return $this->errorReply('Bir hata oluştu, birazdan tekrar dene.');
+        }
+    }
+
+    private function doChat(string $message, ?int $userId, string $guestUuid): array
+    {
         $apiKey = config('services.gemini.key');
         if (! $apiKey) {
             return $this->errorReply('Yapay zeka şu an çevrimdışı.');
@@ -111,8 +121,13 @@ class GrAiService
         $user = \App\Models\B2C\B2cUser::find($userId);
         if (! $user) return [];
 
-        $ad       = explode(' ', trim($user->name))[0];
-        $cinsiyet = HeroTextService::buildContext()['cinsiyet'] ?? 'bilinmiyor';
+        $ad = explode(' ', trim($user->name))[0];
+
+        // Basit cinsiyet tespiti (erkek/kadın isimleri)
+        $maleNames   = ['ahmet','mehmet','mustafa','ali','hüseyin','emre','burak','murat','kaan','serkan','fatih','hakan','ömer','ibrahim','aydın'];
+        $femaleNames = ['ayşe','fatma','zeynep','elif','emine','selin','merve','büşra','damla','cansu','gizem','ceren','ece','aslı','güneş'];
+        $nameL    = mb_strtolower($ad, 'UTF-8');
+        $cinsiyet = in_array($nameL, $maleNames) ? 'erkek' : (in_array($nameL, $femaleNames) ? 'kadın' : 'bilinmiyor');
 
         return [
             'ad'       => $ad,
@@ -250,33 +265,37 @@ PROMPT;
 
     private function callGemini(string $apiKey, string $systemPrompt, array $history, string $userMessage): ?string
     {
-        // Gemini contents formatına çevir
-        $contents = [];
+        // System prompt'u ilk user mesajı olarak gönder (en geniş model uyumluluğu)
+        $contents   = [];
+        $contents[] = ['role' => 'user',  'parts' => [['text' => $systemPrompt]]];
+        $contents[] = ['role' => 'model', 'parts' => [['text' => 'Anladım, hazırım.']]];
 
-        // Geçmiş mesajlar (kullanıcı + model sıralı)
-        foreach ($history as $msg) {
-            // Son mesajı (az önce kaydettiğimiz user mesajı) ekleme — zaten sona eklenecek
-            if ($msg['role'] === 'user' && $msg['message'] === $userMessage) continue;
+        // Geçmiş mesajlar — mevcut user mesajı HARİÇ (DB'ye kaydedildi ama sona ekleyeceğiz)
+        // history: en eski → en yeni, son eleman az önce kaydedilen user mesajı
+        $historyWithoutLast = array_slice($history, 0, -1);
 
-            $contents[] = [
-                'role'  => $msg['role'] === 'user' ? 'user' : 'model',
-                'parts' => [['text' => $msg['message']]],
-            ];
+        foreach ($historyWithoutLast as $msg) {
+            $geminiRole = $msg['role'] === 'user' ? 'user' : 'model';
+            // Ardışık aynı rol varsa model için boş echo ekle (Gemini alternan ister)
+            if (! empty($contents) && end($contents)['role'] === $geminiRole) {
+                $filler = $geminiRole === 'user' ? 'model' : 'user';
+                $contents[] = ['role' => $filler, 'parts' => [['text' => '...']]];
+            }
+            $contents[] = ['role' => $geminiRole, 'parts' => [['text' => $msg['message']]]];
         }
 
-        // Son kullanıcı mesajı
-        $contents[] = [
-            'role'  => 'user',
-            'parts' => [['text' => $userMessage]],
-        ];
+        // Mevcut kullanıcı mesajı (son)
+        if (! empty($contents) && end($contents)['role'] === 'user') {
+            $contents[] = ['role' => 'model', 'parts' => [['text' => '...']]];
+        }
+        $contents[] = ['role' => 'user', 'parts' => [['text' => $userMessage]]];
 
         try {
-            $response = Http::timeout(10)->post(
+            $response = Http::timeout(12)->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/" . self::GEMINI_MODEL . ":generateContent?key={$apiKey}",
                 [
-                    'system_instruction' => ['parts' => [['text' => $systemPrompt]]],
-                    'contents'           => $contents,
-                    'generationConfig'   => [
+                    'contents'         => $contents,
+                    'generationConfig' => [
                         'temperature'     => 0.85,
                         'maxOutputTokens' => 600,
                     ],
@@ -284,7 +303,7 @@ PROMPT;
             );
 
             if (! $response->successful()) {
-                Log::warning('GrAiService Gemini error: ' . $response->status() . ' ' . $response->body());
+                Log::warning('GrAiService Gemini HTTP ' . $response->status() . ': ' . mb_substr($response->body(), 0, 300));
                 return null;
             }
 
