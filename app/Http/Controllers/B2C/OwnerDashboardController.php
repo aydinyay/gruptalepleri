@@ -46,7 +46,12 @@ class OwnerDashboardController extends Controller
             'gt_price'       => 'nullable|numeric|min:0',
             'base_price'     => 'nullable|numeric|min:0',
             'pricing_notes'  => 'nullable|string|max:500',
+            'publish_status' => 'nullable|in:draft,b2b,b2c',
         ]);
+
+        if (isset($data['publish_status'])) {
+            $data['is_published'] = ($data['publish_status'] === 'b2c');
+        }
 
         $item->update($data);
 

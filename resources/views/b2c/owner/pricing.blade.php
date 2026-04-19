@@ -149,6 +149,15 @@ tr:hover td { background: #f8faff; }
 }
 .cur-sel:focus { outline: none; border-color: #1a3c6b; }
 
+.status-sel {
+    padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 6px;
+    font-size: .75rem; background: #fff; color: #374151; min-width: 110px;
+}
+.status-sel:focus { outline: none; border-color: #1a3c6b; }
+.status-sel[data-current="b2c"] { border-color: #22c55e; background: #f0fdf4; color: #15803d; font-weight: 600; }
+.status-sel[data-current="b2b"] { border-color: #1a3c6b; background: #eef2ff; color: #1a3c6b; font-weight: 600; }
+.status-sel[data-current="draft"] { border-color: #d1d5db; color: #9ca3af; }
+
 .legend { display: flex; gap: 10px; align-items: center; padding: 12px 24px; font-size: .72rem; color: #6b7280; flex-wrap: wrap; }
 .legend span { padding: 2px 8px; border-radius: 4px; }
 .color-gt    { color: #1a6b3c; }
@@ -315,13 +324,11 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
                 <td><span class="type-badge type-{{ $item->product_type }}">{{ $item->product_type }}</span></td>
                 <td style="white-space:nowrap;">
                     @php $ps = $item->publish_status ?? ($item->is_published ? 'b2c' : 'draft'); @endphp
-                    @if($ps === 'b2c')
-                        <span class="status-dot dot-on"></span><span style="color:#15803d;font-weight:600;">GR Yayında</span>
-                    @elseif($ps === 'b2b')
-                        <span class="status-dot" style="background:#1a3c6b;"></span><span style="color:#1a3c6b;font-weight:600;">GT Yayında</span>
-                    @else
-                        <span class="status-dot dot-off"></span><span style="color:#9ca3af;">Taslak</span>
-                    @endif
+                    <select name="publish_status" class="status-sel" data-current="{{ $ps }}">
+                        <option value="draft"  {{ $ps === 'draft' ? 'selected' : '' }}>⬜ Taslak</option>
+                        <option value="b2b"    {{ $ps === 'b2b'   ? 'selected' : '' }}>🔵 GT Yayında</option>
+                        <option value="b2c"    {{ $ps === 'b2c'   ? 'selected' : '' }}>🟢 GR Yayında</option>
+                    </select>
                 </td>
                 <td>
                     <select name="currency" class="cur-sel">
@@ -442,6 +449,12 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
         if (m >= 15) return 'marj-chip marj-yellow';
         return 'marj-chip marj-red';
     }
+
+    document.querySelectorAll('.status-sel').forEach(function(sel) {
+        sel.addEventListener('change', function() {
+            sel.dataset.current = sel.value;
+        });
+    });
 
     document.querySelectorAll('form').forEach(function(form) {
         var costIn  = form.querySelector('[name="cost_price"]');
