@@ -11,27 +11,24 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
 
-.page-header {
+.page-subheader {
     background: linear-gradient(135deg, #0f2444, #1a3c6b);
     color: #fff;
-    padding: 18px 32px;
+    padding: 12px 24px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    gap: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
 }
-.page-header h1 { font-size: 1.05rem; font-weight: 700; }
-.page-header .sub { font-size: .72rem; opacity: .65; margin-top: 2px; }
+.page-subheader h1 { font-size: 1rem; font-weight: 700; margin: 0; }
+.page-subheader .sub { font-size: .7rem; opacity: .65; margin-top: 1px; }
 
 .summary-bar {
     background: #fff;
     border-bottom: 2px solid #e2e8f0;
-    padding: 14px 32px;
+    padding: 10px 24px;
     display: flex;
-    gap: 28px;
+    gap: 20px;
     flex-wrap: wrap;
     align-items: center;
 }
@@ -43,11 +40,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
 .kur-bar {
     background: #fffbeb;
     border-bottom: 1px solid #fde68a;
-    padding: 8px 32px;
-    font-size: .78rem;
+    padding: 6px 24px;
+    font-size: .75rem;
     color: #92400e;
     display: flex;
-    gap: 24px;
+    gap: 16px;
     align-items: center;
     flex-wrap: wrap;
 }
@@ -58,7 +55,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; }
     padding: 10px 32px; font-size: .83rem;
 }
 
-.tbl-wrap { padding: 20px 32px; overflow-x: auto; }
+.tbl-wrap { padding: 12px 24px 24px; overflow-x: auto; }
 
 table {
     border-collapse: collapse;
@@ -67,8 +64,8 @@ table {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 1px 8px rgba(0,0,0,.08);
-    font-size: .82rem;
-    min-width: 1100px;
+    font-size: .78rem;
+    min-width: 900px;
 }
 th {
     background: #1a3c6b;
@@ -133,9 +130,9 @@ tr:hover td { background: #f8faff; }
 .marj-na    { background: #f3f4f6; color: #9ca3af; }
 
 .notes-input {
-    width: 150px; padding: 4px 7px;
+    width: 110px; padding: 3px 6px;
     border: 1px solid #d1d5db; border-radius: 6px;
-    font-size: .75rem;
+    font-size: .72rem;
 }
 .notes-input:focus { outline: none; border-color: #1a3c6b; }
 
@@ -152,7 +149,7 @@ tr:hover td { background: #f8faff; }
 }
 .cur-sel:focus { outline: none; border-color: #1a3c6b; }
 
-.legend { display: flex; gap: 12px; align-items: center; padding: 16px 32px; font-size: .75rem; color: #6b7280; flex-wrap: wrap; }
+.legend { display: flex; gap: 10px; align-items: center; padding: 12px 24px; font-size: .72rem; color: #6b7280; flex-wrap: wrap; }
 .legend span { padding: 2px 8px; border-radius: 4px; }
 .color-gt    { color: #1a6b3c; }
 .color-gr    { color: #6b1a1a; }
@@ -165,10 +162,11 @@ tr:hover td { background: #f8faff; }
 
 <x-navbar-superadmin active="b2c" />
 
-<div class="page-header">
-    <div class="container-fluid px-4 py-3" style="background:linear-gradient(135deg,#0f2444,#1a3c6b);">
-        <h1 style="font-size:1.05rem;font-weight:700;color:#fff;margin:0;"><i class="bi bi-bar-chart-line-fill me-2"></i>Fiyat & Maliyet Analizi</h1>
-        <div style="font-size:.72rem;opacity:.65;color:#fff;margin-top:2px;">gruprezervasyonlari.com — Özel Yönetim Paneli</div>
+<div class="page-subheader">
+    <i class="bi bi-bar-chart-line-fill" style="font-size:1.1rem;opacity:.8;"></i>
+    <div>
+        <div class="h1">Fiyat & Maliyet Analizi</div>
+        <div class="sub">gruprezervasyonlari.com — Özel Yönetim Paneli</div>
     </div>
 </div>
 
@@ -209,9 +207,10 @@ foreach ($published as $item) {
 </div>
 
 @php
-$statPublished = $published->count();
-$statAll       = $items->count();
-$statFixed     = $items->where('pricing_type', 'fixed')->count();
+$statAll   = $items->count();
+$statGr    = $items->where('publish_status', 'b2c')->count();
+$statGt    = $items->where('publish_status', 'b2b')->count();
+$statFixed = $items->where('pricing_type', 'fixed')->count();
 @endphp
 
 <div class="summary-bar">
@@ -220,8 +219,12 @@ $statFixed     = $items->where('pricing_type', 'fixed')->count();
         <div class="stat-lbl">Toplam Ürün</div>
     </div>
     <div class="stat">
-        <div class="stat-val">{{ $statPublished }}</div>
-        <div class="stat-lbl">Yayında</div>
+        <div class="stat-val" style="color:#15803d;">{{ $statGr }}</div>
+        <div class="stat-lbl">GR Yayında</div>
+    </div>
+    <div class="stat">
+        <div class="stat-val" style="color:#1a3c6b;">{{ $statGt }}</div>
+        <div class="stat-lbl">GT Yayında</div>
     </div>
     <div class="stat">
         <div class="stat-val">{{ $statFixed }}</div>
@@ -311,8 +314,14 @@ $statFixed     = $items->where('pricing_type', 'fixed')->count();
                 </td>
                 <td><span class="type-badge type-{{ $item->product_type }}">{{ $item->product_type }}</span></td>
                 <td style="white-space:nowrap;">
-                    <span class="status-dot {{ $item->is_published ? 'dot-on' : 'dot-off' }}"></span>
-                    {{ $item->is_published ? 'Yayın' : 'Taslak' }}
+                    @php $ps = $item->publish_status ?? ($item->is_published ? 'b2c' : 'draft'); @endphp
+                    @if($ps === 'b2c')
+                        <span class="status-dot dot-on"></span><span style="color:#15803d;font-weight:600;">GR Yayında</span>
+                    @elseif($ps === 'b2b')
+                        <span class="status-dot" style="background:#1a3c6b;"></span><span style="color:#1a3c6b;font-weight:600;">GT Yayında</span>
+                    @else
+                        <span class="status-dot dot-off"></span><span style="color:#9ca3af;">Taslak</span>
+                    @endif
                 </td>
                 <td>
                     <select name="currency" class="cur-sel">
