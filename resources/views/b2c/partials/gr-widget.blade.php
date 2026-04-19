@@ -59,9 +59,9 @@
 #gr-messages::-webkit-scrollbar { width: 4px; }
 #gr-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 
-.gr-msg { display: flex; gap: 8px; max-width: 90%; }
-.gr-msg.user { align-self: flex-end; flex-direction: row-reverse; }
-.gr-msg.assistant { align-self: flex-start; }
+.gr-msg { display: flex; flex-direction: column; gap: 6px; max-width: 90%; }
+.gr-msg.user { align-self: flex-end; align-items: flex-end; }
+.gr-msg.assistant { align-self: flex-start; align-items: flex-start; }
 
 .gr-msg .gr-bubble {
     padding: 9px 13px; border-radius: 14px; font-size: .83rem; line-height: 1.45;
