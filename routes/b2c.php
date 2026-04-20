@@ -97,6 +97,9 @@ Route::get('/api/b2c/hero-react', function (\Illuminate\Http\Request $request) {
     return response()->json($result);
 })->name('b2c.api.hero-react');
 
+// ── Günün Sorusu ──────────────────────────────────────────────────────────
+Route::get('/api/b2c/daily-quiz', [\App\Http\Controllers\B2C\DailyQuizController::class, 'show'])->name('b2c.api.daily-quiz');
+
 // ── GR AI Asistan ─────────────────────────────────────────────────────────
 Route::post('/api/b2c/gr-chat',         [GrChatController::class, 'chat'])->name('b2c.api.gr-chat');
 Route::post('/api/b2c/gr-merge',        [GrChatController::class, 'mergeGuestMemory'])->name('b2c.api.gr-merge');

@@ -577,6 +577,7 @@
                 @foreach($allItems as $item)
                     @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? []])
                 @endforeach
+                <div>@include('b2c.partials.daily-quiz-widget')</div>
             @else
                 @php
                     $pcColors = [
