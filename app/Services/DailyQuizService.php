@@ -59,7 +59,7 @@ class DailyQuizService
             }
 
             $text = $response->json('candidates.0.content.parts.0.text', '');
-            Log::info('DailyQuiz raw: ' . mb_substr(str_replace("\n",'↵',$text), 0, 300));
+            Log::info('DailyQuiz raw[' . mb_strlen($text) . ']: ' . str_replace("\n",'↵',mb_substr($text, 0, 800)));
             $text = trim(preg_replace('/```json|```/i', '', $text));
             if (preg_match('/\{.*\}/s', $text, $m)) $text = $m[0];
 
