@@ -242,6 +242,11 @@
     top: 64px;
     z-index: 100;
 }
+@@media (max-width: 767px) {
+    .gyg-pills-wrap {
+        position: static;
+    }
+}
 .gyg-pills {
     max-width: 1280px;
     margin: 0 auto;
