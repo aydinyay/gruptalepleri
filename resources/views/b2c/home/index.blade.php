@@ -713,20 +713,25 @@
                     'izmir'             => '/images/destinasyonlar/populer_destinasyonlar_izmir.jpeg',
                 ];
                 $bgsMap = [
-                    'istanbul'=>'linear-gradient(160deg,#1a3c6b,#2d5282)',
-                    'antalya'=>'linear-gradient(160deg,#c05621,#dd6b20)',
-                    'bodrum'=>'linear-gradient(160deg,#2b6cb0,#3182ce)',
-                    'kapadokya'=>'linear-gradient(160deg,#6b2d1a,#9c4221)',
-                    'marmaris'=>'linear-gradient(160deg,#276749,#38a169)',
-                    'izmir'=>'linear-gradient(160deg,#553c9a,#6b46c1)',
-                    'sapanca'=>'linear-gradient(160deg,#276749,#38a169)',
-                    'bursa'=>'linear-gradient(160deg,#2b6cb0,#3182ce)',
-                    'istanbul, antalya'=>'linear-gradient(160deg,#1a3c6b,#c05621)',
+                    'istanbul'          => 'linear-gradient(160deg,#1a3c6b,#2d5282)',
+                    'antalya'           => 'linear-gradient(160deg,#c05621,#dd6b20)',
+                    'bodrum'            => 'linear-gradient(160deg,#2b6cb0,#3182ce)',
+                    'kapadokya'         => 'linear-gradient(160deg,#6b2d1a,#9c4221)',
+                    'marmaris'          => 'linear-gradient(160deg,#276749,#38a169)',
+                    'izmir'             => 'linear-gradient(160deg,#553c9a,#6b46c1)',
+                    'sapanca'           => 'linear-gradient(160deg,#276749,#38a169)',
+                    'bursa'             => 'linear-gradient(160deg,#2b6cb0,#3182ce)',
+                    'istanbul, antalya' => 'linear-gradient(160deg,#1a3c6b,#c05621)',
                 ];
+                $trNorm = fn($s) => str_replace(
+                    ['i̇','İ','ı','I','ş','Ş','ğ','Ğ','ü','Ü','ö','Ö','ç','Ç'],
+                    ['i', 'i','i','i','s','s','g','g','u','u','o','o','c','c'],
+                    mb_strtolower($s)
+                );
                 $dests = [];
                 if(isset($destinationCities) && $destinationCities->isNotEmpty()) {
-                    $dests = $destinationCities->take(5)->map(function($d) use($imgMap,$bgsMap) {
-                        $k   = mb_strtolower($d->destination_city);
+                    $dests = $destinationCities->take(5)->map(function($d) use($imgMap,$bgsMap,$trNorm) {
+                        $k   = $trNorm($d->destination_city);
                         $img = $imgMap[$k] ?? null;
                         $bg  = $img
                             ? 'url('.$img.') center/cover no-repeat'
