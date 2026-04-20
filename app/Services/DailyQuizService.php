@@ -40,30 +40,14 @@ class DailyQuizService
         $date  = Carbon::today()->locale('tr')->isoFormat('D MMMM YYYY');
         $model = config('services.gemini.text_model', 'gemini-2.5-flash');
 
-        $prompt = <<<PROMPT
-Sen GrupRezervasyonlari.com için günlük quiz sorusu üreten bir asistansın.
-Bugünün tarihi: {$date}.
-
-Dönüşümlü olarak; ya genel turizm/havacılık/coğrafya/seyahat YA DA doğrudan platformumuzun
-(GrupRezervasyonlari.com — Türkiye'nin lider grup seyahat sitesi; yat turu, dinner cruise,
-havalimanı transferi, özel jet, charter, Boğaz turu, Kapadokya turu, grup rezervasyonları)
-avantajlarını, özelliklerini ya da benzersiz tekliflerini anlatan zorlayıcı, ilgi çekici bir soru üret.
-
-Kurallar:
-- Soru Türkçe olacak, orta zorlukta
-- 3 şık olacak, sadece 1 doğru
-- Açıklama kısa ve bilgilendirici (max 2 cümle)
-
-SADECE JSON döndür, başka hiçbir şey yazma:
-{"question":"...","option_a":"...","option_b":"...","option_c":"...","correct_option":"a veya b veya c","explanation":"..."}
-PROMPT;
+        $prompt = "Tarih: {$date}. GrupRezervasyonlari.com (grup seyahat, yat, dinner cruise, transfer, özel jet) için Türkçe turizm/havacılık/seyahat sorusu üret. Orta zorluk, 3 şık, 1 doğru. Sadece JSON: {\"question\":\"...\",\"option_a\":\"...\",\"option_b\":\"...\",\"option_c\":\"...\",\"correct_option\":\"a\",\"explanation\":\"...\"}";
 
         try {
             $response = Http::timeout(15)->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
                 [
                     'contents'         => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => ['temperature' => 0.9, 'maxOutputTokens' => 400],
+                    'generationConfig' => ['temperature' => 0.9, 'maxOutputTokens' => 700],
                 ]
             );
 
