@@ -733,16 +733,15 @@
                     $dests = $destinationCities->take(5)->map(function($d) use($imgMap,$bgsMap,$trNorm) {
                         $k   = $trNorm($d->destination_city);
                         $img = $imgMap[$k] ?? null;
-                        $bg  = $img
-                            ? 'url('.$img.') center/cover no-repeat'
-                            : ($bgsMap[$k] ?? 'linear-gradient(160deg,#1a3c6b,#2d5282)');
-                        return ['name'=>$d->destination_city,'count'=>$d->cnt.' aktivite','bg'=>$bg,'sehir'=>$k,'hasImg'=>(bool)$img];
+                        $bg  = $bgsMap[$k] ?? 'linear-gradient(160deg,#1a3c6b,#2d5282)';
+                        return ['name'=>$d->destination_city,'count'=>$d->cnt.' aktivite','bg'=>$bg,'img'=>$img,'sehir'=>$k];
                     })->toArray();
                 }
             @endphp
             @foreach($dests as $dest)
-            <a href="{{ route('b2c.catalog.index') }}?sehir={{ $dest['sehir'] }}" class="gyg-dest-card">
-                <div class="dest-bg" style="background:{{ $dest['bg'] }};">
+            <a href="{{ route('b2c.catalog.index') }}?sehir={{ $dest['sehir'] }}" class="gyg-dest-card"
+               @if($dest['img']) style="background-image:url('{{ $dest['img'] }}');background-size:cover;background-position:center;" @endif>
+                <div class="dest-bg" style="background:{{ $dest['img'] ? 'linear-gradient(to top,rgba(0,0,0,.65) 0%,rgba(0,0,0,.1) 60%,transparent 100%)' : $dest['bg'] }};">
                     <div>
                         <div class="dest-name">{{ $dest['name'] }}</div>
                         <div class="dest-count">{{ $dest['count'] }}</div>
