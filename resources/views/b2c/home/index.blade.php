@@ -705,19 +705,33 @@
         </div>
         <div class="gyg-dest-grid">
             @php
-                $dests = [
-                    ['name'=>'İstanbul',  'count'=>'120+ aktivite', 'icon'=>'bi-buildings-fill', 'bg'=>'linear-gradient(160deg,#1a3c6b,#2d5282)', 'sehir'=>'istanbul'],
-                    ['name'=>'Antalya',   'count'=>'64 aktivite',   'icon'=>'bi-sun-fill',        'bg'=>'linear-gradient(160deg,#c05621,#dd6b20)', 'sehir'=>'antalya'],
-                    ['name'=>'Bodrum',    'count'=>'48 aktivite',   'icon'=>'bi-water',           'bg'=>'linear-gradient(160deg,#2b6cb0,#3182ce)', 'sehir'=>'bodrum'],
-                    ['name'=>'Kapadokya', 'count'=>'32 aktivite',   'icon'=>'bi-cloud-fill',      'bg'=>'linear-gradient(160deg,#6b2d1a,#9c4221)', 'sehir'=>'kapadokya'],
-                    ['name'=>'Marmaris',  'count'=>'28 aktivite',   'icon'=>'bi-tsunami',         'bg'=>'linear-gradient(160deg,#276749,#38a169)', 'sehir'=>'marmaris'],
+                $imgMap = [
+                    'istanbul'          => '/images/destinasyonlar/populer_destinasyonlar_istanbul.jfif',
+                    'sapanca'           => '/images/destinasyonlar/populer_destinasyonlar_sapanca.png',
+                    'bursa'             => '/images/destinasyonlar/populer_destinasyonlar_bursa.png',
+                    'istanbul, antalya' => '/images/destinasyonlar/populer_destinasyonlar_istanbul_antalya_kolaj.png',
+                    'izmir'             => '/images/destinasyonlar/populer_destinasyonlar_izmir.png',
                 ];
+                $bgsMap = [
+                    'istanbul'=>'linear-gradient(160deg,#1a3c6b,#2d5282)',
+                    'antalya'=>'linear-gradient(160deg,#c05621,#dd6b20)',
+                    'bodrum'=>'linear-gradient(160deg,#2b6cb0,#3182ce)',
+                    'kapadokya'=>'linear-gradient(160deg,#6b2d1a,#9c4221)',
+                    'marmaris'=>'linear-gradient(160deg,#276749,#38a169)',
+                    'izmir'=>'linear-gradient(160deg,#553c9a,#6b46c1)',
+                    'sapanca'=>'linear-gradient(160deg,#276749,#38a169)',
+                    'bursa'=>'linear-gradient(160deg,#2b6cb0,#3182ce)',
+                    'istanbul, antalya'=>'linear-gradient(160deg,#1a3c6b,#c05621)',
+                ];
+                $dests = [];
                 if(isset($destinationCities) && $destinationCities->isNotEmpty()) {
-                    $iconsMap = ['istanbul'=>'bi-buildings-fill','antalya'=>'bi-sun-fill','bodrum'=>'bi-water','kapadokya'=>'bi-cloud-fill','marmaris'=>'bi-tsunami','izmir'=>'bi-geo-alt-fill'];
-                    $bgsMap   = ['istanbul'=>'linear-gradient(160deg,#1a3c6b,#2d5282)','antalya'=>'linear-gradient(160deg,#c05621,#dd6b20)','bodrum'=>'linear-gradient(160deg,#2b6cb0,#3182ce)','kapadokya'=>'linear-gradient(160deg,#6b2d1a,#9c4221)','marmaris'=>'linear-gradient(160deg,#276749,#38a169)','izmir'=>'linear-gradient(160deg,#553c9a,#6b46c1)'];
-                    $dests = $destinationCities->take(5)->map(function($d) use($iconsMap,$bgsMap) {
-                        $k = mb_strtolower($d->destination_city);
-                        return ['name'=>$d->destination_city,'count'=>$d->cnt.' aktivite','icon'=>$iconsMap[$k]??'bi-geo-alt-fill','bg'=>$bgsMap[$k]??'linear-gradient(160deg,#1a3c6b,#2d5282)','sehir'=>$k];
+                    $dests = $destinationCities->take(5)->map(function($d) use($imgMap,$bgsMap) {
+                        $k   = mb_strtolower($d->destination_city);
+                        $img = $imgMap[$k] ?? null;
+                        $bg  = $img
+                            ? 'url('.$img.') center/cover no-repeat'
+                            : ($bgsMap[$k] ?? 'linear-gradient(160deg,#1a3c6b,#2d5282)');
+                        return ['name'=>$d->destination_city,'count'=>$d->cnt.' aktivite','bg'=>$bg,'sehir'=>$k,'hasImg'=>(bool)$img];
                     })->toArray();
                 }
             @endphp
@@ -729,7 +743,6 @@
                         <div class="dest-count">{{ $dest['count'] }}</div>
                     </div>
                 </div>
-                <div class="dest-icon"><i class="bi {{ $dest['icon'] }}"></i></div>
             </a>
             @endforeach
         </div>
