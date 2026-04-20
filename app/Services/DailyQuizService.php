@@ -47,25 +47,25 @@ class DailyQuizService
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
                 [
                     'contents'         => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => ['temperature' => 0.9, 'maxOutputTokens' => 700],
+                    'generationConfig' => [
+                        'temperature'      => 0.9,
+                        'maxOutputTokens'  => 800,
+                        'responseMimeType' => 'application/json',
+                    ],
                 ]
             );
 
-            Log::info('DailyQuiz HTTP: ' . $response->status() . ' body: ' . mb_substr($response->body(), 0, 300));
-
             if (! $response->successful()) {
-                Log::warning('DailyQuizService HTTP ' . $response->status() . ': ' . $response->body());
+                Log::warning('DailyQuizService HTTP ' . $response->status() . ': ' . mb_substr($response->body(), 0, 300));
                 return null;
             }
 
-            $text = $response->json('candidates.0.content.parts.0.text', '');
-            Log::info('DailyQuiz raw[' . mb_strlen($text) . ']: ' . str_replace("\n",'↵',mb_substr($text, 0, 800)));
-            $text = trim(preg_replace('/```json|```/i', '', $text));
-            if (preg_match('/\{.*\}/s', $text, $m)) $text = $m[0];
+            $text = trim($response->json('candidates.0.content.parts.0.text', ''));
+            Log::info('DailyQuiz raw: ' . str_replace("\n",'↵', mb_substr($text, 0, 500)));
 
             $data = json_decode($text, true);
             if (! is_array($data) || ! isset($data['question'], $data['correct_option'])) {
-                Log::warning('DailyQuiz parse fail: ' . $text);
+                Log::warning('DailyQuiz parse fail json_err=' . json_last_error() . ': ' . mb_substr($text, 0, 200));
                 return null;
             }
 
