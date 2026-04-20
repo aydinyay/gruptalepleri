@@ -706,11 +706,11 @@
         <div class="gyg-dest-grid">
             @php
                 $imgMap = [
-                    'istanbul'          => '/images/destinasyonlar/populer_destinasyonlar_istanbul.jfif',
-                    'sapanca'           => '/images/destinasyonlar/populer_destinasyonlar_sapanca.png',
-                    'bursa'             => '/images/destinasyonlar/populer_destinasyonlar_bursa.png',
-                    'istanbul, antalya' => '/images/destinasyonlar/populer_destinasyonlar_istanbul_antalya_kolaj.png',
-                    'izmir'             => '/images/destinasyonlar/populer_destinasyonlar_izmir.png',
+                    'istanbul'          => '/images/destinasyonlar/populer_destinasyonlar_istanbul.jpeg',
+                    'sapanca'           => '/images/destinasyonlar/populer_destinasyonlar_sapanca.jpeg',
+                    'bursa'             => '/images/destinasyonlar/populer_destinasyonlar_bursa.jpeg',
+                    'istanbul, antalya' => '/images/destinasyonlar/populer_destinasyonlar_istanbul_antalya_kolaj.jpeg',
+                    'izmir'             => '/images/destinasyonlar/populer_destinasyonlar_izmir.jpeg',
                 ];
                 $bgsMap = [
                     'istanbul'=>'linear-gradient(160deg,#1a3c6b,#2d5282)',
