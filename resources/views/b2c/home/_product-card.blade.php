@@ -93,7 +93,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
         @if($item->pricing_type === 'fixed' && $item->base_price)
             <div class="gyg-pcard-price-label">kişi başı itibaren</div>
             <div class="gyg-pcard-price">{{ number_format($item->base_price, 0, ',', '.') }} {{ $item->currency ?? 'TRY' }}</div>
-            <span class="gyg-pcard-cta">Rezervasyon Yap</span>
+            <span class="gyg-pcard-cta">İncele</span>
         @elseif($item->pricing_type === 'quote')
             <div class="gyg-pcard-price-label">Kişiye özel fiyat</div>
             <div class="gyg-pcard-price" style="font-size:.95rem;color:#718096;font-weight:600;">Fiyat Al</div>
