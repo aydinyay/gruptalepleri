@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\B2C\DailyQuizQuestion;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -11,27 +12,47 @@ class DailyQuizService
 {
     public function getToday(): ?array
     {
-        $existing = DailyQuizQuestion::today();
-        if ($existing) {
-            return $this->format($existing);
-        }
+        $today    = Carbon::today()->toDateString();
+        $cacheKey = 'daily_quiz_batch_' . $today;
 
-        $batch = $this->generateBatch();
+        $batch = Cache::remember($cacheKey, now()->endOfDay(), function () use ($today) {
+            $batch = $this->generateBatch();
+            if (! $batch) return null;
+
+            // DB kaydı yoksa ilk soruyu kaydet (schema uyumluluğu)
+            if (! DailyQuizQuestion::today()) {
+                try {
+                    DailyQuizQuestion::create([
+                        'quiz_date'      => $today,
+                        'question'       => $batch[0]['question'],
+                        'option_a'       => $batch[0]['option_a'],
+                        'option_b'       => $batch[0]['option_b'],
+                        'option_c'       => $batch[0]['option_c'],
+                        'correct_option' => strtolower($batch[0]['correct_option']),
+                        'explanation'    => $batch[0]['explanation'],
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('DailyQuiz DB insert skip: ' . $e->getMessage());
+                }
+            }
+
+            return $batch;
+        });
+
         if (! $batch) return null;
 
-        $first = $batch[0];
-        $record = DailyQuizQuestion::create([
-            'quiz_date'      => Carbon::today()->toDateString(),
-            'question'       => $first['question'],
-            'option_a'       => $first['option_a'],
-            'option_b'       => $first['option_b'],
-            'option_c'       => $first['option_c'],
-            'correct_option' => strtolower($first['correct_option']),
-            'explanation'    => $first['explanation'],
-            'batch_json'     => json_encode($batch, JSON_UNESCAPED_UNICODE),
-        ]);
-
-        return $this->format($record);
+        return [
+            'questions' => array_map(fn($item) => [
+                'question' => $item['question'],
+                'options'  => [
+                    'a' => $item['option_a'],
+                    'b' => $item['option_b'],
+                    'c' => $item['option_c'],
+                ],
+                'correct'     => strtolower($item['correct_option']),
+                'explanation' => $item['explanation'],
+            ], $batch),
+        ];
     }
 
     private function generateBatch(): ?array
@@ -78,35 +99,4 @@ class DailyQuizService
         }
     }
 
-    private function format(DailyQuizQuestion $q): array
-    {
-        $batch = null;
-        if ($q->batch_json) {
-            $batch = json_decode($q->batch_json, true);
-        }
-
-        if (! $batch || count($batch) < 2) {
-            $batch = [[
-                'question'       => $q->question,
-                'option_a'       => $q->option_a,
-                'option_b'       => $q->option_b,
-                'option_c'       => $q->option_c,
-                'correct_option' => $q->correct_option,
-                'explanation'    => $q->explanation,
-            ]];
-        }
-
-        return [
-            'questions' => array_map(fn($item) => [
-                'question' => $item['question'],
-                'options'  => [
-                    'a' => $item['option_a'],
-                    'b' => $item['option_b'],
-                    'c' => $item['option_c'],
-                ],
-                'correct'     => strtolower($item['correct_option']),
-                'explanation' => $item['explanation'],
-            ], $batch),
-        ];
-    }
 }
