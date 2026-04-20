@@ -67,21 +67,27 @@ PROMPT;
                 ]
             );
 
+            Log::info('DailyQuiz HTTP: ' . $response->status() . ' body: ' . mb_substr($response->body(), 0, 300));
+
             if (! $response->successful()) {
-                Log::warning('DailyQuizService HTTP ' . $response->status());
+                Log::warning('DailyQuizService HTTP ' . $response->status() . ': ' . $response->body());
                 return null;
             }
 
             $text = $response->json('candidates.0.content.parts.0.text', '');
+            Log::info('DailyQuiz raw: ' . mb_substr(str_replace("\n",'↵',$text), 0, 300));
             $text = trim(preg_replace('/```json|```/i', '', $text));
             if (preg_match('/\{.*\}/s', $text, $m)) $text = $m[0];
 
             $data = json_decode($text, true);
-            if (! is_array($data) || ! isset($data['question'], $data['correct_option'])) return null;
+            if (! is_array($data) || ! isset($data['question'], $data['correct_option'])) {
+                Log::warning('DailyQuiz parse fail: ' . $text);
+                return null;
+            }
 
             return $data;
         } catch (\Throwable $e) {
-            Log::warning('DailyQuizService: ' . $e->getMessage());
+            Log::error('DailyQuizService exception: ' . $e->getMessage());
             return null;
         }
     }
