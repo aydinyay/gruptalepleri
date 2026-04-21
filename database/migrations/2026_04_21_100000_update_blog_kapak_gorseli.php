@@ -9,7 +9,7 @@ return new class extends Migration
     {
         DB::table('blog_yazilari')
             ->where('baslik', 'like', '%Kurumsal Gezi%')
-            ->update(['kapak_gorseli' => 'blog/Image_6zd6ab6zd6ab6zd6.png']);
+            ->update(['kapak_gorseli' => 'images/blog/Image_6zd6ab6zd6ab6zd6.png']);
     }
 
     public function down(): void

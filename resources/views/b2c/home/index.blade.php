@@ -771,7 +771,7 @@
                 <a href="{{ route('b2c.blog.show', $post->slug) }}" class="gyg-blog-card">
                     <div class="blog-thumb">
                         @if($post->kapak_gorseli)
-                            <img src="{{ asset('storage/'.$post->kapak_gorseli) }}" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="{{ Str::startsWith($post->kapak_gorseli, ['http','images/']) ? asset($post->kapak_gorseli) : asset('storage/'.$post->kapak_gorseli) }}" style="width:100%;height:100%;object-fit:cover;">
                         @else
                             <i class="bi bi-journal-text"></i>
                         @endif
