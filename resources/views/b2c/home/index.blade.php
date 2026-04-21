@@ -770,8 +770,8 @@
                 @foreach($blogPosts->take(3) as $post)
                 <a href="{{ route('b2c.blog.show', $post->slug) }}" class="gyg-blog-card">
                     <div class="blog-thumb">
-                        @if($post->kapak_gorsel)
-                            <img src="{{ asset('storage/'.$post->kapak_gorsel) }}" style="width:100%;height:100%;object-fit:cover;">
+                        @if($post->kapak_gorseli)
+                            <img src="{{ asset('storage/'.$post->kapak_gorseli) }}" style="width:100%;height:100%;object-fit:cover;">
                         @else
                             <i class="bi bi-journal-text"></i>
                         @endif
