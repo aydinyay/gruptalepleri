@@ -564,6 +564,28 @@
 </div>
 
 {{-- ════════════════════════════════════════════════════════════════
+     YAKINIMIZDAKILER
+════════════════════════════════════════════════════════════════ --}}
+@if($nearbyItems->isNotEmpty())
+<section style="padding:2.5rem 0 0;">
+    <div class="container" style="max-width:1280px;">
+        <div class="gyg-section-head">
+            <div>
+                <h2>Yakınınızda keşfedilecekler</h2>
+                <p>{{ $nearbyCity }} bölgesindeki deneyimler</p>
+            </div>
+            <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($nearbyCity) }}" class="gyg-see-all">Tümünü Gör →</a>
+        </div>
+        <div class="gyg-products-grid">
+            @foreach($nearbyItems as $item)
+                @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? []])
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ════════════════════════════════════════════════════════════════
      ÖNE ÇIKAN DENEYİMLER
 ════════════════════════════════════════════════════════════════ --}}
 <section style="padding:3rem 0;">

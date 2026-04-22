@@ -63,6 +63,12 @@ class HomeController extends Controller
             ->map(fn($id) => (int) $id)
             ->all();
 
+        // Konuma yakın ürünler — session'da şehir varsa göster
+        $nearbyCity  = session('b2c_user_city');
+        $nearbyItems = $nearbyCity
+            ? CatalogItem::published()->inCity($nearbyCity)->with('category')->limit(6)->get()
+            : collect();
+
         return view('b2c.home.index', compact(
             'categories',
             'allItems',
@@ -74,6 +80,8 @@ class HomeController extends Controller
             'heroBgColor',
             'heroBgImage',
             'savedIds',
+            'nearbyCity',
+            'nearbyItems',
         ));
     }
 }
