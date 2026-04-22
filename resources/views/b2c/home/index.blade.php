@@ -925,8 +925,8 @@ function grHighlightNearby(city) {
         if (!imgWrap) return;
         var pin = document.createElement('div');
         pin.className = 'gr-nearby-pin';
-        pin.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Yakın';
-        pin.style.cssText = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.92);color:#fff;border-radius:20px;padding:.22rem .6rem .22rem .48rem;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;gap:.25rem;backdrop-filter:blur(4px);pointer-events:none;z-index:4;';
+        pin.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg> Size Yakın';
+        pin.style.cssText = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.25rem .65rem .25rem .5rem;font-size:.69rem;font-weight:700;display:inline-flex;align-items:center;gap:.28rem;backdrop-filter:blur(6px);pointer-events:none;z-index:4;letter-spacing:.01em;box-shadow:0 2px 6px rgba(0,0,0,.18);';
         imgWrap.appendChild(pin);
     });
 
