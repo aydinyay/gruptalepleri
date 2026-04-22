@@ -52,6 +52,7 @@ class CatalogItem extends Model
         'sort_order',
         'cost_price',
         'gt_price',
+        'pricing_unit',
         'pricing_notes',
         'rating_avg',
         'review_count',

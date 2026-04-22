@@ -773,6 +773,7 @@ class B2cCatalogController extends Controller
             'gt_price'            => 'nullable|numeric|min:0',
             'base_price'          => 'nullable|numeric|min:0',
             'currency'            => 'required|string|max:3',
+            'pricing_unit'        => 'nullable|string|max:50',
             'is_active'           => 'boolean',
             'is_featured'         => 'boolean',
             'badge_label'         => 'nullable|string|max:40',

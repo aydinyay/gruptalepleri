@@ -327,7 +327,7 @@ body{background:var(--bg);color:var(--txt);}
             <div class="lp-panel">
                 <div class="lp-panel-label">Başlangıç fiyatı</div>
                 <div class="lp-panel-price">{{ number_format($b2cPrice, 0, ',', '.') }} {{ $b2cCur }}</div>
-                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">/ saat · grup başına</div>
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">/ {{ $item->pricing_unit ?: 'saat · grup başına' }}</div>
 
                 @if($errors->any())
                     <div class="alert alert-danger p-2 mb-2" style="font-size:.82rem;">

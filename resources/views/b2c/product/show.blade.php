@@ -535,7 +535,7 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 @php
 $subtype = $item->product_subtype ?? '';
 $isGroupPrice = in_array($subtype, ['private_jet','helicopter_tour','yacht_charter','airport_transfer','intercity_transfer','corporate_event']);
-$priceLabel = match($subtype) {
+$priceLabelDefault = match($subtype) {
     'dinner_cruise','evening_show' => '/ kişi başı · akşam etkinliği',
     'day_tour'                     => '/ kişi başı · tam gün',
     'activity_tour'                => '/ kişi başı',
@@ -551,6 +551,7 @@ $priceLabel = match($subtype) {
     'visa_service'                 => '/ başvuru',
     default                        => '/ kişi başı',
 };
+$priceLabel = $item->pricing_unit ? ('/ ' . $item->pricing_unit) : $priceLabelDefault;
 $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 @endphp
 <div class="pc-label">{{ $priceTitle }}</div>

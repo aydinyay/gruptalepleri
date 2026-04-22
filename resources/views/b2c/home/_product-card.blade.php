@@ -96,13 +96,13 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 
         @if($item->pricing_type === 'fixed' && $item->base_price)
             @php
-            $cardPriceLabel = match($item->product_subtype ?? '') {
+            $cardPriceLabel = $item->pricing_unit ?: match($item->product_subtype ?? '') {
                 'yacht_charter'                           => 'saatlik · grup başına',
-                'helicopter_tour', 'private_jet'          => 'sefer başı',
-                'airport_transfer', 'intercity_transfer'  => 'araç başı',
+                'helicopter_tour', 'private_jet'          => 'sefer başına',
+                'airport_transfer', 'intercity_transfer'  => 'araç başına',
                 'hotel_room', 'apart_rental'              => 'gecelik',
                 'visa_service'                            => 'başvuru başına',
-                default                                   => 'kişi başı itibaren',
+                default                                   => 'kişi başına',
             };
             @endphp
             <div class="gyg-pcard-price-label">{{ $cardPriceLabel }}</div>

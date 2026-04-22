@@ -127,6 +127,30 @@
                                     </select>
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label fw-600">Fiyat Birimi <small class="text-muted">(Kartta görünür)</small></label>
+                                    @php
+                                    $pricingUnits = [
+                                        ''               => '— Otomatik (alttüre göre) —',
+                                        'kişi başına'    => 'Kişi başına',
+                                        'grup başına'    => 'Grup başına',
+                                        'saatlik'        => 'Saatlik',
+                                        'saatlik · grup başına' => 'Saatlik · grup başına',
+                                        'günlük'         => 'Günlük',
+                                        'günlük · grup başına'  => 'Günlük · grup başına',
+                                        'araç başına'    => 'Araç başına',
+                                        'gecelik'        => 'Gecelik',
+                                        'sefer başına'   => 'Sefer başına',
+                                        'başvuru başına' => 'Başvuru başına',
+                                    ];
+                                    @endphp
+                                    <select name="pricing_unit" class="form-select">
+                                        @foreach($pricingUnits as $v => $l)
+                                        <option value="{{ $v }}" {{ old('pricing_unit', $item->pricing_unit ?? '') == $v ? 'selected' : '' }}>{{ $l }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-text">Boş bırakırsan ürün alttürüne göre otomatik seçilir.</div>
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label fw-600">Maliyet Fiyatı <small class="text-muted">(İç kullanım)</small></label>
                                     <input type="number" name="cost_price" class="form-control" step="0.01" min="0"
                                            value="{{ old('cost_price', $item->cost_price ?? '') }}"
