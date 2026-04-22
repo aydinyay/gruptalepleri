@@ -1,3 +1,10 @@
+# Explicit MIME types for social media crawlers
+<IfModule mod_mime.c>
+    AddType image/png .png
+    AddType image/jpeg .jpg .jpeg
+    AddType image/webp .webp
+</IfModule>
+
 # PHP upload limits (shared hosting override)
 <IfModule mod_php.c>
     php_value upload_max_filesize 128M
