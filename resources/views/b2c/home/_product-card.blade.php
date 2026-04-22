@@ -22,7 +22,9 @@ $bg       = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,
 $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 @endphp
 
-<a href="{{ route('b2c.product.show', $item->slug) }}" class="gyg-pcard" @if(!empty($dataCity)) data-city="{{ $dataCity }}" @endif>
+<a href="{{ route('b2c.product.show', $item->slug) }}" class="gyg-pcard"
+   @if(!empty($dataCity)) data-city="{{ $dataCity }}" @endif
+   @if(!empty($item->venue_lat)) data-lat="{{ $item->venue_lat }}" data-lng="{{ $item->venue_lng }}" @endif>
     <div class="gyg-pcard-img">
         @if($item->cover_image)
             @php $imgSrc = str_starts_with($item->cover_image, 'http') ? $item->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $item->cover_image; @endphp

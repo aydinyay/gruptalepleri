@@ -905,49 +905,72 @@
 var GR_CITY_KEY  = 'gr_user_city';
 var GR_LABEL_KEY = 'gr_user_city_label';
 var GR_TIME_KEY  = 'gr_user_city_ts';
+var GR_LAT_KEY   = 'gr_user_lat';
+var GR_LNG_KEY   = 'gr_user_lng';
 var GR_TTL       = 30 * 24 * 60 * 60 * 1000;
 
-function grHighlightNearby(city) {
+function grHaversine(lat1, lng1, lat2, lng2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2)
+          + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180)
+          * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 10) / 10;
+}
+
+function grHighlightNearby(city, userLat, userLng) {
     var grid = document.getElementById('main-products-grid');
     if (!grid || !city) return;
 
     var cityLower = city.toLowerCase();
-    var cards     = Array.from(grid.querySelectorAll('a.gyg-pcard[data-city]'));
-    var near      = cards.filter(function(c) { return (c.dataset.city || '').toLowerCase().indexOf(cityLower) !== -1; });
-    var rest      = cards.filter(function(c) { return (c.dataset.city || '').toLowerCase().indexOf(cityLower) === -1; });
+    var cards = Array.from(grid.querySelectorAll('a.gyg-pcard[data-city]'));
+    var near  = cards.filter(function(c) { return (c.dataset.city || '').toLowerCase().indexOf(cityLower) !== -1; });
 
     if (!near.length) return;
 
-    // Yakın kartlara sağ-alt badge ekle
+    var PIN_STYLE = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.25rem .65rem .25rem .5rem;font-size:.69rem;font-weight:700;display:inline-flex;align-items:center;gap:.28rem;backdrop-filter:blur(6px);pointer-events:none;z-index:4;letter-spacing:.01em;box-shadow:0 2px 6px rgba(0,0,0,.18);';
+    var PIN_ICON  = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>';
+
     near.forEach(function(card) {
         if (card.querySelector('.gr-nearby-pin')) return;
         var imgWrap = card.querySelector('.gyg-pcard-img');
         if (!imgWrap) return;
+
+        var label = 'Size Yakın';
+        if (userLat && userLng && card.dataset.lat && card.dataset.lng) {
+            var km = grHaversine(userLat, userLng, parseFloat(card.dataset.lat), parseFloat(card.dataset.lng));
+            label = 'Size ' + km + ' km yakın';
+        }
+
         var pin = document.createElement('div');
         pin.className = 'gr-nearby-pin';
-        pin.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg> Size Yakın';
-        pin.style.cssText = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.25rem .65rem .25rem .5rem;font-size:.69rem;font-weight:700;display:inline-flex;align-items:center;gap:.28rem;backdrop-filter:blur(6px);pointer-events:none;z-index:4;letter-spacing:.01em;box-shadow:0 2px 6px rgba(0,0,0,.18);';
+        pin.innerHTML = PIN_ICON + ' ' + label;
+        pin.style.cssText = PIN_STYLE;
         imgWrap.appendChild(pin);
     });
 
-    // Yakın kartları grid başına taşı
     near.forEach(function(c) { grid.insertBefore(c, grid.firstChild); });
 }
 
 function grMapsReady() {
     var savedCity = localStorage.getItem(GR_CITY_KEY);
     var savedTime = parseInt(localStorage.getItem(GR_TIME_KEY) || '0');
+    var savedLat  = parseFloat(localStorage.getItem(GR_LAT_KEY) || '0');
+    var savedLng  = parseFloat(localStorage.getItem(GR_LNG_KEY) || '0');
     var isValid   = savedCity && (Date.now() - savedTime) < GR_TTL;
 
     if (isValid) {
-        grHighlightNearby(savedCity);
+        grHighlightNearby(savedCity, savedLat, savedLng);
         return;
     }
 
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function(pos) {
+        var uLat = pos.coords.latitude;
+        var uLng = pos.coords.longitude;
         var geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: { lat: pos.coords.latitude, lng: pos.coords.longitude } }, function(results, status) {
+        geocoder.geocode({ location: { lat: uLat, lng: uLng } }, function(results, status) {
             if (status !== 'OK' || !results || !results[0]) return;
 
             var components = results[0].address_components;
@@ -966,7 +989,9 @@ function grMapsReady() {
             localStorage.setItem(GR_CITY_KEY,  city);
             localStorage.setItem(GR_LABEL_KEY, label);
             localStorage.setItem(GR_TIME_KEY,  Date.now());
-            grHighlightNearby(city);
+            localStorage.setItem(GR_LAT_KEY,   uLat);
+            localStorage.setItem(GR_LNG_KEY,   uLng);
+            grHighlightNearby(city, uLat, uLng);
         });
     });
 }
