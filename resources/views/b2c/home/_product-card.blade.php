@@ -67,6 +67,12 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
                 Esnek
             @endif
         </div>
+
+        @if(!empty($nearbyBadge))
+        <div style="position:absolute;bottom:8px;left:8px;background:rgba(16,185,129,.9);color:#fff;border-radius:20px;padding:.22rem .6rem .22rem .45rem;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;gap:.25rem;backdrop-filter:blur(4px);pointer-events:none;">
+            <i class="bi bi-geo-alt-fill" style="font-size:.65rem;"></i> Yakın
+        </div>
+        @endif
     </div>
 
     <div class="gyg-pcard-body">
