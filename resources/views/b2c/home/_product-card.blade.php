@@ -52,6 +52,9 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
                 'Efsane'              => 'background:#1e3a5f;color:#fff;',
                 'Özel Teklif'         => 'background:#065f46;color:#fff;',
                 'Erken Rezervasyon'   => 'background:#5b21b6;color:#fff;',
+                'Gastronomi'          => 'background:#92400e;color:#fff;',
+                'Gurme'               => 'background:#7c2d12;color:#fff;',
+                'Lezzetler'           => 'background:#a16207;color:#fff;',
             ];
             $badgeStyle = $badgeStyles[$item->badge_label] ?? 'background:#718096;color:#fff;';
             @endphp
