@@ -585,7 +585,7 @@
                     {{-- Grup Uçak Talebi Statik Kartı --}}
                     <a href="{{ route('b2c.flight.create') }}" class="gyg-pcard">
                         <div class="gyg-pcard-img">
-                            <img src="{{ asset('uploads/grup-ucak-talebi.png') }}" alt="Grup Uçak Bileti" loading="lazy">
+                            <img src="{{ rtrim(config('app.url'), '/') }}/uploads/grup-ucak-talebi.png" alt="Grup Uçak Bileti" loading="lazy">
                             <div class="gyg-pcard-tag" style="background:#0c3547;color:#fff;">✈ Özel</div>
                             <div class="gyg-pcard-badge">Ücretsiz</div>
                         </div>
