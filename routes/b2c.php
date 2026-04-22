@@ -178,7 +178,7 @@ Route::get('/api/b2c/geocode-city', function (\Illuminate\Http\Request $request)
         $label = null;
     }
 
-    return response()->json(['city' => $city, 'label' => $label]);
+    return response()->json(['city' => $city, 'label' => $label, '_status' => $resp->json('status') ?? 'no_resp', '_count' => count($results)]);
 })->name('b2c.api.geocode-city');
 
 // ── Yakın Ürünler HTML (şehir adıyla, localStorage'dan gelir) ────────────
