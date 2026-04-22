@@ -943,10 +943,10 @@ function grMapsReady() {
 
             components.forEach(function(comp) {
                 if (!city && comp.types.indexOf('administrative_area_level_1') !== -1) {
-                    city = comp.long_name.replace(/\s+İli$/, '');
+                    city = comp.long_name.replace(/\s+İli$/i, '').replace(/\s+Ili$/i, '');
                 }
-                if (!district && (comp.types.indexOf('administrative_area_level_2') !== -1 || comp.types.indexOf('locality') !== -1)) {
-                    district = comp.long_name;
+                if (!district && comp.types.indexOf('administrative_area_level_2') !== -1) {
+                    district = comp.long_name.replace(/\s+İlçesi$/i, '').replace(/\s+Ilcesi$/i, '');
                 }
             });
 
