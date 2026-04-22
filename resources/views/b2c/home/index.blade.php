@@ -1058,16 +1058,21 @@
             .then(function(city) {
                 if (!city) return;
                 sessionStorage.setItem('gr_city_set', '1');
+                console.log('[GR] Şehir tespit edildi:', city);
                 // Nearby section'ı yükle (sayfa yenilemeye gerek yok)
                 var nearbyEl = document.getElementById('nearby-section');
                 if (nearbyEl && !nearbyEl.querySelector('section')) {
-                    fetch('{{ route("b2c.api.nearby-items") }}?city=' + encodeURIComponent(city))
-                        .then(function(r) { return r.ok ? r.text() : ''; })
-                        .then(function(html) { if (html) nearbyEl.innerHTML = html; })
-                        .catch(function() {});
+                    var url = '{{ route("b2c.api.nearby-items") }}?city=' + encodeURIComponent(city);
+                    console.log('[GR] Nearby fetch:', url);
+                    fetch(url)
+                        .then(function(r) { console.log('[GR] Nearby response status:', r.status); return r.status === 200 ? r.text() : ''; })
+                        .then(function(html) { console.log('[GR] Nearby HTML length:', html.length); if (html) nearbyEl.innerHTML = html; })
+                        .catch(function(e) { console.log('[GR] Nearby fetch error:', e); });
+                } else {
+                    console.log('[GR] Nearby section zaten dolu veya bulunamadı');
                 }
             })
-            .catch(function() {});
+            .catch(function(e) { console.log('[GR] Geolocation/city error:', e); });
     }, function() {}, { timeout: 5000 });
 })();
 </script>
