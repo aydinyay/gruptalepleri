@@ -42,7 +42,6 @@
 .prd-lb-prev{left:10px;}.prd-lb-next{right:10px;}
 .prd-lb-count{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);color:#fff;font-size:.82rem;background:rgba(0,0,0,.5);padding:.2rem .55rem;border-radius:999px;}
 .prd-lb-nearby{display:none;position:fixed;top:60px;left:20px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.28rem .7rem .28rem .52rem;font-size:.75rem;font-weight:700;align-items:center;gap:.28rem;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:10000;pointer-events:none;}
-.prd-lb.open .prd-lb-nearby{display:inline-flex;}
 .prd-wrap{max-width:1280px;margin:0 auto;padding:32px 24px 64px;display:grid;grid-template-columns:1fr 360px;gap:40px}
 .prd-title{font-size:1.9rem;font-weight:800;color:#1a202c;line-height:1.25;margin-bottom:12px}
 .prd-badge{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#1a3c6b;font-size:.8rem;font-weight:600;padding:4px 12px;border-radius:50px;margin-bottom:10px}
@@ -1023,34 +1022,48 @@ document.getElementById('bookForm').addEventListener('submit', function(e) {
 @push('scripts')
 <script>
 (function() {
-    var PRD_LAT = {{ $item->venue_lat ?? 'null' }};
-    var PRD_LNG = {{ $item->venue_lng ?? 'null' }};
-    var uLat = parseFloat(localStorage.getItem('gr_user_lat') || '0');
-    var uLng = parseFloat(localStorage.getItem('gr_user_lng') || '0');
+    var PRD_LAT  = {{ $item->venue_lat ?? 'null' }};
+    var PRD_LNG  = {{ $item->venue_lng ?? 'null' }};
+    var PRD_CITY = '{{ strtolower(trim($item->destination_city ?? '')) }}';
 
-    if (!uLat || !uLng) return;
+    function prdShowNearby(uLat, uLng) {
+        if (!uLat || !uLng) return;
 
-    var label = 'Size Yakın';
-    if (PRD_LAT && PRD_LNG) {
-        var R = 6371, dLat = (PRD_LAT-uLat)*Math.PI/180, dLng = (PRD_LNG-uLng)*Math.PI/180;
-        var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(uLat*Math.PI/180)*Math.cos(PRD_LAT*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-        var km = Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*10)/10;
-        label = 'Size ' + km + ' km yakın';
+        var isNearby = false;
+        var km = null;
+
+        if (PRD_LAT && PRD_LNG) {
+            var R = 6371, dLat = (PRD_LAT-uLat)*Math.PI/180, dLng = (PRD_LNG-uLng)*Math.PI/180;
+            var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(uLat*Math.PI/180)*Math.cos(PRD_LAT*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+            km = Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*10)/10;
+            isNearby = km <= 60;
+        } else if (PRD_CITY) {
+            var savedCity = (localStorage.getItem('gr_user_city') || '').toLowerCase();
+            isNearby = savedCity && savedCity.indexOf(PRD_CITY) !== -1;
+        }
+
+        if (!isNearby) return;
+
+        var label = km !== null ? ('Size ' + km + ' km yakın') : 'Size Yakın';
+
+        var lbEl   = document.getElementById('prdLbNearby');
+        var lbText = document.getElementById('prdLbNearbyText');
+        if (lbEl && lbText) { lbText.textContent = label; lbEl.style.display = 'inline-flex'; }
+
+        var galBadge = document.getElementById('prdGalNearby');
+        var galText  = document.getElementById('prdGalNearbyText');
+        if (galBadge && galText) { galText.textContent = label; galBadge.style.display = 'inline-flex'; }
+
+        var pill     = document.getElementById('prdNearbyPill');
+        var pillText = document.getElementById('prdNearbyText');
+        if (pill && pillText) { pillText.textContent = label; pill.style.display = 'inline-flex'; }
     }
 
-    // Lightbox badge
-    var lbText = document.getElementById('prdLbNearbyText');
-    if (lbText) lbText.textContent = label;
-
-    // Galeri overlay badge
-    var galBadge = document.getElementById('prdGalNearby');
-    var galText  = document.getElementById('prdGalNearbyText');
-    if (galBadge && galText) { galText.textContent = label; galBadge.style.display = 'inline-flex'; }
-
-    // Meta pill
-    var pill = document.getElementById('prdNearbyPill');
-    var pillText = document.getElementById('prdNearbyText');
-    if (pill && pillText) { pillText.textContent = label; pill.style.display = 'inline-flex'; }
+    var uLat = parseFloat(localStorage.getItem('gr_user_lat') || '0');
+    var uLng = parseFloat(localStorage.getItem('gr_user_lng') || '0');
+    if (uLat && uLng) {
+        prdShowNearby(uLat, uLng);
+    }
 })();
 </script>
 @endpush
