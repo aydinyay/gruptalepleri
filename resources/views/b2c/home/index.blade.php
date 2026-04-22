@@ -1073,7 +1073,7 @@
                 }
             })
             .catch(function(e) { console.log('[GR] Geolocation/city error:', e); });
-    }, function() {}, { timeout: 5000 });
+    }, function(err) { console.log('[GR] Konum izni hatası:', err.code, err.message); }, { timeout: 5000 });
 })();
 </script>
 @endpush
