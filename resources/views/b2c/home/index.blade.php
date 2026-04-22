@@ -1036,17 +1036,47 @@
 </script>
 
 <script>
-// Konum tespiti + yakın ürünler — server-side, CORS yok
 (function() {
-    if (sessionStorage.getItem('gr_nearby_loaded')) return;
-    var nearbyEl = document.getElementById('nearby-section');
-    if (!nearbyEl || nearbyEl.querySelector('section')) return;
-    fetch('{{ route("b2c.api.detect-nearby") }}')
-        .then(function(r) { return r.status === 200 ? r.text() : ''; })
-        .then(function(html) {
-            if (html) { nearbyEl.innerHTML = html; sessionStorage.setItem('gr_nearby_loaded', '1'); }
-        })
-        .catch(function() {});
+    var STORAGE_KEY  = 'gr_user_city';
+    var STORAGE_TIME = 'gr_user_city_ts';
+    var TTL_MS       = 30 * 24 * 60 * 60 * 1000; // 30 gün
+
+    function loadNearby(city) {
+        var nearbyEl = document.getElementById('nearby-section');
+        if (!nearbyEl || nearbyEl.querySelector('section')) return;
+        fetch('{{ route("b2c.api.detect-nearby") }}?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.status === 200 ? r.text() : ''; })
+            .then(function(html) { if (html) nearbyEl.innerHTML = html; })
+            .catch(function() {});
+    }
+
+    function geocodeAndLoad(lat, lng) {
+        fetch('{{ route("b2c.api.geocode-city") }}?lat=' + lat + '&lng=' + lng)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d.city) return;
+                localStorage.setItem(STORAGE_KEY, d.city);
+                localStorage.setItem(STORAGE_TIME, Date.now());
+                loadNearby(d.city);
+            })
+            .catch(function() {});
+    }
+
+    // localStorage'da geçerli şehir var mı?
+    var savedCity = localStorage.getItem(STORAGE_KEY);
+    var savedTime = parseInt(localStorage.getItem(STORAGE_TIME) || '0');
+    var isValid   = savedCity && (Date.now() - savedTime) < TTL_MS;
+
+    if (isValid) {
+        loadNearby(savedCity);
+    } else {
+        // Geolocation ile konum al → Google Geocoding ile şehre çevir
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            function(pos) { geocodeAndLoad(pos.coords.latitude, pos.coords.longitude); },
+            function() { /* izin verilmedi veya hata — lokasyonsuz devam */ }
+        );
+    }
 })();
 </script>
 @endpush

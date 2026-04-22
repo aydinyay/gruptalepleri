@@ -140,53 +140,47 @@ Route::get('/api/b2c/nearby-items', function (\Illuminate\Http\Request $request)
     return view('b2c.home._nearby-section', compact('items', 'city'));
 })->name('b2c.api.nearby-items');
 
-// ── Konum Tespiti + Yakın Ürünler (server-side IP lookup, CORS yok) ────────
-Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request) {
-    $city   = session('b2c_user_city');
-    $region = session('b2c_user_region');
+// ── Google Geocoding: lat/lng → şehir adı (server-side, key gizli kalır) ──
+Route::get('/api/b2c/geocode-city', function (\Illuminate\Http\Request $request) {
+    $lat = (float) $request->query('lat');
+    $lng = (float) $request->query('lng');
+    if (!$lat || !$lng) return response()->json(['city' => null]);
 
-    // Region yoksa eski session — temizle ve yeniden detect et
-    if ($city && !$region) {
-        session()->forget(['b2c_user_city', 'b2c_user_region']);
+    try {
+        $resp = \Illuminate\Support\Facades\Http::timeout(5)
+            ->get('https://maps.googleapis.com/maps/api/geocode/json', [
+                'latlng'      => "{$lat},{$lng}",
+                'key'         => config('transfer.google_maps.api_key'),
+                'language'    => 'tr',
+                'result_type' => 'administrative_area_level_1',
+            ]);
+        $city = $resp->json('results.0.address_components.0.long_name');
+    } catch (\Exception $e) {
         $city = null;
     }
 
-    if (!$city) {
-        $ip = $request->ip();
-        $isPrivate = in_array($ip, ['127.0.0.1', '::1'])
-            || substr($ip, 0, 8) === '192.168.'
-            || substr($ip, 0, 3) === '10.'
-            || substr($ip, 0, 7) === '172.16.';
-        if ($isPrivate) return response('', 204);
+    return response()->json(['city' => $city]);
+})->name('b2c.api.geocode-city');
 
-        try {
-            $resp = \Illuminate\Support\Facades\Http::timeout(3)
-                ->get("http://ip-api.com/json/{$ip}", ['fields' => 'city,regionName', 'lang' => 'tr']);
-            if ($resp->ok()) {
-                $data   = $resp->json();
-                $city   = $data['city']       ?? null;
-                $region = $data['regionName'] ?? null;
-                session(['b2c_user_city' => $city, 'b2c_user_region' => $region]);
-            }
-        } catch (\Exception $e) {}
-    }
+// ── Yakın Ürünler HTML (şehir adıyla, localStorage'dan gelir) ────────────
+Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request) {
+    $city = trim($request->query('city', ''));
+    if (!$city) return response('', 204);
 
-    if (!$city && !$region) return response('', 204);
+    $items = \App\Models\B2C\CatalogItem::published()
+        ->inCity($city)->with('category')->limit(6)->get();
 
-    // Önce ilçe adıyla dene, sonra il adıyla
-    $searchLabel = $city;
-    $items = $city
-        ? \App\Models\B2C\CatalogItem::published()->inCity($city)->with('category')->limit(6)->get()
-        : collect();
-
-    if ($items->isEmpty() && $region && $region !== $city) {
-        $items = \App\Models\B2C\CatalogItem::published()->inCity($region)->with('category')->limit(6)->get();
-        if ($items->isNotEmpty()) $searchLabel = $region;
+    // İlk kelimeyle tekrar dene (ör. "İzmir Province" → "İzmir")
+    if ($items->isEmpty()) {
+        $first = explode(' ', $city)[0];
+        if ($first !== $city) {
+            $items = \App\Models\B2C\CatalogItem::published()->inCity($first)->with('category')->limit(6)->get();
+            if ($items->isNotEmpty()) $city = $first;
+        }
     }
 
     if ($items->isEmpty()) return response('', 204);
 
-    $city = $searchLabel;
     return view('b2c.home._nearby-section', compact('items', 'city'));
 })->name('b2c.api.detect-nearby');
 
