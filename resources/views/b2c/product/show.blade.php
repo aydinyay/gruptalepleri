@@ -219,13 +219,17 @@ $_blIco = $_bl ? ($_badgeIconMap[$_bl]  ?? 'bi-bookmark-fill') : '';
 $badgeOverlay = $_bl
     ? '<div style="position:absolute;top:14px;left:14px;z-index:10;background:' . $_blClr . ';color:#fff;padding:5px 13px;border-radius:50px;font-size:.8rem;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.25);"><i class="bi ' . $_blIco . '"></i> ' . e($_bl) . '</div>'
     : '';
+
+$nearbyOverlay = '<div id="prdGalNearby" style="display:none;position:absolute;bottom:14px;left:14px;z-index:10;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.3rem .75rem .3rem .55rem;font-size:.78rem;font-weight:700;align-items:center;gap:.3rem;box-shadow:0 2px 8px rgba(0,0,0,.25);backdrop-filter:blur(6px);pointer-events:none;">'
+    . '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>'
+    . ' <span id="prdGalNearbyText">Size Yakın</span></div>';
 @endphp
 
 @if($_galLayout === '1')
 {{-- Tek görsel --}}
 <div class="prd-gal-gyg lay-1">
     <img class="prd-gal-img" src="{{ $_imgs[0] }}" alt="{{ $item->title }}" onclick="prdLbOpen(0)">
-    {!! $badgeOverlay !!}{!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $nearbyOverlay !!}{!! $heartBtn !!}
 </div>
 
 @elseif($_galLayout === '2')
@@ -233,7 +237,7 @@ $badgeOverlay = $_bl
 <div class="prd-gal-gyg lay-2">
     <div class="prd-gal-thumb" onclick="prdLbOpen(0)"><img src="{{ $_imgs[0] }}" alt="{{ $item->title }}"></div>
     <div class="prd-gal-thumb" onclick="prdLbOpen(1)"><img src="{{ $_imgs[1] }}" alt="{{ $item->title }}"></div>
-    {!! $badgeOverlay !!}{!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $nearbyOverlay !!}{!! $heartBtn !!}
 </div>
 
 @elseif($_galLayout === '3')
@@ -243,7 +247,7 @@ $badgeOverlay = $_bl
     @foreach(array_slice($_imgs, 1, 3) as $_ri => $_rs)
     <div class="prd-gal-thumb" onclick="prdLbOpen({{ $_ri + 1 }})"><img src="{{ $_rs }}" alt="{{ $item->title }}"></div>
     @endforeach
-    {!! $badgeOverlay !!}{!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $nearbyOverlay !!}{!! $heartBtn !!}
 </div>
 
 @elseif($_galLayout === '5')
@@ -259,7 +263,7 @@ $badgeOverlay = $_bl
     </div>
     @endforeach
     <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-images"></i> Tüm fotoğraflar ({{ $_imgCount }})</button>
-    {!! $badgeOverlay !!}{!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $nearbyOverlay !!}{!! $heartBtn !!}
 </div>
 
 @else
@@ -285,7 +289,7 @@ $badgeOverlay = $_bl
     </div>
     @endforeach
     <button class="prd-gal-btn" onclick="prdLbOpen(0)"><i class="bi bi-play-circle"></i> Tüm medya ({{ $_imgCount }})</button>
-    {!! $badgeOverlay !!}{!! $heartBtn !!}
+    {!! $badgeOverlay !!}{!! $nearbyOverlay !!}{!! $heartBtn !!}
 </div>
 @endif
 
@@ -1036,6 +1040,11 @@ document.getElementById('bookForm').addEventListener('submit', function(e) {
     // Lightbox badge
     var lbText = document.getElementById('prdLbNearbyText');
     if (lbText) lbText.textContent = label;
+
+    // Galeri overlay badge
+    var galBadge = document.getElementById('prdGalNearby');
+    var galText  = document.getElementById('prdGalNearbyText');
+    if (galBadge && galText) { galText.textContent = label; galBadge.style.display = 'inline-flex'; }
 
     // Meta pill
     var pill = document.getElementById('prdNearbyPill');
