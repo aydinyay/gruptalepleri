@@ -40,6 +40,9 @@ class CatalogItem extends Model
         'published_at',
         'destination_city',
         'destination_country',
+        'venue_address',
+        'venue_lat',
+        'venue_lng',
         'duration_days',
         'duration_hours',
         'min_pax',
@@ -69,6 +72,8 @@ class CatalogItem extends Model
             'cost_price'    => 'decimal:2',
             'gt_price'      => 'decimal:2',
             'sort_order'    => 'integer',
+            'venue_lat'     => 'decimal:7',
+            'venue_lng'     => 'decimal:7',
         ];
     }
 

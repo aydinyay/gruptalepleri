@@ -22,7 +22,7 @@ $bg       = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,
 $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 @endphp
 
-<a href="{{ route('b2c.product.show', $item->slug) }}" class="gyg-pcard">
+<a href="{{ route('b2c.product.show', $item->slug) }}" class="gyg-pcard" @if(!empty($dataCity)) data-city="{{ $dataCity }}" @endif>
     <div class="gyg-pcard-img">
         @if($item->cover_image)
             @php $imgSrc = str_starts_with($item->cover_image, 'http') ? $item->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $item->cover_image; @endphp
@@ -68,11 +68,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
             @endif
         </div>
 
-        @if(!empty($nearbyBadge))
-        <div style="position:absolute;bottom:8px;left:8px;background:rgba(16,185,129,.9);color:#fff;border-radius:20px;padding:.22rem .6rem .22rem .45rem;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;gap:.25rem;backdrop-filter:blur(4px);pointer-events:none;">
-            <i class="bi bi-geo-alt-fill" style="font-size:.65rem;"></i> Yakın
-        </div>
-        @endif
+        {{-- JS tarafından inject edilecek: nearby-pin --}}
     </div>
 
     <div class="gyg-pcard-body">

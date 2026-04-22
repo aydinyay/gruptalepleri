@@ -563,10 +563,6 @@
     </div>
 </div>
 
-{{-- ════════════════════════════════════════════════════════════════
-     YAKINIMIZDAKILER
-════════════════════════════════════════════════════════════════ --}}
-<div id="nearby-section"></div>
 
 {{-- ════════════════════════════════════════════════════════════════
      ÖNE ÇIKAN DENEYİMLER
@@ -581,10 +577,10 @@
             <a href="{{ route('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
         </div>
 
-        <div class="gyg-products-grid">
+        <div class="gyg-products-grid" id="main-products-grid">
             @if($allItems->isNotEmpty())
                 @foreach($allItems as $item)
-                    @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? []])
+                    @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? [], 'dataCity' => $item->destination_city])
                     @if($loop->index === 3)
                     {{-- Grup Uçak Talebi Statik Kartı --}}
                     <a href="{{ route('b2c.flight.create') }}" class="gyg-pcard">
@@ -906,29 +902,45 @@
 </section>
 
 <script>
-var STORAGE_KEY   = 'gr_user_city';
-var STORAGE_LABEL = 'gr_user_city_label';
-var STORAGE_TIME  = 'gr_user_city_ts';
-var TTL_MS        = 30 * 24 * 60 * 60 * 1000;
+var GR_CITY_KEY  = 'gr_user_city';
+var GR_LABEL_KEY = 'gr_user_city_label';
+var GR_TIME_KEY  = 'gr_user_city_ts';
+var GR_TTL       = 30 * 24 * 60 * 60 * 1000;
 
-function grLoadNearby(city, label) {
-    var nearbyEl = document.getElementById('nearby-section');
-    if (!nearbyEl) return;
-    var url = '/api/b2c/detect-nearby?city=' + encodeURIComponent(city);
-    if (label) url += '&label=' + encodeURIComponent(label);
-    fetch(url)
-        .then(function(r) { return r.status === 200 ? r.text() : ''; })
-        .then(function(html) { if (html) nearbyEl.innerHTML = html; });
+function grHighlightNearby(city) {
+    var grid = document.getElementById('main-products-grid');
+    if (!grid || !city) return;
+
+    var cityLower = city.toLowerCase();
+    var cards     = Array.from(grid.querySelectorAll('a.gyg-pcard[data-city]'));
+    var near      = cards.filter(function(c) { return (c.dataset.city || '').toLowerCase().indexOf(cityLower) !== -1; });
+    var rest      = cards.filter(function(c) { return (c.dataset.city || '').toLowerCase().indexOf(cityLower) === -1; });
+
+    if (!near.length) return;
+
+    // Yakın kartlara sağ-alt badge ekle
+    near.forEach(function(card) {
+        if (card.querySelector('.gr-nearby-pin')) return;
+        var imgWrap = card.querySelector('.gyg-pcard-img');
+        if (!imgWrap) return;
+        var pin = document.createElement('div');
+        pin.className = 'gr-nearby-pin';
+        pin.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Yakın';
+        pin.style.cssText = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.92);color:#fff;border-radius:20px;padding:.22rem .6rem .22rem .48rem;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;gap:.25rem;backdrop-filter:blur(4px);pointer-events:none;z-index:4;';
+        imgWrap.appendChild(pin);
+    });
+
+    // Yakın kartları grid başına taşı
+    near.forEach(function(c) { grid.insertBefore(c, grid.firstChild); });
 }
 
 function grMapsReady() {
-    var savedCity  = localStorage.getItem(STORAGE_KEY);
-    var savedLabel = localStorage.getItem(STORAGE_LABEL);
-    var savedTime  = parseInt(localStorage.getItem(STORAGE_TIME) || '0');
-    var isValid    = savedCity && (Date.now() - savedTime) < TTL_MS;
+    var savedCity = localStorage.getItem(GR_CITY_KEY);
+    var savedTime = parseInt(localStorage.getItem(GR_TIME_KEY) || '0');
+    var isValid   = savedCity && (Date.now() - savedTime) < GR_TTL;
 
     if (isValid) {
-        grLoadNearby(savedCity, savedLabel);
+        grHighlightNearby(savedCity);
         return;
     }
 
@@ -942,21 +954,19 @@ function grMapsReady() {
             var city = null, district = null;
 
             components.forEach(function(comp) {
-                if (!city && comp.types.indexOf('administrative_area_level_1') !== -1) {
+                if (!city && comp.types.indexOf('administrative_area_level_1') !== -1)
                     city = comp.long_name.replace(/\s+İli$/i, '').replace(/\s+Ili$/i, '');
-                }
-                if (!district && comp.types.indexOf('administrative_area_level_2') !== -1) {
+                if (!district && comp.types.indexOf('administrative_area_level_2') !== -1)
                     district = comp.long_name.replace(/\s+İlçesi$/i, '').replace(/\s+Ilcesi$/i, '');
-                }
             });
 
             if (!city) return;
             var label = (district && district !== city) ? district + ', ' + city : city;
 
-            localStorage.setItem(STORAGE_KEY,   city);
-            localStorage.setItem(STORAGE_LABEL, label);
-            localStorage.setItem(STORAGE_TIME,  Date.now());
-            grLoadNearby(city, label);
+            localStorage.setItem(GR_CITY_KEY,  city);
+            localStorage.setItem(GR_LABEL_KEY, label);
+            localStorage.setItem(GR_TIME_KEY,  Date.now());
+            grHighlightNearby(city);
         });
     });
 }

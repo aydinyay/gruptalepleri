@@ -148,6 +148,23 @@
                                     <input type="text" name="destination_country" class="form-control"
                                            value="{{ old('destination_country', $item->destination_country ?? 'Türkiye') }}">
                                 </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-600">Mekan Adresi <small class="text-muted fw-normal">(Mesafe hesabı için — girilirse koordinat otomatik bulunur)</small></label>
+                                    <div class="input-group">
+                                        <input type="text" id="venueAddressInput" name="venue_address" class="form-control"
+                                               value="{{ old('venue_address', $item->venue_address ?? '') }}"
+                                               placeholder="Örn: Kordon, Alsancak, İzmir">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="grGeocode()">
+                                            <i class="bi bi-geo-alt"></i> Konumu Bul
+                                        </button>
+                                    </div>
+                                    <div id="venueGeoStatus" class="form-text"></div>
+                                    <input type="hidden" name="venue_lat" id="venueLat" value="{{ old('venue_lat', $item->venue_lat ?? '') }}">
+                                    <input type="hidden" name="venue_lng" id="venueLng" value="{{ old('venue_lng', $item->venue_lng ?? '') }}">
+                                    @if(!empty($item->venue_lat))
+                                    <div class="form-text text-success"><i class="bi bi-check-circle"></i> Kayıtlı: {{ $item->venue_lat }}, {{ $item->venue_lng }}</div>
+                                    @endif
+                                </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-600">Süre (gün)</label>
                                     <input type="number" name="duration_days" class="form-control" min="0"
@@ -618,6 +635,30 @@ async function aiFillFields() {
     }
 }
 </script>
+
+<script>
+function grGeocode() {
+    var address = document.getElementById('venueAddressInput').value.trim();
+    if (!address) { alert('Lütfen adres girin.'); return; }
+    var status = document.getElementById('venueGeoStatus');
+    status.textContent = 'Konum aranıyor...';
+    status.style.color = '#6c757d';
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: address, region: 'tr' }, function(results, gStatus) {
+        if (gStatus !== 'OK' || !results || !results[0]) {
+            status.textContent = '⚠ Konum bulunamadı: ' + gStatus;
+            status.style.color = '#dc3545';
+            return;
+        }
+        var loc = results[0].geometry.location;
+        document.getElementById('venueLat').value = loc.lat().toFixed(7);
+        document.getElementById('venueLng').value = loc.lng().toFixed(7);
+        status.innerHTML = '<span style="color:#198754"><i class="bi bi-check-circle"></i> Bulundu: ' + loc.lat().toFixed(5) + ', ' + loc.lng().toFixed(5) + ' — <em>' + results[0].formatted_address + '</em></span>';
+    });
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&language=tr" async defer></script>
+
 <style>
 .ai-filled { transition: background .3s; background: #fffbe6 !important; }
 </style>
