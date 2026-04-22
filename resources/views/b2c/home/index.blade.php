@@ -428,10 +428,10 @@
     <div class="gyg-hero-content">
         <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
         <h1>
-            <span>Boğaz'da akşam olmak</span><br>
-            <span style="color:var(--gr-accent,#f4a418);">başka bir şeydir.</span>
+            <span>Keşfet, incele,</span><br>
+            <span style="color:var(--gr-accent,#f4a418);">rezervasyon yap.</span>
         </h1>
-        <p class="hero-sub" style="opacity:1;">Keşfet, incele, rezervasyon yap — grubunuza özel fiyatlarla.</p>
+        <p class="hero-sub" style="opacity:1;">Yat, charter, transfer ve daha fazlası — grubunuza özel fiyatlarla.</p>
 
         <div class="gyg-search-wrap">
             <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
