@@ -925,23 +925,34 @@ function grHighlightNearby(city, userLat, userLng) {
 
     var cityLower = city.toLowerCase();
     var cards = Array.from(grid.querySelectorAll('a.gyg-pcard[data-city]'));
-    var near  = cards.filter(function(c) { return (c.dataset.city || '').toLowerCase().indexOf(cityLower) !== -1; });
+
+    // Filtre: koordinat varsa ≤60 km, yoksa aynı şehir adı
+    var near = [];
+    cards.forEach(function(c) {
+        var cardCity = (c.dataset.city || '').toLowerCase();
+        if (!cardCity) return;
+        var km = null;
+        if (userLat && userLng && c.dataset.lat && c.dataset.lng) {
+            km = grHaversine(userLat, userLng, parseFloat(c.dataset.lat), parseFloat(c.dataset.lng));
+            if (km > 60) return;
+        } else {
+            if (cardCity.indexOf(cityLower) === -1) return;
+        }
+        near.push({ card: c, km: km });
+    });
 
     if (!near.length) return;
 
     var PIN_STYLE = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.25rem .65rem .25rem .5rem;font-size:.69rem;font-weight:700;display:inline-flex;align-items:center;gap:.28rem;backdrop-filter:blur(6px);pointer-events:none;z-index:4;letter-spacing:.01em;box-shadow:0 2px 6px rgba(0,0,0,.18);';
     var PIN_ICON  = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>';
 
-    near.forEach(function(card) {
+    near.forEach(function(item) {
+        var card = item.card;
         if (card.querySelector('.gr-nearby-pin')) return;
         var imgWrap = card.querySelector('.gyg-pcard-img');
         if (!imgWrap) return;
 
-        var label = 'Size Yakın';
-        if (userLat && userLng && card.dataset.lat && card.dataset.lng) {
-            var km = grHaversine(userLat, userLng, parseFloat(card.dataset.lat), parseFloat(card.dataset.lng));
-            label = 'Size ' + km + ' km yakın';
-        }
+        var label = item.km !== null ? ('Size ' + item.km + ' km yakın') : 'Size Yakın';
 
         var pin = document.createElement('div');
         pin.className = 'gr-nearby-pin';
@@ -950,7 +961,7 @@ function grHighlightNearby(city, userLat, userLng) {
         imgWrap.appendChild(pin);
     });
 
-    near.forEach(function(c) { grid.insertBefore(c, grid.firstChild); });
+    near.forEach(function(item) { grid.insertBefore(item.card, grid.firstChild); });
 }
 
 function grMapsReady() {
