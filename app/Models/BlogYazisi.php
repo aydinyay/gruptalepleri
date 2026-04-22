@@ -28,4 +28,11 @@ class BlogYazisi extends Model
         return $query->where('durum', 'yayinda')
                      ->where('yayinlanma_tarihi', '<=', now());
     }
+
+    public function getKapakGorseliUrlAttribute(): ?string
+    {
+        if (!$this->kapak_gorseli) return null;
+        if (str_starts_with($this->kapak_gorseli, 'http')) return $this->kapak_gorseli;
+        return asset(ltrim($this->kapak_gorseli, '/'));
+    }
 }

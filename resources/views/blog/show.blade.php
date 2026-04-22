@@ -80,7 +80,7 @@ body { font-family: 'Barlow', sans-serif; background: #f8f9fa; }
 
 @if($yazi->kapak_gorseli)
 <div class="container" style="margin-top:-1.5rem;">
-    <img src="{{ $yazi->kapak_gorseli }}" alt="{{ $yazi->baslik }}"
+    <img src="{{ $yazi->kapak_gorseli_url }}" alt="{{ $yazi->baslik }}"
          style="width:100%;max-height:400px;object-fit:cover;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);">
 </div>
 @endif

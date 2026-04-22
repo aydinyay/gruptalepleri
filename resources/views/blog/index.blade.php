@@ -57,7 +57,7 @@ body { font-family: 'Barlow', sans-serif; background: #f8f9fa; }
             <a href="/blog/{{ $yazi->slug }}" style="text-decoration:none;">
             <div class="blog-card">
                 @if($yazi->kapak_gorseli)
-                    <img src="{{ $yazi->kapak_gorseli }}" alt="{{ $yazi->baslik }}" class="blog-card-img">
+                    <img src="{{ $yazi->kapak_gorseli_url }}" alt="{{ $yazi->baslik }}" class="blog-card-img">
                 @else
                     <div class="blog-card-img-placeholder"><i class="fas fa-newspaper"></i></div>
                 @endif
