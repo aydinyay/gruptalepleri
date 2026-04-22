@@ -109,7 +109,7 @@ class CatalogItem extends Model
 
     public function scopeInCity(Builder $query, string $city): Builder
     {
-        return $query->where('destination_city', $city);
+        return $query->whereRaw('LOWER(destination_city) = LOWER(?)', [$city]);
     }
 
     public function scopeOrdered(Builder $query): Builder

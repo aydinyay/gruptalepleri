@@ -1034,10 +1034,6 @@
 </script>
 
 <script>
-})();
-</script>
-
-<script>
 // Geolocation → şehri session'a kaydet (sadece 1 kez / session)
 (function() {
     if (!navigator.geolocation) return;

@@ -68,6 +68,14 @@ class HomeController extends Controller
         $nearbyItems = $nearbyCity
             ? CatalogItem::published()->inCity($nearbyCity)->with('category')->limit(6)->get()
             : collect();
+        // Tam eşleşme yoksa şehir adının ilk kelimesiyle tekrar dene (ör. "İzmir Province" → "İzmir")
+        if ($nearbyCity && $nearbyItems->isEmpty()) {
+            $firstWord = explode(' ', $nearbyCity)[0];
+            if ($firstWord !== $nearbyCity) {
+                $nearbyItems = CatalogItem::published()->inCity($firstWord)->with('category')->limit(6)->get();
+                if ($nearbyItems->isNotEmpty()) $nearbyCity = $firstWord;
+            }
+        }
 
         return view('b2c.home.index', compact(
             'categories',
