@@ -4,6 +4,7 @@ namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
 use App\Models\Airport;
+use App\Models\Offer;
 use App\Models\Request as TalepModel;
 use App\Models\RequestLog;
 use App\Services\EmailService;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 class FlightRequestController extends Controller
 {
+    // ── Talep Formu ─────────────────────────────────────────────────────────
+
     public function create()
     {
         return view('b2c.flight-request.create');
@@ -97,24 +100,144 @@ class FlightRequestController extends Controller
         ]);
 
         $adminUrl = route('admin.requests.show', $talep->gtpnr);
+        $token    = $this->makeToken($gtpnr, $validated['phone']);
+        $trackUrl = route('b2c.flight.track', ['gtpnr' => $gtpnr, 'token' => $token]);
 
+        // Admin bildirimleri
         (new NotificationService())->yeniTalep(null, $talep->gtpnr, $talep->agency_name . ' [B2C]', $talep->pax_total, $adminUrl);
-
         $smsMsg = 'YENİ B2C TALEBİ: ' . $talep->gtpnr . ' | ' . $talep->agency_name . ' | ' . $talep->pax_total . ' PAX | ' . $talep->phone;
         (new SmsService())->sendByEvent('new_request', $talep->id, $smsMsg);
-
         (new EmailService())->yeniTalep($talep->id, $talep->gtpnr, $talep->agency_name . ' [B2C]', $talep->pax_total, $adminUrl);
+
+        // Tüketiciye onay + takip linki emaili
+        (new EmailService())->b2cTalepOnay($talep->id, $gtpnr, $validated['contact_name'], $validated['email'], $trackUrl);
+
+        // Tüketiciye SMS
+        $consumerSms = "Grup ucus talebiniz alindi. Referans: {$gtpnr}. Takip: {$trackUrl}";
+        (new SmsService())->send($talep->id, 'b2c_musteri', $validated['contact_name'], $validated['phone'], $consumerSms);
 
         return redirect()->route('b2c.flight.confirm', $talep->gtpnr);
     }
 
-    public function show(string $gtpnr)
+    // ── Teşekkür sayfası (talep oluştuktan hemen sonra) ─────────────────────
+
+    public function confirm(string $gtpnr)
     {
         $talep = TalepModel::where('gtpnr', $gtpnr)
             ->where('source_channel', 'b2c')
             ->with(['segments' => fn($q) => $q->orderBy('order')])
             ->firstOrFail();
 
-        return view('b2c.flight-request.confirm', compact('talep'));
+        $token    = $this->makeToken($talep->gtpnr, $talep->phone);
+        $trackUrl = route('b2c.flight.track', ['gtpnr' => $talep->gtpnr, 'token' => $token]);
+
+        return view('b2c.flight-request.confirm', compact('talep', 'trackUrl'));
+    }
+
+    // ── Doğrulama sayfası ────────────────────────────────────────────────────
+
+    public function showVerify(string $gtpnr)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)
+            ->where('source_channel', 'b2c')
+            ->firstOrFail();
+
+        return view('b2c.flight-request.verify', compact('talep'));
+    }
+
+    public function verify(Request $request, string $gtpnr)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)
+            ->where('source_channel', 'b2c')
+            ->firstOrFail();
+
+        $input = trim($request->input('credential', ''));
+
+        $phoneNorm = preg_replace('/\D/', '', $talep->phone);
+        $inputNorm = preg_replace('/\D/', '', $input);
+
+        $phoneMatch = strlen($inputNorm) >= 4 && str_ends_with($phoneNorm, substr($inputNorm, -10));
+        $emailMatch = strtolower($input) === strtolower($talep->email);
+
+        if (! $phoneMatch && ! $emailMatch) {
+            return back()->withErrors(['credential' => 'Girilen bilgi bu talep ile eşleşmiyor. Lütfen talep sırasında kullandığınız telefon veya e-posta adresini girin.']);
+        }
+
+        session(["b2c_talep_{$gtpnr}" => true]);
+
+        return redirect()->route('b2c.flight.track', $gtpnr);
+    }
+
+    // ── Talep Takip Sayfası ─────────────────────────────────────────────────
+
+    public function track(Request $request, string $gtpnr)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)
+            ->where('source_channel', 'b2c')
+            ->with([
+                'segments'  => fn($q) => $q->orderBy('order'),
+                'offers'    => fn($q) => $q->whereIn('durum', [Offer::DURUM_BEKLEMEDE, Offer::DURUM_KABUL])->orderBy('id'),
+                'logs'      => fn($q) => $q->orderByDesc('id')->limit(10),
+            ])
+            ->firstOrFail();
+
+        // Token ile otomatik doğrulama
+        $token = $request->query('token');
+        if ($token && $token === $this->makeToken($gtpnr, $talep->phone)) {
+            session(["b2c_talep_{$gtpnr}" => true]);
+        }
+
+        // Session doğrulama
+        if (! session("b2c_talep_{$gtpnr}")) {
+            return redirect()->route('b2c.flight.verify', $gtpnr);
+        }
+
+        return view('b2c.flight-request.track', compact('talep'));
+    }
+
+    // ── Teklif Kabul ─────────────────────────────────────────────────────────
+
+    public function acceptOffer(Request $request, string $gtpnr, int $offerId)
+    {
+        $talep = TalepModel::where('gtpnr', $gtpnr)
+            ->where('source_channel', 'b2c')
+            ->firstOrFail();
+
+        if (! session("b2c_talep_{$gtpnr}")) {
+            return redirect()->route('b2c.flight.verify', $gtpnr);
+        }
+
+        $offer = Offer::where('id', $offerId)
+            ->where('request_id', $talep->id)
+            ->where('durum', Offer::DURUM_BEKLEMEDE)
+            ->firstOrFail();
+
+        $offer->update(['durum' => Offer::DURUM_KABUL]);
+
+        $talep->update(['status' => TalepModel::STATUS_DEPOZITODA]);
+        $talep->refreshAktifAdim();
+
+        RequestLog::create([
+            'request_id'  => $talep->id,
+            'action'      => 'teklif_kabul_edildi',
+            'description' => 'Teklif B2C müşterisi tarafından kabul edildi. Teklif: ' . ($offer->airline ?? '—') . ' ' . $offer->total_price . ' ' . $offer->currency,
+            'user_id'     => null,
+        ]);
+
+        // Admin'e bildir
+        $adminUrl = route('admin.requests.show', $gtpnr);
+        (new NotificationService())->teklifKabulEdildi($gtpnr, $talep->agency_name . ' [B2C]', $offer->airline ?? '—', $adminUrl);
+        (new EmailService())->teklifKabul($talep->id, $gtpnr, $talep->agency_name . ' [B2C]', $offer->airline ?? '—', $adminUrl);
+
+        return redirect()->route('b2c.flight.track', $gtpnr)
+            ->with('offer_accepted', true);
+    }
+
+    // ── Yardımcı: Doğrulama Token'ı ─────────────────────────────────────────
+
+    private function makeToken(string $gtpnr, string $phone): string
+    {
+        $normalPhone = preg_replace('/\D/', '', $phone);
+        return substr(hash('sha256', $gtpnr . $normalPhone . config('app.key')), 0, 24);
     }
 }

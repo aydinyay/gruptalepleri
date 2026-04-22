@@ -333,7 +333,11 @@ Route::get('/api/airlines/search', [\App\Http\Controllers\AirportController::cla
 // ── Grup Uçak Talebi (B2C) ────────────────────────────────────────────────
 Route::get('/grup-ucak-talebi', [FlightRequestController::class, 'create'])->name('b2c.flight.create');
 Route::post('/grup-ucak-talebi', [FlightRequestController::class, 'store'])->name('b2c.flight.store')->middleware('throttle:10,1');
-Route::get('/grup-ucak-talebi/{gtpnr}', [FlightRequestController::class, 'show'])->name('b2c.flight.confirm');
+Route::get('/grup-ucak-talebi/{gtpnr}/tesekkur', [FlightRequestController::class, 'confirm'])->name('b2c.flight.confirm');
+Route::get('/grup-ucak-talebi/{gtpnr}/dogrula', [FlightRequestController::class, 'showVerify'])->name('b2c.flight.verify');
+Route::post('/grup-ucak-talebi/{gtpnr}/dogrula', [FlightRequestController::class, 'verify'])->name('b2c.flight.verify.post')->middleware('throttle:10,1');
+Route::get('/grup-ucak-talebi/{gtpnr}', [FlightRequestController::class, 'track'])->name('b2c.flight.track');
+Route::post('/grup-ucak-talebi/{gtpnr}/teklif/{offerId}/kabul', [FlightRequestController::class, 'acceptOffer'])->name('b2c.flight.offer.accept')->middleware('throttle:5,1');
 
 // ── B2C Transfer ───────────────────────────────────────────────────────────
 Route::prefix('transfer')->name('b2c.transfer.')->group(function () {

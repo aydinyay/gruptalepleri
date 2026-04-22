@@ -376,7 +376,24 @@ class RequestController extends Controller
 
         $acenteUrl = route('acente.requests.show', $talep->gtpnr);
 
-        // Bildirimler — sadece admin tarafından seçilenler gönderilir
+        // B2C talebi ise tüketiciye otomatik bildirim (checkbox gerektirmez)
+        if (($talep->source_channel ?? 'b2b') === 'b2c') {
+            try {
+                $b2cToken    = substr(hash('sha256', $talep->gtpnr . preg_replace('/\D/', '', $talep->phone) . config('app.key')), 0, 24);
+                $b2cTrackUrl = route('b2c.flight.track', ['gtpnr' => $talep->gtpnr, 'token' => $b2cToken]);
+
+                (new EmailService())->b2cTeklifHazir($talep->id, $talep->gtpnr, $talep->agency_name, (string) $talep->email, (string) $request->airline, $b2cTrackUrl);
+
+                if ($talep->phone) {
+                    $b2cSms = 'Grup ucus teklifiniz hazir! ' . $talep->gtpnr . ' | Incelemek icin: ' . $b2cTrackUrl;
+                    (new SmsService())->send($talep->id, 'b2c_musteri', (string) $talep->agency_name, (string) $talep->phone, $b2cSms);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('B2C storeOffer bildirim hatasi: ' . $e->getMessage(), ['gtpnr' => $talep->gtpnr]);
+            }
+        }
+
+        // Bildirimler — sadece admin tarafından seçilenler gönderilir (B2B)
         try {
             if ($request->boolean('notify_push_acente') && $talep->user_id) {
                 (new NotificationService())->teklifEklendi($talep->user_id, $talep->gtpnr, $request->airline, $acenteUrl);

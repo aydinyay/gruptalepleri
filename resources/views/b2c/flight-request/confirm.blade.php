@@ -270,10 +270,15 @@
                 </div>
             </div>
 
-            {{-- Beklenti notu --}}
-            <div class="expect-box">
+            {{-- Email gönderildi notu --}}
+            <div class="expect-box" style="background:#eff6ff;border-color:#93c5fd;">
+                <span class="icon">📧</span>
+                <p style="color:#1e40af;"><strong>{{ $talep->email }}</strong> adresinize takip linki gönderildi. Bu link ile dilediğiniz zaman talebinizin durumunu görebilir, teklifleri inceleyebilir ve kabul edebilirsiniz.</p>
+            </div>
+
+            <div class="expect-box mt-3">
                 <span class="icon">⏱️</span>
-                <p>Ekibimiz talebinizi inceleyerek ortalama <strong>2–4 saat içinde</strong> size telefon veya e-posta ile geri dönecektir. Referans numaranızı not almayı unutmayın: <strong>{{ $talep->gtpnr }}</strong></p>
+                <p>Ekibimiz talebinizi inceleyerek ortalama <strong>2–4 saat içinde</strong> size dönecektir. Referans: <strong>{{ $talep->gtpnr }}</strong></p>
             </div>
 
             {{-- Eylem butonları --}}
@@ -281,8 +286,8 @@
                 <a href="{{ route('b2c.flight.create') }}" class="btn-new-request">
                     <i class="bi bi-plus-circle"></i> Yeni Talep
                 </a>
-                <a href="{{ route('b2c.home') }}" class="btn-home">
-                    <i class="bi bi-house-fill"></i> Ana Sayfa
+                <a href="{{ $trackUrl }}" class="btn-home">
+                    <i class="bi bi-search"></i> Talebimi Takip Et
                 </a>
             </div>
 
