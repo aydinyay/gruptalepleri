@@ -1028,23 +1028,26 @@
         if (!nearbyEl) return;
         var url = '{{ route("b2c.api.detect-nearby") }}?city=' + encodeURIComponent(city);
         if (label) url += '&label=' + encodeURIComponent(label);
+        console.log('[GR] loadNearby url:', url);
         fetch(url)
-            .then(function(r) { return r.status === 200 ? r.text() : ''; })
+            .then(function(r) { console.log('[GR] detect-nearby status:', r.status); return r.status === 200 ? r.text() : ''; })
             .then(function(html) { if (html) nearbyEl.innerHTML = html; })
-            .catch(function() {});
+            .catch(function(e) { console.log('[GR] loadNearby error:', e); });
     }
 
     function geocodeAndLoad(lat, lng) {
+        console.log('[GR] geocodeAndLoad:', lat, lng);
         fetch('{{ route("b2c.api.geocode-city") }}?lat=' + lat + '&lng=' + lng)
             .then(function(r) { return r.json(); })
             .then(function(d) {
+                console.log('[GR] geocode result:', JSON.stringify(d));
                 if (!d.city) return;
                 localStorage.setItem(STORAGE_KEY,   d.city);
                 localStorage.setItem(STORAGE_LABEL, d.label || d.city);
                 localStorage.setItem(STORAGE_TIME,  Date.now());
                 loadNearby(d.city, d.label);
             })
-            .catch(function() {});
+            .catch(function(e) { console.log('[GR] geocode error:', e); });
     }
 
     // localStorage'da geçerli şehir var mı?
@@ -1052,15 +1055,16 @@
     var savedLabel = localStorage.getItem(STORAGE_LABEL);
     var savedTime  = parseInt(localStorage.getItem(STORAGE_TIME) || '0');
     var isValid    = savedCity && (Date.now() - savedTime) < TTL_MS;
+    console.log('[GR] savedCity:', savedCity, 'isValid:', isValid);
 
     if (isValid) {
         loadNearby(savedCity, savedLabel);
     } else {
-        // Geolocation ile konum al → Google Geocoding ile şehre çevir
-        if (!navigator.geolocation) return;
+        if (!navigator.geolocation) { console.log('[GR] geolocation yok'); return; }
+        console.log('[GR] geolocation isteniyor...');
         navigator.geolocation.getCurrentPosition(
             function(pos) { geocodeAndLoad(pos.coords.latitude, pos.coords.longitude); },
-            function() { /* izin verilmedi veya hata — lokasyonsuz devam */ }
+            function(err) { console.log('[GR] geolocation hata:', err.code, err.message); }
         );
     }
 })();
