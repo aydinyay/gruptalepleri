@@ -7,7 +7,6 @@
             </div>
             <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city) }}" class="gyg-see-all">Tümünü Gör →</a>
         </div>
-        {{-- DEBUG: {{ $items->pluck('destination_city','id')->toJson() }} --}}
         <div class="gyg-products-grid">
             @foreach($items as $item)
                 @include('b2c.home._product-card', ['item' => $item, 'savedIds' => []])
