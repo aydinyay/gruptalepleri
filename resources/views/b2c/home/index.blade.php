@@ -961,7 +961,7 @@ function grMapsReady() {
     });
 }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('transfer.google_maps.api_key') }}&callback=grMapsReady&language=tr" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CoEHudF9V3Zn4h6udx6Ftr3u6h51EXo&callback=grMapsReady&language=tr" async defer></script>
 
 @endsection
 
