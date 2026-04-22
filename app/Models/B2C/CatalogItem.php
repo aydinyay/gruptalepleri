@@ -39,6 +39,8 @@ class CatalogItem extends Model
         'publish_status',
         'published_at',
         'destination_city',
+        'destination_district',
+        'destination_area',
         'destination_country',
         'venue_address',
         'venue_lat',

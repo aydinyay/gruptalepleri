@@ -137,13 +137,25 @@
                             <div class="section-title">Destinasyon & Süre</div>
 
                             <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-600">Şehir</label>
-                                    <input type="text" name="destination_city" class="form-control"
+                                <div class="col-md-4">
+                                    <label class="form-label fw-600">Şehir / İl</label>
+                                    <input type="text" name="destination_city" id="destinationCity" class="form-control"
                                            value="{{ old('destination_city', $item->destination_city ?? '') }}"
-                                           placeholder="İstanbul">
+                                           placeholder="İzmir">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-600">İlçe</label>
+                                    <input type="text" name="destination_district" id="destinationDistrict" class="form-control"
+                                           value="{{ old('destination_district', $item->destination_district ?? '') }}"
+                                           placeholder="Urla">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-600">Belde / Bölge</label>
+                                    <input type="text" name="destination_area" id="destinationArea" class="form-control"
+                                           value="{{ old('destination_area', $item->destination_area ?? '') }}"
+                                           placeholder="Zeytinalanı">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label fw-600">Ülke</label>
                                     <input type="text" name="destination_country" class="form-control"
                                            value="{{ old('destination_country', $item->destination_country ?? 'Türkiye') }}">
@@ -653,6 +665,22 @@ function grGeocode() {
         var loc = results[0].geometry.location;
         document.getElementById('venueLat').value = loc.lat().toFixed(7);
         document.getElementById('venueLng').value = loc.lng().toFixed(7);
+
+        // Şehir / İlçe / Bölge otomatik doldur
+        var comps = results[0].address_components;
+        var city = '', district = '', area = '';
+        comps.forEach(function(c) {
+            if (c.types.indexOf('administrative_area_level_1') !== -1)
+                city = c.long_name.replace(/\s+İli$/i, '').replace(/\s+Ili$/i, '');
+            if (c.types.indexOf('administrative_area_level_2') !== -1)
+                district = c.long_name.replace(/\s+İlçesi$/i, '').replace(/\s+Ilcesi$/i, '');
+            if (c.types.indexOf('administrative_area_level_4') !== -1 || c.types.indexOf('sublocality_level_1') !== -1 || c.types.indexOf('neighborhood') !== -1)
+                area = c.long_name;
+        });
+        if (city)     { var el = document.getElementById('destinationCity');     if (el && !el.value) el.value = city; }
+        if (district) { var el = document.getElementById('destinationDistrict'); if (el && !el.value) el.value = district; }
+        if (area)     { var el = document.getElementById('destinationArea');     if (el && !el.value) el.value = area; }
+
         status.innerHTML = '<span style="color:#198754"><i class="bi bi-check-circle"></i> Bulundu: ' + loc.lat().toFixed(5) + ', ' + loc.lng().toFixed(5) + ' — <em>' + results[0].formatted_address + '</em></span>';
     });
 }

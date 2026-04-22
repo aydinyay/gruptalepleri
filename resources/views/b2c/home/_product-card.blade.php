@@ -76,7 +76,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
     <div class="gyg-pcard-body">
         <div class="gyg-pcard-cat">
             {{ $catLabel }}
-            @if($item->destination_city) · {{ $item->destination_city }} @endif
+            @if($item->destination_city) · {{ implode(', ', array_filter([$item->destination_district, $item->destination_city])) }} @endif
         </div>
 
         <div class="gyg-pcard-title">{{ $item->title }}</div>
