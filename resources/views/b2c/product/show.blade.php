@@ -360,9 +360,6 @@ $supplierCount    = $isPlatform
 @if($item->destination_city)
 <span class="prd-pill"><i class="bi bi-geo-alt-fill"></i> {{ $item->destination_city }}</span>
 @endif
-@if($item->venue_address)
-<span class="prd-pill" title="{{ $item->venue_address }}"><i class="bi bi-pin-map-fill"></i> {{ Str::limit($item->venue_address, 40) }}</span>
-@endif
 <span class="prd-pill" id="prdNearbyPill" style="display:none;background:rgba(16,185,129,.1);color:#059669;border-color:#10b981;">
     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>
     <span id="prdNearbyText">Size Yakın</span>
@@ -454,8 +451,8 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 @if($item->duration_days || $item->duration_hours)
 <div class="prd-item"><i class="bi bi-clock-fill"></i><div><strong>Süre</strong><span>{{ $item->duration_days ? $item->duration_days.' gün' : '' }} {{ $item->duration_hours ? $item->duration_hours.' saat' : '' }}</span></div></div>
 @endif
-@if($item->destination_city || $item->venue_address)
-<div class="prd-item"><i class="bi bi-geo-alt-fill"></i><div><strong>Lokasyon</strong><span>{{ $item->venue_address ?: $item->destination_city }}</span></div></div>
+@if($item->destination_city)
+<div class="prd-item"><i class="bi bi-geo-alt-fill"></i><div><strong>Lokasyon</strong><span>{{ $item->destination_city }}</span></div></div>
 @endif
 <div class="prd-item"><i class="bi bi-translate"></i><div><strong>Dil</strong><span>Türkçe, İngilizce</span></div></div>
 <div class="prd-item"><i class="bi bi-arrow-counterclockwise"></i><div><strong>İptal</strong><span>24 saat öncesine kadar ücretsiz</span></div></div>
