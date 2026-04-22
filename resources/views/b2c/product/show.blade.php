@@ -635,7 +635,21 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
         <span id="pcTotal" style="font-size:1.1rem;font-weight:800;color:#FF5533;">{{ number_format($item->base_price * ($item->min_pax ?? 1),0,',','.') }} {{ $item->currency }}</span>
     </div>
     @else
+    @if(in_array($subtype, ['private_jet','helicopter_tour','yacht_charter']))
+    <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">
+            Kaç kişi? <span style="font-weight:400;color:#718096;">(fiyatı etkilemez)</span>
+        </label>
+        @php $maxPax = $item->max_pax ?? 20; @endphp
+        <select name="pax_count" id="pcPax" style="width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;">
+            @for($p=($item->min_pax ?? 1);$p<=$maxPax;$p++)
+                <option value="{{ $p }}" {{ old('pax_count',$item->min_pax ?? 1)==$p?'selected':'' }}>{{ $p }} kişi</option>
+            @endfor
+        </select>
+    </div>
+    @else
     <input type="hidden" name="pax_count" value="{{ $item->min_pax ?? 1 }}">
+    @endif
     <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding-top:8px;margin-bottom:10px;">
         <span style="font-size:.85rem;color:#718096;">Fiyat</span>
         <span id="pcTotal" style="font-size:1.1rem;font-weight:800;color:#FF5533;">{{ number_format($item->base_price,0,',','.') }} {{ $item->currency }}</span>
