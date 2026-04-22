@@ -581,6 +581,33 @@
             @if($allItems->isNotEmpty())
                 @foreach($allItems as $item)
                     @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? []])
+                    @if($loop->index === 3)
+                    {{-- Grup Uçak Talebi Statik Kartı --}}
+                    <a href="{{ route('b2c.flight.create') }}" class="gyg-pcard">
+                        <div class="gyg-pcard-img">
+                            @php $ucakImg = public_path('uploads/static/grup-ucak-talebi.jpg'); @endphp
+                            @if(file_exists($ucakImg))
+                                <img src="{{ asset('uploads/static/grup-ucak-talebi.jpg') }}" alt="Grup Uçak Bileti" loading="lazy">
+                            @else
+                                <div class="img-placeholder" style="background:linear-gradient(135deg,#0c3547,#1a6b8a);">
+                                    <i class="bi bi-airplane-fill" style="font-size:3rem;color:rgba(255,255,255,.6);"></i>
+                                </div>
+                            @endif
+                            <div class="gyg-pcard-tag" style="background:#0c3547;color:#fff;">✈ Özel</div>
+                            <div class="gyg-pcard-badge">Ücretsiz</div>
+                        </div>
+                        <div class="gyg-pcard-body">
+                            <div class="gyg-pcard-cat">GRUP UÇUŞU · YURT İÇİ & DIŞI</div>
+                            <div class="gyg-pcard-title">Grubunuz İçin Özel Uçak Bileti Fiyatı Alın</div>
+                            <div class="d-flex align-items-center gap-1" style="margin-bottom:4px;">
+                                <span style="font-size:.72rem;color:#0d6efd;font-weight:600;">10+ kişi · Charter & Blok Koltuk</span>
+                            </div>
+                            <div class="gyg-pcard-price-label">tamamen ücretsiz</div>
+                            <div class="gyg-pcard-price" style="color:#0c3547;">Gruba Özel Fiyat</div>
+                            <span class="gyg-pcard-cta">Talep Oluştur</span>
+                        </div>
+                    </a>
+                    @endif
                 @endforeach
                 <div>@include('b2c.partials.daily-quiz-widget')</div>
             @else
