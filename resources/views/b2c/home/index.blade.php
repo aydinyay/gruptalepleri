@@ -467,7 +467,9 @@
                     ? (str_starts_with($hi->cover_image, 'http') ? $hi->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $hi->cover_image)
                     : null;
             @endphp
-            <a href="{{ route('b2c.product.show', $hi->slug) }}" class="gyg-hero-card">
+            <a href="{{ route('b2c.product.show', $hi->slug) }}" class="gyg-hero-card"
+               data-city="{{ $hi->destination_city ?? '' }}"
+               @if(!empty($hi->venue_lat)) data-lat="{{ $hi->venue_lat }}" data-lng="{{ $hi->venue_lng }}" @endif>
                 <div class="hc-img" @if($hiImg) style="background-image:url('{{ $hiImg }}')" @endif>
                     @if($hi->badge_label)
                     @php
@@ -919,14 +921,7 @@ function grHaversine(lat1, lng1, lat2, lng2) {
     return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 10) / 10;
 }
 
-function grHighlightNearby(city, userLat, userLng) {
-    var grid = document.getElementById('main-products-grid');
-    if (!grid || !city) return;
-
-    var cityLower = city.toLowerCase();
-    var cards = Array.from(grid.querySelectorAll('a.gyg-pcard[data-city]'));
-
-    // Filtre: koordinat varsa ≤60 km, yoksa aynı şehir adı
+function grNearbyFilter(cards, cityLower, userLat, userLng) {
     var near = [];
     cards.forEach(function(c) {
         var cardCity = (c.dataset.city || '').toLowerCase();
@@ -940,28 +935,38 @@ function grHighlightNearby(city, userLat, userLng) {
         }
         near.push({ card: c, km: km });
     });
+    return near;
+}
 
-    if (!near.length) return;
-
+function grInjectPin(imgWrap, km) {
+    if (!imgWrap || imgWrap.querySelector('.gr-nearby-pin')) return;
     var PIN_STYLE = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.25rem .65rem .25rem .5rem;font-size:.69rem;font-weight:700;display:inline-flex;align-items:center;gap:.28rem;backdrop-filter:blur(6px);pointer-events:none;z-index:4;letter-spacing:.01em;box-shadow:0 2px 6px rgba(0,0,0,.18);';
     var PIN_ICON  = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>';
+    var label = km !== null ? ('Size ' + km + ' km yakın') : 'Size Yakın';
+    var pin = document.createElement('div');
+    pin.className = 'gr-nearby-pin';
+    pin.innerHTML = PIN_ICON + ' ' + label;
+    pin.style.cssText = PIN_STYLE;
+    imgWrap.appendChild(pin);
+}
 
-    near.forEach(function(item) {
-        var card = item.card;
-        if (card.querySelector('.gr-nearby-pin')) return;
-        var imgWrap = card.querySelector('.gyg-pcard-img');
-        if (!imgWrap) return;
+function grHighlightNearby(city, userLat, userLng) {
+    if (!city) return;
+    var cityLower = city.toLowerCase();
 
-        var label = item.km !== null ? ('Size ' + item.km + ' km yakın') : 'Size Yakın';
+    // Ana grid kartları
+    var grid = document.getElementById('main-products-grid');
+    if (grid) {
+        var gridCards = Array.from(grid.querySelectorAll('a.gyg-pcard[data-city]'));
+        var nearGrid  = grNearbyFilter(gridCards, cityLower, userLat, userLng);
+        nearGrid.forEach(function(item) { grInjectPin(item.card.querySelector('.gyg-pcard-img'), item.km); });
+        nearGrid.forEach(function(item) { grid.insertBefore(item.card, grid.firstChild); });
+    }
 
-        var pin = document.createElement('div');
-        pin.className = 'gr-nearby-pin';
-        pin.innerHTML = PIN_ICON + ' ' + label;
-        pin.style.cssText = PIN_STYLE;
-        imgWrap.appendChild(pin);
-    });
-
-    near.forEach(function(item) { grid.insertBefore(item.card, grid.firstChild); });
+    // Hero/vitrin kartları
+    var heroCards = Array.from(document.querySelectorAll('a.gyg-hero-card[data-city]'));
+    var nearHero  = grNearbyFilter(heroCards, cityLower, userLat, userLng);
+    nearHero.forEach(function(item) { grInjectPin(item.card.querySelector('.hc-img'), item.km); });
 }
 
 function grMapsReady() {
