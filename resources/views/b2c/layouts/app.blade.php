@@ -23,7 +23,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="@yield('og_image')">
     @else
-    <meta property="og:image" content="https://gruprezervasyonlari.com/og-default.png">
+    <meta property="og:image" content="https://gruprezervasyonlari.com/og-default.jpg">
     @endif
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
