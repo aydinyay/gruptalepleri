@@ -1059,10 +1059,10 @@
         }).then(function() { loadNearby(city); }).catch(function() { loadNearby(city); });
     }
 
-    // IP bazlı — izin gerektirmez, önce şehir sonra il dene
-    fetch('https://ip-api.com/json/?fields=city,regionName&lang=tr')
+    // IP bazlı — izin gerektirmez (ipapi.co HTTPS destekler)
+    fetch('https://ipapi.co/json/')
         .then(function(r) { return r.json(); })
-        .then(function(d) { saveAndLoad(d.regionName || d.city || ''); })
+        .then(function(d) { saveAndLoad(d.region || d.city || ''); })
         .catch(function() {});
 })();
 </script>
