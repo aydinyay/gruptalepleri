@@ -909,7 +909,7 @@ var GR_LABEL_KEY = 'gr_user_city_label';
 var GR_TIME_KEY  = 'gr_user_city_ts';
 var GR_LAT_KEY   = 'gr_user_lat';
 var GR_LNG_KEY   = 'gr_user_lng';
-var GR_TTL       = 30 * 24 * 60 * 60 * 1000;
+var GR_TTL       = 4 * 60 * 60 * 1000; // 4 saat — seyahat edince güncellenir
 
 function grHaversine(lat1, lng1, lat2, lng2) {
     var R = 6371;
@@ -969,6 +969,37 @@ function grHighlightNearby(city, userLat, userLng) {
     nearHero.forEach(function(item) { grInjectPin(item.card.querySelector('.hc-img'), item.km); });
 }
 
+function grSaveLocation(uLat, uLng, city, label) {
+    localStorage.setItem(GR_CITY_KEY,  city);
+    localStorage.setItem(GR_LABEL_KEY, label);
+    localStorage.setItem(GR_TIME_KEY,  Date.now());
+    localStorage.setItem(GR_LAT_KEY,   uLat);
+    localStorage.setItem(GR_LNG_KEY,   uLng);
+}
+
+function grFetchLocation(onSuccess) {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        var uLat = pos.coords.latitude;
+        var uLng = pos.coords.longitude;
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: { lat: uLat, lng: uLng } }, function(results, status) {
+            if (status !== 'OK' || !results || !results[0]) return;
+            var components = results[0].address_components;
+            var city = null, district = null;
+            components.forEach(function(comp) {
+                if (!city && comp.types.indexOf('administrative_area_level_1') !== -1)
+                    city = comp.long_name.replace(/\s+İli$/i, '').replace(/\s+Ili$/i, '');
+                if (!district && comp.types.indexOf('administrative_area_level_2') !== -1)
+                    district = comp.long_name.replace(/\s+İlçesi$/i, '').replace(/\s+Ilcesi$/i, '');
+            });
+            if (!city) return;
+            var label = (district && district !== city) ? district + ', ' + city : city;
+            onSuccess(uLat, uLng, city, label);
+        });
+    }, function() {}, { maximumAge: 60000, timeout: 8000 });
+}
+
 function grMapsReady() {
     var savedCity = localStorage.getItem(GR_CITY_KEY);
     var savedTime = parseInt(localStorage.getItem(GR_TIME_KEY) || '0');
@@ -977,38 +1008,24 @@ function grMapsReady() {
     var isValid   = savedCity && (Date.now() - savedTime) < GR_TTL;
 
     if (isValid) {
+        // Cache geçerli — hemen göster
         grHighlightNearby(savedCity, savedLat, savedLng);
+        // Arka planda GPS'i sessizce tazele (prompt çıkmaz, izin zaten verilmişse)
+        grFetchLocation(function(uLat, uLng, city, label) {
+            var moved = grHaversine(savedLat, savedLng, uLat, uLng);
+            if (moved > 2) { // 2km'den fazla yer değişmişse yeniden çiz
+                grSaveLocation(uLat, uLng, city, label);
+                document.querySelectorAll('.gr-nearby-pin').forEach(function(p) { p.remove(); });
+                grHighlightNearby(city, uLat, uLng);
+            }
+        });
         return;
     }
 
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(function(pos) {
-        var uLat = pos.coords.latitude;
-        var uLng = pos.coords.longitude;
-        var geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: { lat: uLat, lng: uLng } }, function(results, status) {
-            if (status !== 'OK' || !results || !results[0]) return;
-
-            var components = results[0].address_components;
-            var city = null, district = null;
-
-            components.forEach(function(comp) {
-                if (!city && comp.types.indexOf('administrative_area_level_1') !== -1)
-                    city = comp.long_name.replace(/\s+İli$/i, '').replace(/\s+Ili$/i, '');
-                if (!district && comp.types.indexOf('administrative_area_level_2') !== -1)
-                    district = comp.long_name.replace(/\s+İlçesi$/i, '').replace(/\s+Ilcesi$/i, '');
-            });
-
-            if (!city) return;
-            var label = (district && district !== city) ? district + ', ' + city : city;
-
-            localStorage.setItem(GR_CITY_KEY,  city);
-            localStorage.setItem(GR_LABEL_KEY, label);
-            localStorage.setItem(GR_TIME_KEY,  Date.now());
-            localStorage.setItem(GR_LAT_KEY,   uLat);
-            localStorage.setItem(GR_LNG_KEY,   uLng);
-            grHighlightNearby(city, uLat, uLng);
-        });
+    // Cache yok veya süresi dolmuş — fresh fetch
+    grFetchLocation(function(uLat, uLng, city, label) {
+        grSaveLocation(uLat, uLng, city, label);
+        grHighlightNearby(city, uLat, uLng);
     });
 }
 </script>
