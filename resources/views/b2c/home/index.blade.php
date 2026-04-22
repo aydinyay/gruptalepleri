@@ -1037,14 +1037,17 @@
 
 <script>
 (function() {
-    var STORAGE_KEY  = 'gr_user_city';
-    var STORAGE_TIME = 'gr_user_city_ts';
-    var TTL_MS       = 30 * 24 * 60 * 60 * 1000; // 30 gün
+    var STORAGE_KEY   = 'gr_user_city';
+    var STORAGE_LABEL = 'gr_user_city_label';
+    var STORAGE_TIME  = 'gr_user_city_ts';
+    var TTL_MS        = 30 * 24 * 60 * 60 * 1000; // 30 gün
 
-    function loadNearby(city) {
+    function loadNearby(city, label) {
         var nearbyEl = document.getElementById('nearby-section');
         if (!nearbyEl || nearbyEl.querySelector('section')) return;
-        fetch('{{ route("b2c.api.detect-nearby") }}?city=' + encodeURIComponent(city))
+        var url = '{{ route("b2c.api.detect-nearby") }}?city=' + encodeURIComponent(city);
+        if (label) url += '&label=' + encodeURIComponent(label);
+        fetch(url)
             .then(function(r) { return r.status === 200 ? r.text() : ''; })
             .then(function(html) { if (html) nearbyEl.innerHTML = html; })
             .catch(function() {});
@@ -1055,20 +1058,22 @@
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 if (!d.city) return;
-                localStorage.setItem(STORAGE_KEY, d.city);
-                localStorage.setItem(STORAGE_TIME, Date.now());
-                loadNearby(d.city);
+                localStorage.setItem(STORAGE_KEY,   d.city);
+                localStorage.setItem(STORAGE_LABEL, d.label || d.city);
+                localStorage.setItem(STORAGE_TIME,  Date.now());
+                loadNearby(d.city, d.label);
             })
             .catch(function() {});
     }
 
     // localStorage'da geçerli şehir var mı?
-    var savedCity = localStorage.getItem(STORAGE_KEY);
-    var savedTime = parseInt(localStorage.getItem(STORAGE_TIME) || '0');
-    var isValid   = savedCity && (Date.now() - savedTime) < TTL_MS;
+    var savedCity  = localStorage.getItem(STORAGE_KEY);
+    var savedLabel = localStorage.getItem(STORAGE_LABEL);
+    var savedTime  = parseInt(localStorage.getItem(STORAGE_TIME) || '0');
+    var isValid    = savedCity && (Date.now() - savedTime) < TTL_MS;
 
     if (isValid) {
-        loadNearby(savedCity);
+        loadNearby(savedCity, savedLabel);
     } else {
         // Geolocation ile konum al → Google Geocoding ile şehre çevir
         if (!navigator.geolocation) return;

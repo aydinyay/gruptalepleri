@@ -140,31 +140,51 @@ Route::get('/api/b2c/nearby-items', function (\Illuminate\Http\Request $request)
     return view('b2c.home._nearby-section', compact('items', 'city'));
 })->name('b2c.api.nearby-items');
 
-// ── Google Geocoding: lat/lng → şehir adı (server-side, key gizli kalır) ──
+// ── Google Geocoding: lat/lng → şehir + konum etiketi (server-side, key gizli kalır) ──
 Route::get('/api/b2c/geocode-city', function (\Illuminate\Http\Request $request) {
     $lat = (float) $request->query('lat');
     $lng = (float) $request->query('lng');
-    if (!$lat || !$lng) return response()->json(['city' => null]);
+    if (!$lat || !$lng) return response()->json(['city' => null, 'label' => null]);
 
     try {
         $resp = \Illuminate\Support\Facades\Http::timeout(5)
             ->get('https://maps.googleapis.com/maps/api/geocode/json', [
-                'latlng'      => "{$lat},{$lng}",
-                'key'         => config('transfer.google_maps.api_key'),
-                'language'    => 'tr',
-                'result_type' => 'administrative_area_level_1',
+                'latlng'   => "{$lat},{$lng}",
+                'key'      => config('transfer.google_maps.api_key'),
+                'language' => 'tr',
             ]);
-        $city = $resp->json('results.0.address_components.0.long_name');
+
+        $results    = $resp->json('results') ?? [];
+        $city       = null;
+        $district   = null;
+
+        foreach ($results as $result) {
+            foreach ($result['address_components'] ?? [] as $comp) {
+                $types = $comp['types'] ?? [];
+                if (!$city && in_array('administrative_area_level_1', $types)) {
+                    // "İzmir İli" → "İzmir"
+                    $city = preg_replace('/\s+İli$/u', '', $comp['long_name']);
+                }
+                if (!$district && (in_array('administrative_area_level_2', $types) || in_array('locality', $types))) {
+                    $district = $comp['long_name'];
+                }
+            }
+            if ($city && $district) break;
+        }
+
+        $label = $city ? ($district && $district !== $city ? "{$district}, {$city}" : $city) : null;
     } catch (\Exception $e) {
-        $city = null;
+        $city  = null;
+        $label = null;
     }
 
-    return response()->json(['city' => $city]);
+    return response()->json(['city' => $city, 'label' => $label]);
 })->name('b2c.api.geocode-city');
 
 // ── Yakın Ürünler HTML (şehir adıyla, localStorage'dan gelir) ────────────
 Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request) {
-    $city = trim($request->query('city', ''));
+    $city  = trim($request->query('city', ''));
+    $label = trim($request->query('label', '')) ?: $city;
     if (!$city) return response('', 204);
 
     $items = \App\Models\B2C\CatalogItem::published()
@@ -181,7 +201,7 @@ Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request
 
     if ($items->isEmpty()) return response('', 204);
 
-    return view('b2c.home._nearby-section', compact('items', 'city'));
+    return view('b2c.home._nearby-section', compact('items', 'city', 'label'));
 })->name('b2c.api.detect-nearby');
 
 // ── Arama Autocomplete API ─────────────────────────────────────────────────

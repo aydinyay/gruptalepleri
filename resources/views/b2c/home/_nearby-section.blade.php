@@ -2,7 +2,7 @@
     <div class="container" style="max-width:1280px;">
         <div class="gyg-section-head">
             <div>
-                <h2>Yakınınızda keşfedilecekler</h2>
+                <h2>Yakınınızda keşfedilecekler <span style="font-size:.65em;font-weight:400;opacity:.65;">({{ $label ?? $city }})</span></h2>
                 <p>{{ $city }} bölgesindeki deneyimler</p>
             </div>
             <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city) }}" class="gyg-see-all">Tümünü Gör →</a>
