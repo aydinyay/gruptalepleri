@@ -566,6 +566,7 @@
 {{-- ════════════════════════════════════════════════════════════════
      YAKINIMIZDAKILER
 ════════════════════════════════════════════════════════════════ --}}
+<div id="nearby-section">
 @if($nearbyItems->isNotEmpty())
 <section style="padding:2.5rem 0 0;">
     <div class="container" style="max-width:1280px;">
@@ -584,6 +585,7 @@
     </div>
 </section>
 @endif
+</div>
 
 {{-- ════════════════════════════════════════════════════════════════
      ÖNE ÇIKAN DENEYİMLER
@@ -1046,17 +1048,25 @@
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 var city = d.city || d.locality || d.principalSubdivision || '';
-                if (!city) return;
+                if (!city) return Promise.reject('no-city');
                 return fetch('{{ route("b2c.api.hero-city") }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ city: city })
-                });
+                }).then(function() { return city; });
             })
-            .then(function() { sessionStorage.setItem('gr_city_set', '1'); })
+            .then(function(city) {
+                if (!city) return;
+                sessionStorage.setItem('gr_city_set', '1');
+                // Nearby section'ı yükle (sayfa yenilemeye gerek yok)
+                var nearbyEl = document.getElementById('nearby-section');
+                if (nearbyEl && !nearbyEl.querySelector('section')) {
+                    fetch('{{ route("b2c.api.nearby-items") }}?city=' + encodeURIComponent(city))
+                        .then(function(r) { return r.ok ? r.text() : ''; })
+                        .then(function(html) { if (html) nearbyEl.innerHTML = html; })
+                        .catch(function() {});
+                }
+            })
             .catch(function() {});
     }, function() {}, { timeout: 5000 });
 })();

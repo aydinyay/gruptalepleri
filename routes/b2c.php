@@ -115,6 +115,31 @@ Route::post('/api/b2c/hero-city', function (\Illuminate\Http\Request $request) {
     return response()->json(['ok' => true]);
 })->name('b2c.api.hero-city');
 
+// ── Yakın Ürünler Partial (AJAX) ──────────────────────────────────────────
+Route::get('/api/b2c/nearby-items', function (\Illuminate\Http\Request $request) {
+    $city = trim($request->query('city', ''));
+    if (!$city) return response('', 204);
+
+    $items = \App\Models\B2C\CatalogItem::published()
+        ->inCity($city)
+        ->with('category')
+        ->limit(6)
+        ->get();
+
+    // İlk kelimeyle tekrar dene
+    if ($items->isEmpty()) {
+        $first = explode(' ', $city)[0];
+        if ($first !== $city) {
+            $items = \App\Models\B2C\CatalogItem::published()->inCity($first)->with('category')->limit(6)->get();
+            if ($items->isNotEmpty()) $city = $first;
+        }
+    }
+
+    if ($items->isEmpty()) return response('', 204);
+
+    return view('b2c.home._nearby-section', compact('items', 'city'));
+})->name('b2c.api.nearby-items');
+
 // ── Arama Autocomplete API ─────────────────────────────────────────────────
 Route::get('/api/search-suggest', function (\Illuminate\Http\Request $request) {
     $q = trim($request->get('q', ''));
