@@ -585,14 +585,7 @@
                     {{-- Grup Uçak Talebi Statik Kartı --}}
                     <a href="{{ route('b2c.flight.create') }}" class="gyg-pcard">
                         <div class="gyg-pcard-img">
-                            @php $ucakImg = public_path('uploads/static/grup-ucak-talebi.png'); @endphp
-                            @if(file_exists($ucakImg))
-                                <img src="{{ asset('uploads/static/grup-ucak-talebi.png') }}" alt="Grup Uçak Bileti" loading="lazy">
-                            @else
-                                <div class="img-placeholder" style="background:linear-gradient(135deg,#0c3547,#1a6b8a);">
-                                    <i class="bi bi-airplane-fill" style="font-size:3rem;color:rgba(255,255,255,.6);"></i>
-                                </div>
-                            @endif
+                            <img src="{{ asset('uploads/static/grup-ucak-talebi.png') }}" alt="Grup Uçak Bileti" loading="lazy">
                             <div class="gyg-pcard-tag" style="background:#0c3547;color:#fff;">✈ Özel</div>
                             <div class="gyg-pcard-badge">Ücretsiz</div>
                         </div>
