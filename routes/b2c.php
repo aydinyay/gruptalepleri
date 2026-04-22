@@ -142,26 +142,34 @@ Route::get('/api/b2c/nearby-items', function (\Illuminate\Http\Request $request)
 
 // ── Konum Tespiti + Yakın Ürünler (server-side IP lookup, CORS yok) ────────
 Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request) {
+    $debug = $request->query('debug') === '1';
+
     // Session'da zaten şehir varsa direkt kullan
     $city = session('b2c_user_city');
 
     if (!$city) {
         $ip = $request->ip();
-        // localhost/private IP ise test modu
-        if (in_array($ip, ['127.0.0.1', '::1']) || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.')) {
-            return response('', 204);
-        }
+        $isPrivate = in_array($ip, ['127.0.0.1', '::1'])
+            || substr($ip, 0, 8) === '192.168.'
+            || substr($ip, 0, 3) === '10.'
+            || substr($ip, 0, 7) === '172.16.';
+
+        if ($debug) return response()->json(['ip' => $ip, 'is_private' => $isPrivate, 'session_city' => $city]);
+
+        if ($isPrivate) return response('', 204);
+
         try {
-            $ctx = stream_context_create(['http' => ['timeout' => 3]]);
-            $json = @file_get_contents("http://ip-api.com/json/{$ip}?fields=city,regionName&lang=tr", false, $ctx);
-            if ($json) {
-                $data = json_decode($json, true);
+            $response = \Illuminate\Support\Facades\Http::timeout(3)
+                ->get("http://ip-api.com/json/{$ip}", ['fields' => 'city,regionName', 'lang' => 'tr']);
+            if ($response->ok()) {
+                $data = $response->json();
                 $city = $data['regionName'] ?? $data['city'] ?? null;
                 if ($city) session(['b2c_user_city' => $city]);
             }
         } catch (\Exception $e) {}
     }
 
+    if ($debug) return response()->json(['city' => $city]);
     if (!$city) return response('', 204);
 
     $items = \App\Models\B2C\CatalogItem::published()
