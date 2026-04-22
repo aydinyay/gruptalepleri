@@ -1036,44 +1036,34 @@
 </script>
 
 <script>
-// Geolocation → şehri session'a kaydet (sadece 1 kez / session)
+// IP bazlı konum → şehri tespit et, nearby section'ı yükle
 (function() {
-    if (!navigator.geolocation) return;
     if (sessionStorage.getItem('gr_city_set')) return;
 
-    navigator.geolocation.getCurrentPosition(function(pos) {
-        var lat = pos.coords.latitude;
-        var lng = pos.coords.longitude;
-        fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=tr')
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                var city = d.city || d.locality || d.principalSubdivision || '';
-                if (!city) return Promise.reject('no-city');
-                return fetch('{{ route("b2c.api.hero-city") }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: JSON.stringify({ city: city })
-                }).then(function() { return city; });
-            })
-            .then(function(city) {
-                if (!city) return;
-                sessionStorage.setItem('gr_city_set', '1');
-                console.log('[GR] Şehir tespit edildi:', city);
-                // Nearby section'ı yükle (sayfa yenilemeye gerek yok)
-                var nearbyEl = document.getElementById('nearby-section');
-                if (nearbyEl && !nearbyEl.querySelector('section')) {
-                    var url = '{{ route("b2c.api.nearby-items") }}?city=' + encodeURIComponent(city);
-                    console.log('[GR] Nearby fetch:', url);
-                    fetch(url)
-                        .then(function(r) { console.log('[GR] Nearby response status:', r.status); return r.status === 200 ? r.text() : ''; })
-                        .then(function(html) { console.log('[GR] Nearby HTML length:', html.length); if (html) nearbyEl.innerHTML = html; })
-                        .catch(function(e) { console.log('[GR] Nearby fetch error:', e); });
-                } else {
-                    console.log('[GR] Nearby section zaten dolu veya bulunamadı');
-                }
-            })
-            .catch(function(e) { console.log('[GR] Geolocation/city error:', e); });
-    }, function(err) { console.log('[GR] Konum izni hatası:', err.code, err.message); }, { timeout: 5000 });
+    function loadNearby(city) {
+        sessionStorage.setItem('gr_city_set', '1');
+        var nearbyEl = document.getElementById('nearby-section');
+        if (!nearbyEl || nearbyEl.querySelector('section')) return;
+        fetch('{{ route("b2c.api.nearby-items") }}?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.status === 200 ? r.text() : ''; })
+            .then(function(html) { if (html) nearbyEl.innerHTML = html; })
+            .catch(function() {});
+    }
+
+    function saveAndLoad(city) {
+        if (!city) return;
+        fetch('{{ route("b2c.api.hero-city") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ city: city })
+        }).then(function() { loadNearby(city); }).catch(function() { loadNearby(city); });
+    }
+
+    // IP bazlı — izin gerektirmez
+    fetch('https://ip-api.com/json/?fields=city&lang=tr')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { saveAndLoad(d.city || ''); })
+        .catch(function() {});
 })();
 </script>
 @endpush
