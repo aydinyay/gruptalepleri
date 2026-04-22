@@ -76,6 +76,9 @@
                     {{ $durumEtiketleri[$talep->status] ?? $talep->status }}
                 </span>
                 <x-iade-badge :talep="$talep" />
+                @if(($talep->source_channel ?? 'b2b') === 'b2c')
+                    <span class="badge" style="background:#f97316;color:#fff;">🌐 GR.COM</span>
+                @endif
             </div>
             <div class="text-muted small">
                 @if($talep->agency_name === 'MÜNFERİT')
@@ -113,13 +116,21 @@
         {{-- ════════════════════ SOL SÜTUN ════════════════════ --}}
         <div class="col-lg-4 col-md-5">
 
+            {{-- B2C uyarı kutusu --}}
+            @if(($talep->source_channel ?? 'b2b') === 'b2c')
+            <div class="alert py-2 mb-3" style="background:#fff7ed;border:1.5px solid #fb923c;border-radius:10px;font-size:0.82rem;">
+                <strong style="color:#c2410c;">🌐 GrupRezervasyonlari.com talebi</strong><br>
+                <span style="color:#7c2d12;">Bu talep doğrudan tüketici sitesinden geldi — B2C fiyatı uygulayın.</span>
+            </div>
+            @endif
+
             {{-- Talep Bilgileri --}}
             <div class="card mb-3">
                 <div class="card-header py-2 fw-semibold">📋 Talep Bilgileri</div>
                 <div class="card-body py-2 small">
                     <div class="row g-2">
                         <div class="col-12">
-                            <div class="lbl">Acente</div>
+                            <div class="lbl">Acente / Müşteri</div>
                             <div class="fw-bold">
                                 @if($talep->agency_name === 'MÜNFERİT')
                                     <span class="badge" style="background:#20c997;color:#fff;">MÜNFERİT</span>

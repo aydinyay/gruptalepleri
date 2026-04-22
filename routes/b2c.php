@@ -12,6 +12,7 @@ use App\Http\Controllers\B2C\SupplierApplyController;
 use App\Http\Controllers\B2C\OwnerDashboardController;
 use App\Http\Controllers\B2C\QuickLeadController;
 use App\Http\Controllers\B2C\GrChatController;
+use App\Http\Controllers\B2C\FlightRequestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -324,6 +325,15 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarili', [\App\Http\Controllers\B2C\LeisurePaymentController::class, 'success'])->name('success');
         Route::match(['get', 'post'], '/basarisiz', [\App\Http\Controllers\B2C\LeisurePaymentController::class, 'fail'])->name('fail');
     });
+
+// ── Havalimanı & Havayolu Arama (B2C — auth gerektirmez) ─────────────────
+Route::get('/api/airports/search', [\App\Http\Controllers\AirportController::class, 'search'])->name('b2c.airports.search')->middleware('throttle:60,1');
+Route::get('/api/airlines/search', [\App\Http\Controllers\AirportController::class, 'airlineSearch'])->name('b2c.airlines.search')->middleware('throttle:60,1');
+
+// ── Grup Uçak Talebi (B2C) ────────────────────────────────────────────────
+Route::get('/grup-ucak-talebi', [FlightRequestController::class, 'create'])->name('b2c.flight.create');
+Route::post('/grup-ucak-talebi', [FlightRequestController::class, 'store'])->name('b2c.flight.store')->middleware('throttle:10,1');
+Route::get('/grup-ucak-talebi/{gtpnr}', [FlightRequestController::class, 'show'])->name('b2c.flight.confirm');
 
 // ── B2C Transfer ───────────────────────────────────────────────────────────
 Route::prefix('transfer')->name('b2c.transfer.')->group(function () {

@@ -168,13 +168,14 @@
                 <thead style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.8px;">
                     <tr>
                         <th>GTPNR</th>
-                        <th>Acente</th>
+                        <th>Acente / Müşteri</th>
                         <th>PAX</th>
                         <th>Gidiş</th>
                         <th>Dönüş</th>
                         <th>Opsiyon</th>
                         <th class="text-center">Durum</th>
-                        <th>Talep Tarihi</th>
+                        <th>Kaynak</th>
+                        <th>Tarih</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -266,6 +267,13 @@
                     <td class="text-center">
                         <span class="badge {{ $durumClass }}">{{ $durumEtiket }}</span>
                         <x-iade-badge :talep="$talep" />
+                    </td>
+                    <td class="text-center">
+                        @if(($talep->source_channel ?? 'b2b') === 'b2c')
+                            <span class="badge" style="background:#f97316;color:#fff;font-size:0.63rem;">GR.COM</span>
+                        @else
+                            <span class="badge" style="background:#0d6efd;color:#fff;font-size:0.63rem;">B2B</span>
+                        @endif
                     </td>
                     <td class="text-muted">{{ $talep->created_at->format('d.m.Y') }}</td>
                 </tr>

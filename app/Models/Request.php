@@ -68,6 +68,7 @@ class Request extends Model
     protected $fillable = [
         'gtpnr',
         'user_id',
+        'source_channel',
         'type',
         'status',
         'aktif_adim',
