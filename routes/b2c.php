@@ -145,6 +145,12 @@ Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request
     $city   = session('b2c_user_city');
     $region = session('b2c_user_region');
 
+    // Region yoksa eski session — temizle ve yeniden detect et
+    if ($city && !$region) {
+        session()->forget(['b2c_user_city', 'b2c_user_region']);
+        $city = null;
+    }
+
     if (!$city) {
         $ip = $request->ip();
         $isPrivate = in_array($ip, ['127.0.0.1', '::1'])
