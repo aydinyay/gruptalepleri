@@ -8,7 +8,6 @@ use App\Models\B2C\CatalogItem;
 use App\Models\B2C\B2cWishlistItem;
 use App\Models\BlogYazisi;
 use App\Models\SistemAyar;
-use App\Services\HeroTextService;
 
 class HomeController extends Controller
 {
@@ -64,16 +63,6 @@ class HomeController extends Controller
             ->map(fn($id) => (int) $id)
             ->all();
 
-        // Ürün özeti — Gemini prompt'a gerçek ürün/kategori bilgisi ver
-        $productSummary = $categories->pluck('name')->filter()->implode(', ')
-            . ' | '
-            . $allItems->take(10)->pluck('title')->filter()->implode(' / ');
-
-        $heroCtx  = HeroTextService::buildContext();
-        $heroService = new HeroTextService();
-        $heroPool = $heroService->getHeroPool($heroCtx, $productSummary);
-        $heroText = $heroPool[0];
-
         return view('b2c.home.index', compact(
             'categories',
             'allItems',
@@ -85,8 +74,6 @@ class HomeController extends Controller
             'heroBgColor',
             'heroBgImage',
             'savedIds',
-            'heroText',
-            'heroPool',
         ));
     }
 }
