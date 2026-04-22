@@ -1036,33 +1036,16 @@
 </script>
 
 <script>
-// IP bazlı konum → şehri tespit et, nearby section'ı yükle
+// Konum tespiti + yakın ürünler — server-side, CORS yok
 (function() {
-    if (sessionStorage.getItem('gr_city_set')) return;
-
-    function loadNearby(city) {
-        sessionStorage.setItem('gr_city_set', '1');
-        var nearbyEl = document.getElementById('nearby-section');
-        if (!nearbyEl || nearbyEl.querySelector('section')) return;
-        fetch('{{ route("b2c.api.nearby-items") }}?city=' + encodeURIComponent(city))
-            .then(function(r) { return r.status === 200 ? r.text() : ''; })
-            .then(function(html) { if (html) nearbyEl.innerHTML = html; })
-            .catch(function() {});
-    }
-
-    function saveAndLoad(city) {
-        if (!city) return;
-        fetch('{{ route("b2c.api.hero-city") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ city: city })
-        }).then(function() { loadNearby(city); }).catch(function() { loadNearby(city); });
-    }
-
-    // IP bazlı — izin gerektirmez (ipapi.co HTTPS destekler)
-    fetch('https://ipapi.co/json/')
-        .then(function(r) { return r.json(); })
-        .then(function(d) { saveAndLoad(d.region || d.city || ''); })
+    if (sessionStorage.getItem('gr_nearby_loaded')) return;
+    var nearbyEl = document.getElementById('nearby-section');
+    if (!nearbyEl || nearbyEl.querySelector('section')) return;
+    fetch('{{ route("b2c.api.detect-nearby") }}')
+        .then(function(r) { return r.status === 200 ? r.text() : ''; })
+        .then(function(html) {
+            if (html) { nearbyEl.innerHTML = html; sessionStorage.setItem('gr_nearby_loaded', '1'); }
+        })
         .catch(function() {});
 })();
 </script>
