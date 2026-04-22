@@ -142,10 +142,8 @@ Route::get('/api/b2c/nearby-items', function (\Illuminate\Http\Request $request)
 
 // ── Konum Tespiti + Yakın Ürünler (server-side IP lookup, CORS yok) ────────
 Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request) {
-    $debug = $request->query('debug') === '1';
-
-    // Session'da zaten şehir varsa direkt kullan
-    $city = session('b2c_user_city');
+    $city   = session('b2c_user_city');
+    $region = session('b2c_user_region');
 
     if (!$city) {
         $ip = $request->ip();
@@ -153,49 +151,36 @@ Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request
             || substr($ip, 0, 8) === '192.168.'
             || substr($ip, 0, 3) === '10.'
             || substr($ip, 0, 7) === '172.16.';
-
-        if ($debug) {
-            try {
-                $r = \Illuminate\Support\Facades\Http::timeout(3)
-                    ->get("http://ip-api.com/json/{$ip}", ['fields' => 'city,regionName,country', 'lang' => 'tr']);
-                return response()->json(['ip' => $ip, 'api' => $r->json(), 'session_city' => session('b2c_user_city')]);
-            } catch (\Exception $e) {
-                return response()->json(['ip' => $ip, 'error' => $e->getMessage()]);
-            }
-        }
-
         if ($isPrivate) return response('', 204);
 
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(3)
+            $resp = \Illuminate\Support\Facades\Http::timeout(3)
                 ->get("http://ip-api.com/json/{$ip}", ['fields' => 'city,regionName', 'lang' => 'tr']);
-            if ($response->ok()) {
-                $data = $response->json();
-                $city = $data['regionName'] ?? $data['city'] ?? null;
-                if ($city) session(['b2c_user_city' => $city]);
+            if ($resp->ok()) {
+                $data   = $resp->json();
+                $city   = $data['city']       ?? null;
+                $region = $data['regionName'] ?? null;
+                session(['b2c_user_city' => $city, 'b2c_user_region' => $region]);
             }
         } catch (\Exception $e) {}
     }
 
-    if ($debug) return response()->json(['city' => $city]);
-    if (!$city) return response('', 204);
+    if (!$city && !$region) return response('', 204);
 
-    $items = \App\Models\B2C\CatalogItem::published()
-        ->inCity($city)
-        ->with('category')
-        ->limit(6)
-        ->get();
+    // Önce ilçe adıyla dene, sonra il adıyla
+    $searchLabel = $city;
+    $items = $city
+        ? \App\Models\B2C\CatalogItem::published()->inCity($city)->with('category')->limit(6)->get()
+        : collect();
 
-    if ($items->isEmpty()) {
-        $first = explode(' ', $city)[0];
-        if ($first !== $city) {
-            $items = \App\Models\B2C\CatalogItem::published()->inCity($first)->with('category')->limit(6)->get();
-            if ($items->isNotEmpty()) $city = $first;
-        }
+    if ($items->isEmpty() && $region && $region !== $city) {
+        $items = \App\Models\B2C\CatalogItem::published()->inCity($region)->with('category')->limit(6)->get();
+        if ($items->isNotEmpty()) $searchLabel = $region;
     }
 
     if ($items->isEmpty()) return response('', 204);
 
+    $city = $searchLabel;
     return view('b2c.home._nearby-section', compact('items', 'city'));
 })->name('b2c.api.detect-nearby');
 
