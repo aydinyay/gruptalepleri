@@ -154,7 +154,15 @@ Route::get('/api/b2c/detect-nearby', function (\Illuminate\Http\Request $request
             || substr($ip, 0, 3) === '10.'
             || substr($ip, 0, 7) === '172.16.';
 
-        if ($debug) return response()->json(['ip' => $ip, 'is_private' => $isPrivate, 'session_city' => $city]);
+        if ($debug) {
+            try {
+                $r = \Illuminate\Support\Facades\Http::timeout(3)
+                    ->get("http://ip-api.com/json/{$ip}", ['fields' => 'city,regionName,country', 'lang' => 'tr']);
+                return response()->json(['ip' => $ip, 'api' => $r->json(), 'session_city' => session('b2c_user_city')]);
+            } catch (\Exception $e) {
+                return response()->json(['ip' => $ip, 'error' => $e->getMessage()]);
+            }
+        }
 
         if ($isPrivate) return response('', 204);
 
