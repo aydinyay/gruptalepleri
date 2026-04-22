@@ -906,56 +906,62 @@
 </section>
 
 <script>
-(function() {
-    var STORAGE_KEY   = 'gr_user_city';
-    var STORAGE_LABEL = 'gr_user_city_label';
-    var STORAGE_TIME  = 'gr_user_city_ts';
-    var TTL_MS        = 30 * 24 * 60 * 60 * 1000;
+var STORAGE_KEY   = 'gr_user_city';
+var STORAGE_LABEL = 'gr_user_city_label';
+var STORAGE_TIME  = 'gr_user_city_ts';
+var TTL_MS        = 30 * 24 * 60 * 60 * 1000;
 
-    function loadNearby(city, label) {
-        var nearbyEl = document.getElementById('nearby-section');
-        if (!nearbyEl) return;
-        var url = '/api/b2c/detect-nearby?city=' + encodeURIComponent(city);
-        if (label) url += '&label=' + encodeURIComponent(label);
-        console.log('[GR] loadNearby:', url);
-        fetch(url)
-            .then(function(r) { console.log('[GR] status:', r.status); return r.status === 200 ? r.text() : ''; })
-            .then(function(html) { if (html) nearbyEl.innerHTML = html; })
-            .catch(function(e) { console.log('[GR] fetch err:', e); });
-    }
+function grLoadNearby(city, label) {
+    var nearbyEl = document.getElementById('nearby-section');
+    if (!nearbyEl) return;
+    var url = '/api/b2c/detect-nearby?city=' + encodeURIComponent(city);
+    if (label) url += '&label=' + encodeURIComponent(label);
+    fetch(url)
+        .then(function(r) { return r.status === 200 ? r.text() : ''; })
+        .then(function(html) { if (html) nearbyEl.innerHTML = html; });
+}
 
-    function geocodeAndLoad(lat, lng) {
-        console.log('[GR] coords:', lat, lng);
-        fetch('/api/b2c/geocode-city?lat=' + lat + '&lng=' + lng)
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                console.log('[GR] geocode:', JSON.stringify(d));
-                if (!d.city) return;
-                localStorage.setItem(STORAGE_KEY,   d.city);
-                localStorage.setItem(STORAGE_LABEL, d.label || d.city);
-                localStorage.setItem(STORAGE_TIME,  Date.now());
-                loadNearby(d.city, d.label);
-            })
-            .catch(function(e) { console.log('[GR] geocode err:', e); });
-    }
-
+function grMapsReady() {
     var savedCity  = localStorage.getItem(STORAGE_KEY);
     var savedLabel = localStorage.getItem(STORAGE_LABEL);
     var savedTime  = parseInt(localStorage.getItem(STORAGE_TIME) || '0');
     var isValid    = savedCity && (Date.now() - savedTime) < TTL_MS;
-    console.log('[GR] start — savedCity:', savedCity, 'isValid:', isValid);
 
     if (isValid) {
-        loadNearby(savedCity, savedLabel);
-    } else {
-        if (!navigator.geolocation) { console.log('[GR] no geo'); return; }
-        navigator.geolocation.getCurrentPosition(
-            function(pos) { geocodeAndLoad(pos.coords.latitude, pos.coords.longitude); },
-            function(err) { console.log('[GR] geo err:', err.code, err.message); }
-        );
+        grLoadNearby(savedCity, savedLabel);
+        return;
     }
-})();
+
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: { lat: pos.coords.latitude, lng: pos.coords.longitude } }, function(results, status) {
+            if (status !== 'OK' || !results || !results[0]) return;
+
+            var components = results[0].address_components;
+            var city = null, district = null;
+
+            components.forEach(function(comp) {
+                if (!city && comp.types.indexOf('administrative_area_level_1') !== -1) {
+                    city = comp.long_name.replace(/\s+İli$/, '');
+                }
+                if (!district && (comp.types.indexOf('administrative_area_level_2') !== -1 || comp.types.indexOf('locality') !== -1)) {
+                    district = comp.long_name;
+                }
+            });
+
+            if (!city) return;
+            var label = (district && district !== city) ? district + ', ' + city : city;
+
+            localStorage.setItem(STORAGE_KEY,   city);
+            localStorage.setItem(STORAGE_LABEL, label);
+            localStorage.setItem(STORAGE_TIME,  Date.now());
+            grLoadNearby(city, label);
+        });
+    });
+}
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('transfer.google_maps.api_key') }}&callback=grMapsReady&language=tr" async defer></script>
 
 @endsection
 
