@@ -320,8 +320,8 @@ body{background:var(--bg);color:var(--txt);}
 
         {{-- Sağ: Rezervasyon paneli --}}
         @php
-            $b2cPrice   = (float)($package->original_price_per_person ?? $package->base_price_per_person ?? 0);
-            $b2cCur     = $package->currency ?: 'EUR';
+            $b2cPrice = (float)($item->base_price ?: $package->original_price_per_person ?? $package->base_price_per_person ?? 0);
+            $b2cCur   = $item->currency ?: ($package->currency ?: 'EUR');
         @endphp
         <div>
             <div class="lp-panel">

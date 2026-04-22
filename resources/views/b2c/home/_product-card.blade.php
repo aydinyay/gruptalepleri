@@ -95,7 +95,17 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
         </div>
 
         @if($item->pricing_type === 'fixed' && $item->base_price)
-            <div class="gyg-pcard-price-label">kişi başı itibaren</div>
+            @php
+            $cardPriceLabel = match($item->product_subtype ?? '') {
+                'yacht_charter'                           => 'saatlik · grup başına',
+                'helicopter_tour', 'private_jet'          => 'sefer başı',
+                'airport_transfer', 'intercity_transfer'  => 'araç başı',
+                'hotel_room', 'apart_rental'              => 'gecelik',
+                'visa_service'                            => 'başvuru başına',
+                default                                   => 'kişi başı itibaren',
+            };
+            @endphp
+            <div class="gyg-pcard-price-label">{{ $cardPriceLabel }}</div>
             <div class="gyg-pcard-price">{{ number_format($item->base_price, 0, ',', '.') }} {{ $item->currency ?? 'TRY' }}</div>
             <span class="gyg-pcard-cta">İncele</span>
         @elseif($item->pricing_type === 'quote')
