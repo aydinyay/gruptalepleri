@@ -470,9 +470,20 @@ class B2cCatalogController extends Controller
         return back()->with('success', $msg);
     }
 
+    public function catalogToggleHero(CatalogItem $item): RedirectResponse
+    {
+        $heroCount = CatalogItem::where('homepage_hero', true)->where('id', '!=', $item->id)->count();
+        if (! $item->homepage_hero && $heroCount >= 3) {
+            return back()->with('error', 'Anasayfa vitrinine en fazla 3 ürün eklenebilir. Önce bir ürünü vitrinten çıkarın.');
+        }
+        $item->update(['homepage_hero' => ! $item->homepage_hero]);
+        $msg = $item->homepage_hero ? '"' . $item->title . '" anasayfa vitrine eklendi.' : '"' . $item->title . '" vitrinten çıkarıldı.';
+        return back()->with('success', $msg);
+    }
+
     public function catalogSetBadge(Request $request, CatalogItem $item): RedirectResponse
     {
-        $allowed = ['', 'Vizyon', 'Popüler', 'Yeni', 'Son Fırsat', 'İndirim', 'Sınırlı'];
+        $allowed = ['', 'Vizyon', 'Popüler', 'Yeni', 'Son Fırsat', 'İndirim', 'Sınırlı', 'Çok Satan', 'Sıradışı', 'Hızlı Tükeniyor', 'Klasik', 'Efsane', 'Özel Teklif', 'Erken Rezervasyon'];
         $badge   = in_array($request->input('badge_label'), $allowed, true) ? $request->input('badge_label') : '';
         $item->update(['badge_label' => $badge ?: null]);
         return back()->with('success', '"' . $item->title . '" etiket güncellendi.');

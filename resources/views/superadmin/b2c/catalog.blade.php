@@ -85,6 +85,7 @@
                     <th>Fiyat</th>
                     <th>Puan</th>
                     <th>Durum</th>
+                    <th title="Anasayfa vitrin alanı — max 3 ürün">Vitrin</th>
                     <th width="120">İşlemler</th>
                 </tr></thead>
                 <tbody>
@@ -138,6 +139,17 @@
                         @endif
                     </td>
                     <td>
+                        <form method="POST" action="{{ route('superadmin.b2c.catalog.toggle-hero', $item) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="btn btn-sm {{ $item->homepage_hero ? 'btn-warning' : 'btn-outline-secondary' }}"
+                                    title="{{ $item->homepage_hero ? 'Vitrinten çıkar' : 'Vitrine ekle (max 3)' }}">
+                                <i class="fas fa-tv"></i>
+                                @if($item->homepage_hero) <span class="ms-1" style="font-size:.7rem;font-weight:700;">VİTRİN</span> @endif
+                            </button>
+                        </form>
+                    </td>
+                    <td>
                         <div class="d-flex gap-1">
                             <a href="{{ route('superadmin.b2c.catalog.edit', $item) }}" class="btn btn-sm btn-outline-primary" title="Düzenle">
                                 <i class="fas fa-edit"></i>
@@ -156,7 +168,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="text-center text-muted py-5">
+                <tr><td colspan="9" class="text-center text-muted py-5">
                     Henüz ürün eklenmemiş.
                     <a href="{{ route('superadmin.b2c.catalog.create') }}">İlk ürünü ekleyin →</a>
                 </td></tr>

@@ -39,12 +39,19 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
         @if($item->badge_label)
             @php
             $badgeStyles = [
-                'Vizyon'     => 'background:#b7791f;color:#fff;',
-                'Popüler'    => 'background:#3182ce;color:#fff;',
-                'Yeni'       => 'background:#38a169;color:#fff;',
-                'Son Fırsat' => 'background:#e53e3e;color:#fff;',
-                'İndirim'    => 'background:#dd6b20;color:#fff;',
-                'Sınırlı'   => 'background:#805ad5;color:#fff;',
+                'Vizyon'              => 'background:#b7791f;color:#fff;',
+                'Popüler'             => 'background:#3182ce;color:#fff;',
+                'Yeni'                => 'background:#38a169;color:#fff;',
+                'Son Fırsat'          => 'background:#e53e3e;color:#fff;',
+                'İndirim'             => 'background:#dd6b20;color:#fff;',
+                'Sınırlı'             => 'background:#805ad5;color:#fff;',
+                'Çok Satan'           => 'background:#c05621;color:#fff;',
+                'Sıradışı'            => 'background:#0e7490;color:#fff;',
+                'Hızlı Tükeniyor'     => 'background:#be123c;color:#fff;',
+                'Klasik'              => 'background:#374151;color:#fff;',
+                'Efsane'              => 'background:#1e3a5f;color:#fff;',
+                'Özel Teklif'         => 'background:#065f46;color:#fff;',
+                'Erken Rezervasyon'   => 'background:#5b21b6;color:#fff;',
             ];
             $badgeStyle = $badgeStyles[$item->badge_label] ?? 'background:#718096;color:#fff;';
             @endphp
