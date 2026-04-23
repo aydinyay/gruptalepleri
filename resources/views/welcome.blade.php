@@ -1034,7 +1034,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 <section class="why-section" id="neden">
     <div class="section-label">Neden GrupTalepleri</div>
     <div class="section-title">Rakiplerden Farkımız</div>
-    <div class="section-sub">Yalnızca bir rezervasyon aracı değil — uçtan uca operasyon yönetim platformu.</div>
+    <div class="section-sub">Yalnızca bir rezervasyon aracı değil — uçtan uca operasyon yönetim ve çift kanallı satış platformu.</div>
     <div class="features-grid">
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-plane"></i></div>
@@ -1042,14 +1042,24 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <p>Charter, tarifeli grup, özel jet, dinner cruise ve yat taleplerinizi tek panelde yönetin.</p>
         </div>
         <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-hourglass-half"></i></div>
-            <h3>Canlı Opsiyon Sayacı</h3>
-            <p>Teklif sürenizi saniye saniye takip edin. Kritik eşiklerde otomatik renk uyarısı alın.</p>
+            <div class="feature-icon"><i class="fas fa-store"></i></div>
+            <h3>B2B + B2C İki Kanal</h3>
+            <p>Aynı hizmeti hem acentelere net fiyattan (gruptalepleri.com) hem tüketicilere vitrin fiyatından (gruprezervasyonlari.com) satın. Tek panel, iki gelir akışı.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-robot"></i></div>
             <h3>AI Operasyon Analizi</h3>
             <p>Yapay zeka ile havalimanı istihbaratı, transfer önerisi ve finansal değerlendirme alın.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-hourglass-half"></i></div>
+            <h3>Canlı Opsiyon Sayacı</h3>
+            <p>Teklif sürenizi saniye saniye takip edin. Kritik eşiklerde otomatik renk uyarısı alın.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+            <h3>Tedarikçi Pazaryeri</h3>
+            <p>Transfer, yat, tur, dinner cruise, jet — 500+ aktif acentenin kullandığı B2B katalogda ürün satın. Komisyon yok, marj sizde kalır.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
@@ -1060,6 +1070,11 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <div class="feature-icon"><i class="fab fa-whatsapp"></i></div>
             <h3>WhatsApp Entegrasyonu</h3>
             <p>Tek tıkla operasyon ekibiyle bağlanın. Teklif kabulünü WhatsApp üzerinden yapın.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-globe"></i></div>
+            <h3>B2C Tüketici Vitrini</h3>
+            <p>gruprezervasyonlari.com'da organik trafik, SEO, favori listesi ve yorum sistemi. Sektör profesyoneli olmayan bireysel müşteriye de ulaşın.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
