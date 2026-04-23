@@ -2,6 +2,40 @@
 @section('title', $item->meta_title ?? $item->title)
 @push('head_styles')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+@php
+$_schemaImg2  = $item->cover_image ? (str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image) : null;
+$_schemaUrl2  = url('/urun/'.$item->slug);
+$_b2cPrice2   = (float)($item->base_price ?: ($package->original_price_per_person ?? $package->base_price_per_person ?? 0));
+$_b2cCur2     = $item->currency ?: ($package->currency ?? 'EUR');
+$_schema2 = [
+    '@context'    => 'https://schema.org',
+    '@type'       => 'Product',
+    'name'        => $item->title,
+    'description' => $item->meta_description ?? $item->short_desc ?? $item->title,
+    'url'         => $_schemaUrl2,
+    'brand'       => ['@type'=>'Brand','name'=>'Grup Rezervasyonları'],
+];
+if ($_schemaImg2) $_schema2['image'] = [$_schemaImg2];
+if ($_b2cPrice2 > 0) {
+    $_schema2['offers'] = [
+        '@type'         => 'Offer',
+        'url'           => $_schemaUrl2,
+        'price'         => (string)$_b2cPrice2,
+        'priceCurrency' => $_b2cCur2,
+        'availability'  => 'https://schema.org/InStock',
+        'seller'        => ['@type'=>'Organization','name'=>'Grup Rezervasyonları'],
+    ];
+}
+if (($item->rating_avg ?? 0) > 0 && ($item->review_count ?? 0) > 0) {
+    $_schema2['aggregateRating'] = [
+        '@type'=>'AggregateRating',
+        'ratingValue'=>round($item->rating_avg,1),
+        'reviewCount'=>(int)$item->review_count,
+        'bestRating'=>5,'worstRating'=>1,
+    ];
+}
+@endphp
+<script type="application/ld+json">{!! json_encode($_schema2, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}</script>
 @endpush
 
 @section('content')

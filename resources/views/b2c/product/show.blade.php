@@ -4,6 +4,56 @@
 @section('og_image', str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image)
 @endif
 @section('meta_description', $item->meta_description ?? $item->short_desc ?? ($item->title . ' — Grup Rezervasyonları'))
+
+@push('head_styles')
+@php
+$_schemaImg = $item->cover_image
+    ? (str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image)
+    : null;
+$_schemaDesc = e($item->meta_description ?? $item->short_desc ?? $item->title);
+$_schemaUrl  = url('/urun/'.$item->slug);
+$_schema = ['@context'=>'https://schema.org'];
+
+if ($item->pricing_type === 'fixed' && $item->base_price) {
+    $_schema['@type']       = 'Product';
+    $_schema['name']        = $item->title;
+    $_schema['description'] = $item->meta_description ?? $item->short_desc ?? $item->title;
+    $_schema['url']         = $_schemaUrl;
+    if ($_schemaImg) $_schema['image'] = [$_schemaImg];
+    $_schema['brand']       = ['@type'=>'Brand','name'=>'Grup Rezervasyonları'];
+    $_schema['offers']      = [
+        '@type'         => 'Offer',
+        'url'           => $_schemaUrl,
+        'price'         => (string)$item->base_price,
+        'priceCurrency' => $item->currency ?: 'TRY',
+        'availability'  => 'https://schema.org/InStock',
+        'seller'        => ['@type'=>'Organization','name'=>'Grup Rezervasyonları'],
+    ];
+} else {
+    $_schema['@type']       = 'Service';
+    $_schema['name']        = $item->title;
+    $_schema['description'] = $item->meta_description ?? $item->short_desc ?? $item->title;
+    $_schema['url']         = $_schemaUrl;
+    if ($_schemaImg) $_schema['image'] = $_schemaImg;
+    $_schema['provider']    = ['@type'=>'Organization','name'=>'Grup Rezervasyonları','url'=>'https://gruprezervasyonlari.com'];
+    if ($item->destination_city) {
+        $_schema['areaServed'] = ['@type'=>'City','name'=>$item->destination_city];
+    }
+}
+
+if ($item->rating_avg > 0 && $item->review_count > 0) {
+    $_schema['aggregateRating'] = [
+        '@type'       => 'AggregateRating',
+        'ratingValue' => round($item->rating_avg, 1),
+        'reviewCount' => (int)$item->review_count,
+        'bestRating'  => 5,
+        'worstRating' => 1,
+    ];
+}
+@endphp
+<script type="application/ld+json">{!! json_encode($_schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}</script>
+@endpush
+
 @section('content')
 <style>
 /* GYG Galeri */
