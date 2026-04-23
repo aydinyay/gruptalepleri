@@ -13,41 +13,70 @@ class SitemapController extends Controller
     {
         $isB2C = $request->attributes->get('is_b2c', false);
 
-        if ($isB2C) {
-            return $this->b2cSitemap();
-        }
+        $xml = $isB2C ? $this->buildB2C() : $this->buildB2B();
 
-        return $this->b2bSitemap();
+        return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
     }
 
-    private function b2bSitemap()
+    private function url(string $loc, string $changefreq, float $priority, ?string $lastmod = null): string
     {
-        $blogYazilari = BlogYazisi::yayinda()
-            ->latest('yayinlanma_tarihi')
-            ->get(['slug', 'updated_at', 'yayinlanma_tarihi']);
-
-        $content = view('sitemap', compact('blogYazilari'))->render();
-
-        return response($content, 200)
-            ->header('Content-Type', 'application/xml');
+        $lastmodTag = $lastmod ? "\n    <lastmod>{$lastmod}</lastmod>" : '';
+        return "  <url>\n    <loc>" . htmlspecialchars($loc, ENT_XML1) . "</loc>{$lastmodTag}\n    <changefreq>{$changefreq}</changefreq>\n    <priority>{$priority}</priority>\n  </url>\n";
     }
 
-    private function b2cSitemap()
+    private function buildB2B(): string
     {
-        $items = CatalogItem::published()
-            ->latest('updated_at')
-            ->get(['slug', 'updated_at']);
+        $lines = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $lines .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-        $categories = CatalogCategory::whereHas('items', fn($q) => $q->published())
-            ->get(['slug', 'updated_at']);
+        $lines .= $this->url('https://gruptalepleri.com/', 'daily', 1.0);
+        $lines .= $this->url('https://gruptalepleri.com/register', 'monthly', 0.9);
+        $lines .= $this->url('https://gruptalepleri.com/acente-tanitim.html', 'monthly', 0.8, '2026-03-27');
+        $lines .= $this->url('https://gruptalepleri.com/blog', 'weekly', 0.8);
 
-        $blogYazilari = BlogYazisi::yayinda()
-            ->latest('yayinlanma_tarihi')
-            ->get(['slug', 'updated_at', 'yayinlanma_tarihi']);
+        BlogYazisi::yayinda()->latest('yayinlanma_tarihi')->get(['slug', 'updated_at', 'yayinlanma_tarihi'])
+            ->each(function ($y) use (&$lines) {
+                $d = ($y->yayinlanma_tarihi ?? $y->updated_at)?->toDateString();
+                $lines .= $this->url('https://gruptalepleri.com/blog/' . $y->slug, 'monthly', 0.7, $d);
+            });
 
-        $content = view('sitemap-b2c', compact('items', 'categories', 'blogYazilari'))->render();
+        $lines .= '</urlset>';
+        return $lines;
+    }
 
-        return response($content, 200)
-            ->header('Content-Type', 'application/xml');
+    private function buildB2C(): string
+    {
+        $lines = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $lines .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+        $base = 'https://gruprezervasyonlari.com';
+        $lines .= $this->url("{$base}/", 'daily', 1.0);
+        $lines .= $this->url("{$base}/hizmetler", 'weekly', 0.9);
+        $lines .= $this->url("{$base}/grup-ucak-talebi", 'monthly', 0.8);
+        $lines .= $this->url("{$base}/transfer", 'weekly', 0.8);
+        $lines .= $this->url("{$base}/blog", 'weekly', 0.7);
+        $lines .= $this->url("{$base}/hakkimizda", 'monthly', 0.5);
+        $lines .= $this->url("{$base}/iletisim", 'monthly', 0.5);
+        $lines .= $this->url("{$base}/tedarikci-ol", 'monthly', 0.6);
+
+        CatalogCategory::whereHas('items', fn($q) => $q->published())
+            ->get(['slug', 'updated_at'])
+            ->each(function ($cat) use (&$lines, $base) {
+                $lines .= $this->url("{$base}/hizmetler/{$cat->slug}", 'weekly', 0.8, $cat->updated_at?->toDateString());
+            });
+
+        CatalogItem::published()->latest('updated_at')->get(['slug', 'updated_at'])
+            ->each(function ($item) use (&$lines, $base) {
+                $lines .= $this->url("{$base}/urun/{$item->slug}", 'weekly', 0.9, $item->updated_at?->toDateString());
+            });
+
+        BlogYazisi::yayinda()->latest('yayinlanma_tarihi')->get(['slug', 'updated_at', 'yayinlanma_tarihi'])
+            ->each(function ($y) use (&$lines, $base) {
+                $d = ($y->yayinlanma_tarihi ?? $y->updated_at)?->toDateString();
+                $lines .= $this->url("{$base}/blog/{$y->slug}", 'monthly', 0.6, $d);
+            });
+
+        $lines .= '</urlset>';
+        return $lines;
     }
 }
