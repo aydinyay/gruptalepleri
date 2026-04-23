@@ -21,7 +21,8 @@ class SitemapController extends Controller
     private function url(string $loc, string $changefreq, float $priority, ?string $lastmod = null): string
     {
         $lastmodTag = $lastmod ? "\n    <lastmod>{$lastmod}</lastmod>" : '';
-        return "  <url>\n    <loc>" . htmlspecialchars($loc, ENT_XML1) . "</loc>{$lastmodTag}\n    <changefreq>{$changefreq}</changefreq>\n    <priority>{$priority}</priority>\n  </url>\n";
+        $p = number_format($priority, 1, '.', '');
+        return "  <url>\n    <loc>" . htmlspecialchars($loc, ENT_XML1) . "</loc>{$lastmodTag}\n    <changefreq>{$changefreq}</changefreq>\n    <priority>{$p}</priority>\n  </url>\n";
     }
 
     private function buildB2B(): string
