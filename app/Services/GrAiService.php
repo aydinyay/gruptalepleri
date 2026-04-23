@@ -83,9 +83,14 @@ class GrAiService
         // Önerilen ürünlerin detaylarını çek
         $suggestedProducts = $this->fetchProductsBySlug($slugs);
 
-        // Redirect slug'ı doğrula — Gemini uydurmuş olabilir
+        // Redirect doğrula — sabit sayfalar direkt geçer, ürün slug'ları DB'den kontrol edilir
+        $staticPages = ['/grup-ucak-talebi', '/transfer', '/hizmetler', '/blog', '/hakkimizda', '/iletisim'];
         if ($redirect) {
-            $rSlug = trim(str_replace('/urun/', '', parse_url($redirect, PHP_URL_PATH) ?? $redirect), '/');
+            $redirectPath = parse_url($redirect, PHP_URL_PATH) ?? $redirect;
+            if (in_array($redirectPath, $staticPages)) {
+                $redirect = $redirectPath; // sabit sayfa — doğrulama gerekmiyor
+            } else {
+            $rSlug = trim(str_replace('/urun/', '', $redirectPath), '/');
             if (! CatalogItem::published()->where('slug', $rSlug)->exists()) {
                 $fallbackSlug = null;
                 // 1) $slugs içinde geçerli bir slug ara
@@ -115,6 +120,7 @@ class GrAiService
                 }
                 $redirect = $fallbackSlug ? '/urun/' . $fallbackSlug : null;
             }
+            } // end else (ürün sayfası doğrulama)
         }
 
         return [
@@ -284,7 +290,18 @@ class GrAiService
         return <<<PROMPT
 Sen gruprezervasyonlari.com'un yapay zeka asistanısın. Adın GR (okunuşu: Ciar).
 
-Platform: Türkiye'nin lider grup seyahat sitesi — yat turu, dinner cruise, havalimanı transferi, özel jet, charter, Boğaz turu, Kapadokya turu ve daha fazlası.
+PLATFORM KAPSAMI:
+Gruprezervasyonlari.com — Türkiye'nin lider grup seyahat ve etkinlik platformu.
+Sunulan hizmetler:
+• Dinner Cruise (alkollü/alkolsüz) — İstanbul Boğazı'nda akşam yemeği + eğlence
+• Yat kiralama (küçük 1-10 kişi, orta boy 10-20 kişi) — saatlik kiralama
+• Havalimanı & şehirlerarası transfer (minibüs, VIP van)
+• Özel jet charter — şehirlerarası uçuş
+• Boğaz turları — tekne turları
+• Günübirlik turlar (Sapanca/Masukkiye, Bursa vb.)
+• Etkinlikler & Deneyimler (viski tadımı, gastronomi vb.)
+• GRUP UÇAK TALEBİ — 10+ kişilik gruplar için özel uçuş teklifi alma formu → /grup-ucak-talebi
+• TRANSFER HİZMETİ — havalimanı & şehir transferleri için fiyat sorgulama → /transfer
 
 ŞU ANKİ BAĞLAM:
 Tarih/Saat: {$time['tarih']} {$time['saat']} ({$time['zaman']}, {$time['gun']}{$haftasonu})
@@ -301,6 +318,8 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
 - Emoji kullanabilirsin ama abartma
 - Asla "yapay zeka olarak" veya "bir AI olarak" deme
 - Asla "Merhaba! Size nasıl yardımcı olabilirim?" gibi robotik başlangıç yapma
+- Grup uçuşu / charter uçak / 10+ kişi uçuş gibi konularda /grup-ucak-talebi sayfasını öner
+- Transfer / havalimanı / araç sorunlarında /transfer sayfasını öner
 
 ÇIKTI FORMATI — SADECE JSON döndür:
 {
@@ -315,7 +334,11 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
 "learn" alanı: bu mesajdan yeni bir şey öğrendiysen doldur. Boş bırakabilirsin.
   Geçerli key'ler: ilgi_alanlari, sehir, butce (dusuk/orta/yuksek), tercih_zaman, grup_boyutu, not
 "products": varsa önerilen ürünlerin slug'larını buraya koy (max 3). Öneri yoksa boş bırak.
-"redirect": kullanıcı bir ürünü açmak istediğinde "/urun/SLUG" yaz — SLUG değeri mutlaka yukarıdaki ürün listesindeki [slug:...] değerinden alınmalı, asla uydurma. Sayfa otomatik açılır. Sadece kullanıcı açıkça onay verdiğinde doldur.
+"redirect": kullanıcı bir sayfaya gitmek istediğinde doldur:
+  - Ürün sayfası: "/urun/SLUG" — SLUG mutlaka yukarıdaki [slug:...] listesinden alınmalı, asla uydurma
+  - Grup uçak talebi: "/grup-ucak-talebi"
+  - Transfer sorgulama: "/transfer"
+  - Sayfa otomatik açılır. Sadece kullanıcı açıkça onay verdiğinde doldur.
 
 Sadece JSON döndür, başka hiçbir şey yazma.
 PROMPT;
