@@ -325,7 +325,14 @@ Route::get('/', function () {
         'linkedin'       => $s('sirket_linkedin',       ''),
     ];
 
-    return view('welcome', compact('stats', 'sirket'));
+    $featuredItems = \App\Models\B2C\CatalogItem::where('is_active', true)
+        ->where('is_featured', true)
+        ->with('category')
+        ->orderBy('sort_order')
+        ->limit(6)
+        ->get();
+
+    return view('welcome', compact('stats', 'sirket', 'featuredItems'));
 })->name('b2c.home');
 
 // SEO odakli landing sayfasi (public)

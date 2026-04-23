@@ -106,6 +106,7 @@ $_jsonLd2 = json_encode([
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -513,6 +514,37 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 .pazar-cta-btns .btn-outline-cta:hover{background:rgba(255,255,255,0.1);}
 @@media(max-width:768px){.pazar-grid{grid-template-columns:repeat(3,1fr);}.pazar-cta{flex-direction:column;text-align:center;}.pazar-cta-btns{justify-content:center;}}
 @@media(max-width:480px){.pazar-grid{grid-template-columns:repeat(2,1fr);}}
+.katalog-section{background:#f6f8fc;padding:4.5rem 5%;border-top:1px solid #e8edf5;}
+.katalog-section .section-label{font-size:0.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:0.6rem;}
+.katalog-section .section-title{font-size:2rem;font-weight:800;color:var(--dark);margin-bottom:0.4rem;}
+.katalog-section .section-sub{color:#666;font-size:1rem;margin-bottom:2.5rem;}
+.katalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;margin-bottom:2rem;}
+.kat-card{background:#fff;border:1px solid #e5eaf3;border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;}
+.kat-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.11);transform:translateY(-2px);}
+.kat-card-img-wrap{position:relative;height:180px;overflow:hidden;background:#eef2ff;display:flex;align-items:center;justify-content:center;}
+.kat-card-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.kat-card-img-ph{font-size:2rem;color:#c7d2fe;}
+.kat-dur{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);color:#fff;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:50px;}
+.kat-badge{position:absolute;top:10px;left:10px;padding:4px 11px;border-radius:50px;font-size:.72rem;font-weight:700;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.kat-card-body{padding:14px;flex:1;display:flex;flex-direction:column;}
+.kat-card-cat{font-size:.72rem;font-weight:700;color:#1a3c6b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.kat-card-title{font-size:.93rem;font-weight:700;line-height:1.35;margin-bottom:6px;color:var(--dark);}
+.kat-card-meta{font-size:.78rem;color:#718096;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.kat-price{margin-top:auto;font-size:1.1rem;font-weight:800;color:#1a3c6b;}
+.kat-price-per{font-size:.75rem;color:#718096;font-weight:400;margin-left:4px;}
+.kat-locked{background:rgba(26,60,107,.04);border:1.5px dashed #c7d2fe;border-radius:12px;text-align:center;padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#1a3c6b;}
+.kat-locked i{font-size:1.8rem;opacity:.4;}
+.kat-locked p{font-size:.85rem;font-weight:600;margin:0;}
+.kat-cta-bar{background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:14px;padding:1.75rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.kat-cta-bar p{color:rgba(255,255,255,.75);font-size:.92rem;margin:0;}
+.kat-cta-bar strong{color:#fff;}
+.kat-cta-btns{display:flex;gap:.75rem;flex-wrap:wrap;}
+.kat-cta-btn-red{background:var(--red);color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-weight:700;font-size:.88rem;text-decoration:none;transition:opacity .2s;}
+.kat-cta-btn-red:hover{opacity:.88;color:#fff;}
+.kat-cta-btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);padding:.65rem 1.5rem;border-radius:8px;font-weight:600;font-size:.88rem;text-decoration:none;transition:background .2s;}
+.kat-cta-btn-outline:hover{background:rgba(255,255,255,.1);color:#fff;}
+@@media(max-width:768px){.katalog-grid{grid-template-columns:repeat(2,1fr);}.kat-cta-bar{flex-direction:column;text-align:center;}.kat-cta-btns{justify-content:center;}}
+@@media(max-width:480px){.katalog-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -784,6 +816,84 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
         </div>
     </div>
 </section>
+
+@if(isset($featuredItems) && $featuredItems->isNotEmpty())
+<section class="katalog-section" id="katalog">
+    <div class="section-label">Canlı Katalog</div>
+    <div class="section-title">Üye Olunca Bunları Satabilirsiniz</div>
+    <div class="section-sub">Platformdaki öne çıkan hizmetlerden bir seçki — B2B net fiyatları ve gerçek görselleriyle.</div>
+    <div class="katalog-grid">
+    @php
+    $_badgeColors = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626','Çok Satan'=>'#c05621','Sıradışı'=>'#0e7490','Hızlı Tükeniyor'=>'#be123c','Klasik'=>'#374151','Efsane'=>'#1e3a5f','Özel Teklif'=>'#065f46','Erken Rezervasyon'=>'#5b21b6','Gastronomi'=>'#92400e','Gurme'=>'#7c2d12','Lezzetler'=>'#a16207'];
+    @endphp
+    @foreach($featuredItems as $_fi)
+    @php
+    $_fiImg  = $_fi->cover_image ? (str_starts_with($_fi->cover_image,'http') ? $_fi->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$_fi->cover_image) : null;
+    $_fiPrice = $_fi->gt_price ?? $_fi->base_price;
+    $_fiPriceLabel = $_fi->pricing_unit ?: match($_fi->product_subtype ?? '') {
+        'yacht_charter'                => 'saatlik · grup başına',
+        'dinner_cruise','evening_show' => 'kişi başına',
+        'day_tour','activity_tour'     => 'kişi başına',
+        'multi_day_tour'               => $_fi->duration_days ? 'kişi · '.$_fi->duration_days.' gün' : 'kişi başına',
+        'airport_transfer','intercity_transfer' => 'araç başına',
+        'private_jet','helicopter_tour'=> 'sefer başına',
+        default                        => 'kişi başına',
+    };
+    @endphp
+    <div class="kat-card" style="cursor:default;">
+        <div class="kat-card-img-wrap">
+            @if($_fiImg)
+            <img src="{{ $_fiImg }}" alt="{{ $_fi->title }}" loading="lazy">
+            @else
+            <div class="kat-card-img-ph"><i class="bi bi-image"></i></div>
+            @endif
+            @if($_fi->badge_label)
+            @php $_fiColor = $_badgeColors[$_fi->badge_label] ?? '#1a3c6b'; @endphp
+            <span class="kat-badge" style="background:{{ $_fiColor }};">{{ $_fi->badge_label }}</span>
+            @endif
+            <span class="kat-dur">
+                @if($_fi->duration_days) {{ $_fi->duration_days }} gün
+                @elseif($_fi->duration_hours) {{ $_fi->duration_hours }} saat
+                @else Esnek
+                @endif
+            </span>
+        </div>
+        <div class="kat-card-body">
+            @if($_fi->category)<div class="kat-card-cat">{{ $_fi->category->name }}</div>@endif
+            <div class="kat-card-title">{{ $_fi->title }}</div>
+            <div class="kat-card-meta">
+                @if($_fi->destination_city)<span><i class="bi bi-geo-alt"></i> {{ $_fi->destination_city }}</span>@endif
+                @if($_fi->min_pax)<span><i class="bi bi-people"></i> Min {{ $_fi->min_pax }}</span>@endif
+            </div>
+            <div style="margin-top:auto;">
+                @if($_fiPrice)
+                <div class="kat-price">
+                    {{ number_format($_fiPrice, 0, ',', '.') }} {{ $_fi->currency }}
+                    <span class="kat-price-per">{{ $_fiPriceLabel }}</span>
+                </div>
+                @else
+                <div style="font-size:.8rem;color:#718096;">Fiyat taleple belirlenir</div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endforeach
+    {{-- Kilitli kart —kataloğun geri kalanı için teaser --}}
+    <div class="kat-locked">
+        <i class="bi bi-lock-fill"></i>
+        <p>+{{ max(0, \App\Models\B2C\CatalogItem::where('is_active',true)->count() - 6) }} hizmet daha</p>
+        <span style="font-size:.78rem;color:#718096;">Tüm B2B fiyatları görmek için üye olun</span>
+    </div>
+    </div>
+    <div class="kat-cta-bar">
+        <p><strong>Kataloğa tam erişmek için ücretsiz kayıt olun.</strong> B2B net fiyatlar, rezervasyon ve talep yönetimi — hepsi tek panelde.</p>
+        <div class="kat-cta-btns">
+            <a href="{{ route('register') }}" class="kat-cta-btn-red"><i class="fas fa-user-plus me-1"></i> Ücretsiz Kayıt</a>
+            <a href="{{ route('login') }}" class="kat-cta-btn-outline">Giriş Yap</a>
+        </div>
+    </div>
+</section>
+@endif
 
 <section class="how-section" id="nasil">
     <div class="section-label">Nasıl Çalışır</div>
