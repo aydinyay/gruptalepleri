@@ -5,6 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>{{ $item->title }} — B2B Katalog</title>
+@php
+$_b2bSchemaImg = $item->cover_image ? (str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image) : null;
+$_b2bSchemaUrl = url('/acente/urun/'.$item->slug);
+$_b2bSubtype   = $item->product_subtype ?? '';
+$_b2bSchema = ['@context'=>'https://schema.org'];
+if ($item->pricing_type === 'fixed' && ($item->gt_price ?? $item->base_price)) {
+    $_b2bSchema['@type']  = 'Product';
+    $_b2bSchema['name']   = $item->title;
+    $_b2bSchema['description'] = $item->meta_description ?? $item->short_desc ?? $item->title;
+    $_b2bSchema['url']    = $_b2bSchemaUrl;
+    if ($_b2bSchemaImg) $_b2bSchema['image'] = [$_b2bSchemaImg];
+    $_b2bSchema['brand']  = ['@type'=>'Brand','name'=>'GrupTalepleri'];
+    $_b2bSchema['offers'] = ['@type'=>'Offer','url'=>$_b2bSchemaUrl,'price'=>(string)($item->gt_price ?? $item->base_price),'priceCurrency'=>$item->currency ?: 'TRY','availability'=>'https://schema.org/InStock'];
+} else {
+    $_b2bSchema['@type']       = 'Service';
+    $_b2bSchema['name']        = $item->title;
+    $_b2bSchema['description'] = $item->meta_description ?? $item->short_desc ?? $item->title;
+    $_b2bSchema['url']         = $_b2bSchemaUrl;
+    if ($_b2bSchemaImg) $_b2bSchema['image'] = $_b2bSchemaImg;
+    $_b2bSchema['provider']    = ['@type'=>'Organization','name'=>'GrupTalepleri','url'=>'https://gruptalepleri.com'];
+}
+if (($item->rating_avg ?? 0) > 0 && ($item->review_count ?? 0) > 0) {
+    $_b2bSchema['aggregateRating'] = ['@type'=>'AggregateRating','ratingValue'=>round($item->rating_avg,1),'reviewCount'=>(int)$item->review_count,'bestRating'=>5,'worstRating'=>1];
+}
+@endphp
+<script type="application/ld+json">{!! json_encode($_b2bSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -142,8 +168,8 @@ elseif ($_imgCount === 2){ $_galLayout = '2'; }
 elseif ($_imgCount <= 4) { $_galLayout = '3'; }
 else                     { $_galLayout = '5'; }
 
-$_badgeColorMap = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626'];
-$_badgeIconMap  = ['Yeni'=>'bi-stars','Popüler'=>'bi-fire','Vizyon'=>'bi-eye-fill','Son Fırsat'=>'bi-alarm-fill','İndirim'=>'bi-tag-fill','Sınırlı'=>'bi-exclamation-circle-fill'];
+$_badgeColorMap = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626','Çok Satan'=>'#c05621','Sıradışı'=>'#0e7490','Hızlı Tükeniyor'=>'#be123c','Klasik'=>'#374151','Efsane'=>'#1e3a5f','Özel Teklif'=>'#065f46','Erken Rezervasyon'=>'#5b21b6','Gastronomi'=>'#92400e','Gurme'=>'#7c2d12','Lezzetler'=>'#a16207'];
+$_badgeIconMap  = ['Yeni'=>'bi-stars','Popüler'=>'bi-fire','Vizyon'=>'bi-eye-fill','Son Fırsat'=>'bi-alarm-fill','İndirim'=>'bi-tag-fill','Sınırlı'=>'bi-exclamation-circle-fill','Çok Satan'=>'bi-graph-up-arrow','Sıradışı'=>'bi-lightning-charge-fill','Hızlı Tükeniyor'=>'bi-hourglass-split','Klasik'=>'bi-award-fill','Efsane'=>'bi-gem','Özel Teklif'=>'bi-gift-fill','Erken Rezervasyon'=>'bi-calendar-check-fill','Gastronomi'=>'bi-egg-fried','Gurme'=>'bi-cup-hot-fill','Lezzetler'=>'bi-basket2-fill'];
 $_bl    = $item->badge_label ?? null;
 $_blClr = $_bl ? ($_badgeColorMap[$_bl] ?? '#1a3c6b') : '';
 $_blIco = $_bl ? ($_badgeIconMap[$_bl]  ?? 'bi-bookmark-fill') : '';

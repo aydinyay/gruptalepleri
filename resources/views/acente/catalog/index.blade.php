@@ -63,16 +63,17 @@ $price    = $item->gt_price ?? $item->base_price;
 $img      = $item->cover_image ? (str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image) : null;
 $catSlug  = $item->category?->slug ?? '';
 $subtype  = $item->product_subtype ?? '';
-$priceLabel = match($subtype) {
-    'dinner_cruise','evening_show' => '/ kişi',
-    'day_tour','activity_tour'     => '/ kişi',
-    'multi_day_tour'               => $item->duration_days ? '/ kişi · '.$item->duration_days.' gün' : '/ kişi',
-    'airport_transfer','intercity_transfer' => '/ araç',
-    'private_jet','helicopter_tour'=> '/ sefer',
-    'hotel_room'                   => '/ oda / gece',
-    'apart_rental'                 => '/ gece',
-    'visa_service'                 => '/ başvuru',
-    default                        => '/ kişi',
+$priceLabel = $item->pricing_unit ?: match($subtype) {
+    'yacht_charter'                => 'saatlik · grup başına',
+    'dinner_cruise','evening_show' => 'kişi başına',
+    'day_tour','activity_tour'     => 'kişi başına',
+    'multi_day_tour'               => $item->duration_days ? 'kişi · '.$item->duration_days.' gün' : 'kişi başına',
+    'airport_transfer','intercity_transfer' => 'araç başına',
+    'private_jet','helicopter_tour'=> 'sefer başına',
+    'hotel_room'                   => 'oda / gece',
+    'apart_rental'                 => 'gecelik',
+    'visa_service'                 => 'başvuru başına',
+    default                        => 'kişi başına',
 };
 @endphp
 <div class="prd-card" data-cat="{{ $catSlug }}">
@@ -84,8 +85,8 @@ $priceLabel = match($subtype) {
         @endif
         @if($item->badge_label)
         @php
-        $_idxClr = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626'];
-        $_idxIco = ['Yeni'=>'bi-stars','Popüler'=>'bi-fire','Vizyon'=>'bi-eye-fill','Son Fırsat'=>'bi-alarm-fill','İndirim'=>'bi-tag-fill','Sınırlı'=>'bi-exclamation-circle-fill'];
+        $_idxClr = ['Yeni'=>'#10b981','Popüler'=>'#f59e0b','Vizyon'=>'#6366f1','Son Fırsat'=>'#ef4444','İndirim'=>'#8b5cf6','Sınırlı'=>'#dc2626','Çok Satan'=>'#c05621','Sıradışı'=>'#0e7490','Hızlı Tükeniyor'=>'#be123c','Klasik'=>'#374151','Efsane'=>'#1e3a5f','Özel Teklif'=>'#065f46','Erken Rezervasyon'=>'#5b21b6','Gastronomi'=>'#92400e','Gurme'=>'#7c2d12','Lezzetler'=>'#a16207'];
+        $_idxIco = ['Yeni'=>'bi-stars','Popüler'=>'bi-fire','Vizyon'=>'bi-eye-fill','Son Fırsat'=>'bi-alarm-fill','İndirim'=>'bi-tag-fill','Sınırlı'=>'bi-exclamation-circle-fill','Çok Satan'=>'bi-graph-up-arrow','Sıradışı'=>'bi-lightning-charge-fill','Hızlı Tükeniyor'=>'bi-hourglass-split','Klasik'=>'bi-award-fill','Efsane'=>'bi-gem','Özel Teklif'=>'bi-gift-fill','Erken Rezervasyon'=>'bi-calendar-check-fill','Gastronomi'=>'bi-egg-fried','Gurme'=>'bi-cup-hot-fill','Lezzetler'=>'bi-basket2-fill'];
         $_ic = $_idxClr[$item->badge_label] ?? '#1a3c6b';
         $_ii = $_idxIco[$item->badge_label] ?? 'bi-bookmark-fill';
         @endphp
