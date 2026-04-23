@@ -49,6 +49,9 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Sitemap — statik dosya olsa dahi Laravel'e gönder (domain-aware dinamik sitemap)
+    RewriteRule ^sitemap\.xml$ index.php [L]
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
