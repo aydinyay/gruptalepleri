@@ -545,6 +545,40 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
 .kat-cta-btn-outline:hover{background:rgba(255,255,255,.1);color:#fff;}
 @@media(max-width:768px){.katalog-grid{grid-template-columns:repeat(2,1fr);}.kat-cta-bar{flex-direction:column;text-align:center;}.kat-cta-btns{justify-content:center;}}
 @@media(max-width:480px){.katalog-grid{grid-template-columns:1fr;}}
+.tedarikci-section{background:linear-gradient(135deg,#0b1f42 0%,#1a3c6b 60%,#0e2d5a 100%);padding:5rem 5%;}
+.tedarikci-section .section-label{color:#f59e0b;}
+.tedarikci-section .section-title{color:#fff;}
+.tedarikci-section .section-sub{color:rgba(255,255,255,.7);max-width:600px;}
+.td-channels{display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:3rem 0;}
+.td-channel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:2rem 1.75rem;}
+.td-channel-label{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:.75rem;}
+.td-channel-title{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.5rem;}
+.td-channel-sub{color:rgba(255,255,255,.6);font-size:.88rem;line-height:1.6;}
+.td-channel-domain{display:inline-block;margin-top:.75rem;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:50px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+.td-channel-b2b .td-channel-label{color:#60a5fa;}
+.td-channel-b2b{border-color:rgba(96,165,250,.25);}
+.td-channel-b2c .td-channel-label{color:#34d399;}
+.td-channel-b2c{border-color:rgba(52,211,153,.25);}
+.td-vs{text-align:center;color:rgba(255,255,255,.3);font-size:1.5rem;font-weight:800;}
+.td-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2.5rem;}
+.td-benefit{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.25rem;}
+.td-benefit i{font-size:1.4rem;margin-bottom:.6rem;display:block;}
+.td-benefit h4{color:#fff;font-size:.9rem;font-weight:700;margin-bottom:.3rem;}
+.td-benefit p{color:rgba(255,255,255,.6);font-size:.78rem;margin:0;line-height:1.5;}
+.td-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2.5rem;}
+.td-step{text-align:center;}
+.td-step-num{width:36px;height:36px;border-radius:50%;background:rgba(245,158,11,.2);border:2px solid #f59e0b;color:#f59e0b;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;}
+.td-step h4{color:#fff;font-size:.82rem;font-weight:700;margin-bottom:.2rem;}
+.td-step p{color:rgba(255,255,255,.55);font-size:.75rem;margin:0;}
+.td-cta{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;}
+.td-cta p{color:rgba(255,255,255,.8);font-size:.95rem;margin:0;}
+.td-cta-btns{display:flex;gap:.75rem;flex-wrap:wrap;}
+.td-btn-red{background:#e53e3e;color:#fff;padding:.7rem 1.6rem;border-radius:8px;font-weight:700;font-size:.9rem;text-decoration:none;transition:opacity .2s;white-space:nowrap;}
+.td-btn-red:hover{opacity:.88;color:#fff;}
+.td-btn-wa{background:#25d366;color:#fff;padding:.7rem 1.6rem;border-radius:8px;font-weight:700;font-size:.9rem;text-decoration:none;transition:opacity .2s;white-space:nowrap;}
+.td-btn-wa:hover{opacity:.88;color:#fff;}
+@@media(max-width:900px){.td-channels{grid-template-columns:1fr;}.td-vs{transform:rotate(90deg);}.td-benefits{grid-template-columns:repeat(2,1fr);}.td-steps{grid-template-columns:repeat(2,1fr);}}
+@@media(max-width:600px){.td-benefits{grid-template-columns:1fr;}.td-cta{flex-direction:column;}.td-cta-btns{width:100%;}.td-btn-red,.td-btn-wa{flex:1;text-align:center;}}
 </style>
 </head>
 <body>
@@ -563,6 +597,7 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
         <a href="#sss" class="nav-item">SSS</a>
         <a href="/blog" class="nav-item">Blog</a>
         <a href="/acente-tanitim.html" class="nav-item">Platform Tanıtımı</a>
+        <a href="/tedarikci-olun" class="nav-item" style="color:#f59e0b;font-weight:600;">Tedarikçi Ol</a>
         <a href="{{ route('login') }}" class="btn-nav-login">Giriş Yap</a>
         <a href="{{ route('register') }}" class="btn-nav-register">Üye Ol</a>
     </div>
@@ -894,6 +929,78 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
     </div>
 </section>
 @endif
+
+{{-- TEDARİKÇİ OLUN --}}
+<section class="tedarikci-section" id="tedarikci">
+    <div class="section-label">Tedarikçi Olun</div>
+    <div class="section-title">İki Kanalda Satın,<br>İki Kez Kazanın</div>
+    <div class="section-sub">Hizmetinizi bir kez platforma ekleyin — hem 500+ acenteye B2B fiyattan satın, hem de gruprezervasyonlari.com'da milyonlarca tüketiciye B2C fiyattan görünsün.</div>
+
+    <div class="td-channels">
+        <div class="td-channel td-channel-b2b">
+            <div class="td-channel-label">Kanal 1 — B2B</div>
+            <div class="td-channel-title">Acentelere Satış</div>
+            <div class="td-channel-sub">Türkiye genelindeki turizm acenteleri, seyahat şirketleri ve kurumsal operatörler ürününüzü net fiyatlardan satın alır ve gruplarına satar.</div>
+            <span class="td-channel-domain">gruptalepleri.com</span>
+        </div>
+        <div class="td-vs">+</div>
+        <div class="td-channel td-channel-b2c">
+            <div class="td-channel-label">Kanal 2 — B2C</div>
+            <div class="td-channel-title">Tüketicilere Satış</div>
+            <div class="td-channel-sub">Superadmin onayıyla ürününüz Türkiye'nin en büyük grup seyahat vitrininde yayına alınır. Bireysel müşteriler, işletmeler ve gruplar direkt rezervasyon yapar.</div>
+            <span class="td-channel-domain">gruprezervasyonlari.com</span>
+        </div>
+    </div>
+
+    <div class="td-benefits">
+        <div class="td-benefit">
+            <i class="fas fa-hand-holding-usd" style="color:#f59e0b;"></i>
+            <h4>Ekstra Komisyon Yok</h4>
+            <p>B2B ve B2C fiyatlarınızı siz belirlersiniz. Platform araya girmez.</p>
+        </div>
+        <div class="td-benefit">
+            <i class="fas fa-users" style="color:#60a5fa;"></i>
+            <h4>500+ Aktif Acente</h4>
+            <p>Platforma kayıtlı acentelerin tümü ürününüzü görür ve talep açabilir.</p>
+        </div>
+        <div class="td-benefit">
+            <i class="fas fa-globe" style="color:#34d399;"></i>
+            <h4>B2C Vitrin Dahil</h4>
+            <p>gruprezervasyonlari.com'da yayına alındığında organik trafik de gelir.</p>
+        </div>
+        <div class="td-benefit">
+            <i class="fas fa-chart-line" style="color:#a78bfa;"></i>
+            <h4>Anlık Talep Takibi</h4>
+            <p>Her rezervasyon ve talep panel üzerinden anlık bildirim ile gelir.</p>
+        </div>
+        <div class="td-benefit">
+            <i class="fas fa-tags" style="color:#fb923c;"></i>
+            <h4>Çoklu Kategori</h4>
+            <p>Transfer, yat, tur, dinner cruise, jet, helikopter, otel ve daha fazlası.</p>
+        </div>
+        <div class="td-benefit">
+            <i class="fas fa-rocket" style="color:#e53e3e;"></i>
+            <h4>Hızlı Onay</h4>
+            <p>Başvurunuz değerlendirildikten sonra 24 saat içinde yayına alınırsınız.</p>
+        </div>
+    </div>
+
+    <div class="section-label" style="margin-bottom:1.5rem;">Başvuru Süreci</div>
+    <div class="td-steps">
+        <div class="td-step"><div class="td-step-num">1</div><h4>Kayıt Olun</h4><p>Ücretsiz acente hesabı açın</p></div>
+        <div class="td-step"><div class="td-step-num">2</div><h4>Başvurun</h4><p>WhatsApp veya e-posta ile tedarikçi talebi gönderin</p></div>
+        <div class="td-step"><div class="td-step-num">3</div><h4>Ürün Ekleyin</h4><p>Ekibimiz ürünlerinizi sisteme işler</p></div>
+        <div class="td-step"><div class="td-step-num">4</div><h4>Satmaya Başlayın</h4><p>B2B + B2C her iki kanaldan talep alın</p></div>
+    </div>
+
+    <div class="td-cta">
+        <p><strong style="color:#fff;">Hizmetlerinizi platforma ekleyelim.</strong><br>Ücretsiz kayıt sonrası WhatsApp'tan ulaşmanız yeterli.</p>
+        <div class="td-cta-btns">
+            <a href="https://wa.me/905354154799?text=Merhaba%2C%20tedarik%C3%A7i%20olmak%20istiyorum." class="td-btn-wa" target="_blank" rel="noopener"><i class="fab fa-whatsapp me-1"></i> WhatsApp ile Başvur</a>
+            <a href="{{ route('register') }}" class="td-btn-red"><i class="fas fa-user-plus me-1"></i> Ücretsiz Kayıt</a>
+        </div>
+    </div>
+</section>
 
 <section class="how-section" id="nasil">
     <div class="section-label">Nasıl Çalışır</div>

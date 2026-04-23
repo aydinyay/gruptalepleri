@@ -10,6 +10,21 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.0/dist/css/tabulator_simple.min.css" rel="stylesheet">
     <style>
+        /* ── Tedarikçi Banner ── */
+        .tedarikci-banner{background:linear-gradient(135deg,#0b1f42 0%,#1a3c6b 60%,#0e3a5a 100%);border-radius:14px;padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem;}
+        .tedarikci-banner-text{flex:1;min-width:0;}
+        .tedarikci-banner-text .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:.3rem;}
+        .tedarikci-banner-text h5{color:#fff;font-size:1rem;font-weight:700;margin:0 0 .25rem;}
+        .tedarikci-banner-text p{color:rgba(255,255,255,.7);font-size:.8rem;margin:0;}
+        .tedarikci-banner-badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;}
+        .tb-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:50px;padding:3px 10px;font-size:.72rem;color:rgba(255,255,255,.85);font-weight:600;}
+        .tedarikci-banner-btns{display:flex;gap:.6rem;flex-shrink:0;flex-wrap:wrap;}
+        .tb-btn-primary{background:#e53e3e;color:#fff;border:none;padding:.55rem 1.25rem;border-radius:8px;font-weight:700;font-size:.82rem;text-decoration:none;transition:opacity .2s;white-space:nowrap;}
+        .tb-btn-primary:hover{opacity:.88;color:#fff;}
+        .tb-btn-dismiss{background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);padding:.55rem .9rem;border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
+        .tb-btn-dismiss:hover{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.8);}
+        @media(max-width:600px){.tedarikci-banner{flex-direction:column;}.tedarikci-banner-btns{width:100%;}.tb-btn-primary{flex:1;text-align:center;}}
+
         /* ── Harita ── */
         #map { height: 400px; width: 100%; border-radius: 0 0 8px 8px; }
         .map-filters { padding: 10px 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #dee2e6; }
@@ -199,6 +214,27 @@
 
 <div class="container-fluid px-4">
 
+    {{-- ── TEDARİKÇİ BANNER ── --}}
+    @php $isSupplier = \App\Models\B2C\CatalogItem::where('supplier_id', auth()->id())->where('owner_type','supplier')->exists(); @endphp
+    @if(!$isSupplier && !session('tedarikci_banner_dismissed'))
+    <div class="tedarikci-banner" id="tedarikci-banner">
+        <div class="tedarikci-banner-text">
+            <div class="eyebrow">Yeni Fırsat</div>
+            <h5><i class="fas fa-store me-2" style="color:#f59e0b;"></i>Hizmetlerinizi Platforma Ekleyin — İki Kanalda Satın</h5>
+            <p>Transfer, tur, yat, dinner cruise veya başka hizmetleriniz mi var? Hem <strong style="color:#fff;">gruptalepleri.com'daki acentelere</strong> B2B fiyattan, hem de <strong style="color:#fff;">gruprezervasyonlari.com'da tüketicilere</strong> B2C fiyattan satın.</p>
+            <div class="tedarikci-banner-badges">
+                <span class="tb-badge"><i class="fas fa-users"></i> 500+ Aktif Acente</span>
+                <span class="tb-badge"><i class="fas fa-globe"></i> B2C Vitrin Dahil</span>
+                <span class="tb-badge"><i class="fas fa-check"></i> Ücretsiz Başvuru</span>
+            </div>
+        </div>
+        <div class="tedarikci-banner-btns">
+            <a href="/tedarikci-olun" class="tb-btn-primary"><i class="fas fa-arrow-right me-1"></i> Nasıl Çalışır?</a>
+            <button class="tb-btn-dismiss" onclick="dismissTedarikci()"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    @endif
+
     {{-- ── ÖZET CHİPLER ── --}}
     @php
         $chipIkonlar = [
@@ -320,6 +356,10 @@
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
 
 <script>
+function dismissTedarikci() {
+    document.getElementById('tedarikci-banner')?.remove();
+    fetch('/acente/dismiss-tedarikci-banner', {method:'POST', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content}});
+}
 // ─── Veri ────────────────────────────────────────────────────────────────────
 const taleplerData  = @json($taleplerJson);
 const haritaVerisi  = @json($haritaVerisi);

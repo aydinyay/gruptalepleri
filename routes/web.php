@@ -340,6 +340,11 @@ Route::get('/grup-talepleri', function () {
     return view('marketing.grup-talepleri');
 })->name('marketing.grup-talepleri');
 
+// Tedarikçi olmak isteyenler için landing sayfası (public)
+Route::get('/tedarikci-olun', function () {
+    return view('marketing.tedarikci-olun');
+})->name('marketing.tedarikci');
+
 // Air Charter public lead sayfalari
 Route::get('/private-jet-kiralama', [\App\Http\Controllers\Marketing\CharterLeadController::class, 'jet'])->name('charter.public.jet');
 Route::get('/helikopter-kiralama', [\App\Http\Controllers\Marketing\CharterLeadController::class, 'helicopter'])->name('charter.public.helicopter');
@@ -1040,6 +1045,7 @@ Route::middleware(['auth'])->prefix('acente/onizleme')->name('acente.preview.')-
 // Acente
 Route::middleware(['auth'])->prefix('acente')->name('acente.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Acente\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dismiss-tedarikci-banner', function () { session(['tedarikci_banner_dismissed' => true]); return response()->noContent(); })->name('dismiss.tedarikci');
 
     Route::get('/talepler/merkez', [\App\Http\Controllers\Hub\GroupHubController::class, 'acente'])
         ->defaults('group', 'talepler')
