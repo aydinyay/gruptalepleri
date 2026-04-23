@@ -252,8 +252,9 @@ Route::get('/blog',                           [\App\Http\Controllers\BlogPublicC
 Route::get('/blog/kategori/{kategori:slug}',  [\App\Http\Controllers\BlogPublicController::class, 'kategori'])->name('blog.kategori');
 Route::get('/blog/{slug}',                    [\App\Http\Controllers\BlogPublicController::class, 'show'])->name('blog.show');
 
-// Sitemap — dinamik (blog yazılarını dahil eder)
-Route::get('/sitemap-dinamik.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
+// Sitemap — domain'e göre B2B veya B2C içerik döner
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
+Route::get('/sitemap-dinamik.xml', [\App\Http\Controllers\SitemapController::class, 'index']); // eski URL geçerliliği
 
 // Ana sayfa — giriş yapılmışsa dashboard'a, yapmamışsa welcome'a
 

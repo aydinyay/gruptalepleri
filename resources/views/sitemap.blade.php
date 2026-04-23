@@ -7,8 +7,8 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://gruptalepleri.com/grup-talepleri</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://gruptalepleri.com/register</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>

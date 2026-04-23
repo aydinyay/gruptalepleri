@@ -21,8 +21,6 @@
     inset: 0;
     @if($heroBgImage)
     background-image: url('{{ $heroBgImage }}');
-    @else
-    background-image: url('{{ asset("images/b2c-hero.jpg") }}');
     @endif
     background-size: cover;
     background-position: center;
