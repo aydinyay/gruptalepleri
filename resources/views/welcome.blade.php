@@ -19,7 +19,9 @@
 <meta property="og:url" content="https://gruptalepleri.com">
 <meta property="og:title" content="GrupTalepleri — Grup Uçuş ve Charter Talep Platformu">
 <meta property="og:description" content="Turizm acenteleri için grup uçuş talep platformu. Charter ve tarifeli grup uçuş tekliflerinizi hızlıca alın. TÜRSAB A Grubu belgeli.">
-<meta property="og:image" content="https://gruptalepleri.com/og-image.png">
+<meta property="og:image" content="https://gruptalepleri.com/og-gt.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:locale" content="tr_TR">
 <meta property="og:site_name" content="GrupTalepleri">
 
@@ -27,7 +29,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="GrupTalepleri — Grup Uçuş ve Charter Talep Platformu">
 <meta name="twitter:description" content="Turizm acenteleri için grup uçuş talep platformu. Charter ve tarifeli grup uçuş tekliflerinizi hızlıca alın.">
-<meta name="twitter:image" content="https://gruptalepleri.com/og-image.png">
+<meta name="twitter:image" content="https://gruptalepleri.com/og-gt.png">
 
 {{-- Instagram profil bağlantısı --}}
 <meta property="og:see_also" content="https://www.instagram.com/grup.talepleri">
