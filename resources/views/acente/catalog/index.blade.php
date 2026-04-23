@@ -29,6 +29,7 @@
 .prd-card-amount{font-size:1.15rem;font-weight:800;color:var(--gt-blue);}
 .prd-card-per{font-size:.75rem;color:#718096;}
 .prd-card-pub{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:4px;}
+.prd-dur-badge{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);color:#fff;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:50px;z-index:2;}
 .pub-b2c{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
 .pub-b2b{background:#eef2ff;color:#1a3c6b;border:1px solid #c7d2fe;}
 .pub-no{background:#fefce8;color:#854d0e;border:1px solid #fde047;}
@@ -104,6 +105,15 @@ $priceLabel = $item->pricing_unit ?: match($subtype) {
                 style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:transform .15s;">
             <i class="bi bi-heart" style="color:#e53e3e;"></i>
         </button>
+        <div class="prd-dur-badge">
+            @if($item->duration_days)
+                {{ $item->duration_days }} gün
+            @elseif($item->duration_hours)
+                {{ $item->duration_hours }} saat
+            @else
+                Esnek
+            @endif
+        </div>
     </a>
     <div class="prd-card-body">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
