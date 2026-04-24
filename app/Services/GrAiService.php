@@ -50,7 +50,7 @@ class GrAiService
         $userCtx        = $this->buildUserContext($userId);
 
         // Prompt oluştur
-        $systemPrompt = $this->buildSystemPrompt($memories, $timeCtx, $userCtx, $relevantItems);
+        $systemPrompt = $this->buildSystemPrompt($memories, $timeCtx, $userCtx, $relevantItems, $userId === null);
 
         // Gemini'ye gönder
         $raw = $this->callGemini($apiKey, $systemPrompt, $history, $message);
@@ -269,7 +269,58 @@ class GrAiService
 
     // ── Prompt ───────────────────────────────────────────────────────────────
 
-    private function buildSystemPrompt(array $memories, array $time, array $user, array $products): string
+    private function buildGuestUpsellBlock(): string
+    {
+        return <<<'UPSELL'
+
+ÜYELİK TEŞVİKİ (SADECE KAYITSIZ KULLANICILARA):
+Bu kullanıcı henüz üye değil. Doğru anda — sıkmadan, zorlamadan — üye olmanın ne kazandıracağını anlat.
+
+DOĞRU AN NE ZAMAN?
+Şu sinyalleri gör gördüm teklif et:
+- Kullanıcı bir ürün/hizmet hakkında fiyat, tarih veya müsaitlik sordu (gerçek ilgi sinyali)
+- "Bildirim al", "haberdar ol", "takip et", "hatırlat" gibi bir şey söyledi
+- 2+ soru sordu (sohbet derinleşti, engagement yüksek)
+- Belirli bir tarih, grup boyutu veya bütçe bildirdi (ciddi planlama sinyali)
+- İndirim, kampanya veya özel fiyat sordu
+- "Daha önce de baktım", "geçen sefer" gibi ifade kullandı (geri dönen ziyaretçi)
+
+NASIL TEKLİF EDECEKSİN?
+- Cevabının SONUNA doğal bir geçişle ekle — asla cevabın başına koyma
+- 1-2 cümle max, özlü ve kişisel (o an sordukları şeyle direkt bağlantılı)
+- Kaydol bağlantısını markdown link olarak ver: [Ücretsiz üye ol →](https://gruprezervasyonlari.com/kayit)
+- Aynı konuşmada birden fazla kez teklif etme — bir kez söyle, bırak
+
+ÜYELİK AVANTAJLARI — KONUYA GÖRE HANGİSİNİ SEÇECEĞİNİ BELİRLE:
+(Hepsini sayma — sadece o an en alakalı 1-2 tanesini söyle)
+
+Fiyat / ürün sorusunda:
+→ "Üye olursan bu tur için fiyat düşünce veya yeni tarih açılınca sana bildirim gönderebilirim."
+→ "Üye olursan [kategori] için özel kampanyaları kaçırmazsın, ilk sen haberdar olursun."
+
+Tekrarlayan ziyaret / "daha önce de baktım" sinyalinde:
+→ "Üye olursan bir sonraki gelişinde seni tanırım — sıfırdan başlamayız, kaldığın yerden devam ederiz."
+→ "Baktığın ve beğendiğin her şeyi istek listene ekleyebilirsin, kaybolmaz."
+
+Grup / tarih / bütçe bildirdiğinde:
+→ "Üye olursan bu bilgileri kaydederim ve sana özel seçenekler sunabilirim."
+→ "Konumuna göre en yakın ve en uygun fiyatlı seçenekleri daha isabetli öneririm."
+
+İndirim / kampanya sorusunda:
+→ "Üyelere zaman zaman özel fiyatlar ve erken rezervasyon indirimleri sunuyoruz — üye olursan bunları kaçırmazsın."
+
+Genel engagement yüksekse (2+ soru):
+→ "Üye olursan seninle olan tüm konuşmaları hatırlarım ve sana özel tatil asistanın gibi yardımcı olurum."
+→ "Adını bilirsem sana isminle hitap ederim, tercihlerini öğrenirsem çok daha kişisel öneriler gelirim."
+
+ÖNEMLİ:
+- Hiç sinyal yoksa (ilk kısa mesaj, genel selamlama) TEKLİF ETME
+- "Üye ol" demekten kaçın — "üye olursan şunu yapabilirim" formatını tercih et (fayda öne)
+- Bağlantıyı her zaman markdown ile ver, çıplak URL yazma
+UPSELL;
+    }
+
+    private function buildSystemPrompt(array $memories, array $time, array $user, array $products, bool $isGuest = false): string
     {
         $memoriesText = empty($memories)
             ? 'Henüz öğrenilmiş bir tercih yok.'
@@ -285,7 +336,8 @@ class GrAiService
             $userLine = "Kullanıcı: {$user['ad']}" . ($unvan ? " {$unvan}" : '') . "\n";
         }
 
-        $haftasonu = $time['haftasonu'] ? ' (hafta sonu)' : '';
+        $haftasonu  = $time['haftasonu'] ? ' (hafta sonu)' : '';
+        $guestBlock = $isGuest ? $this->buildGuestUpsellBlock() : '';
 
         return <<<PROMPT
 Sen gruprezervasyonlari.com'un yapay zeka asistanısın. Adın GR (okunuşu: Ciar).
@@ -320,7 +372,7 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
 - Asla "Merhaba! Size nasıl yardımcı olabilirim?" gibi robotik başlangıç yapma
 - Grup uçuşu / charter uçak / 10+ kişi uçuş gibi konularda /grup-ucak-talebi sayfasını öner
 - Transfer / havalimanı / araç sorunlarında /transfer sayfasını öner
-
+{$guestBlock}
 ÇIKTI FORMATI — SADECE JSON döndür:
 {
   "reply": "kullanıcıya cevap metni (Türkçe, markdown destekli)",
