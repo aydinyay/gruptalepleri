@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\B2C;
 
 use App\Http\Controllers\Controller;
+use App\Models\B2C\B2cPriceAlert;
+use App\Models\B2C\B2cWishlistItem;
+use App\Models\B2C\CatalogItem;
 use App\Models\B2C\GrAiGuest;
 use App\Models\B2C\GrAiMemory;
 use App\Services\GrAiService;
@@ -32,11 +35,39 @@ class GrChatController extends Controller
 
         $result = (new GrAiService())->chat($message, $userId, $guestUuid);
 
+        $sid = session()->getId();
+        $wishlistAdded = false;
+        $alertSet      = false;
+
+        // Wishlist ekleme
+        if ($result['wishlist_add'] ?? null) {
+            $item = CatalogItem::published()->where('slug', $result['wishlist_add'])->first();
+            if ($item) {
+                $exists = B2cWishlistItem::where('session_id', $sid)->where('catalog_item_id', $item->id)->exists();
+                if (! $exists) {
+                    B2cWishlistItem::create(['session_id' => $sid, 'catalog_item_id' => $item->id, 'created_at' => now()]);
+                }
+                $wishlistAdded = true;
+            }
+        }
+
+        // Fiyat alarmı
+        if ($result['price_alert'] ?? null) {
+            $item = CatalogItem::published()->where('slug', $result['price_alert'])->first();
+            if ($item) {
+                $b2cUser = $userId ? \App\Models\B2C\B2cUser::find($userId) : null;
+                B2cPriceAlert::register($sid, $userId, $item->id, $item->slug, (float) $item->base_price, $b2cUser?->email);
+                $alertSet = true;
+            }
+        }
+
         $response = response()->json([
-            'reply'    => $result['reply'],
-            'products' => $result['products'],
-            'redirect' => $result['redirect'] ?? null,
-            'error'    => $result['error'],
+            'reply'          => $result['reply'],
+            'products'       => $result['products'],
+            'redirect'       => $result['redirect'] ?? null,
+            'wishlist_added' => $wishlistAdded,
+            'alert_set'      => $alertSet,
+            'error'          => $result['error'],
         ]);
 
         // Cookie'yi tazele

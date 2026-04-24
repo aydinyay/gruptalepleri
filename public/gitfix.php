@@ -32,6 +32,20 @@ if (($_GET['action'] ?? '') === 'migrate') {
     exit;
 }
 
+// Fiyat alarmı kontrolü
+if (($_GET['action'] ?? '') === 'price-alerts') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('gr:check-price-alerts');
+    header('Content-Type: text/plain');
+    echo "PRICE_ALERTS_DONE exitCode={$exitCode}\n";
+    echo \Illuminate\Support\Facades\Artisan::output();
+    exit;
+}
+
 // Seeder çalıştırma — izin verilenler listesi (güvenlik katmanı)
 if (($_GET['action'] ?? '') === 'seed') {
     $seeder = trim($_GET['class'] ?? '');

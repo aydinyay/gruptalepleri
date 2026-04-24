@@ -307,6 +307,12 @@
             removeTyping();
             if (data && data.reply) {
                 addMessage('assistant', data.reply, data.products || []);
+                if (data.wishlist_added) {
+                    addMessage('assistant', '❤️ Ürünü istek listene ekledim.');
+                }
+                if (data.alert_set) {
+                    addMessage('assistant', '🔔 Fiyat alarmı kuruldu — fiyat değişince seni haberdar edeceğim.');
+                }
                 if (data.redirect) {
                     setTimeout(function () {
                         window.location.href = data.redirect;

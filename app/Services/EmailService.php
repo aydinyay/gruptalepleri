@@ -425,6 +425,35 @@ HTML;
     }
 
     /**
+     * B2C fiyat alarmı bildirimi — raw e-posta adresine gönderir.
+     */
+    public function fiyatAlarmi(string $toEmail, string $toName, string $itemTitle, float $eskiFiyat, float $yeniFiyat, string $currency, string $slug): void
+    {
+        if (! SistemAyar::emailEnabled()) return;
+        $url     = rtrim(config('app.b2c_url', 'https://gruprezervasyonlari.com'), '/') . '/urun/' . $slug;
+        $subject = "🎉 Fiyat Düştü: {$itemTitle}";
+        $html    = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px 20px;">'
+            . '<h2 style="color:#1a3c6b;font-size:1.3rem;margin-bottom:8px;">Fiyat Alarmınız Tetiklendi!</h2>'
+            . '<p style="color:#555;">Merhaba ' . htmlspecialchars($toName) . ',</p>'
+            . '<p style="color:#555;">Takip ettiğiniz ürünün fiyatı düştü:</p>'
+            . '<div style="background:#f6f8fc;border-left:4px solid #1a3c6b;padding:16px 20px;border-radius:6px;margin:16px 0;">'
+            . '<strong style="font-size:1rem;color:#1a1a2e;">' . htmlspecialchars($itemTitle) . '</strong><br>'
+            . '<span style="color:#718096;font-size:.9rem;">Eski fiyat: <s>' . number_format($eskiFiyat, 0, ',', '.') . ' ' . $currency . '</s></span><br>'
+            . '<span style="color:#10b981;font-size:1.1rem;font-weight:700;">Yeni fiyat: ' . number_format($yeniFiyat, 0, ',', '.') . ' ' . $currency . '</span>'
+            . '</div>'
+            . '<a href="' . $url . '" style="display:inline-block;background:#e53e3e;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.95rem;">Hemen İncele →</a>'
+            . '<p style="color:#aaa;font-size:.75rem;margin-top:24px;">GrupRezervasyonları · Bu e-postayı aldınız çünkü GR Asistan üzerinden fiyat alarmı kurdunuz.</p>'
+            . '</div>';
+        try {
+            Mail::html($html, function ($m) use ($toEmail, $toName, $subject) {
+                $m->to($toEmail, $toName)->subject($subject);
+            });
+        } catch (\Throwable $e) {
+            Log::error('EmailService::fiyatAlarmi hatası: ' . $e->getMessage(), ['to' => $toEmail]);
+        }
+    }
+
+    /**
      * DB şablonundan oluşturulmuş HTML ile gönderim (view gerektirmez).
      */
     private function sendHtml(?int $requestId, User $user, string $subject, string $html): void

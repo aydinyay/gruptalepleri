@@ -61,15 +61,19 @@ class GrAiService
         // JSON parse — kesik gelirse regex ile reply'ı kurtar
         $data  = json_decode($raw, true);
         if (is_array($data) && isset($data['reply'])) {
-            $reply    = $data['reply'];
-            $learn    = isset($data['learn']) ? (array) $data['learn'] : [];
-            $slugs    = isset($data['products']) ? (array) $data['products'] : [];
-            $redirect = isset($data['redirect']) ? (string) $data['redirect'] : null;
+            $reply        = $data['reply'];
+            $learn        = isset($data['learn']) ? (array) $data['learn'] : [];
+            $slugs        = isset($data['products']) ? (array) $data['products'] : [];
+            $redirect     = isset($data['redirect']) ? (string) $data['redirect'] : null;
+            $wishlistAdd  = isset($data['wishlist_add']) && $data['wishlist_add'] ? (string) $data['wishlist_add'] : null;
+            $priceAlert   = isset($data['price_alert']) && $data['price_alert'] ? (string) $data['price_alert'] : null;
         } elseif (preg_match('/"reply"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/su', $raw, $m)) {
-            $reply    = stripslashes($m[1]);
-            $learn    = [];
-            $slugs    = [];
-            $redirect = null;
+            $reply        = stripslashes($m[1]);
+            $learn        = [];
+            $slugs        = [];
+            $redirect     = null;
+            $wishlistAdd  = null;
+            $priceAlert   = null;
         } else {
             return $this->errorReply('Şu an cevap üretemiyorum, birazdan tekrar dene.');
         }
@@ -124,10 +128,12 @@ class GrAiService
         }
 
         return [
-            'reply'    => $reply,
-            'products' => $suggestedProducts,
-            'redirect' => $redirect ?? null,
-            'error'    => false,
+            'reply'        => $reply,
+            'products'     => $suggestedProducts,
+            'redirect'     => $redirect ?? null,
+            'wishlist_add' => $wishlistAdd ?? null,
+            'price_alert'  => $priceAlert  ?? null,
+            'error'        => false,
         ];
     }
 
@@ -380,7 +386,9 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
     {"key": "anahtar", "value": "öğrenilen değer"}
   ],
   "products": ["slug1", "slug2"],
-  "redirect": "/urun/slug"
+  "redirect": "/urun/slug",
+  "wishlist_add": "slug",
+  "price_alert": "slug"
 }
 
 "learn" alanı: bu mesajdan yeni bir şey öğrendiysen doldur. Boş bırakabilirsin.
@@ -391,6 +399,10 @@ BU KULLANICIDAN ÖĞRENİLENLER (hafıza):
   - Grup uçak talebi: "/grup-ucak-talebi"
   - Transfer sorgulama: "/transfer"
   - Sayfa otomatik açılır. Sadece kullanıcı açıkça onay verdiğinde doldur.
+"wishlist_add": kullanıcı bir ürünü beğendiğini / kaydetmek istediğini belirtirse o ürünün SLUG'ını yaz.
+  Sistem otomatik olarak istek listesine ekler ve kullanıcıya bildirir. Boş bırakabilirsin.
+"price_alert": kullanıcı bir ürün için fiyat alarmı / bildirim almak isterse o ürünün SLUG'ını yaz.
+  Sistem fiyat değişince kullanıcıya e-posta/bildirim gönderir. Boş bırakabilirsin.
 
 Sadece JSON döndür, başka hiçbir şey yazma.
 PROMPT;
