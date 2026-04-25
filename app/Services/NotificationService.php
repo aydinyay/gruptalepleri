@@ -136,6 +136,19 @@ class NotificationService
         );
     }
 
+    public function yeniPolice(string $kanal, string $policeNo, string $sigortaliAdi, float $fiyat, string $adminUrl): void
+    {
+        $kanalEtiket = $kanal === 'b2c' ? '🌐 B2C' : '🏢 B2B';
+        $fiyatFmt    = number_format($fiyat, 0, ',', '.') . ' ₺';
+        $this->createForRole(
+            'admin_and_superadmin',
+            'yeni_police',
+            "{$kanalEtiket} — Poliçe Satıldı: {$policeNo}",
+            "{$sigortaliAdi} — {$fiyatFmt}",
+            $adminUrl
+        );
+    }
+
     public function yeniB2cQuickLead(string $name, string $phone, string $serviceType, string $url): void
     {
         $label = $serviceType ?: 'Belirtilmedi';

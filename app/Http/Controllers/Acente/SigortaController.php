@@ -402,7 +402,24 @@ class SigortaController extends Controller
                     'ing_sertifika_link' => $pdfData['IngSertifikaLink'] ?? '',
                 ]);
 
-                try { (new \App\Services\EmailService())->policeHazir($police->fresh()); } catch (\Throwable) {}
+                $policeF = $police->fresh();
+                try { (new \App\Services\EmailService())->policeHazir($policeF); } catch (\Throwable) {}
+
+                // SMS müşteriye (acentenin telefonu)
+                try {
+                    $acente   = $this->acenteActor();
+                    $belgeUrl = route('acente.sigorta.belge', ['police' => $policeF->id, 'tip' => 'police']);
+                    $smsMsg   = "Sigorta policeniz hazir! Police No: {$policeNo} | Indirmek icin: {$belgeUrl}";
+                    (new \App\Services\SmsService())->send(null, 'acente', $acente->name, $acente->phone ?? '', $smsMsg);
+                } catch (\Throwable) {}
+
+                // Admin push + SMS
+                try {
+                    $adminUrl = route('admin.sigorta.index');
+                    (new \App\Services\NotificationService())->yeniPolice('b2b', $policeNo, $policeF->sigortali_adi . ' ' . $policeF->sigortali_soyadi, (float)$policeF->satilan_fiyat_tl, $adminUrl);
+                    $adminSms = "B2B Police: {$policeNo} | {$policeF->sigortali_adi} {$policeF->sigortali_soyadi} | " . number_format($policeF->satilan_fiyat_tl, 0, ',', '.') . " TL";
+                    (new \App\Services\SmsService())->sendToAdmin(null, $adminSms);
+                } catch (\Throwable) {}
 
                 return response()->json(['durum' => 'tamamlandi', 'police_no' => $policeNo]);
             }
