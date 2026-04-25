@@ -142,37 +142,6 @@
         </div>
     </div>
 
-    {{-- Sonuç Modal --}}
-    <div class="modal fade" id="policeModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-body text-center p-5">
-                    <div id="modal-yukleniyor">
-                        <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div>
-                        <h5>Poliçeniz Hazırlanıyor</h5>
-                        <p class="text-muted small">PAO-Net sigorta poliçenizi oluşturuyor...</p>
-                    </div>
-                    <div id="modal-tamam" class="d-none">
-                        <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
-                        <h4 class="fw-bold">Poliçeniz Hazır!</h4>
-                        <p class="text-muted">Poliçe No: <strong id="modal-police-no"></strong></p>
-                        <div class="d-flex gap-2 justify-content-center mt-3">
-                            <a id="btn-police-indir" href="#" target="_blank" class="btn btn-danger btn-sm">
-                                <i class="fas fa-file-pdf me-1"></i> PDF İndir
-                            </a>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Kapat</button>
-                        </div>
-                    </div>
-                    <div id="modal-hata" class="d-none">
-                        <i class="fas fa-times-circle text-danger fa-4x mb-3"></i>
-                        <h5>Bir Sorun Oluştu</h5>
-                        <p id="modal-hata-mesaj" class="text-danger small"></p>
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Kapat</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 @push('scripts')
@@ -247,22 +216,21 @@ document.getElementById('btn-teklif').addEventListener('click', async function (
 
 document.getElementById('btn-onayla').addEventListener('click', async function () {
     this.disabled = true;
-    const modal = new bootstrap.Modal(document.getElementById('policeModal'));
-    modal.show();
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ödemeye Yönlendiriliyorsunuz...';
 
     const body = {
-        teklif_id: document.getElementById('teklif_id').value,
-        urun_kodu: document.getElementById('urun_kodu').value,
-        kimlik: document.getElementById('kimlik').value,
-        adi: document.getElementById('adi').value,
-        soyadi: document.getElementById('soyadi').value,
-        dogum_tarihi: document.getElementById('dogum_tarihi').value,
+        teklif_id:        document.getElementById('teklif_id').value,
+        urun_kodu:        document.getElementById('urun_kodu').value,
+        kimlik:           document.getElementById('kimlik').value,
+        adi:              document.getElementById('adi').value,
+        soyadi:           document.getElementById('soyadi').value,
+        dogum_tarihi:     document.getElementById('dogum_tarihi').value,
         baslangic_tarihi: document.getElementById('baslangic_tarihi').value,
-        bitis_tarihi: document.getElementById('bitis_tarihi').value,
-        ulke: document.getElementById('ulke').value,
-        bprim: document.getElementById('bprim').value,
-        dkuru: document.getElementById('dkuru').value,
-        doviz_turu: document.getElementById('doviz_turu').value,
+        bitis_tarihi:     document.getElementById('bitis_tarihi').value,
+        ulke:             document.getElementById('ulke').value,
+        bprim:            document.getElementById('bprim').value,
+        dkuru:            document.getElementById('dkuru').value,
+        doviz_turu:       document.getElementById('doviz_turu').value,
     };
 
     try {
@@ -274,34 +242,20 @@ document.getElementById('btn-onayla').addEventListener('click', async function (
         const data = await res.json();
 
         if (!res.ok || data.error) {
-            showModalHata(data.error || 'Poliçe oluşturulamadı.');
+            showHata(data.error || 'Poliçe başlatılamadı.');
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-check me-2"></i> Poliçe Al';
             return;
         }
 
-        pollB2c(data.police_id);
+        // Ödeme sayfasına yönlendir — PAO-Net burada çağrılmıyor
+        window.location.href = data.payment_url;
     } catch (e) {
-        showModalHata('Bağlantı hatası.');
+        showHata('Bağlantı hatası. Tekrar deneyin.');
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-check me-2"></i> Poliçe Al';
     }
 });
-
-function pollB2c(policeId) {
-    let n = 0;
-    const iv = setInterval(async () => {
-        n++;
-        const res  = await fetch(`{{ url('/sigorta/police') }}/${policeId}/durum`);
-        const data = await res.json();
-        if (data.durum === 'tamamlandi') {
-            clearInterval(iv);
-            document.getElementById('modal-yukleniyor').classList.add('d-none');
-            document.getElementById('modal-tamam').classList.remove('d-none');
-            document.getElementById('modal-police-no').textContent = data.police_no || '—';
-            document.getElementById('btn-police-indir').href = `{{ url('/sigorta/police') }}/${policeId}/belge/police`;
-        } else if (n >= 40) {
-            clearInterval(iv);
-            showModalHata('Zaman aşımı. Lütfen biraz bekleyip tekrar deneyin.');
-        }
-    }, 3000);
-}
 
 function showHata(msg) {
     const el = document.getElementById('hata-kutusu');

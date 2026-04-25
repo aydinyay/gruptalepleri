@@ -68,7 +68,15 @@
       "Bash(php -l c:/gruptalepleri/app/Models/B2C/B2cPriceAlert.php)",
       "Bash(php -l c:/gruptalepleri/app/Notifications/B2cResetPasswordNotification.php)",
       "Bash(php -l c:/gruptalepleri/app/Models/B2C/B2cUser.php)",
-      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/B2C/CustomerAuthController.php)"
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/B2C/CustomerAuthController.php)",
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/Acente/SigortaController.php)",
+      "Bash(php -l c:/gruptalepleri/app/Models/SigortaPolice.php)",
+      "Bash(php -l c:/gruptalepleri/app/Models/SigortaBatchJob.php)",
+      "Bash(php -l c:/gruptalepleri/app/Services/PaoNetService.php)",
+      "Bash(php -l c:/gruptalepleri/app/Services/PaoNetHelper.php)",
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/Admin/SigortaController.php)",
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/B2C/SigortaController.php)",
+      "Bash(php -l c:/gruptalepleri/routes/web.php)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"

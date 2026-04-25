@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Acente;
 
 use App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
 use App\Http\Controllers\Controller;
+use App\Models\SigortaOdeme;
 use App\Models\SigortaPolice;
 use App\Models\SigortaBatchJob;
 use App\Services\PaoNetService;
 use App\Services\PaoNetHelper;
+use App\Services\Payments\PaynkolayGatewayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SigortaController extends Controller
 {
@@ -148,7 +151,7 @@ class SigortaController extends Controller
         }
     }
 
-    // ── Poliçe Üret (Onayla) ─────────────────────────────────────────────────
+    // ── Poliçe Başlat → Ödeme Sayfasına Yönlendir ───────────────────────────
 
     public function policeUret(Request $request)
     {
@@ -171,8 +174,8 @@ class SigortaController extends Controller
             return response()->json(['error' => 'Sigorta modülü henüz aktif değil.'], 503);
         }
 
-        $markup  = (float) $this->ayar('b2b_markup_yuzde', 20);
-        $tampon  = (float) $this->ayar('kur_tamponu_yuzde', 5);
+        $markup   = (float) $this->ayar('b2b_markup_yuzde', 20);
+        $tampon   = (float) $this->ayar('kur_tamponu_yuzde', 5);
         $fiyatlar = PaoNetHelper::hesaplaSatisFiyati(
             (float) $request->bprim,
             (float) $request->dkuru,
@@ -180,46 +183,155 @@ class SigortaController extends Controller
             $tampon
         );
 
+        // ── Poliçe kaydı — PAO-Net'e HENÜz gitme ────────────────────────────
         $police = SigortaPolice::create([
-            'acente_id'        => $this->acenteActor()->id,
-            'kanal'            => 'b2b',
-            'paonet_teklif_id' => $request->teklif_id,
-            'paonet_urun_kodu' => $request->urun_kodu,
-            'sigortali_kimlik' => $request->kimlik,
-            'kimlik_tipi'      => PaoNetHelper::detectKimlikTipi($request->kimlik),
-            'sigortali_adi'    => $request->adi,
-            'sigortali_soyadi' => $request->soyadi,
-            'sigortali_dogum'  => $request->dogum_tarihi,
-            'baslangic_tarihi' => $request->baslangic_tarihi,
-            'bitis_tarihi'     => $request->bitis_tarihi,
-            'gidilecek_ulke'   => $request->ulke,
-            'api_doviz_turu'   => $request->doviz_turu,
-            'api_doviz_tutar'  => $request->bprim,
-            'api_kur'          => $request->dkuru,
-            'maliyet_tl'       => $fiyatlar['maliyet_tl'],
-            'b2b_fiyat_tl'     => $fiyatlar['satis_fiyat'],
-            'satilan_fiyat_tl' => $fiyatlar['satis_fiyat'],
-            'net_kar_tl'       => $fiyatlar['net_kar'],
-            'markup_yuzde'     => $markup,
-            'kur_tamponu_yuzde'=> $tampon,
-            'durum'            => 'police_isleniyor',
+            'acente_id'         => $this->acenteActor()->id,
+            'kanal'             => 'b2b',
+            'paonet_teklif_id'  => $request->teklif_id,
+            'paonet_urun_kodu'  => $request->urun_kodu,
+            'sigortali_kimlik'  => $request->kimlik,
+            'kimlik_tipi'       => PaoNetHelper::detectKimlikTipi($request->kimlik),
+            'sigortali_adi'     => $request->adi,
+            'sigortali_soyadi'  => $request->soyadi,
+            'sigortali_dogum'   => $request->dogum_tarihi,
+            'baslangic_tarihi'  => $request->baslangic_tarihi,
+            'bitis_tarihi'      => $request->bitis_tarihi,
+            'gidilecek_ulke'    => $request->ulke,
+            'api_doviz_turu'    => $request->doviz_turu,
+            'api_doviz_tutar'   => $request->bprim,
+            'api_kur'           => $request->dkuru,
+            'maliyet_tl'        => $fiyatlar['maliyet_tl'],
+            'b2b_fiyat_tl'      => $fiyatlar['satis_fiyat'],
+            'satilan_fiyat_tl'  => $fiyatlar['satis_fiyat'],
+            'net_kar_tl'        => $fiyatlar['net_kar'],
+            'markup_yuzde'      => $markup,
+            'kur_tamponu_yuzde' => $tampon,
+            'durum'             => 'odeme_bekleniyor',
+        ]);
+
+        $internalRef = 'APY-' . now()->format('ymdHis') . '-' . strtoupper(Str::random(6));
+
+        $odeme = SigortaOdeme::create([
+            'sigorta_police_id'    => $police->id,
+            'kanal'                => 'b2b',
+            'internal_reference'   => $internalRef,
+            'amount_try'           => $fiyatlar['satis_fiyat'],
+            'status'               => 'pending',
+            'request_payload_json' => ['police_id' => $police->id, 'acente_id' => $this->acenteActor()->id],
         ]);
 
         try {
-            $svc    = app(PaoNetService::class);
-            $sonuc  = $svc->policeUret($request->teklif_id);
-            $referans = $sonuc['Referans'] ?? $sonuc['referans'] ?? '';
+            $gateway     = app(PaynkolayGatewayService::class);
+            $initialized = $gateway->initializePayment(
+                clientReference: $internalRef,
+                amountTry:       (float) $fiyatlar['satis_fiyat'],
+                successUrl:      route('acente.sigorta.odeme.basarili'),
+                failUrl:         route('acente.sigorta.odeme.basarisiz'),
+                cardHolderIp:    (string) $request->ip(),
+            );
 
-            $police->update([
-                'paonet_referans' => $referans,
-                'durum'           => 'police_isleniyor',
+            $odeme->update(['provider_reference' => $initialized['provider_reference']]);
+
+            return response()->json([
+                'ok'          => true,
+                'payment_url' => $initialized['redirect_url'],
             ]);
-
-            return response()->json(['ok' => true, 'police_id' => $police->id, 'referans' => $referans]);
-        } catch (\RuntimeException $e) {
+        } catch (\Throwable $e) {
             $police->update(['durum' => 'hata', 'hata_mesaji' => $e->getMessage()]);
-            return response()->json(['error' => $e->getMessage()], 422);
+            $odeme->update(['status' => 'rejected', 'failure_reason' => $e->getMessage(), 'failed_at' => now()]);
+            return response()->json(['error' => 'Ödeme başlatılamadı: ' . Str::limit($e->getMessage(), 200)], 422);
         }
+    }
+
+    // ── Paynkolay Callback — Başarılı (Acente) ───────────────────────────────
+
+    public function odemeBasarili(Request $request)
+    {
+        return $this->handleOdemeCallback($request, forceFailed: false);
+    }
+
+    public function odemeBasarisiz(Request $request)
+    {
+        return $this->handleOdemeCallback($request, forceFailed: true);
+    }
+
+    private function handleOdemeCallback(Request $request, bool $forceFailed): \Illuminate\Http\RedirectResponse
+    {
+        $payload = $request->all();
+        $gateway = app(PaynkolayGatewayService::class);
+
+        if (!$gateway->isValidResponseHash($payload)) {
+            return redirect()->route('acente.sigorta.create')
+                ->with('error', 'Ödeme doğrulaması başarısız.');
+        }
+
+        if ($forceFailed) {
+            $payload['response_code']  = '0';
+            $payload['auth_code']      = '0';
+            $payload['payment_status'] = 'failed';
+        }
+
+        $internalRef = trim((string) (
+            $payload['clientRefCode']
+            ?? $payload['CLIENT_REFERENCE_CODE']
+            ?? $payload['client_reference_code']
+            ?? ''
+        ));
+
+        $odeme = SigortaOdeme::where('internal_reference', $internalRef)->first();
+
+        if (!$odeme || !$odeme->sigorta_police_id) {
+            return redirect()->route('acente.sigorta.index')
+                ->with('error', 'Ödeme kaydı bulunamadı.');
+        }
+
+        if ($odeme->paid_at ?? $odeme->failed_at) {
+            return redirect()->route('acente.sigorta.show', $odeme->sigorta_police_id);
+        }
+
+        $mappedStatus = $gateway->mapCallbackStatus($payload);
+
+        if ($mappedStatus !== 'paid') {
+            $reason = Str::limit((string) ($payload['RESPONSE_DATA'] ?? $payload['message'] ?? 'Ödeme reddedildi.'), 350);
+            $odeme->update([
+                'status'                => 'rejected',
+                'callback_payload_json' => $payload,
+                'failure_reason'        => $reason,
+                'failed_at'             => now(),
+            ]);
+            SigortaPolice::where('id', $odeme->sigorta_police_id)
+                ->update(['durum' => 'odeme_basarisiz']);
+
+            return redirect()->route('acente.sigorta.create')
+                ->with('error', 'Ödeme başarısız. Poliçe düzenlenmedi.');
+        }
+
+        $providerRef = trim((string) ($payload['reference_code'] ?? $payload['REFERENCE_CODE'] ?? ''));
+        $odeme->update([
+            'status'                => 'approved',
+            'provider_reference'    => $providerRef ?: $odeme->provider_reference,
+            'callback_payload_json' => $payload,
+            'paid_at'               => now(),
+        ]);
+
+        $police = SigortaPolice::find($odeme->sigorta_police_id);
+        $police->update(['durum' => 'police_isleniyor']);
+
+        try {
+            $svc      = app(PaoNetService::class);
+            $sonuc    = $svc->policeUret($police->paonet_teklif_id);
+            $referans = $sonuc['Referans'] ?? $sonuc['referans'] ?? '';
+            $police->update(['paonet_referans' => $referans]);
+        } catch (\RuntimeException $e) {
+            Log::critical('sigorta.b2b.paonet_basarisiz_odeme_alindi', [
+                'police_id' => $police->id,
+                'error'     => $e->getMessage(),
+            ]);
+            $police->update(['durum' => 'hata', 'hata_mesaji' => $e->getMessage()]);
+        }
+
+        return redirect()->route('acente.sigorta.show', $police->id)
+            ->with('success', 'Ödeme alındı, poliçeniz işleniyor.');
     }
 
     // ── Üretim Durum Poll AJAX (CHKAUTOPOLICY) ─────────────────────────────────

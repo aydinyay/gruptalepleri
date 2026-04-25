@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SigortaBatchJob extends Model
 {
@@ -30,6 +32,16 @@ class SigortaBatchJob extends Model
     public function policeler(): HasMany
     {
         return $this->hasMany(SigortaPolice::class, 'batch_job_id');
+    }
+
+    public function acente(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'acente_id');
+    }
+
+    public function odeme(): HasOne
+    {
+        return $this->hasOne(SigortaOdeme::class, 'sigorta_batch_job_id');
     }
 
     public function ilerlemeYuzdesi(): int

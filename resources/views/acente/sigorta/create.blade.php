@@ -244,12 +244,7 @@ document.getElementById('btn-teklif').addEventListener('click', async function (
 // Poliçe Onayla
 document.getElementById('btn-onayla').addEventListener('click', async function () {
     this.disabled = true;
-    document.getElementById('police-yukleniyor').classList.remove('d-none');
-    document.getElementById('police-tamamlandi').classList.add('d-none');
-    document.getElementById('police-hata').classList.add('d-none');
-
-    const modal = new bootstrap.Modal(document.getElementById('policeModal'));
-    modal.show();
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ödemeye Yönlendiriliyorsunuz...';
 
     const body = {
         teklif_id:        document.getElementById('teklif_id').value,
@@ -275,43 +270,20 @@ document.getElementById('btn-onayla').addEventListener('click', async function (
         const data = await res.json();
 
         if (!res.ok || data.error) {
-            showPoliceHata(data.error || 'Poliçe oluşturulamadı.');
+            showHata(data.error || 'Poliçe başlatılamadı.');
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-check me-2"></i> Onayla ve Öde';
             return;
         }
 
-        policeId = data.police_id;
-        startPoll(policeId);
+        // Ödeme sayfasına yönlendir
+        window.location.href = data.payment_url;
     } catch (e) {
-        showPoliceHata('Ağ hatası. Lütfen poliçe listesini kontrol edin.');
+        showHata('Bağlantı hatası. Tekrar deneyin.');
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-check me-2"></i> Onayla ve Öde';
     }
 });
-
-function startPoll(id) {
-    let deneme = 0;
-    const max  = 40; // 40 × 3s = 120s
-    pollInterval = setInterval(async () => {
-        deneme++;
-        try {
-            const res  = await fetch(`{{ url('/acente/sigorta/police') }}/${id}/uretim-durum`, {
-                headers: { 'X-CSRF-TOKEN': csrfToken }
-            });
-            const data = await res.json();
-
-            if (data.durum === 'tamamlandi') {
-                clearInterval(pollInterval);
-                document.getElementById('police-yukleniyor').classList.add('d-none');
-                document.getElementById('police-tamamlandi').classList.remove('d-none');
-                document.getElementById('police-no-goster').textContent = data.police_no || '—';
-                document.getElementById('btn-detay-git').href = `{{ url('/acente/sigorta/police') }}/${id}`;
-            } else if (deneme >= max) {
-                clearInterval(pollInterval);
-                document.getElementById('police-yukleniyor').classList.add('d-none');
-                document.getElementById('police-hata').classList.remove('d-none');
-                document.getElementById('police-hata-mesaj').textContent = 'Zaman aşımı. Poliçe listesinden durumu kontrol edin.';
-            }
-        } catch (e) { /* sessiz devam */ }
-    }, 3000);
-}
 
 function showHata(msg) {
     const el = document.getElementById('hata-kutusu');

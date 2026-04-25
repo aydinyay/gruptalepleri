@@ -1250,6 +1250,13 @@ Route::post('/abonelik/misafir-baslat/{token}',     [\App\Http\Controllers\Email
 // ── Sigorta — Acente ─────────────────────────────────────────────────────────
 // (acente grubu içine değil, ayrı bir auth middleware grubuna alıyoruz çünkü
 //  acenteActor() metodu zaten içerde kullanıcı doğruluyor)
+// Paynkolay sigorta callback — CSRF muaf (POST + GET)
+Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->prefix('acente/sigorta/odeme')->name('acente.sigorta.odeme.')->group(function () {
+        Route::match(['get', 'post'], '/basarili',  [\App\Http\Controllers\Acente\SigortaController::class, 'odemeBasarili'])->name('basarili');
+        Route::match(['get', 'post'], '/basarisiz', [\App\Http\Controllers\Acente\SigortaController::class, 'odemeBasarisiz'])->name('basarisiz');
+    });
+
 Route::middleware(['auth'])->prefix('acente/sigorta')->name('acente.sigorta.')->group(function () {
     Route::get('/',                                          [\App\Http\Controllers\Acente\SigortaController::class, 'index'])->name('index');
     Route::get('/yeni',                                      [\App\Http\Controllers\Acente\SigortaController::class, 'create'])->name('create');

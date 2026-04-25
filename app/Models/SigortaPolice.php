@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SigortaPolice extends Model
 {
@@ -73,6 +74,11 @@ class SigortaPolice extends Model
     public function acente(): BelongsTo
     {
         return $this->belongsTo(User::class, 'acente_id');
+    }
+
+    public function odeme(): HasOne
+    {
+        return $this->hasOne(SigortaOdeme::class, 'sigorta_police_id');
     }
 
     // Sigortali tam adı
