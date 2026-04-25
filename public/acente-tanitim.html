@@ -3,949 +3,645 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ── SEO: Temel Meta ── -->
-<title>Grup Uçuş Talebi Platformu | GrupTalepleri.com — Seyahat Acenteleri İçin</title>
-<meta name="description" content="Seyahat acenteleri için grup uçuş, air charter, dinner cruise ve yat kiralama talep platformu. Teklifleri karşılaştırın, onaylayın, ödeme sürecini yönetin. TÜRSAB A Grubu Lisanslı.">
-<meta name="keywords" content="grup uçuş talebi, seyahat acentesi platformu, charter uçuş talebi, grup bilet, acente sistemi, grup uçuş fiyatı, TÜRSAB acentesi">
-<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-<meta name="author" content="Group Ticket Turizm Seyahat Acentası">
-<link rel="canonical" href="https://gruptalepleri.com/acente-tanitim.html">
-
-<!-- ── Open Graph (WhatsApp, LinkedIn, Facebook paylaşım önizlemesi) ── -->
-<meta property="og:type" content="website">
-<meta property="og:locale" content="tr_TR">
-<meta property="og:url" content="https://gruptalepleri.com/acente-tanitim.html">
-<meta property="og:site_name" content="GrupTalepleri.com">
-<meta property="og:title" content="Grup Uçuş Talebi Platformu | Seyahat Acenteleri İçin">
-<meta property="og:description" content="Grup uçuş, charter, dinner cruise ve yat kiralama taleplerinizi tek platformdan yönetin. Teklifleri karşılaştırın, onaylayın, süreci takip edin. TÜRSAB A Grubu Lisanslı.">
-
-<!-- ── Twitter / X Card ── -->
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Grup Uçuş Talebi Platformu | GrupTalepleri.com">
-<meta name="twitter:description" content="Seyahat acenteleri için grup uçuş ve charter talep platformu. TÜRSAB A Grubu Lisanslı, Şişli/İstanbul.">
-
-<!-- ── Yapısal Veri (Google Rich Results) ── -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "TravelAgency",
-  "name": "Group Ticket Turizm Seyahat Acentası",
-  "alternateName": "GrupTalepleri.com",
-  "url": "https://gruptalepleri.com",
-  "logo": "https://gruptalepleri.com/favicon.ico",
-  "description": "Seyahat acenteleri için grup uçuş, air charter, dinner cruise ve yat kiralama talep platformu.",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "İnönü Mah. Cumhuriyet Cad. No:93/12",
-    "addressLocality": "Şişli",
-    "addressRegion": "İstanbul",
-    "postalCode": "34375",
-    "addressCountry": "TR"
-  },
-  "telephone": "+905354154799",
-  "email": "destek@gruptalepleri.com",
-  "vatID": "4110477529",
-  "areaServed": "TR",
-  "serviceType": ["Grup Uçuş Talebi", "Air Charter", "Dinner Cruise", "Yacht Charter"],
-  "sameAs": ["https://gruptalepleri.com"]
-}
-</script>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<title>GrupTalepleri.com — Acente Platformu</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
-  :root {
-    --navy:   #0f2544;
-    --blue:   #1a3c6e;
-    --accent: #e8a020;
-    --green:  #198754;
-    --red:    #dc3545;
-    --gray:   #6c757d;
-    --light:  #f4f6f9;
-    --border: #dee2e6;
-    --white:  #ffffff;
-  }
+:root {
+  --primary:#1a3c6b; --accent:#e8401c; --teal:#0d9488;
+  --light:#f8f9fc; --dark:#0f2444; --muted:#64748b; --border:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1e293b;background:#fff;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f2444 0%,#1a3c6b 50%,#1e4d8c 100%);color:#fff;padding:80px 0 100px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:500px;height:500px;border-radius:50%;background:rgba(255,255,255,.04);}
+.hero::after{content:'';position:absolute;bottom:-80px;left:-60px;width:350px;height:350px;border-radius:50%;background:rgba(232,64,28,.08);}
+.hero-inner{position:relative;z-index:1;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:6px 16px;font-size:.82rem;font-weight:600;margin-bottom:24px;color:rgba(255,255,255,.9);}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:20px;}
+.hero h1 span{color:#ff6b47;}
+.hero-lead{font-size:1.1rem;opacity:.85;line-height:1.7;max-width:580px;margin-bottom:36px;}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;font-weight:800;font-size:1rem;padding:15px 32px;border-radius:10px;text-decoration:none;transition:background .15s;box-shadow:0 8px 24px rgba(232,64,28,.35);}
+.hero-cta:hover{background:#c73516;color:#fff;}
+.hero-cta-alt{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.8);font-size:.93rem;text-decoration:none;margin-left:20px;}
+.hero-cta-alt:hover{color:#fff;}
+.hero-stats{display:flex;gap:40px;margin-top:56px;flex-wrap:wrap;}
+.hero-stat-num{font-size:2rem;font-weight:900;color:#ff6b47;line-height:1;}
+.hero-stat-label{font-size:.8rem;color:rgba(255,255,255,.6);margin-top:3px;}
 
-  body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
-    line-height: 1.65;
-    color: #212529;
-    background: #fff;
-  }
+/* TRUST BAR */
+.trust-bar{background:#fff;border-bottom:1px solid var(--border);padding:16px 0;}
+.trust-item{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:500;color:var(--muted);}
+.trust-item i{color:var(--teal);font-size:1rem;}
 
-  a { color: var(--blue); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+/* SECTION */
+section{padding:80px 0;}
+.section-label{display:inline-block;background:#eff6ff;color:var(--primary);font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 14px;border-radius:50px;margin-bottom:12px;}
+.section-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:#0f172a;line-height:1.25;margin-bottom:14px;}
+.section-sub{font-size:1rem;color:var(--muted);line-height:1.7;max-width:560px;}
 
-  /* ─── LAYOUT ─── */
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 28px;
-  }
+/* FEATURE CARDS */
+.feat-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;height:100%;transition:transform .2s,box-shadow .2s;}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.08);}
+.feat-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:18px;flex-shrink:0;}
+.feat-icon.blue{background:#dbeafe;color:#1d4ed8;}
+.feat-icon.teal{background:#ccfbf1;color:#0f766e;}
+.feat-icon.orange{background:#ffedd5;color:#c2410c;}
+.feat-icon.purple{background:#ede9fe;color:#6d28d9;}
+.feat-icon.green{background:#dcfce7;color:#15803d;}
+.feat-icon.pink{background:#fce7f3;color:#be185d;}
+.feat-icon.amber{background:#fef3c7;color:#b45309;}
+.feat-card h3{font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+.feat-card p{font-size:.88rem;color:var(--muted);line-height:1.6;margin:0;}
+.feat-tag{display:inline-block;background:#f0fdf4;color:#15803d;font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:50px;margin-top:12px;}
+.feat-tag.new{background:#fef9c3;color:#a16207;}
 
-  section { padding: 56px 0; }
-  section.tight { padding: 36px 0; }
+/* SIGORTA */
+.sigorta-section{background:linear-gradient(135deg,#064e3b 0%,#065f46 40%,#0d9488 100%);color:#fff;padding:80px 0;position:relative;overflow:hidden;}
+.sigorta-section::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.04);}
+.sigorta-inner{position:relative;z-index:1;}
+.sigorta-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:50px;padding:5px 14px;font-size:.78rem;font-weight:600;margin-bottom:16px;}
+.sigorta-list{list-style:none;padding:0;margin:20px 0 0;}
+.sigorta-list li{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;opacity:.9;margin-bottom:10px;}
+.sigorta-list li i{color:#6ee7b7;font-size:1rem;flex-shrink:0;margin-top:1px;}
+.sigorta-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:28px;backdrop-filter:blur(8px);}
+.sigorta-card h4{font-size:1rem;font-weight:700;margin-bottom:16px;}
+.sigorta-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;}
+.sigorta-step:last-child{margin-bottom:0;}
+.sigorta-step-num{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;flex-shrink:0;}
+.sigorta-step-text{font-size:.85rem;opacity:.9;line-height:1.5;}
 
-  /* ─── TOPBAR ─── */
-  .topbar {
-    background: var(--navy);
-    padding: 12px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-  }
+/* COMPARISON */
+.compare-section{background:var(--light);}
+.compare-table{border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+.compare-table table{width:100%;border-collapse:collapse;}
+.compare-table thead tr{background:var(--primary);color:#fff;}
+.compare-table thead th{padding:16px 20px;font-size:.88rem;font-weight:700;text-align:center;}
+.compare-table thead th:first-child{text-align:left;}
+.compare-table tbody tr{background:#fff;border-bottom:1px solid var(--border);transition:background .12s;}
+.compare-table tbody tr:last-child{border-bottom:none;}
+.compare-table tbody tr:hover{background:#f8faff;}
+.compare-table tbody td{padding:14px 20px;font-size:.88rem;text-align:center;}
+.compare-table tbody td:first-child{text-align:left;font-weight:500;color:#1e293b;}
+.compare-table .col-us{background:#f0fdf4;font-weight:700;}
+.col-header-us{background:#065f46 !important;}
+.check{color:#16a34a;font-size:1.1rem;}
+.cross{color:#dc2626;font-size:1.1rem;}
+.maybe{color:#d97706;font-size:1.1rem;}
 
-  .topbar .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-  }
+/* STEPS */
+.steps-wrap{display:flex;gap:0;position:relative;}
+.steps-wrap::before{content:'';position:absolute;top:32px;left:32px;right:32px;height:2px;background:var(--border);z-index:0;}
+.step-item{flex:1;text-align:center;position:relative;z-index:1;padding:0 16px;}
+.step-num{width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;font-size:1.3rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 16px rgba(26,60,107,.25);}
+.step-item h4{font-size:.92rem;font-weight:700;margin-bottom:6px;}
+.step-item p{font-size:.82rem;color:var(--muted);line-height:1.5;}
 
-  .topbar .brand-logo {
-    height: 42px;
-    width: auto;
-    display: block;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
+/* TESTIMONIALS */
+.testi-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;}
+.testi-stars{color:#f59e0b;font-size:1rem;margin-bottom:12px;}
+.testi-text{font-size:.9rem;color:#374151;line-height:1.7;margin-bottom:16px;font-style:italic;}
+.testi-author{display:flex;align-items:center;gap:12px;}
+.testi-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;}
+.testi-name{font-size:.88rem;font-weight:700;}
+.testi-role{font-size:.78rem;color:var(--muted);}
 
-  .topbar .brand-text {
-    font-size: 18px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.3px;
-    line-height: 1;
-    white-space: nowrap;
-  }
+/* FAQ */
+.faq-section{background:var(--light);}
+.faq-item{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.faq-q{padding:18px 20px;font-size:.93rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;color:#1e293b;}
+.faq-q:hover{background:#f8faff;}
+.faq-q i{transition:transform .2s;color:var(--muted);}
+.faq-item.open .faq-q i{transform:rotate(180deg);}
+.faq-a{display:none;padding:0 20px 18px;font-size:.88rem;color:var(--muted);line-height:1.7;}
+.faq-item.open .faq-a{display:block;}
 
-  .topbar .brand-text span { color: var(--accent); }
+/* CTA */
+.cta-section{background:linear-gradient(135deg,#0f2444,#1a3c6b);color:#fff;padding:80px 0;text-align:center;}
+.cta-section h2{font-size:2rem;font-weight:800;margin-bottom:14px;}
+.cta-section p{font-size:1rem;opacity:.8;margin-bottom:36px;}
+.cta-btn-white{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);font-weight:800;font-size:1rem;padding:15px 36px;border-radius:10px;text-decoration:none;transition:all .15s;box-shadow:0 8px 24px rgba(0,0,0,.2);}
+.cta-btn-white:hover{background:#f0f6ff;color:var(--primary);transform:translateY(-2px);}
+.cta-btn-outline{display:inline-flex;align-items:center;gap:8px;border:2px solid rgba(255,255,255,.4);color:rgba(255,255,255,.85);font-weight:600;font-size:.93rem;padding:14px 28px;border-radius:10px;text-decoration:none;margin-left:14px;transition:all .15s;}
+.cta-btn-outline:hover{border-color:#fff;color:#fff;}
 
-  .topbar .topbar-links {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-shrink: 0;
-  }
+footer{background:#0a1628;color:rgba(255,255,255,.5);padding:24px 0;font-size:.82rem;text-align:center;}
+footer a{color:rgba(255,255,255,.6);text-decoration:none;}
+footer a:hover{color:#fff;}
 
-  .topbar .btn-login {
-    color: rgba(255,255,255,0.75);
-    font-size: 13px;
-    border: 1px solid rgba(255,255,255,0.25);
-    padding: 5px 14px;
-    border-radius: 4px;
-  }
-
-  .topbar .btn-register {
-    background: var(--accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 6px 16px;
-    border-radius: 4px;
-  }
-
-  /* ─── HERO ─── */
-  .hero {
-    background: linear-gradient(135deg, var(--navy) 0%, #1e4080 100%);
-    padding: 72px 28px 80px;
-    text-align: center;
-    color: #fff;
-  }
-  .hero .trust-pill {
-    display: inline-block;
-    background: rgba(232,160,32,0.15);
-    border: 1px solid rgba(232,160,32,0.4);
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 14px;
-    border-radius: 20px;
-    margin-bottom: 22px;
-    letter-spacing: 0.3px;
-  }
-  .hero h1 {
-    font-size: 36px;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 18px;
-    max-width: 680px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .hero h1 em {
-    font-style: normal;
-    color: var(--accent);
-  }
-  .hero .hero-sub {
-    font-size: 17px;
-    color: rgba(255,255,255,0.8);
-    max-width: 560px;
-    margin: 0 auto 36px;
-  }
-  .hero-cta-group {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    font-weight: 800;
-    font-size: 15px;
-    padding: 14px 30px;
-    border-radius: 6px;
-    display: inline-block;
-    border: none;
-    cursor: pointer;
-  }
-  .btn-primary:hover { background: #d4911a; text-decoration: none; }
-  .btn-outline-white {
-    border: 2px solid rgba(255,255,255,0.5);
-    color: rgba(255,255,255,0.9);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 12px 24px;
-    border-radius: 6px;
-    display: inline-block;
-  }
-  .hero .hero-note {
-    font-size: 12px;
-    color: rgba(255,255,255,0.45);
-  }
-  .hero-stats {
-    display: flex;
-    justify-content: center;
-    gap: 48px;
-    margin-top: 48px;
-    padding-top: 36px;
-    border-top: 1px solid rgba(255,255,255,0.12);
-    flex-wrap: wrap;
-  }
-  .hero-stat .val {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--accent);
-  }
-  .hero-stat .lbl {
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
-    margin-top: 2px;
-  }
-
-  /* ─── TRUST BAR ─── */
-  .trust-bar {
-    background: var(--light);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 28px;
-    text-align: center;
-  }
-  .trust-bar .items {
-    display: flex;
-    justify-content: center;
-    gap: 36px;
-    flex-wrap: wrap;
-    align-items: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--blue);
-  }
-  .trust-bar .items span { display: flex; align-items: center; gap: 6px; }
-  .trust-bar .dot { color: var(--accent); font-size: 18px; }
-
-  /* ─── SECTION HEADING ─── */
-  .sec-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
-  .sec-title {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--blue);
-    margin-bottom: 14px;
-    line-height: 1.25;
-  }
-  .sec-sub {
-    font-size: 15px;
-    color: var(--gray);
-    max-width: 580px;
-    margin-bottom: 36px;
-  }
-  .text-center { text-align: center; }
-  .text-center .sec-sub { margin-left: auto; margin-right: auto; }
-
-  /* ─── PROBLEMS ─── */
-  .problems-bg { background: #fff8f0; }
-  .problems-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-    margin-top: 8px;
-  }
-  .problem-card {
-    background: #fff;
-    border: 1px solid #f5ddb0;
-    border-left: 4px solid var(--accent);
-    border-radius: 8px;
-    padding: 18px 20px;
-  }
-  .problem-card .p-icon { font-size: 22px; margin-bottom: 8px; }
-  .problem-card .p-title {
-    font-weight: 700;
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 6px;
-  }
-  .problem-card .p-desc {
-    font-size: 13px;
-    color: #666;
-    line-height: 1.55;
-  }
-
-  /* ─── HOW IT WORKS ─── */
-  .steps-bg { background: var(--light); }
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    position: relative;
-    margin-top: 8px;
-  }
-  .steps::before {
-    content: '';
-    position: absolute;
-    top: 28px;
-    left: 12.5%;
-    right: 12.5%;
-    height: 2px;
-    background: var(--border);
-    z-index: 0;
-  }
-  .step {
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
-  .step-num {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--blue);
-    color: #fff;
-    font-weight: 800;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 14px;
-    border: 3px solid var(--light);
-  }
-  .step-icon { font-size: 22px; margin-bottom: 8px; }
-  .step-title {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--blue);
-    margin-bottom: 6px;
-  }
-  .step-desc { font-size: 12.5px; color: #555; line-height: 1.5; }
-  .step-tags { margin-top: 8px; }
-  .step-tag {
-    display: inline-block;
-    background: #e8f0fb;
-    color: var(--blue);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin: 2px 1px;
-  }
-
-  /* ─── SERVICES ─── */
-  .services-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-  .svc {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  .svc-icon {
-    font-size: 28px;
-    flex-shrink: 0;
-    width: 48px;
-    height: 48px;
-    background: #eaf0fb;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .svc-title { font-weight: 800; font-size: 14px; color: var(--blue); margin-bottom: 5px; }
-  .svc-desc { font-size: 13px; color: #555; line-height: 1.55; }
-
-  /* ─── OPERATIONS ─── */
-  .ops-bg { background: var(--navy); color: #fff; }
-  .ops-bg .sec-title { color: #fff; }
-  .ops-bg .sec-sub { color: rgba(255,255,255,0.65); }
-  .ops-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-  .ops-card {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
-    padding: 22px;
-  }
-  .ops-card .o-icon { font-size: 26px; margin-bottom: 10px; }
-  .ops-card .o-title { font-weight: 700; font-size: 14px; color: var(--accent); margin-bottom: 6px; }
-  .ops-card .o-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.55; }
-
-  /* ─── WHY ─── */
-  .why-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
-  .why-item {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    background: var(--light);
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .why-check {
-    flex-shrink: 0;
-    width: 26px;
-    height: 26px;
-    background: var(--green);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-  }
-  .why-text strong { display: block; font-size: 13px; color: var(--blue); margin-bottom: 2px; }
-  .why-text span { font-size: 12.5px; color: #555; }
-
-  /* ─── MID CTA ─── */
-  .mid-cta {
-    background: linear-gradient(135deg, #1e4080 0%, var(--navy) 100%);
-    padding: 52px 28px;
-    text-align: center;
-    color: #fff;
-  }
-  .mid-cta h2 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
-  .mid-cta p { color: rgba(255,255,255,0.7); margin-bottom: 28px; font-size: 15px; }
-  .mid-cta .cta-meta {
-    font-size: 12px;
-    color: rgba(255,255,255,0.4);
-    margin-top: 14px;
-  }
-
-  /* ─── LINKS TABLE ─── */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-    margin-top: 8px;
-  }
-  th {
-    background: var(--blue);
-    color: #fff;
-    padding: 9px 14px;
-    text-align: left;
-    font-weight: 700;
-  }
-  td {
-    padding: 9px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-  tr:nth-child(even) td { background: var(--light); }
-
-  /* ─── COMPANY INFO ─── */
-  .company-box {
-    background: var(--light);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px 28px;
-    margin-top: 32px;
-  }
-  .company-box .co-title {
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--blue);
-    margin-bottom: 14px;
-  }
-  .co-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px 24px;
-    font-size: 13px;
-  }
-  .co-row { display: flex; gap: 10px; }
-  .co-row .co-key { color: var(--gray); min-width: 120px; flex-shrink: 0; }
-  .co-row .co-val { font-weight: 600; color: #222; }
-
-  /* ─── SLOGAN ─── */
-  .slogan-section {
-    background: #0a1a2e;
-    padding: 72px 28px;
-    text-align: center;
-  }
-  .slogan-text {
-    font-family: 'Dancing Script', 'Brush Script MT', cursive;
-    font-size: 48px;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.2;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-
-  /* ─── FOOTER ─── */
-  .page-footer {
-    background: var(--navy);
-    color: rgba(255,255,255,0.5);
-    text-align: center;
-    font-size: 12px;
-    padding: 20px 28px;
-  }
-  .page-footer a { color: rgba(255,255,255,0.6); }
-
-  /* ─── PRINT ─── */
-  @media print {
-    .topbar, .hero-cta-group, .mid-cta, .btn-primary, .btn-outline-white { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .no-print { display: none; }
-    section { padding: 32px 0; }
-    .steps { grid-template-columns: repeat(4,1fr); }
-    .slogan-text { font-size: 36px; }
-    a[href]::after { content: none; }
-  }
-
-  @media (max-width: 640px) {
-    .topbar {
-      padding: 12px 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .topbar .brand {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .topbar .brand-logo {
-      height: 36px;
-    }
-
-    .topbar .brand-text {
-      font-size: 16px;
-      white-space: normal;
-      text-align: center;
-    }
-
-    .hero h1 { font-size: 26px; }
-    .steps { grid-template-columns: repeat(2, 1fr); }
-    .steps::before { display: none; }
-    .services-grid, .ops-grid, .why-grid { grid-template-columns: 1fr; }
-    .co-grid { grid-template-columns: 1fr; }
-    .hero-stats { gap: 28px; }
-    .slogan-text { font-size: 30px; }
-  }
+@media(max-width:768px){
+  .hero{padding:56px 0 64px;}
+  .hero-stats{gap:24px;}
+  .steps-wrap{flex-direction:column;gap:24px;}
+  .steps-wrap::before{display:none;}
+  .step-item{padding:0;}
+  .cta-btn-outline{margin:12px 0 0;display:block;text-align:center;}
+}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <a href="https://gruptalepleri.com" class="brand" style="text-decoration:none;">
-    <img src="logo.png" alt="GrupTalepleri.com Logosu" class="brand-logo">
-    <span class="brand-text">Grup<span>Talepleri</span>.com</span>
-  </a>
-  <div class="topbar-links no-print">
-    <a href="https://gruptalepleri.com/login" class="btn-login" target="_blank">Giriş Yap</a>
-    <a href="https://gruptalepleri.com/register" class="btn-register" target="_blank">Ücretsiz Üye Ol</a>
+<!-- NAVBAR -->
+<nav style="background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 0;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div style="font-weight:900;font-size:1.1rem;color:#1a3c6b;">
+      Grup<span style="color:#e8401c;">Talepleri</span>
+      <span style="font-size:.65rem;background:#1a3c6b;color:#fff;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;letter-spacing:.04em;">ACENTE PANELİ</span>
+    </div>
+    <a href="https://gruptalepleri.com" target="_blank"
+       style="background:#e8401c;color:#fff;font-weight:700;font-size:.85rem;padding:8px 20px;border-radius:7px;text-decoration:none;">
+      Ücretsiz Başla →
+    </a>
   </div>
-</div>
+</nav>
 
 <!-- HERO -->
-<div class="hero">
-  <div class="trust-pill">✈ TÜRSAB A Grubu Belge No: 12572 &nbsp;·&nbsp; Şişli, İstanbul</div>
-  <h1>Grup uçuş taleplerinizi<br><em>tek platformdan yönetin</em></h1>
-  <p class="hero-sub">Teklifleri toplayın, karşılaştırın, onaylayın.<br>Ödeme ve operasyon sürecini tam olarak kontrol altına alın.</p>
-  <div class="hero-cta-group no-print">
-    <a href="https://gruptalepleri.com/register" class="btn-primary" target="_blank">Ücretsiz Üye Ol — İlk Talebini 5 Dakikada Oluştur</a>
-    <a href="https://gruptalepleri.com/login" class="btn-outline-white" target="_blank">Hesabım Var, Giriş Yap</a>
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="hero-badge">
+          <i class="bi bi-patch-check-fill" style="color:#6ee7b7;"></i>
+          Türkiye'nin Grup Seyahat B2B Platformu
+        </div>
+        <h1>Grup Seyahatini<br><span>Sizin İçin</span><br>Yönetiyoruz</h1>
+        <p class="hero-lead">
+          Uçuş, sigorta, transfer, aktivite — hepsi tek ekranda. Telefon trafiği yok,
+          e-posta kaosу yok, kaçırılan opsiyon yok. Siz müşterinize odaklanın,
+          platform işi halleder.
+        </p>
+        <div>
+          <a href="https://gruptalepleri.com" class="hero-cta" target="_blank">
+            <i class="bi bi-rocket-takeoff-fill"></i> Hemen Üye Ol — Ücretsiz
+          </a>
+          <a href="#nasil-calisir" class="hero-cta-alt">
+            <i class="bi bi-play-circle"></i> Nasıl çalışır?
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-num">268+</div>
+            <div class="hero-stat-label">Kayıtlı Acente</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">1.200+</div>
+            <div class="hero-stat-label">İşlenen Talep</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">4 saat</div>
+            <div class="hero-stat-label">Ort. Teklif Süresi</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">7/24</div>
+            <div class="hero-stat-label">Platform Erişimi</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px;margin-left:24px;">
+          <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:16px;">Platform Özeti</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+              <div style="width:36px;height:36px;background:#1d4ed8;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-airplane-fill" style="color:#fff;"></i></div>
+              <div><div style="font-size:.85rem;font-weight:600;">Grup Uçuş Talebi</div><div style="font-size:.75rem;opacity:.6;">Form doldur, 4 saatte teklif al</div></div>
+              <span style="margin-left:auto;background:#22c55e;color:#fff;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:50px;">AKTİF</span>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+              <div style="width:36px;height:36px;background:#0d9488;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-shield-fill-check" style="color:#fff;"></i></div>
+              <div><div style="font-size:.85rem;font-weight:600;">Seyahat Sigortası</div><div style="font-size:.75rem;opacity:.6;">Tekil & Toplu poliçe — PDF hazır</div></div>
+              <span style="margin-left:auto;background:#22c55e;color:#fff;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:50px;">AKTİF</span>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+              <div style="width:36px;height:36px;background:#7c3aed;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-car-front-fill" style="color:#fff;"></i></div>
+              <div><div style="font-size:.85rem;font-weight:600;">Transfer</div><div style="font-size:.75rem;opacity:.6;">Anında fiyat & rezervasyon</div></div>
+              <span style="margin-left:auto;background:#22c55e;color:#fff;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:50px;">AKTİF</span>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+              <div style="width:36px;height:36px;background:#db2777;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-water" style="color:#fff;"></i></div>
+              <div><div style="font-size:.85rem;font-weight:600;">Aktiviteler</div><div style="font-size:.75rem;opacity:.6;">Dinner cruise, yat, tur…</div></div>
+              <span style="margin-left:auto;background:#22c55e;color:#fff;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:50px;">AKTİF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="hero-note">Kurulum yok &nbsp;·&nbsp; Hızlı kullanım &nbsp;·&nbsp; Hemen aktif</div>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="val">4</div><div class="lbl">Hizmet Kategorisi</div></div>
-    <div class="hero-stat"><div class="val">3</div><div class="lbl">Bildirim Kanalı</div></div>
-    <div class="hero-stat"><div class="val">%100</div><div class="lbl">Online Takip</div></div>
-    <div class="hero-stat"><div class="val">1</div><div class="lbl">Platform, Tüm Süreç</div></div>
-  </div>
-</div>
+</section>
 
 <!-- TRUST BAR -->
 <div class="trust-bar">
-  <div class="items">
-    <span><span class="dot">★</span> TÜRSAB A Grubu Lisanslı</span>
-    <span><span class="dot">·</span> Vergi No: 4110477529</span>
-    <span><span class="dot">·</span> Mersis: 0411047752900001</span>
-    <span><span class="dot">·</span> Şişli, İstanbul</span>
-    <span><span class="dot">·</span> <a href="mailto:destek@gruptalepleri.com">destek@gruptalepleri.com</a></span>
+  <div class="container">
+    <div class="d-flex flex-wrap gap-4 justify-content-center">
+      <div class="trust-item"><i class="bi bi-lock-fill"></i> SSL Güvenli Ödeme</div>
+      <div class="trust-item"><i class="bi bi-shield-fill-check"></i> Nippon Sigorta Lisanslı</div>
+      <div class="trust-item"><i class="bi bi-clock-fill"></i> 7/24 Platform Erişimi</div>
+      <div class="trust-item"><i class="bi bi-bell-fill"></i> Anlık SMS & E-posta Bildirimi</div>
+      <div class="trust-item"><i class="bi bi-people-fill"></i> 268 Aktif Acente</div>
+    </div>
   </div>
 </div>
 
-<!-- PROBLEMS -->
-<section class="problems-bg">
+<!-- FEATURES -->
+<section>
   <div class="container">
-    <div class="sec-label">Sizi iyi tanıyoruz</div>
-    <div class="sec-title">Bu sorunları yaşıyor musunuz?</div>
-    <p class="sec-sub">Eğer aşağıdakilerden en az birini "evet" diyerek okuyorsanız, GrupTalepleri tam size göre.</p>
-    <div class="problems-grid">
-      <div class="problem-card">
-        <div class="p-icon">📱</div>
-        <div class="p-title">WhatsApp ve telefon karmaşası</div>
-        <div class="p-desc">Teklifler farklı kanallardan geliyor, hangisinin güncel olduğunu takip etmek giderek zorlaşıyor.</div>
+    <div class="text-center mb-5">
+      <div class="section-label">Özellikler</div>
+      <h2 class="section-title">Tek Platformda Her Şey</h2>
+      <p class="section-sub mx-auto">Ayrı ayrı sistemlere gerek yok. Grup uçuştan sigortaya, transferden aktiviteye kadar her işleminiz burada.</p>
+    </div>
+    <div class="row g-4">
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon blue"><i class="bi bi-airplane-fill"></i></div>
+          <h3>Grup Uçuş Talebi</h3>
+          <p>Tek yön, gidiş-dönüş, çoklu durak veya çok şehirli talep oluşturun. Tercih ettiğiniz havayolunu, kalkış saatini, yolcu dağılımını belirtin — 4 saat içinde teklif alın.</p>
+          <span class="feat-tag">En Çok Kullanılan</span>
+        </div>
       </div>
-      <div class="problem-card">
-        <div class="p-icon">📋</div>
-        <div class="p-title">Excel veya manuel takip yükü</div>
-        <div class="p-desc">Talepler not defterine veya tabloya düşüyor, güncelleme yapılmayan kayıtlar kayboluyor.</div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon teal"><i class="bi bi-shield-fill-check"></i></div>
+          <h3>Yurtdışı Seyahat Sigortası</h3>
+          <p>TC kimlikli veya pasaportlu tüm yolcular için anında poliçe. Ödeme alındıktan hemen sonra PDF poliçe hazır — siz indirip müşterinize verirsiniz.</p>
+          <span class="feat-tag new">Yeni Gelir Kapısı</span>
+        </div>
       </div>
-      <div class="problem-card">
-        <div class="p-icon">⏰</div>
-        <div class="p-title">Opsiyon ve son tarihleri kaçırma</div>
-        <div class="p-desc">Rezervasyon opsiyon tarihleri gözden kaçıyor, fırsat son anda elinden çıkıyor.</div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon purple"><i class="bi bi-car-front-fill"></i></div>
+          <h3>Havalimanı & Grup Transferi</h3>
+          <p>Anında fiyat sorgulama ve rezervasyon. Havalimanı transferinden şehirlerarası VIP araca kadar tüm transfer ihtiyaçlarınız.</p>
+        </div>
       </div>
-      <div class="problem-card">
-        <div class="p-icon">💸</div>
-        <div class="p-title">Ödeme ve kalan bakiye karmaşası</div>
-        <div class="p-desc">Depozito alındı mı, bakiye ne zaman ödenecek? Bu soruların cevabı hep farklı kişilerde.</div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon pink"><i class="bi bi-water"></i></div>
+          <h3>Aktivite & Deneyimler</h3>
+          <p>Dinner cruise, yat kiralama, helikopter turu, günübirlik turlar. Uçuş alan gruba "bir de akşam organizasyonu ekleyelim mi?" demek artık çok kolay.</p>
+          <span class="feat-tag">Ek Satış Fırsatı</span>
+        </div>
       </div>
-      <div class="problem-card">
-        <div class="p-icon">🗂️</div>
-        <div class="p-title">Dağınık operasyon yönetimi</div>
-        <div class="p-desc">Farklı kanallardan gelen grup talepleri tek bir yerde görülemiyor, operasyon kişiye bağlı kalıyor.</div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon amber"><i class="bi bi-cpu-fill"></i></div>
+          <h3>Yapay Zeka Teklif Analizi</h3>
+          <p>Gelen teklifin piyasaya göre pahalı mı ucuz mu olduğunu yapay zeka değerlendirir. Sade Türkçe ile açıklar. Müzakerelerinizde eliniz güçlenir.</p>
+          <span class="feat-tag new">Rakipsiz Özellik</span>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon orange"><i class="bi bi-bell-fill"></i></div>
+          <h3>Akıllı Bildirim Sistemi</h3>
+          <p>Yeni teklif, yaklaşan opsiyon vadesi, ödeme hatırlatması — SMS, e-posta ve ekran bildirimiyle sizi bulur. Hiçbir şeyi kaçırmazsınız.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon green"><i class="bi bi-wallet2"></i></div>
+          <h3>Ödeme & Vade Takibi</h3>
+          <p>Her talebin ödeme planı otomatik oluşturulur. Depozito, kalan bakiye, vade tarihleri — hepsi ekranda. Vadesi yaklaşan ödemeler için otomatik uyarı gelir.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon blue"><i class="bi bi-people-fill"></i></div>
+          <h3>Ekip Kullanıcı Yönetimi</h3>
+          <p>Acentenizde birden fazla kişi çalışıyorsa herkese ayrı kullanıcı. Kim ne yaptı, hangi talebi kim açtı — tam kayıt. Yetkisiz işlem olmaz.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="feat-card">
+          <div class="feat-icon purple"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+          <h3>Belge & Poliçe Arşivi</h3>
+          <p>Sigorta poliçeleri PDF olarak sistemde saklanır. Teklif ve ödeme belgeleri de kayıt altında. "O dosya neredeydi?" derdi bir daha yaşanmaz.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SIGORTA HIGHLIGHT -->
+<section class="sigorta-section">
+  <div class="container sigorta-inner">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="sigorta-badge">
+          <i class="bi bi-shield-fill-check"></i> Yeni Gelir Kapısı
+        </div>
+        <h2 style="font-size:2rem;font-weight:800;margin-bottom:16px;line-height:1.25;">
+          Her Grup Uçuşuna<br>Sigorta Ekleyin,<br>Gelirinizi Büyütün
+        </h2>
+        <p style="opacity:.85;line-height:1.7;margin-bottom:24px;">
+          Müşterinize uçuş satarken yanına sigorta eklemek, her poliçeden komisyon kazanmak demek.
+          Ek iş yükü yok — sistem poliçeyi anında oluşturur, PDF'i hazırlar.
+        </p>
+        <ul class="sigorta-list">
+          <li><i class="bi bi-check-circle-fill"></i> TC kimlikli ve pasaportlu tüm yolcular için poliçe</li>
+          <li><i class="bi bi-check-circle-fill"></i> 50+ kişilik gruplar için toplu işlem — tek tek uğraşı yok</li>
+          <li><i class="bi bi-check-circle-fill"></i> Ödeme alınmadan poliçe düzenlenmez — risksiz sistem</li>
+          <li><i class="bi bi-check-circle-fill"></i> Ödeme sonrası PDF poliçe anında hazır, indirilmeye hazır</li>
+          <li><i class="bi bi-check-circle-fill"></i> Nippon Sigorta güvencesiyle, SEDDK lisanslı</li>
+          <li><i class="bi bi-check-circle-fill"></i> Schengen ve tüm dünya geçerli poliçeler</li>
+          <li><i class="bi bi-check-circle-fill"></i> Ek lisans veya sözleşme gerekmez</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <div class="sigorta-card">
+          <h4><i class="bi bi-lightning-fill me-2" style="color:#fbbf24;"></i>Poliçe Nasıl Düzenlenir?</h4>
+          <div class="sigorta-step">
+            <div class="sigorta-step-num">1</div>
+            <div class="sigorta-step-text"><strong>TC veya pasaport girin</strong> — sistem müşteriyi otomatik tanır, adını gösterir.</div>
+          </div>
+          <div class="sigorta-step">
+            <div class="sigorta-step-num">2</div>
+            <div class="sigorta-step-text"><strong>Tarihleri ve ülkeyi seçin</strong> — gerçek zamanlı fiyat ekranda görünür.</div>
+          </div>
+          <div class="sigorta-step">
+            <div class="sigorta-step-num">3</div>
+            <div class="sigorta-step-text"><strong>Kredi kartıyla ödeme yapılır</strong> — güvenli ve anında.</div>
+          </div>
+          <div class="sigorta-step">
+            <div class="sigorta-step-num">4</div>
+            <div class="sigorta-step-text"><strong>PDF poliçe hazır</strong> — sistemden indirip müşterinize teslim edin.</div>
+          </div>
+          <div style="margin-top:20px;padding:14px;background:rgba(255,255,255,.1);border-radius:10px;font-size:.82rem;opacity:.85;line-height:1.6;">
+            <i class="bi bi-info-circle me-2"></i>
+            Ek lisans veya sözleşme gerekmez. Platforma üye olduğunuz gün sigorta satışına başlayabilirsiniz.
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- HOW IT WORKS -->
-<section class="steps-bg">
+<section id="nasil-calisir">
   <div class="container">
-    <div class="text-center">
-      <div class="sec-label">İşleyiş</div>
-      <div class="sec-title">4 Adımda Nasıl Çalışır?</div>
-      <p class="sec-sub">Karmaşık değil. Talep oluşturmaktan ödemeyi tamamlamaya kadar her şey bu dört adımda ilerler.</p>
+    <div class="text-center mb-5">
+      <div class="section-label">Süreç</div>
+      <h2 class="section-title">Nasıl Çalışır?</h2>
+      <p class="section-sub mx-auto">Üye olmaktan ilk teklife kadar 4 adım.</p>
     </div>
-    <div class="steps">
-      <div class="step">
+    <div class="steps-wrap">
+      <div class="step-item">
         <div class="step-num">1</div>
-        <div class="step-icon">📝</div>
-        <div class="step-title">Talep Oluştur</div>
-        <div class="step-desc">Güzergah, tarih, yolcu sayısı ve otel/vize ihtiyacınızı girin. Sistem size anında bir <strong>GTPNR kodu</strong> üretir.</div>
-        <div class="step-tags">
-          <span class="step-tag">🌅 Sabah</span>
-          <span class="step-tag">☀️ Öğle</span>
-          <span class="step-tag">🌆 Akşam</span>
-          <span class="step-tag">🔄 Esnek</span>
-        </div>
+        <h4>Ücretsiz Üye Olun</h4>
+        <p>Acente başvurusu doldurun, aynı gün onay alın. Sabit ücret yok.</p>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">2</div>
-        <div class="step-icon">📊</div>
-        <div class="step-title">Teklifleri Al</div>
-        <div class="step-desc">Operasyon ekibimiz fiyatlandırır. Teklif hazırlandığında size <strong>e-posta + SMS + panel bildirimi</strong> ulaşır.</div>
+        <h4>Talebinizi Oluşturun</h4>
+        <p>Uçuş, sigorta veya transfer — 3 dakikada form doldurup gönderin.</p>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">3</div>
-        <div class="step-icon">✅</div>
-        <div class="step-title">Teklifi Onayla</div>
-        <div class="step-desc">PNR, uçuş saatleri, bagaj, fiyat ve opsiyon tarihini görüp tek tıkla onay verirsiniz. Durum <strong>"Onaylandı"</strong> olur.</div>
+        <h4>Teklif Gelsin</h4>
+        <p>Ortalama 4 saat içinde teklif hazır. SMS ve e-postayla haber verilir.</p>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">4</div>
-        <div class="step-icon">🎯</div>
-        <div class="step-title">Süreci Yönet</div>
-        <div class="step-desc">Depozito ve bakiye tamamlama ödemelerini takip edin, dekont yükleyin, biletlenmeye kadar her adımı görün.</div>
+        <h4>Kabul Edin & Tamamlayın</h4>
+        <p>Tek tıkla teklif kabul, ödeme planı ve belgeler otomatik oluşur.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SERVICES -->
+<!-- COMPARISON -->
+<section class="compare-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Neden Biz?</div>
+      <h2 class="section-title">Rakiplerden Farkımız</h2>
+      <p class="section-sub mx-auto">Piyasadaki diğer çözümlerle yan yana karşılaştırın.</p>
+    </div>
+    <div class="compare-table">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40%;text-align:left;">Özellik</th>
+            <th class="col-header-us">GrupTalepleri.com</th>
+            <th>Diğer Platformlar</th>
+            <th>Telefon / E-posta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Uçuş + sigorta + transfer tek platformda</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Toplu grup sigortası (50+ kişi)</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Ödeme sonrası anında PDF poliçe</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-dash-circle-fill maybe"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Yapay zeka teklif analizi</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Opsiyon vadesi otomatik uyarısı</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-dash-circle-fill maybe"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Ekip kullanıcı yönetimi</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-dash-circle-fill maybe"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Tüm belgeler sistemde arşivli</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-dash-circle-fill maybe"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>SMS + e-posta + ekran bildirimi</td>
+            <td class="col-us"><i class="bi bi-check-circle-fill check"></i></td>
+            <td><i class="bi bi-dash-circle-fill maybe"></i></td>
+            <td><i class="bi bi-x-circle-fill cross"></i></td>
+          </tr>
+          <tr>
+            <td>Sabit aylık üyelik ücreti</td>
+            <td class="col-us" style="color:#15803d;font-weight:800;">Yok — Ücretsiz</td>
+            <td style="color:#dc2626;font-weight:600;">Var</td>
+            <td style="color:#15803d;">Yok</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align:center;font-size:.8rem;color:var(--muted);margin-top:16px;">
+      <i class="bi bi-check-circle-fill" style="color:#16a34a;"></i> Tam destek &nbsp;
+      <i class="bi bi-dash-circle-fill" style="color:#d97706;"></i> Kısmi / platforma göre değişir &nbsp;
+      <i class="bi bi-x-circle-fill" style="color:#dc2626;"></i> Yok
+    </p>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
 <section>
   <div class="container">
-    <div class="text-center">
-      <div class="sec-label">Hizmet Kategorileri</div>
-      <div class="sec-title">4 Hizmet — Tek Platform</div>
-      <p class="sec-sub">Farklı araçlarla uğraşmayın. Grup uçuştan yat kiralamasına kadar tüm talepleriniz tek çatı altında.</p>
+    <div class="text-center mb-5">
+      <div class="section-label">Referanslar</div>
+      <h2 class="section-title">Acenteler Ne Diyor?</h2>
     </div>
-    <div class="services-grid">
-      <div class="svc">
-        <div class="svc-icon">✈️</div>
-        <div>
-          <div class="svc-title">Grup Uçuş Talepleri</div>
-          <div class="svc-desc">Tarifeli veya charter bazlı grup uçuş talepleri. Tek yön, gidiş-dönüş, çok bacaklı güzergahlar. Kalkış zaman aralığı seçimi (sabah / öğle / akşam / esnek).</div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">"Daha önce her grup için 5-6 farklı tedarikçiyle tek tek yazışırdım. Şimdi bir form, birkaç saatte teklif. Haftada en az 2 gün kazandım."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">AY</div>
+            <div>
+              <div class="testi-name">Ayşe Y.</div>
+              <div class="testi-role">İstanbul — Tur Operatörü</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="svc">
-        <div class="svc-icon">🛩️</div>
-        <div>
-          <div class="svc-title">Air Charter</div>
-          <div class="svc-desc">Özel jet, helikopter veya uçak kiralama. Hazır paket seçeneği, AI destekli anlık ön fiyat tahmini ve çok bacaklı rota planlaması.</div>
+      <div class="col-md-4">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">"Sigorta özelliği benim için gerçek bir sürpriz oldu. Müşteriye uçuş verirken yanına sigorta da ekliyorum, her poliçeden ekstra kazanıyorum."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">MK</div>
+            <div>
+              <div class="testi-name">Mehmet K.</div>
+              <div class="testi-role">Ankara — Seyahat Acentesi</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="svc">
-        <div class="svc-icon">🚢</div>
-        <div>
-          <div class="svc-title">Dinner Cruise — Deniz Turu</div>
-          <div class="svc-desc">Tarih, oturum saati, menü, alkol ve dil tercihi ile özel teklif. Türkçe veya İngilizce PDF çıktısıyla müşterinize anında iletin.</div>
-        </div>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">⛵</div>
-        <div>
-          <div class="svc-title">Yacht Charter</div>
-          <div class="svc-desc">Marina seçimi, süre ve etkinlik tipine göre yat kiralama talebi. Profesyonel teklif ve PDF çıktısı.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- OPERATIONS — en güçlü satış alanı -->
-<section class="ops-bg">
-  <div class="container">
-    <div class="text-center">
-      <div class="sec-label" style="color: rgba(232,160,32,0.9);">En Önemli Fark</div>
-      <div class="sec-title">Bu sistem sadece talep toplamıyor — süreci yönetiyor.</div>
-      <p class="sec-sub">Çoğu platform talebi alır ve bırakır. GrupTalepleri, onaydan ödemeye kadar her adımı sizin adınıza takip eder.</p>
-    </div>
-    <div class="ops-grid">
-      <div class="ops-card">
-        <div class="o-icon">📡</div>
-        <div class="o-title">Anlık Durum Takibi</div>
-        <div class="o-desc">Talebin hangi aşamada olduğunu anlık görürsünüz. Beklemede, işlemde, fiyatlandırıldı, onaylandı, depozitoda, biletlendi — her adım etiketlidir.</div>
-      </div>
-      <div class="ops-card">
-        <div class="o-icon">📅</div>
-        <div class="o-title">Opsiyon ve Vade Yönetimi</div>
-        <div class="o-desc">Teklifte opsiyon tarihi görünür. Ödeme adımı için son tarih belirlenir, vadesi geçen ödemeler özellikle vurgulanır.</div>
-      </div>
-      <div class="ops-card">
-        <div class="o-icon">💰</div>
-        <div class="o-title">Depozito ve Bakiye Takibi</div>
-        <div class="o-desc">Yakın tarihli seyahatlerde tam ödeme; ileri tarihli seyahatlerde depozito ve bakiye tamamlama ayrı adımlar olarak izlenir.</div>
-      </div>
-      <div class="ops-card">
-        <div class="o-icon">🔔</div>
-        <div class="o-title">Çok Kanallı Bildirim</div>
-        <div class="o-desc">Teklif hazırlandığında e-posta, SMS ve platform içi bildirim aynı anda gönderilir. Hiçbir gelişmeyi kaçırmazsınız.</div>
-      </div>
-      <div class="ops-card">
-        <div class="o-icon">📄</div>
-        <div class="o-title">Tam İşlem Geçmişi</div>
-        <div class="o-desc">Kim ne yaptı, hangi tarihte? Talebin başlangıcından tamamlanmasına kadar tüm aksiyonlar zaman damgasıyla kayıt altındadır.</div>
-      </div>
-      <div class="ops-card">
-        <div class="o-icon">📂</div>
-        <div class="o-title">Dijital Dekont Yükleme</div>
-        <div class="o-desc">Havale veya EFT yaptıktan sonra dekontu sisteme yükleyin, admin onaylasın. Faks veya e-posta göndermenize gerek yok.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- MID CTA -->
-<div class="mid-cta no-print">
-  <div class="container">
-    <h2>Ücretsiz üye olun, hemen başlayın.</h2>
-    <p>Dakikalar içinde aktif. Kurulum yok, teknik bilgi gerekmez.</p>
-    <a href="https://gruptalepleri.com/register" class="btn-primary" target="_blank">Ücretsiz Üye Ol — İlk Talebini 5 Dakikada Oluştur</a>
-    <div class="cta-meta">Kurulum yok &nbsp;·&nbsp; Hızlı kullanım &nbsp;·&nbsp; Hemen aktif</div>
-  </div>
-</div>
-
-<!-- WHY -->
-<section>
-  <div class="container">
-    <div class="sec-label">Neden GrupTalepleri?</div>
-    <div class="sec-title">Rakiplerinizden Bir Adım Önde Olun</div>
-    <p class="sec-sub">Operasyon düzene girince müşteriye daha hızlı, daha doğru teklif sunarsınız.</p>
-    <div class="why-grid">
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>Tüm talepleri tek ekranda görün</strong>
-          <span>Dashboard'da harita + durum sayaçları ile tüm portföyünüze tek bakışta hâkim olun.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>Teklifleri karşılaştırın, hızlı karar verin</strong>
-          <span>Birden fazla teklif geldiğinde hepsini yan yana değerlendirip tek tıkla kabul edin.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>Kalkış saatini siz belirleyin</strong>
-          <span>Sabah, Öğle, Akşam veya Esnek seçimi sayesinde operasyon ekibi tam ihtiyacınıza odaklanır.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>Ödeme sürecini şeffaf görün</strong>
-          <span>Depozito alındı mı, bakiye ne zaman? Her ödeme adımının tarihi ve durumu önünüzde.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>4 hizmet, tek hesap</strong>
-          <span>Grup uçuş, charter, deniz turu, yat kiralama — hepsi tek giriş bilgisiyle erişilebilir.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>Kurumsal bilgileriniz hazır bekler</strong>
-          <span>TURSAB numaranız, vergi bilgileriniz, adresiniz bir kez girilir; her taleple tekrar yazmazsınız.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>PDF teklif çıktısı alın</strong>
-          <span>Dinner Cruise ve Yacht tekliflerini Türkçe veya İngilizce PDF olarak indirip müşterinize iletin.</span>
-        </div>
-      </div>
-      <div class="why-item">
-        <div class="why-check">✓</div>
-        <div class="why-text">
-          <strong>TÜRSAB lisanslı, güvenilir yapı</strong>
-          <span>A Grubu Seyahat Acentası lisansı, Mersis kaydı ve resmi şirket adresiyle hizmet sunuyoruz.</span>
+      <div class="col-md-4">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">"Opsiyon tarihi uyarısı hayat kurtardı. Eski sistemde iki kez fırsat kaçırdım. Artık sistem beni hatırlatıyor, ben sadece onaylıyorum."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">FD</div>
+            <div>
+              <div class="testi-name">Fatma D.</div>
+              <div class="testi-role">İzmir — Grup Seyahat Uzmanı</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- LINKS -->
-<section class="tight" style="background: var(--light);">
+<!-- FAQ -->
+<section class="faq-section">
   <div class="container">
-    <div class="sec-label">Platforma Erişim</div>
-    <div class="sec-title">Hemen Başlamak İçin</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Sayfa</th>
-          <th>Link</th>
-          <th>Ne İşe Yarar?</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Üye Ol</strong></td>
-          <td><a href="https://gruptalepleri.com/register" target="_blank">gruptalepleri.com/register</a></td>
-          <td>Ücretsiz acenta hesabı aç</td>
-        </tr>
-        <tr>
-          <td><strong>Giriş Yap</strong></td>
-          <td><a href="https://gruptalepleri.com/login" target="_blank">gruptalepleri.com/login</a></td>
-          <td>Mevcut hesaba giriş</td>
-        </tr>
-        <tr>
-          <td><strong>Dashboard</strong></td>
-          <td><a href="https://gruptalepleri.com/acente/dashboard" target="_blank">…/acente/dashboard</a></td>
-          <td>Tüm talepler, harita ve durum özeti</td>
-        </tr>
-        <tr>
-          <td><strong>Grup Uçuş Talebi</strong></td>
-          <td><a href="https://gruptalepleri.com/acente/talep/olustur" target="_blank">…/acente/talep/olustur</a></td>
-          <td>Yeni grup uçuş talebi oluştur</td>
-        </tr>
-        <tr>
-          <td><strong>Air Charter</strong></td>
-          <td><a href="https://gruptalepleri.com/acente/charter/talep" target="_blank">…/acente/charter/talep</a></td>
-          <td>Jet / helikopter / uçak kiralama</td>
-        </tr>
-        <tr>
-          <td><strong>Dinner Cruise</strong></td>
-          <td><a href="https://gruptalepleri.com/acente/dinner-cruise/talep" target="_blank">…/acente/dinner-cruise/talep</a></td>
-          <td>Deniz turu talebi</td>
-        </tr>
-        <tr>
-          <td><strong>Yacht Charter</strong></td>
-          <td><a href="https://gruptalepleri.com/acente/yacht-charter/talep" target="_blank">…/acente/yacht-charter/talep</a></td>
-          <td>Yat kiralama talebi</td>
-        </tr>
-        <tr>
-          <td><strong>Finans Paneli</strong></td>
-          <td><a href="https://gruptalepleri.com/acente/finans" target="_blank">…/acente/finans</a></td>
-          <td>Ödemeler, bakiye ve dekont yükleme</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="text-center mb-5">
+      <div class="section-label">SSS</div>
+      <h2 class="section-title">Sık Sorulan Sorular</h2>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
 
-    <div class="company-box">
-      <div class="co-title">Şirket Bilgileri</div>
-      <div class="co-grid">
-        <div class="co-row"><span class="co-key">Ünvan</span><span class="co-val">Group Ticket Turizm Seyahat Acentası</span></div>
-        <div class="co-row"><span class="co-key">Platform</span><span class="co-val"><a href="https://gruptalepleri.com" target="_blank">GrupTalepleri.com</a></span></div>
-        <div class="co-row"><span class="co-key">Adres</span><span class="co-val">İnönü Mah. Cumhuriyet Cad. No:93/12, Şişli / İstanbul</span></div>
-        <div class="co-row"><span class="co-key">Telefon</span><span class="co-val"><a href="tel:+905354154799">+90 535 415 47 99</a></span></div>
-        <div class="co-row"><span class="co-key">E-posta</span><span class="co-val"><a href="mailto:destek@gruptalepleri.com">destek@gruptalepleri.com</a></span></div>
-        <div class="co-row"><span class="co-key">Web</span><span class="co-val"><a href="https://gruptalepleri.com" target="_blank">gruptalepleri.com</a></span></div>
-        <div class="co-row"><span class="co-key">Vergi Dairesi</span><span class="co-val">Beyoğlu Vergi Dairesi</span></div>
-        <div class="co-row"><span class="co-key">Vergi No</span><span class="co-val">4110477529</span></div>
-        <div class="co-row"><span class="co-key">Mersis No</span><span class="co-val">0411047752900001</span></div>
-        <div class="co-row"><span class="co-key">TÜRSAB</span><span class="co-val">A Grubu Seyahat Acentası — Belge No: 12572</span></div>
+        <div class="faq-item">
+          <div class="faq-q">Üyelik ücretli mi? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Hayır. Platforma üyelik tamamen ücretsizdir. Gelir modelimiz satış komisyonu üzerine kuruludur — siz kazandıkça biz kazanırız, sabit ücret almayız.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Sigorta satmak için ayrı bir lisans gerekiyor mu? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Hayır. Platform lisanslı bir sigorta acentesi altyapısı üzerinden çalışır. Siz aracı konumundasınız — ek lisans veya sözleşme gerekmez, hemen başlayabilirsiniz.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Grup uçuşta minimum kaç kişi? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Minimum 10 kişi. Daha az kişilik seyahatler için bireysel bilet sistemleri daha uygundur. Platform özellikle 10–500 kişilik gruplar için tasarlanmıştır.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Teklif ne kadar sürede geliyor? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Ortalama 2–4 saat. Mesai saatleri içinde gelen talepler genellikle 2 saatin altında yanıtlanır. Acil talepler için telefon desteği de mevcuttur.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Sigorta poliçesi nasıl teslim edilir? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Ödeme tamamlandıktan hemen sonra PDF poliçe otomatik olarak sistemde oluşur. Siz panelden tek tıkla indirip müşterinize e-posta veya WhatsApp ile iletebilirsiniz.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Acentemde birden fazla kişi kullanabilir mi? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Evet. Ana hesabınızdan alt kullanıcı açabilirsiniz. Her kullanıcı kendi adına işlem yapar, tüm aktiviteler kayıt altındadır.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Pasaportlu yabancı yolcular için sigorta yapılabiliyor mu? <i class="bi bi-chevron-down"></i></div>
+          <div class="faq-a">Evet. Hem TC kimlik numarasıyla hem pasaport numarasıyla poliçe düzenlenebilir. Karma gruplar için de (bazısı TC, bazısı pasaportlu) sorunsuz çalışır.</div>
+        </div>
+
       </div>
     </div>
   </div>
 </section>
 
-<!-- SLOGAN KAPANIŞ -->
-<div class="slogan-section">
-  <div class="slogan-text">Güveniniz dışında her şeyi uçururuz!</div>
-</div>
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Hemen Başlayın — Ücretsiz</h2>
+    <p>268 acente platformu kullanıyor. Siz de katılın, ilk talebinizi bugün oluşturun.</p>
+    <div>
+      <a href="https://gruptalepleri.com" class="cta-btn-white" target="_blank">
+        <i class="bi bi-rocket-takeoff-fill"></i> Ücretsiz Üye Ol
+      </a>
+      <a href="mailto:info@gruptalepleri.com" class="cta-btn-outline">
+        <i class="bi bi-envelope-fill"></i> Bize Yazın
+      </a>
+    </div>
+    <div style="margin-top:32px;display:flex;gap:32px;justify-content:center;flex-wrap:wrap;">
+      <div style="font-size:.82rem;opacity:.6;display:flex;align-items:center;gap:6px;"><i class="bi bi-check-circle-fill" style="color:#6ee7b7;"></i> Sabit ücret yok</div>
+      <div style="font-size:.82rem;opacity:.6;display:flex;align-items:center;gap:6px;"><i class="bi bi-check-circle-fill" style="color:#6ee7b7;"></i> Sözleşme yok</div>
+      <div style="font-size:.82rem;opacity:.6;display:flex;align-items:center;gap:6px;"><i class="bi bi-check-circle-fill" style="color:#6ee7b7;"></i> Aynı gün onay</div>
+      <div style="font-size:.82rem;opacity:.6;display:flex;align-items:center;gap:6px;"><i class="bi bi-check-circle-fill" style="color:#6ee7b7;"></i> 7/24 erişim</div>
+    </div>
+  </div>
+</section>
 
-<!-- FOOTER -->
-<div class="page-footer">
-  <p>© 2026 Group Ticket Turizm Seyahat Acentası &nbsp;·&nbsp; <a href="https://gruptalepleri.com" target="_blank">gruptalepleri.com</a> &nbsp;·&nbsp; <a href="mailto:destek@gruptalepleri.com">destek@gruptalepleri.com</a> &nbsp;·&nbsp; <a href="tel:+905354154799">+90 535 415 47 99</a></p>
-  <p class="no-print" style="margin-top:6px; font-size:11px; color: rgba(255,255,255,0.2);">PDF için: Tarayıcı → Yazdır → PDF olarak kaydet</p>
-</div>
+<footer>
+  <div class="container">
+    <p>© 2026 GrupTalepleri.com — Tüm hakları saklıdır. &nbsp;·&nbsp; <a href="https://gruptalepleri.com">gruptalepleri.com</a></p>
+  </div>
+</footer>
 
+<script>
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+</script>
 </body>
 </html>
