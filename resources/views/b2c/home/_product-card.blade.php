@@ -22,6 +22,19 @@ $typeColors = [
 $icon     = $typeIcons[$item->product_type] ?? 'bi-grid';
 $bg       = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,#2a5298)';
 $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
+
+// Map DB-stored Turkish pricing_unit values to translation keys
+$unitKeyMap = [
+    'kişi başına'           => 'pricing_unit_per_person',
+    'kişi başı'             => 'pricing_unit_per_person',
+    'grup başına'           => 'pricing_unit_per_group',
+    'saatlik'               => 'pricing_unit_hourly',
+    'saatlik · grup başına' => 'pricing_unit_hourly_group',
+    'sefer başına'          => 'pricing_unit_per_trip',
+    'araç başına'           => 'pricing_unit_per_vehicle',
+    'gecelik'               => 'pricing_unit_per_night',
+    'başvuru başına'        => 'pricing_unit_per_application',
+];
 @endphp
 
 <a href="{{ lroute('b2c.product.show', $item->slug) }}" class="gyg-pcard"
@@ -62,7 +75,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
             @endphp
             <div class="gyg-pcard-tag" style="{{ $badgeStyle }}">{{ $item->badge_label }}</div>
         @elseif($item->is_featured)
-            <div class="gyg-pcard-tag featured">Öne Çıkan</div>
+            <div class="gyg-pcard-tag featured">{{ __('badge_featured') }}</div>
         @endif
 
         @php $isSaved = in_array($item->id, $savedIds ?? []); @endphp
@@ -74,11 +87,11 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 
         <div class="gyg-pcard-badge">
             @if($item->duration_days)
-                {{ $item->duration_days }} gün
+                {{ $item->duration_days }} {{ __('duration_days_unit') }}
             @elseif($item->duration_hours)
-                {{ $item->duration_hours }} saat
+                {{ $item->duration_hours }} {{ __('duration_hours') }}
             @else
-                Esnek
+                {{ __('duration_flexible') }}
             @endif
         </div>
 
@@ -102,31 +115,37 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
             @endif
             @else
             <span class="gyg-pcard-stars" style="color:#d1d5db;">☆☆☆☆☆</span>
-            <span style="font-size:.72rem;color:#a0aec0;font-weight:600;">Yeni</span>
+            <span style="font-size:.72rem;color:#a0aec0;font-weight:600;">{{ __('card_no_rating') }}</span>
             @endif
         </div>
 
         @if($item->pricing_type === 'fixed' && $item->base_price)
             @php
-            $cardPriceLabel = $item->pricing_unit ?: match($item->product_subtype ?? '') {
-                'yacht_charter'                           => 'saatlik · grup başına',
-                'helicopter_tour', 'private_jet'          => 'sefer başına',
-                'airport_transfer', 'intercity_transfer'  => 'araç başına',
-                'hotel_room', 'apart_rental'              => 'gecelik',
-                'visa_service'                            => 'başvuru başına',
-                default                                   => 'kişi başına',
-            };
+            if ($item->pricing_unit && isset($unitKeyMap[$item->pricing_unit])) {
+                $cardPriceLabel = __($unitKeyMap[$item->pricing_unit]);
+            } elseif ($item->pricing_unit) {
+                $cardPriceLabel = $item->pricing_unit;
+            } else {
+                $cardPriceLabel = match($item->product_subtype ?? '') {
+                    'yacht_charter'                           => __('pricing_unit_hourly_group'),
+                    'helicopter_tour', 'private_jet'          => __('pricing_unit_per_trip'),
+                    'airport_transfer', 'intercity_transfer'  => __('pricing_unit_per_vehicle'),
+                    'hotel_room', 'apart_rental'              => __('pricing_unit_per_night'),
+                    'visa_service'                            => __('pricing_unit_per_application'),
+                    default                                   => __('pricing_unit_per_person'),
+                };
+            }
             @endphp
             <div class="gyg-pcard-price-label">{{ $cardPriceLabel }}</div>
             <div class="gyg-pcard-price">{{ number_format($item->base_price, 0, ',', '.') }} {{ $item->currency ?? 'TRY' }}</div>
-            <span class="gyg-pcard-cta">İncele</span>
+            <span class="gyg-pcard-cta">{{ __('card_view') }}</span>
         @elseif($item->pricing_type === 'quote')
-            <div class="gyg-pcard-price-label">Kişiye özel fiyat</div>
-            <div class="gyg-pcard-price" style="font-size:.95rem;color:#718096;font-weight:600;">Fiyat Al</div>
-            <span class="gyg-pcard-cta outline">Ücretsiz Teklif Al</span>
+            <div class="gyg-pcard-price-label">{{ __('card_custom_price') }}</div>
+            <div class="gyg-pcard-price" style="font-size:.95rem;color:#718096;font-weight:600;">{{ __('price_get') }}</div>
+            <span class="gyg-pcard-cta outline">{{ __('card_free_quote') }}</span>
         @else
-            <div class="gyg-pcard-price-label">Talep üzerine</div>
-            <span class="gyg-pcard-cta outline">Bilgi Al</span>
+            <div class="gyg-pcard-price-label">{{ __('card_on_request') }}</div>
+            <span class="gyg-pcard-cta outline">{{ __('card_get_info') }}</span>
         @endif
     </div>
 </a>
