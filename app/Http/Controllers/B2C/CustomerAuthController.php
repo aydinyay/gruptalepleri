@@ -91,11 +91,16 @@ class CustomerAuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        Password::broker('b2c_users')->sendResetLink(
+        $status = Password::broker('b2c_users')->sendResetLink(
             $request->only('email')
         );
 
-        // Güvenlik: başarı/başarısız aynı mesajı göster
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('status', 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+        }
+
+        // E-posta kayıtlı değilse de güvenlik gereği aynı mesajı göster (enumeration önlemi)
+        \Illuminate\Support\Facades\Log::warning('B2C reset link hatası', ['email' => $request->email, 'status' => $status]);
         return back()->with('status', 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
     }
 
