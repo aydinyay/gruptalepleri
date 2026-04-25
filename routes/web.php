@@ -850,6 +850,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::post('/kategoriler',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryStore'])->name('categories.store');
         Route::get('/kategoriler/{category}/duzenle', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryEdit'])->name('categories.edit');
         Route::put('/kategoriler/{category}',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryUpdate'])->name('categories.update');
+        Route::delete('/kategoriler/{category}',      [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'categoryDestroy'])->name('categories.destroy');
         // Ürün Kataloğu
         Route::get('/katalog',              [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalog'])->name('catalog');
         Route::get('/katalog/yeni',         [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogCreate'])->name('catalog.create');

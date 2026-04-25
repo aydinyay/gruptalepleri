@@ -345,6 +345,16 @@ class B2cCatalogController extends Controller
             ->with('success', 'Kategori güncellendi.');
     }
 
+    public function categoryDestroy(CatalogCategory $category)
+    {
+        if ($category->items()->count() > 0) {
+            return back()->with('error', 'Bu kategoriye bağlı ürünler var. Önce ürünleri taşıyın veya silin.');
+        }
+        $category->delete();
+        return redirect()->route('superadmin.b2c.categories')
+            ->with('success', 'Kategori silindi.');
+    }
+
     // ── Ürün Kataloğu CRUD ────────────────────────────────────────────────
 
     public function catalog(Request $request)

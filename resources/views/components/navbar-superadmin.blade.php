@@ -204,6 +204,12 @@
                     'keys'  => ['b2c'],
                 ],
                 [
+                    'label' => 'Kategoriler',
+                    'href'  => route('superadmin.b2c.categories'),
+                    'icon'  => 'fas fa-tags',
+                    'keys'  => ['b2c-categories'],
+                ],
+                [
                     'label' => 'Katalog',
                     'href'  => route('superadmin.b2c.catalog'),
                     'icon'  => 'fas fa-boxes-stacked',
