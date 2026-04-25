@@ -159,6 +159,8 @@ class SigortaController extends Controller
 
     public function belge(SigortaPolice $police, string $tip)
     {
+        abort_unless(in_array($tip, ['police', 'makbuz', 'sertifika', 'ing-sertifika']), 404);
+
         $urlMap = [
             'police'       => $police->pdf_link,
             'makbuz'       => $police->makbuz_link,

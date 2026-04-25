@@ -43,6 +43,11 @@ class SigortaBatchJob extends Model
         return $this->belongsTo(User::class, 'acente_id');
     }
 
+    public function b2cUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'b2c_user_id');
+    }
+
     public function odeme(): HasOne
     {
         return $this->hasOne(SigortaOdeme::class, 'sigorta_batch_job_id');

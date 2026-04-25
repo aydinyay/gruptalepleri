@@ -139,7 +139,7 @@ document.getElementById('btn-iptal-kontrol')?.addEventListener('click', async fu
         });
         const data = await res.json();
 
-        const msg = `İptal kontrolü tamamlandı: ${data.kontrol_edildi} poliçe kontrol edildi, ${data.iptal_edildi} iptal işlendi.`;
+        const msg = `İptal kontrolü tamamlandı: ${data.kontrol} poliçe kontrol edildi, ${data.guncellenen} iptal işlendi.`;
         const alert = document.createElement('div');
         alert.className = 'alert alert-info alert-dismissible fade show mt-3';
         alert.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;

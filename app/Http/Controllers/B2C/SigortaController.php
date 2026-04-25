@@ -267,8 +267,8 @@ class SigortaController extends Controller
         }
 
         // Mükerrer callback koruması
-        if ($odeme->processed_at ?? ($odeme->paid_at ?? $odeme->failed_at)) {
-            $police = $odeme->police;
+        if ($odeme->paid_at || $odeme->failed_at) {
+            $police = SigortaPolice::find($odeme->sigorta_police_id);
             if ($police && $police->durum === 'tamamlandi') {
                 return redirect()->route('b2c.sigorta.durum', $police->id);
             }
@@ -302,15 +302,21 @@ class SigortaController extends Controller
         ]);
 
         $police = SigortaPolice::find($odeme->sigorta_police_id);
+
+        if (!$police) {
+            Log::critical('sigorta.b2c.police_kaydi_bulunamadi', ['odeme_id' => $odeme->id]);
+            return redirect()->route('b2c.sigorta.create')
+                ->with('error', 'Ödeme alındı ancak poliçe kaydı bulunamadı. Lütfen destek ile iletişime geçin.');
+        }
+
         $police->update(['durum' => 'police_isleniyor']);
 
         try {
-            $svc    = app(PaoNetService::class);
-            $sonuc  = $svc->policeUret($police->paonet_teklif_id);
+            $svc      = app(PaoNetService::class);
+            $sonuc    = $svc->policeUret($police->paonet_teklif_id);
             $referans = $sonuc['Referans'] ?? $sonuc['referans'] ?? '';
             $police->update(['paonet_referans' => $referans]);
         } catch (\RuntimeException $e) {
-            // Ödeme alındı ama PAO-Net hata verdi — kritik log, admin müdahalesi gerekir
             Log::critical('sigorta.b2c.paonet_basarisiz_odeme_alindi', [
                 'police_id' => $police->id,
                 'error'     => $e->getMessage(),
@@ -389,6 +395,8 @@ class SigortaController extends Controller
 
     public function belge(SigortaPolice $police, string $tip)
     {
+        abort_unless(in_array($tip, ['police', 'makbuz', 'sertifika', 'ing-sertifika']), 404);
+
         $b2cUser = auth('b2c')->user();
         if ($b2cUser) {
             abort_unless($police->b2c_user_id === $b2cUser->id, 403);
