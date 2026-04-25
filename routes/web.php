@@ -871,6 +871,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::post('/transfer-arac/{vehicleType}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'transferVehicleTogglePublish'])->name('transfer-vehicle.toggle-publish');
         Route::post('/charter-paket/{package}/yayinla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'charterTogglePublish'])->name('charter-package.toggle-publish');
         Route::get('/rezervasyonlar', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'ordersIndex'])->name('orders');
+        Route::get('/quick-leads',   [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'quickLeads'])->name('quick-leads.index');
         // Tedarikçi Başvuruları
         Route::get('/tedarikci-basvurulari',  [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplications'])->name('supplier-apps');
         Route::patch('/tedarikci-basvurulari/{app}', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'supplierApplicationUpdate'])->name('supplier-apps.update');

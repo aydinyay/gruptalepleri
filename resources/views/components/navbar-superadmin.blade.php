@@ -216,6 +216,12 @@
                     'keys'  => ['b2c-catalog'],
                 ],
                 [
+                    'label' => 'Hızlı Leadler',
+                    'href'  => route('superadmin.b2c.quick-leads.index'),
+                    'icon'  => 'fas fa-bolt',
+                    'keys'  => ['b2c-quick-leads'],
+                ],
+                [
                     'label' => 'Fiyat Analizi',
                     'href'  => 'https://gruprezervasyonlari.com/gizli/fiyat?t=GRT2026owner',
                     'icon'  => 'fas fa-chart-line',

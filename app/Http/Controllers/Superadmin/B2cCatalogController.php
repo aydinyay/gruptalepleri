@@ -818,4 +818,29 @@ class B2cCatalogController extends Controller
             'cost_price'          => 'nullable|numeric|min:0',
         ]);
     }
+
+    // ── B2C Quick Leads ───────────────────────────────────────────────────
+
+    public function quickLeads(Request $request)
+    {
+        $query = \Illuminate\Support\Facades\DB::table('b2c_quick_leads')
+            ->orderByDesc('created_at');
+
+        if ($request->filled('q')) {
+            $q = '%' . $request->q . '%';
+            $query->where(function ($qb) use ($q) {
+                $qb->where('name', 'like', $q)
+                   ->orWhere('phone', 'like', $q)
+                   ->orWhere('email', 'like', $q);
+            });
+        }
+
+        if ($request->filled('hizmet')) {
+            $query->where('service_type', $request->hizmet);
+        }
+
+        $leads = $query->paginate(30)->withQueryString();
+
+        return view('superadmin.b2c.quick-leads', compact('leads'));
+    }
 }

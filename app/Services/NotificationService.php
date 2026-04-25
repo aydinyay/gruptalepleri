@@ -135,4 +135,16 @@ class NotificationService
             $url
         );
     }
+
+    public function yeniB2cQuickLead(string $name, string $phone, string $serviceType, string $url): void
+    {
+        $label = $serviceType ?: 'Belirtilmedi';
+        $this->createForRole(
+            'admin_and_superadmin',
+            'b2c_quick_lead',
+            '🌐 B2C — Yeni Lead: ' . $name,
+            "{$name} / {$phone} — Hizmet: {$label}",
+            $url
+        );
+    }
 }

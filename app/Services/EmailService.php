@@ -640,4 +640,42 @@ Adresinize gönderilen iletileri almak istemiyorsanız
             );
         }
     }
+
+    /**
+     * B2C hızlı lead formu doldurulduğunda admin + superadmin'e email.
+     */
+    public function yeniB2cQuickLead(string $name, string $phone, string $serviceType, string $notes, string $adminUrl): void
+    {
+        $subject  = "🌐 B2C Yeni Lead: {$name}";
+        $label    = $serviceType ?: 'Belirtilmedi';
+        $notesHtml = $notes ? nl2br(e($notes)) : '<em>—</em>';
+        $html = <<<HTML
+<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table width="600" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+  <tr><td style="background:#e74c3c;padding:24px 32px;">
+    <h2 style="color:#fff;margin:0;font-size:20px;">🌐 B2C — Yeni Teklif Talebi</h2>
+    <p style="color:#fde8e8;margin:4px 0 0;">GrupRezervasyonlari.com üzerinden geldi</p>
+  </td></tr>
+  <tr><td style="padding:28px 32px;">
+    <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;">
+      <tr style="background:#f8f9fc;"><td style="width:140px;font-weight:bold;color:#374151;padding:10px 12px;border-radius:4px;">Ad Soyad</td><td style="padding:10px 12px;">{$name}</td></tr>
+      <tr><td style="font-weight:bold;color:#374151;padding:10px 12px;">Telefon</td><td style="padding:10px 12px;"><a href="tel:{$phone}" style="color:#e74c3c;text-decoration:none;font-weight:bold;">{$phone}</a></td></tr>
+      <tr style="background:#f8f9fc;"><td style="font-weight:bold;color:#374151;padding:10px 12px;">Hizmet Türü</td><td style="padding:10px 12px;">{$label}</td></tr>
+      <tr><td style="font-weight:bold;color:#374151;padding:10px 12px;vertical-align:top;">Not</td><td style="padding:10px 12px;">{$notesHtml}</td></tr>
+    </table>
+    <div style="margin-top:24px;text-align:center;">
+      <a href="{$adminUrl}" style="display:inline-block;background:#e74c3c;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:bold;font-size:15px;">Panelde Gör →</a>
+    </div>
+  </td></tr>
+  <tr><td style="background:#f4f6f9;padding:14px 32px;text-align:center;color:#9ca3af;font-size:12px;">GrupTalepleri.com — B2C Lead Bildirimi</td></tr>
+</table></td></tr></table>
+</body></html>
+HTML;
+
+        $alicilar = User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('email')->get();
+        foreach ($alicilar as $user) {
+            $this->sendHtml(null, $user, $subject, $html);
+        }
+    }
 }
