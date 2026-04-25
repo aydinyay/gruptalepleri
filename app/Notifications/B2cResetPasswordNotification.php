@@ -24,8 +24,8 @@ class B2cResetPasswordNotification extends Notification
         return (new MailMessage)
             ->subject('Şifre Sıfırlama — Grup Rezervasyonları')
             ->from(
-                env('B2C_MAIL_FROM_ADDRESS', 'noreply@gruprezervasyonlari.com'),
-                env('B2C_MAIL_FROM_NAME', 'Grup Rezervasyonları')
+                env('MAIL_FROM_ADDRESS', 'noreply@gruptalepleri.com'),
+                'Grup Rezervasyonları'
             )
             ->greeting('Merhaba ' . explode(' ', $notifiable->name)[0] . ',')
             ->line('Şifre sıfırlama talebinizi aldık. Aşağıdaki butona tıklayarak yeni şifrenizi belirleyebilirsiniz.')
