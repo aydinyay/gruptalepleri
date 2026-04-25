@@ -1,7 +1,7 @@
 @extends('b2c.layouts.app')
 
-@section('title', 'Grup Rezervasyonları — Transfer, Tur, Charter, Dinner Cruise')
-@section('meta_description', 'Türkiye\'nin en büyük grup seyahat platformu. İstanbul Boğaz turu, havalimanı transferi, özel jet, yat kiralama ve çok daha fazlası.')
+@section('title', __('home_meta_title'))
+@section('meta_description', __('home_meta_desc'))
 
 @push('head_styles')
 <style>
@@ -424,20 +424,20 @@
 <section class="gyg-hero" style="padding:0;">
     <div class="gyg-hero-bg"></div>
     <div class="gyg-hero-content">
-        <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">Türkiye'nin Lider Grup Seyahat Platformu</p>
+        <p style="color:rgba(255,255,255,.65);font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:.6rem;">{{ __('hero_tagline') }}</p>
         <h1>
-            <span>Keşfet, incele,</span><br>
-            <span style="color:var(--gr-accent,#f4a418);">rezervasyon yap.</span>
+            <span>{{ __('hero_headline_1') }}</span><br>
+            <span style="color:var(--gr-accent,#f4a418);">{{ __('hero_headline_2') }}</span>
         </h1>
-        <p class="hero-sub" style="opacity:1;">Yat, charter, transfer ve daha fazlası — grubunuza özel fiyatlarla.</p>
+        <p class="hero-sub" style="opacity:1;">{{ __('hero_sub') }}</p>
 
         <div class="gyg-search-wrap">
             <form action="{{ lroute('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
                 <div class="gyg-search-box">
                     <i class="bi bi-search" style="color:#a0aec0;font-size:1.1rem;flex-shrink:0;"></i>
-                    <input type="text" id="heroSearchInput" name="q" placeholder="Aktivite, tur veya destinasyon ara..." autocomplete="off">
+                    <input type="text" id="heroSearchInput" name="q" placeholder="{{ __('hero_search_placeholder') }}" autocomplete="off">
                     <button type="submit" class="gyg-search-btn">
-                        <i class="bi bi-search"></i> Ara
+                        <i class="bi bi-search"></i> {{ __('hero_search_btn') }}
                     </button>
                 </div>
             </form>
@@ -449,7 +449,7 @@
         @endphp
         @if($popularTags->isNotEmpty())
         <div class="gyg-hero-tags">
-            <span>Popüler:</span>
+            <span>{{ __('hero_popular') }}</span>
             @foreach($popularTags as $tag)
             <a href="{{ lroute('b2c.catalog.category', $tag->slug) }}" class="gyg-hero-tag">{{ $tag->name }}</a>
             @endforeach
@@ -481,7 +481,7 @@
                         <div class="hc-cat">{{ optional($hi->category)->name ?? ucfirst($hi->product_type) }}</div>
                         <div class="hc-title">{{ Str::limit($hi->title, 60) }}</div>
                         <div class="hc-meta">
-                            @if($hi->duration_hours) {{ $hi->duration_hours }} saat · @endif
+                            @if($hi->duration_hours) {{ $hi->duration_hours }} {{ __('duration_hours') }} · @endif
                             {{ $hi->destination_city ?? 'Türkiye' }}
                         </div>
                         @if(($hi->rating_avg ?? 0) > 0)
@@ -493,11 +493,11 @@
                         @endif
                     </div>
                     <div>
-                        <div class="hc-price-label">Başlangıç fiyatı</div>
+                        <div class="hc-price-label">{{ __('price_from_label') }}</div>
                         @if($hi->pricing_type === 'fixed' && $hi->base_price)
                             <div class="hc-price">{{ number_format($hi->base_price,0,',','.') }} {{ $hi->currency }}</div>
                         @else
-                            <div class="hc-price" style="font-size:.9rem;">Fiyat Al</div>
+                            <div class="hc-price" style="font-size:.9rem;">{{ __('price_get') }}</div>
                         @endif
                     </div>
                 </div>
@@ -515,23 +515,23 @@
     <div class="inner">
         <div class="gyg-trust-item">
             <i class="bi bi-people-fill"></i>
-            <span><strong>14.000+</strong> memnun müşteri</span>
+            <span><strong>14.000+</strong> {{ __('trust_customers') }}</span>
         </div>
         <div class="gyg-trust-item">
             <i class="bi bi-star-fill" style="color:#f4a418;"></i>
-            <span><strong>4.8 / 5</strong> ortalama puan</span>
+            <span><strong>4.8 / 5</strong> {{ __('trust_rating') }}</span>
         </div>
         <div class="gyg-trust-item">
             <i class="bi bi-arrow-counterclockwise"></i>
-            <span><strong>Ücretsiz iptal</strong> 24 saat öncesine kadar</span>
+            <span><strong>{{ __('trust_free_cancel') }}</strong> {{ __('trust_free_cancel_sub') }}</span>
         </div>
         <div class="gyg-trust-item">
             <i class="bi bi-shield-check-fill"></i>
-            <span><strong>Güvenli ödeme</strong> SSL korumalı</span>
+            <span><strong>{{ __('trust_secure_payment_title') }}</strong> {{ __('trust_secure_payment_sub') }}</span>
         </div>
         <div class="gyg-trust-item">
             <i class="bi bi-headset"></i>
-            <span><strong>7/24</strong> müşteri desteği</span>
+            <span><strong>7/24</strong> {{ __('trust_support_sub') }}</span>
         </div>
     </div>
 </div>
@@ -542,7 +542,7 @@
 <div class="gyg-pills-wrap">
     <div class="gyg-pills">
         <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-pill active">
-            <i class="bi bi-grid-3x3-gap-fill"></i> Tümü
+            <i class="bi bi-grid-3x3-gap-fill"></i> {{ __('pill_all') }}
         </a>
         @if($categories->isNotEmpty())
             @foreach($categories->take(10) as $cat)
@@ -572,10 +572,10 @@
     <div class="container" style="max-width:1280px;">
         <div class="gyg-section-head">
             <div>
-                <h2>Tüm Hizmetler</h2>
-                <p>Öne çıkanlar başta — tüm deneyimler bir arada</p>
+                <h2>{{ __('section_all_services') }}</h2>
+                <p>{{ __('section_all_services_sub') }}</p>
             </div>
-            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-see-all">{{ __('see_all') }}</a>
         </div>
 
         <div class="gyg-products-grid" id="main-products-grid">
@@ -591,14 +591,14 @@
                             <div class="gyg-pcard-badge">Ücretsiz</div>
                         </div>
                         <div class="gyg-pcard-body">
-                            <div class="gyg-pcard-cat">GRUP UÇUŞU · YURT İÇİ & DIŞI</div>
-                            <div class="gyg-pcard-title">Grubunuz İçin Özel Uçak Bileti Fiyatı Alın</div>
+                            <div class="gyg-pcard-cat">{{ __('group_flight_cat') }}</div>
+                            <div class="gyg-pcard-title">{{ __('group_flight_title') }}</div>
                             <div class="d-flex align-items-center gap-1" style="margin-bottom:4px;">
-                                <span style="font-size:.72rem;color:#0d6efd;font-weight:600;">10+ kişi · Charter & Blok Koltuk</span>
+                                <span style="font-size:.72rem;color:#0d6efd;font-weight:600;">{{ __('group_flight_sub') }}</span>
                             </div>
-                            <div class="gyg-pcard-price-label">tamamen ücretsiz</div>
-                            <div class="gyg-pcard-price" style="color:#0c3547;">Gruba Özel Fiyat</div>
-                            <span class="gyg-pcard-cta">Talep Oluştur</span>
+                            <div class="gyg-pcard-price-label">{{ __('group_flight_free') }}</div>
+                            <div class="gyg-pcard-price" style="color:#0c3547;">{{ __('group_flight_price') }}</div>
+                            <span class="gyg-pcard-cta">{{ __('group_flight_cta') }}</span>
                         </div>
                     </a>
                     @endif
@@ -652,7 +652,7 @@
                         </div>
                         <div class="gyg-pcard-heart"><i class="bi bi-heart"></i></div>
                         <div class="gyg-pcard-badge">
-                            @if($ph['hours']) {{ $ph['hours'] }} saat @else Birden fazla gün @endif
+                            @if($ph['hours']) {{ $ph['hours'] }} {{ __('duration_hours') }} @else {{ __('duration_multi_day') }} @endif
                         </div>
                     </div>
                     <div class="gyg-pcard-body">
@@ -668,11 +668,11 @@
                         </div>
                         @endif
                         <div class="gyg-pcard-price-label">
-                            @if($ph['type']==='fixed') kişi başı itibaren @else Teklif alın @endif
+                            @if($ph['type']==='fixed') {{ __('price_from') }} @else {{ __('price_quote') }} @endif
                         </div>
                         <div class="gyg-pcard-price">
                             @if($ph['price']) {{ number_format($ph['price'],0,',','.') }} TRY
-                            @else <span style="color:#718096;font-weight:500;font-size:.9rem;">Fiyat Al</span>
+                            @else <span style="color:#718096;font-weight:500;font-size:.9rem;">{{ __('price_get') }}</span>
                             @endif
                         </div>
                     </div>
@@ -689,24 +689,24 @@
 <div class="gyg-how-it-works">
     <div class="container" style="max-width:1280px;">
         <div style="text-align:center;margin-bottom:2rem;">
-            <h2 style="font-size:1.6rem;font-weight:800;color:#1a202c;margin-bottom:.4rem;">Nasıl Çalışır?</h2>
-            <p style="color:#718096;font-size:.95rem;">3 adımda rezervasyon tamamla</p>
+            <h2 style="font-size:1.6rem;font-weight:800;color:#1a202c;margin-bottom:.4rem;">{{ __('how_title') }}</h2>
+            <p style="color:#718096;font-size:.95rem;">{{ __('how_sub') }}</p>
         </div>
         <div class="gyg-steps">
             <div class="gyg-step">
                 <div class="gyg-step-num">1</div>
-                <h4>Keşfet &amp; Karşılaştır</h4>
-                <p>Transfer, tur, charter, yat kiralama ve daha fazlasını kategorilere göre filtrele. Puan, fiyat ve özelliklerle karşılaştır.</p>
+                <h4>{{ __('how_step1_title') }}</h4>
+                <p>{{ __('how_step1_body') }}</p>
             </div>
             <div class="gyg-step">
                 <div class="gyg-step-num">2</div>
-                <h4>Seç &amp; Teklif Al</h4>
-                <p>Sabit fiyatlı hizmetleri sepete ekle, teklif bazlı hizmetler için ücretsiz fiyat talebi oluştur. 4 saat içinde yanıt.</p>
+                <h4>{{ __('how_step2_title') }}</h4>
+                <p>{{ __('how_step2_body') }}</p>
             </div>
             <div class="gyg-step">
                 <div class="gyg-step-num">3</div>
-                <h4>Rezervasyon Yap</h4>
-                <p>Güvenli ödeme, anında onay. Rezervasyon bilgileri e-posta ile iletilir. İptal hakkın saklı.</p>
+                <h4>{{ __('how_step3_title') }}</h4>
+                <p>{{ __('how_step3_body') }}</p>
             </div>
         </div>
     </div>
@@ -720,27 +720,27 @@
         {{-- Sigorta tanıtım banner --}}
         <div style="background:linear-gradient(135deg,#065f46,#0d9488);border-radius:16px;padding:2rem 2.5rem;margin-bottom:3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;">
             <div style="color:#fff;">
-                <div style="font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a7f3d0;margin-bottom:.5rem;">🛡 Seyahat Güvencesi</div>
-                <h3 style="font-size:1.4rem;font-weight:800;margin:0 0 .5rem;">Yurtdışı seyahatinizi sigortayla güvence altına alın</h3>
-                <p style="margin:0;color:#d1fae5;font-size:.93rem;">Nippon Sigorta · Anında poliçe · E-posta ve SMS ile teslim · Kredi kartıyla ödeme</p>
+                <div style="font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a7f3d0;margin-bottom:.5rem;">🛡 {{ __('insurance_badge') }}</div>
+                <h3 style="font-size:1.4rem;font-weight:800;margin:0 0 .5rem;">{{ __('insurance_title') }}</h3>
+                <p style="margin:0;color:#d1fae5;font-size:.93rem;">{{ __('insurance_sub') }}</p>
                 <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1rem;">
-                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Tıbbi tahliye</span>
-                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Bagaj kaybı</span>
-                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Uçuş iptali</span>
-                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Sağlık giderleri</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>{{ __('insurance_feat_1') }}</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>{{ __('insurance_feat_2') }}</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>{{ __('insurance_feat_3') }}</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>{{ __('insurance_feat_4') }}</span>
                 </div>
             </div>
             <a href="{{ lroute('b2c.sigorta.create') }}" style="background:#fff;color:#065f46;font-weight:800;font-size:.97rem;text-decoration:none;padding:14px 28px;border-radius:10px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
-                <i class="bi bi-shield-check"></i> Teklif Al &amp; Poliçe Yaptır →
+                <i class="bi bi-shield-check"></i> {{ __('insurance_cta') }}
             </a>
         </div>
 
         <div class="gyg-section-head">
             <div>
-                <h2>Popüler Destinasyonlar</h2>
-                <p>En çok tercih edilen şehirler ve bölgeler</p>
+                <h2>{{ __('section_destinations') }}</h2>
+                <p>{{ __('section_destinations_sub') }}</p>
             </div>
-            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-see-all">{{ __('see_all') }}</a>
         </div>
         <div class="gyg-dest-grid">
             @php
@@ -773,7 +773,7 @@
                         $k   = $trNorm($d->destination_city);
                         $img = $imgMap[$k] ?? null;
                         $bg  = $bgsMap[$k] ?? 'linear-gradient(160deg,#1a3c6b,#2d5282)';
-                        return ['name'=>$d->destination_city,'count'=>$d->cnt.' aktivite','bg'=>$bg,'img'=>$img,'sehir'=>$k];
+                        return ['name'=>$d->destination_city,'count'=>$d->cnt.' '.__('count_activities'),'bg'=>$bg,'img'=>$img,'sehir'=>$k];
                     })->toArray();
                 }
             @endphp
@@ -799,10 +799,10 @@
     <div class="container" style="max-width:1280px;">
         <div class="gyg-section-head">
             <div>
-                <h2>Gezi İlhamı</h2>
-                <p>Şehir rehberleri ve seyahat ipuçları</p>
+                <h2>{{ __('section_inspiration') }}</h2>
+                <p>{{ __('section_inspiration_sub') }}</p>
             </div>
-            <a href="{{ lroute('b2c.blog.index') }}" class="gyg-see-all">Tümünü Keşfet →</a>
+            <a href="{{ lroute('b2c.blog.index') }}" class="gyg-see-all">{{ __('see_all_explore') }}</a>
         </div>
         <div class="gyg-blog-grid">
             @if(isset($blogPosts) && $blogPosts->isNotEmpty())
@@ -815,7 +815,7 @@
                             <i class="bi bi-journal-text"></i>
                         @endif
                     </div>
-                    <div class="blog-cat">Seyahat Rehberi</div>
+                    <div class="blog-cat">{{ __('blog_cat_guide') }}</div>
                     <div class="blog-title">{{ Str::limit($post->baslik, 70) }}</div>
                     <div class="blog-date"><i class="bi bi-calendar3 me-1"></i>{{ $post->created_at->format('d M Y') }}</div>
                 </a>
@@ -852,13 +852,13 @@
         <div class="row align-items-center g-4">
             <div class="col-lg-5">
                 <h2 style="font-size:1.6rem;font-weight:700;color:#1a202c;margin-bottom:.5rem;">
-                    Özel Bir Deneyim mi Planlıyorsunuz?
+                    {{ __('lead_title') }}
                 </h2>
                 <p style="color:#718096;line-height:1.7;">
-                    Grup turları, özel organizasyonlar veya kurumsal etkinlikler için size özel teklif hazırlayalım. 4 saatte geri dönüş garantisi.
+                    {{ __('lead_desc') }}
                 </p>
                 <div class="d-flex flex-wrap gap-3 mt-3">
-                    @foreach(['Ücretsiz danışmanlık','4 saat içinde cevap','Yükümlülük yok'] as $badge)
+                    @foreach([__('lead_badge_free'),__('lead_badge_fast'),__('lead_badge_noobligation')] as $badge)
                     <div style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:#4a5568;">
                         <i class="bi bi-check-circle-fill" style="color:#48bb78;"></i> {{ $badge }}
                     </div>
@@ -871,29 +871,29 @@
                         @csrf
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <input type="text" name="name" class="form-control" placeholder="Adınız Soyadınız *" required>
+                                <input type="text" name="name" class="form-control" placeholder="{{ __('lead_name_placeholder') }}" required>
                             </div>
                             <div class="col-md-6">
-                                <input type="tel" name="phone" class="form-control" placeholder="Telefon *" required>
+                                <input type="tel" name="phone" class="form-control" placeholder="{{ __('lead_phone_placeholder') }}" required>
                             </div>
                             <div class="col-12">
                                 <select name="service_type" class="form-select">
-                                    <option value="">Hizmet Türü Seçin</option>
-                                    <option>Havalimanı Transferi</option>
-                                    <option>Özel Jet / Charter</option>
-                                    <option>Dinner Cruise</option>
-                                    <option>Yat Kiralama</option>
-                                    <option>Tur Paketi</option>
-                                    <option>Seyahat Sigortası</option>
-                                    <option>Diğer</option>
+                                    <option value="">{{ __('lead_service_select') }}</option>
+                                    <option>{{ __('lead_service_airport') }}</option>
+                                    <option>{{ __('lead_service_jet') }}</option>
+                                    <option>{{ __('lead_service_cruise') }}</option>
+                                    <option>{{ __('lead_service_yacht') }}</option>
+                                    <option>{{ __('lead_service_tour') }}</option>
+                                    <option>{{ __('lead_service_insurance') }}</option>
+                                    <option>{{ __('lead_service_other') }}</option>
                                 </select>
                             </div>
                             <div class="col-12">
-                                <textarea name="notes" class="form-control" rows="2" placeholder="Kısa notunuz (opsiyonel)"></textarea>
+                                <textarea name="notes" class="form-control" rows="2" placeholder="{{ __('lead_notes_placeholder') }}"></textarea>
                             </div>
                             <div class="col-12">
                                 <button type="submit" class="gyg-supplier-btn w-100" style="border-radius:8px;font-size:1rem;padding:12px;">
-                                    <i class="bi bi-send me-2"></i>Ücretsiz Teklif Al
+                                    <i class="bi bi-send me-2"></i>{{ __('lead_submit') }}
                                 </button>
                             </div>
                         </div>
@@ -911,11 +911,11 @@
     <div class="container" style="max-width:1280px;">
         <div class="gyg-supplier-banner">
             <div>
-                <h3><i class="bi bi-building me-2"></i>Ürününüzü Milyonlara Ulaştırın</h3>
-                <p>Transfer, tur, charter veya deniz hizmetleri sunuyorsanız platformumuza katılın. Ücretsiz başvurun, onaylandıktan sonra yayınlanın.</p>
+                <h3><i class="bi bi-building me-2"></i>{{ __('supplier_title') }}</h3>
+                <p>{{ __('supplier_desc') }}</p>
             </div>
             <a href="{{ lroute('b2c.supplier-apply.show') }}" class="gyg-supplier-btn">
-                Tedarikçi Başvurusu →
+                {{ __('supplier_cta') }}
             </a>
         </div>
     </div>
