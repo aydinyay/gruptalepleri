@@ -99,7 +99,7 @@ class SigortaController extends Controller
             $kimlikT  = PaoNetHelper::detectKimlikTipi($request->kimlik);
             $urunKodu = PaoNetHelper::urunKodu($kimlikT);
 
-            $strMsg = PaoNetHelper::buildStrMsg([
+            $msgParams = [
                 'Kimlik'          => $request->kimlik,
                 'Adi'             => $request->adi,
                 'Soyadi'          => $request->soyadi,
@@ -107,8 +107,20 @@ class SigortaController extends Controller
                 'BaslangicTarihi' => $request->baslangic_tarihi,
                 'BitisTarihi'     => $request->bitis_tarihi,
                 'GidilecekUlke'   => $request->ulke,
-            ]);
+            ];
 
+            // NPN220 (pasaport) için zorunlu ek alanlar
+            if ($kimlikT === 'pasaport') {
+                $msgParams['DogumYeri'] = $request->dogum_yeri ?? '';
+                $msgParams['Uyruk']     = $request->uyruk ?? '';
+                $msgParams['Boy']       = $request->boy ?? '';
+                $msgParams['Kilo']      = $request->kilo ?? '';
+                $msgParams['IlAdi']     = $request->il_adi ?? '';
+                $msgParams['IlceAdi']   = $request->ilce_adi ?? '';
+                $msgParams['Adres']     = $request->adres ?? '';
+            }
+
+            $strMsg = PaoNetHelper::buildStrMsg($msgParams);
             $teklif = $svc->teklifAl($urunKodu, $strMsg);
 
             $bprim = (float) ($teklif['Bprim'] ?? $teklif['bprim'] ?? 0);
@@ -482,6 +494,37 @@ class SigortaController extends Controller
         return app(PaoNetService::class)->pdfStream(
             PaoNetHelper::normalizePdfUrl($rawUrl)
         );
+    }
+
+    // ── Kâr Raporu (Acente) ───────────────────────────────────────────────────
+
+    public function karRaporu(Request $request)
+    {
+        $acenteId = $this->acenteActor()->id;
+
+        $buAy = SigortaPolice::where('acente_id', $acenteId)
+            ->where('durum', 'tamamlandi')
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->selectRaw('COUNT(*) as adet, SUM(satilan_fiyat_tl) as toplam_satis, SUM(net_kar_tl) as toplam_kar')
+            ->first();
+
+        $buYil = SigortaPolice::where('acente_id', $acenteId)
+            ->where('durum', 'tamamlandi')
+            ->whereYear('created_at', now()->year)
+            ->selectRaw('COUNT(*) as adet, SUM(satilan_fiyat_tl) as toplam_satis, SUM(net_kar_tl) as toplam_kar')
+            ->first();
+
+        $gunluk = SigortaPolice::where('acente_id', $acenteId)
+            ->where('durum', 'tamamlandi')
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->selectRaw('DATE(created_at) as tarih, COUNT(*) as adet, SUM(net_kar_tl) as kar')
+            ->groupBy('tarih')
+            ->orderBy('tarih')
+            ->get();
+
+        return view('acente.sigorta.kar-raporu', compact('buAy', 'buYil', 'gunluk'));
     }
 
     // ── İptal ─────────────────────────────────────────────────────────────────

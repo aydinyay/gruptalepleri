@@ -1266,6 +1266,7 @@ Route::middleware(['auth'])->prefix('acente/sigorta')->name('acente.sigorta.')->
     Route::post('/toplu/{batch}/retry',                      [\App\Http\Controllers\Acente\SigortaController::class, 'topluRetry'])->name('toplu-retry');
     Route::get('/mbf',                                       [\App\Http\Controllers\Acente\SigortaController::class, 'mbf'])->name('mbf');
     Route::post('/mbf',                                      [\App\Http\Controllers\Acente\SigortaController::class, 'mbfGonder'])->name('mbf-gonder');
+    Route::get('/kar-raporu',                                [\App\Http\Controllers\Acente\SigortaController::class, 'karRaporu'])->name('kar-raporu');
 });
 
 // ── Sigorta — Admin / Superadmin ─────────────────────────────────────────────

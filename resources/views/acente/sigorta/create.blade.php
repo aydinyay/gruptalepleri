@@ -49,6 +49,46 @@
                     </div>
                 </div>
 
+                {{-- Pasaport (NPN220) ek alanları — TC girilince gizlenir --}}
+                <div id="pasaport-alanlar" class="d-none">
+                    <div class="alert alert-info py-2 small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Yabancı uyruklu / pasaportlu sigortalı için ek bilgiler gereklidir (NPN220).
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Doğum Yeri <span class="text-danger">*</span></label>
+                            <input type="text" id="dogum_yeri" name="dogum_yeri" class="form-control" placeholder="İstanbul / Moskova">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Uyruk <span class="text-danger">*</span></label>
+                            <input type="text" id="uyruk" name="uyruk" class="form-control" placeholder="Rus / Alman / Fransız">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Boy (cm)</label>
+                            <input type="number" id="boy" name="boy" class="form-control" placeholder="175" min="50" max="250">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kilo (kg)</label>
+                            <input type="number" id="kilo" name="kilo" class="form-control" placeholder="70" min="10" max="300">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">İl <span class="text-danger">*</span></label>
+                            <input type="text" id="il_adi" name="il_adi" class="form-control" placeholder="İstanbul">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">İlçe <span class="text-danger">*</span></label>
+                            <input type="text" id="ilce_adi" name="ilce_adi" class="form-control" placeholder="Şişli">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Açık Adres <span class="text-danger">*</span></label>
+                            <input type="text" id="adres" name="adres" class="form-control" placeholder="Mahalle, sokak, kapı no">
+                        </div>
+                    </div>
+                </div>
+
                 <hr class="my-4">
 
                 {{-- Seyahat Bilgileri --}}
@@ -139,8 +179,10 @@ let pollInterval = null;
 // Kimlik tipi algılama
 document.getElementById('kimlik').addEventListener('input', function () {
     const val = this.value.trim();
-    const tip = /^\d{11}$/.test(val) ? 'TC' : (val.length > 0 ? 'Pasaport' : 'TC');
-    document.getElementById('kimlik-tip').textContent = tip;
+    const isTC = /^\d{11}$/.test(val);
+    const isPasaport = val.length > 0 && !isTC;
+    document.getElementById('kimlik-tip').textContent = isTC ? 'TC' : (isPasaport ? 'Pasaport' : 'TC');
+    document.getElementById('pasaport-alanlar').classList.toggle('d-none', !isPasaport);
     document.getElementById('teklif-sonuc').classList.add('d-none');
     document.getElementById('btn-onayla').classList.add('d-none');
 });
@@ -160,7 +202,14 @@ document.getElementById('btn-teklif').addEventListener('click', async function (
         baslangic_tarihi: document.getElementById('baslangic_tarihi').value,
         bitis_tarihi:     document.getElementById('bitis_tarihi').value,
         ulke:             document.getElementById('ulke').value,
-        _token:           csrfToken,
+        // Pasaport (NPN220) ek alanlar
+        dogum_yeri:  document.getElementById('dogum_yeri').value,
+        uyruk:       document.getElementById('uyruk').value,
+        boy:         document.getElementById('boy').value,
+        kilo:        document.getElementById('kilo').value,
+        il_adi:      document.getElementById('il_adi').value,
+        ilce_adi:    document.getElementById('ilce_adi').value,
+        adres:       document.getElementById('adres').value,
     };
 
     try {

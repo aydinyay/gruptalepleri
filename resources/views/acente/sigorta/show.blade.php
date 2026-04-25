@@ -118,13 +118,20 @@
                 <div class="mb-3">
                     <label class="form-label">Mükerrer Poliçe No <span class="text-danger">*</span></label>
                     <input type="text" name="mukerrer_police" class="form-control" required
-                        placeholder="İptal için aynı sigortalıya ait aktif poliçe no">
-                    <div class="form-text text-muted">PAO-Net mükerrer poliçe kuralı gereğidir.</div>
+                        placeholder="Aynı sigortalıya ait aktif poliçe no">
+                    <div class="form-text text-muted">PAO-Net mükerrer poliçe kuralı — iptal için zorunludur.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">İptal Nedeni <span class="text-danger">*</span></label>
-                    <input type="text" name="iptal_nedeni" class="form-control" required maxlength="255"
-                        placeholder="İptal sebebi">
+                    <select name="iptal_nedeni" class="form-select" required>
+                        <option value="">— Seçiniz —</option>
+                        <option value="Mükerrer Poliçe">Mükerrer Poliçe</option>
+                        <option value="Farklı Şirket Mükerrer">Farklı Şirket Mükerrer</option>
+                        <option value="Tur İptali">Tur İptali</option>
+                        <option value="Vize Başvurusu Yapılamaması">Vize Başvurusu Yapılamaması</option>
+                        <option value="Vize Reddi">Vize Reddi</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-danger btn-sm">
                     <i class="fas fa-ban me-1"></i> İptal Talebi Gönder
