@@ -231,10 +231,10 @@
             @endif
 
             <div class="sig-cta-features">
-                <div class="sig-cta-feature"><i class="bi bi-check-circle-fill"></i> Poliçe anında e-posta ile iletilir</div>
+                <div class="sig-cta-feature"><i class="bi bi-envelope-fill"></i> Poliçe anında e-posta ile iletilir</div>
+                <div class="sig-cta-feature"><i class="bi bi-phone-fill"></i> PDF linki SMS ile de gönderilir</div>
                 <div class="sig-cta-feature"><i class="bi bi-check-circle-fill"></i> İptal hakkı (poliçe başlangıcına kadar)</div>
-                <div class="sig-cta-feature"><i class="bi bi-check-circle-fill"></i> Kredi kartı ile güvenli ödeme</div>
-                <div class="sig-cta-feature"><i class="bi bi-check-circle-fill"></i> Seyahat tarihine kadar satın alınabilir</div>
+                <div class="sig-cta-feature"><i class="bi bi-credit-card-fill"></i> Kredi kartı ile güvenli ödeme</div>
             </div>
         </div>
     </div>
@@ -322,7 +322,7 @@
                     <div class="sig-step-num">4</div>
                     <div class="sig-step-text">
                         <h4>Poliçeyi İndirin</h4>
-                        <p>E-postanıza gelen poliçe PDF'ini indirin. Seyahatte yanınızda bulundurun.</p>
+                        <p>Poliçeniz hem <strong>e-postanıza</strong> iletilir hem de PDF linki <strong>SMS ile telefonunuza</strong> gönderilir. Seyahatte yanınızda bulundurun.</p>
                     </div>
                 </div>
             </div>

@@ -74,7 +74,10 @@
     {{-- PDF Belgeler --}}
     @if($police->durum === 'tamamlandi')
     <div class="card shadow-sm mt-4">
-        <div class="card-header fw-bold bg-light py-2">Belgeler</div>
+        <div class="card-header fw-bold bg-light py-2 d-flex justify-content-between align-items-center">
+            <span>Belgeler</span>
+            <span class="text-muted small fw-normal"><i class="fas fa-envelope me-1"></i> E-posta gönderildi &nbsp;·&nbsp; <i class="fas fa-sms me-1"></i> SMS iletildi</span>
+        </div>
         <div class="card-body d-flex flex-wrap gap-2">
             @if($police->pdf_link)
             <a href="{{ route('acente.sigorta.belge', [$police, 'police']) }}" target="_blank" class="btn btn-outline-danger btn-sm">

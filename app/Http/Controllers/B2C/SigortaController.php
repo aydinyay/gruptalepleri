@@ -388,9 +388,9 @@ class SigortaController extends Controller
                 // SMS müşteriye (B2C kullanıcısı)
                 try {
                     $b2cUser  = auth('b2c')->user();
-                    $belgeUrl = route('b2c.sigorta.belge', ['police' => $policeF->id, 'tip' => 'police']);
                     if ($b2cUser && $b2cUser->phone) {
-                        $smsMsg = "Sigorta policeniz hazir! Police No: {$policeNo} | Indirmek icin: {$belgeUrl}";
+                        $shortUrl = (new \App\Services\ShortLinkService())->forPolice($policeF->id, 'b2c', 'police');
+                        $smsMsg   = "Sigorta policeniz hazir! Police No: {$policeNo} | PDF: {$shortUrl}";
                         (new \App\Services\SmsService())->send(null, 'b2c_musteri', $b2cUser->name, $b2cUser->phone, $smsMsg);
                     }
                 } catch (\Throwable) {}

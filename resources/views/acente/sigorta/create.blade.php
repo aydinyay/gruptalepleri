@@ -156,6 +156,7 @@
                         <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                         <h5>Poliçe Oluşturuldu!</h5>
                         <p class="text-muted">Poliçe No: <strong id="police-no-goster"></strong></p>
+                        <p class="text-muted small mb-3"><i class="fas fa-envelope me-1"></i> E-posta gönderildi &nbsp;·&nbsp; <i class="fas fa-sms me-1"></i> PDF linki SMS ile iletildi</p>
                         <a id="btn-detay-git" href="#" class="btn btn-primary">Poliçeyi Görüntüle</a>
                     </div>
                     <div id="police-hata" class="d-none">

@@ -407,9 +407,9 @@ class SigortaController extends Controller
 
                 // SMS müşteriye (acentenin telefonu)
                 try {
-                    $acente   = $this->acenteActor();
-                    $belgeUrl = route('acente.sigorta.belge', ['police' => $policeF->id, 'tip' => 'police']);
-                    $smsMsg   = "Sigorta policeniz hazir! Police No: {$policeNo} | Indirmek icin: {$belgeUrl}";
+                    $acente    = $this->acenteActor();
+                    $shortUrl  = (new \App\Services\ShortLinkService())->forPolice($policeF->id, 'b2b', 'police');
+                    $smsMsg    = "Sigorta policeniz hazir! Police No: {$policeNo} | PDF: {$shortUrl}";
                     (new \App\Services\SmsService())->send(null, 'acente', $acente->name, $acente->phone ?? '', $smsMsg);
                 } catch (\Throwable) {}
 

@@ -8,6 +8,11 @@
         <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
         <h2 class="fw-bold">Yurtdışı Seyahat Sigortası</h2>
         <p class="text-muted">TC kimlik veya pasaportnuzla anında sigorta poliçenizi oluşturun.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap mt-2">
+            <span class="badge bg-light text-dark border fw-normal"><i class="fas fa-envelope me-1 text-primary"></i> Poliçe e-posta ile iletilir</span>
+            <span class="badge bg-light text-dark border fw-normal"><i class="fas fa-sms me-1 text-success"></i> PDF linki SMS ile gönderilir</span>
+            <span class="badge bg-light text-dark border fw-normal"><i class="fas fa-lock me-1 text-secondary"></i> SSL güvenli ödeme</span>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0">

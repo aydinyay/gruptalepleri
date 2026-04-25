@@ -372,6 +372,9 @@ Route::middleware(['auth'])->get('/t/{gtpnr}', function (string $gtpnr) {
     return redirect()->route('admin.requests.show', $gtpnr);
 })->name('requests.short');
 
+// Kısa linkler (/s/{code})
+Route::get('/s/{code}', [\App\Http\Controllers\ShortLinkController::class, 'redirect'])->name('short.redirect');
+
 // Havalimanı & havayolu arama (giriş yapmış tüm roller)
 Route::middleware(['auth'])->group(function () {
     Route::get('/airports/search', [AirportController::class, 'search'])->name('airports.search');

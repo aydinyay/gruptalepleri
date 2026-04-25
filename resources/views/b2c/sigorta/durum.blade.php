@@ -12,7 +12,7 @@
             <div id="durum-isleniyor">
                 <div class="spinner-border text-primary mb-4" style="width:3.5rem;height:3.5rem"></div>
                 <h4 class="fw-bold">Ödemeniz Alındı</h4>
-                <p class="text-muted">Poliçeniz PAO-Net üzerinde işleniyor, lütfen bekleyin…</p>
+                <p class="text-muted">Poliçeniz hazırlanıyor. Tamamlandığında <strong>e-posta</strong> ve <strong>SMS</strong> ile bildirim alacaksınız.</p>
                 <div class="progress mt-3" style="height:6px">
                     <div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
                 </div>
@@ -83,7 +83,7 @@
             } else if (data.durum === 'hata' || n >= 40) {
                 clearInterval(iv);
                 document.getElementById('durum-isleniyor').innerHTML =
-                    '<i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i><h5>İşlem sürüyor</h5><p class="text-muted small">Poliçeniz sistemde işleniyor. E-posta adresinize bilgi gönderilecektir.</p>';
+                    '<i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i><h5>İşlem sürüyor</h5><p class="text-muted small">Poliçeniz sistemde işleniyor. Tamamlandığında <strong>e-posta</strong> ve <strong>SMS</strong> ile bildirim alacaksınız.</p>';
             }
         } catch (_) {}
     }, 3000);
