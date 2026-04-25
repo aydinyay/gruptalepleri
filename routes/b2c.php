@@ -9,7 +9,6 @@ use App\Http\Controllers\B2C\CartController;
 use App\Http\Controllers\B2C\CheckoutController;
 use App\Http\Controllers\B2C\OrderController;
 use App\Http\Controllers\B2C\SupplierApplyController;
-use App\Http\Controllers\B2C\OwnerDashboardController;
 use App\Http\Controllers\B2C\QuickLeadController;
 use App\Http\Controllers\B2C\GrChatController;
 use App\Http\Controllers\B2C\FlightRequestController;
@@ -465,6 +464,3 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
         Route::match(['get', 'post'], '/basarisiz', [\App\Http\Controllers\B2C\SigortaController::class, 'odemeBasarisiz'])->name('basarisiz');
     });
 
-// ── Sahip / Özel Yönetim (token korumalı) ─────────────────────────────────
-Route::get('/gizli/fiyat',           [OwnerDashboardController::class, 'pricing'])->name('b2c.owner.pricing');
-Route::post('/gizli/fiyat/{item}',   [OwnerDashboardController::class, 'pricingUpdate'])->name('b2c.owner.pricing.update');
