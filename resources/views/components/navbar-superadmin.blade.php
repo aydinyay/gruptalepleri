@@ -218,6 +218,38 @@
             ],
         ],
         [
+            'id' => 'sigorta',
+            'label' => 'Sigorta',
+            'icon' => 'fas fa-shield-halved',
+            'href' => route('admin.sigorta.index'),
+            'items' => [
+                [
+                    'label' => 'Tüm Poliçeler',
+                    'href'  => route('admin.sigorta.index'),
+                    'icon'  => 'fas fa-list',
+                    'keys'  => ['admin-sigorta-index'],
+                ],
+                [
+                    'label' => 'Kâr Raporu',
+                    'href'  => route('admin.sigorta.kar-raporu'),
+                    'icon'  => 'fas fa-chart-pie',
+                    'keys'  => ['admin-sigorta-kar'],
+                ],
+                [
+                    'label' => 'Markup Ayarları',
+                    'href'  => route('admin.sigorta.markup'),
+                    'icon'  => 'fas fa-sliders',
+                    'keys'  => ['admin-sigorta-markup'],
+                ],
+                [
+                    'label' => 'Toplu İşlemler',
+                    'href'  => route('admin.sigorta.batchler'),
+                    'icon'  => 'fas fa-layer-group',
+                    'keys'  => ['admin-sigorta-batch'],
+                ],
+            ],
+        ],
+        [
             'id' => 'finans',
             'label' => 'Finans',
             'icon' => 'fas fa-wallet',
