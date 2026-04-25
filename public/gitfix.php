@@ -229,6 +229,18 @@ if (($_GET['action'] ?? '') === 'log') {
     exit;
 }
 
+// Log temizleme
+if (($_GET['action'] ?? '') === 'clearlog') {
+    $which = $_GET['which'] ?? 'laravel';
+    $logFile = $which === 'cron'
+        ? "$webRoot/storage/logs/cron.log"
+        : "$webRoot/storage/logs/laravel.log";
+    file_put_contents($logFile, '');
+    header('Content-Type: text/plain');
+    echo "LOG_CLEARED: $logFile";
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");
