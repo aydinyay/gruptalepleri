@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Acente;
 
+use App\Http\Controllers\Acente\Concerns\ResolvesPreviewUser;
 use App\Http\Controllers\Controller;
 use App\Models\SigortaPolice;
 use App\Models\SigortaBatchJob;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 class SigortaController extends Controller
 {
+    use ResolvesPreviewUser;
     private function aktifMi(): bool
     {
         return (bool) DB::table('sigorta_ayarlar')->where('anahtar', 'aktif')->value('deger');
