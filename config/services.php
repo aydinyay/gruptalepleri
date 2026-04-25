@@ -83,4 +83,11 @@ return [
         'timeout' => (int) env('TCMB_EXCHANGE_RATE_TIMEOUT', 15),
     ],
 
+    'paonet' => [
+        'api_key'    => env('PAONET_API_KEY'),
+        'ws_url'     => env('PAONET_WS_URL', 'https://app.sigortambudur.com:909'),
+        'server_ip'  => env('PAONET_SERVER_IP'),
+        'timeout'    => (int) env('PAONET_TIMEOUT', 30),
+    ],
+
 ];

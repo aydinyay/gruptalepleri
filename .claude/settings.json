@@ -60,7 +60,15 @@
       "Bash(grep -rn \"\\\\$.*->due_date\\\\s*\\\\.\\\\s*\\\\|\\\\$.*->option_date\\\\s*\\\\.\" /c/gruptalepleri/resources/views --include=\"*.blade.php\")",
       "Bash(grep -A 15 'protected $casts' /c/gruptalepleri/app/Models/RequestPayment.php)",
       "Bash(grep -n \"ModulePaymentController\\\\|FinanceReceiptController\" /c/gruptalepleri/app/Http/Controllers/Acente/*.php)",
-      "Bash(grep -E \"\\\\.php$\")"
+      "Bash(grep -E \"\\\\.php$\")",
+      "Bash(php -l c:/gruptalepleri/app/Services/GrAiService.php)",
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/B2C/GrChatController.php)",
+      "Bash(php -l c:/gruptalepleri/app/Console/Commands/CheckPriceAlerts.php)",
+      "Bash(php -l c:/gruptalepleri/app/Services/EmailService.php)",
+      "Bash(php -l c:/gruptalepleri/app/Models/B2C/B2cPriceAlert.php)",
+      "Bash(php -l c:/gruptalepleri/app/Notifications/B2cResetPasswordNotification.php)",
+      "Bash(php -l c:/gruptalepleri/app/Models/B2C/B2cUser.php)",
+      "Bash(php -l c:/gruptalepleri/app/Http/Controllers/B2C/CustomerAuthController.php)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Güneş Yaylacıklılar\\.claude\\plans"

@@ -449,6 +449,13 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken
 
 
 
+// ── Seyahat Sigortası (B2C) ────────────────────────────────────────────────
+Route::get('/sigorta',                                    [\App\Http\Controllers\B2C\SigortaController::class, 'create'])->name('b2c.sigorta.create');
+Route::post('/sigorta/teklif',                            [\App\Http\Controllers\B2C\SigortaController::class, 'teklifAl'])->name('b2c.sigorta.teklif-al')->middleware('throttle:20,1');
+Route::post('/sigorta/police-uret',                       [\App\Http\Controllers\B2C\SigortaController::class, 'policeUret'])->name('b2c.sigorta.police-uret')->middleware('throttle:10,1');
+Route::get('/sigorta/police/{police}/durum',              [\App\Http\Controllers\B2C\SigortaController::class, 'policeUretimDurum'])->name('b2c.sigorta.durum');
+Route::get('/sigorta/police/{police}/belge/{tip}',        [\App\Http\Controllers\B2C\SigortaController::class, 'belge'])->name('b2c.sigorta.belge');
+
 // ── Sahip / Özel Yönetim (token korumalı) ─────────────────────────────────
 Route::get('/gizli/fiyat',           [OwnerDashboardController::class, 'pricing'])->name('b2c.owner.pricing');
 Route::post('/gizli/fiyat/{item}',   [OwnerDashboardController::class, 'pricingUpdate'])->name('b2c.owner.pricing.update');

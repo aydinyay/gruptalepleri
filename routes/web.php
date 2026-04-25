@@ -1247,6 +1247,38 @@ Route::get('/abonelik/misafir-iptal/{token}',       [\App\Http\Controllers\Email
 Route::post('/abonelik/misafir-iptal/{token}',      [\App\Http\Controllers\EmailAboneController::class, 'iptalOnayla'])->name('abone.iptal.onayla');
 Route::post('/abonelik/misafir-baslat/{token}',     [\App\Http\Controllers\EmailAboneController::class, 'baslatOnayla'])->name('abone.baslat.onayla');
 
+// ── Sigorta — Acente ─────────────────────────────────────────────────────────
+// (acente grubu içine değil, ayrı bir auth middleware grubuna alıyoruz çünkü
+//  acenteActor() metodu zaten içerde kullanıcı doğruluyor)
+Route::middleware(['auth'])->prefix('acente/sigorta')->name('acente.sigorta.')->group(function () {
+    Route::get('/',                                          [\App\Http\Controllers\Acente\SigortaController::class, 'index'])->name('index');
+    Route::get('/yeni',                                      [\App\Http\Controllers\Acente\SigortaController::class, 'create'])->name('create');
+    Route::post('/musteri-kontrol',                          [\App\Http\Controllers\Acente\SigortaController::class, 'musteriKontrol'])->name('musteri-kontrol');
+    Route::post('/teklif-al',                                [\App\Http\Controllers\Acente\SigortaController::class, 'teklifAl'])->name('teklif-al');
+    Route::post('/police-uret',                              [\App\Http\Controllers\Acente\SigortaController::class, 'policeUret'])->name('police-uret');
+    Route::get('/police/{police}',                           [\App\Http\Controllers\Acente\SigortaController::class, 'show'])->name('show');
+    Route::get('/police/{police}/uretim-durum',              [\App\Http\Controllers\Acente\SigortaController::class, 'policeUretimDurum'])->name('police-uretim-durum');
+    Route::get('/police/{police}/belge/{tip}',               [\App\Http\Controllers\Acente\SigortaController::class, 'belge'])->name('belge');
+    Route::delete('/police/{police}/iptal',                  [\App\Http\Controllers\Acente\SigortaController::class, 'iptal'])->name('iptal');
+    Route::get('/toplu',                                     [\App\Http\Controllers\Acente\SigortaController::class, 'toplu'])->name('toplu');
+    Route::post('/toplu/basla',                              [\App\Http\Controllers\Acente\SigortaController::class, 'topluBaslat'])->name('toplu-basla');
+    Route::post('/toplu/{batch}/poll',                       [\App\Http\Controllers\Acente\SigortaController::class, 'topluPoll'])->name('toplu-poll');
+    Route::post('/toplu/{batch}/retry',                      [\App\Http\Controllers\Acente\SigortaController::class, 'topluRetry'])->name('toplu-retry');
+    Route::get('/mbf',                                       [\App\Http\Controllers\Acente\SigortaController::class, 'mbf'])->name('mbf');
+    Route::post('/mbf',                                      [\App\Http\Controllers\Acente\SigortaController::class, 'mbfGonder'])->name('mbf-gonder');
+});
+
+// ── Sigorta — Admin / Superadmin ─────────────────────────────────────────────
+Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin/sigorta')->name('admin.sigorta.')->group(function () {
+    Route::get('/',                          [\App\Http\Controllers\Admin\SigortaController::class, 'index'])->name('index');
+    Route::get('/police/{police}',           [\App\Http\Controllers\Admin\SigortaController::class, 'show'])->name('show');
+    Route::get('/markup',                    [\App\Http\Controllers\Admin\SigortaController::class, 'markup'])->name('markup');
+    Route::patch('/markup',                  [\App\Http\Controllers\Admin\SigortaController::class, 'markupGuncelle'])->name('markup-guncelle');
+    Route::get('/kar-raporu',                [\App\Http\Controllers\Admin\SigortaController::class, 'karRaporu'])->name('kar-raporu');
+    Route::get('/batchler',                  [\App\Http\Controllers\Admin\SigortaController::class, 'batchler'])->name('batchler');
+    Route::get('/police/{police}/belge/{tip}',[\App\Http\Controllers\Admin\SigortaController::class, 'belge'])->name('belge');
+});
+
 require __DIR__.'/auth.php';
 
 // B2C route'ları web.php'den SONRA yüklenir — sıra sorunu bu şekilde çözülür

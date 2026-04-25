@@ -180,14 +180,18 @@
       "WebFetch(domain:www.red-gate.com)",
       "WebFetch(domain:www.surfsidemedia.in)",
       "WebFetch(domain:www.gruptalepleri.com)",
-      "Bash(grep -n '^\\\\s*$table' c:/gruptalepleri/database/migrations/2026_04_07_100300_create_b2c_orders_table.php)"
+      "Bash(grep -n '^\\\\s*$table' c:/gruptalepleri/database/migrations/2026_04_07_100300_create_b2c_orders_table.php)",
+      "Bash(grep -n \"^Route::get.*'/'\\\\\\\\|welcome\\\\|home\\\\|index\" c:/gruptalepleri/routes/web.php)",
+      "Bash(curl -sf \"https://gruptalepleri.com/gitfix.php?t=grt2026fix&action=log\")",
+      "Bash(curl -s -X POST https://gruptalepleri.com/gitfix.php -F t=grt2026fix -F p=routes/web.php -F 'c=</tmp/webphp_b64.txt')"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
       "c:\\acentapazari\\.github\\workflows",
       "c:\\acentapazari\\src",
       "c:\\acentapazari\\api",
-      "c:\\acentapazari"
+      "c:\\acentapazari",
+      "\\tmp"
     ]
   }
 }
