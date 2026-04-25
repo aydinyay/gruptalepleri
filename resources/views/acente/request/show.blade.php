@@ -658,6 +658,37 @@
              ═══════════════════════════════════ --}}
         <div class="col-12 col-lg-5">
 
+            {{-- ── SİGORTA CROSS-SELL ── --}}
+            @php
+                $segmentler = $talep->segments ?? collect();
+                $yurtdisiSeg = $segmentler->first(fn($s) =>
+                    $s->to_iata && !in_array(substr($s->to_iata,0,1), ['L','E']) &&
+                    !in_array($s->to_iata, ['IST','SAW','ESB','ADB','AYT','BJV','GZT','TZX','SZF','KYA','VAN','ERZ'])
+                );
+            @endphp
+            <div class="card shadow-sm mb-3" style="border-left:3px solid #0d9488;">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                        <div>
+                            <div class="fw-bold" style="font-size:.88rem;color:#065f46;">
+                                <i class="fas fa-shield-alt me-1" style="color:#0d9488;"></i>Seyahat Sigortası
+                            </div>
+                            <div class="text-muted" style="font-size:.78rem;">
+                                {{ $talep->pax_total }} yolcu · Tekil veya toplu poliçe · Anında PDF
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <a href="{{ route('acente.sigorta.create') }}" class="btn btn-sm" style="background:#0d9488;color:#fff;font-size:.78rem;">
+                                Tekil Poliçe
+                            </a>
+                            <a href="{{ route('acente.sigorta.toplu') }}" class="btn btn-sm btn-outline-secondary" style="font-size:.78rem;">
+                                Toplu ({{ $talep->pax_total }} kişi)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- ── MUHASEBE ── --}}
             @if($talep->offers->count() > 0)
             @php

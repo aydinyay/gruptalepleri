@@ -258,6 +258,16 @@
                 <div class="chip-label">Toplam</div>
             </div>
         </div>
+        {{-- Sigorta Poliçelerim --}}
+        <a href="{{ route('acente.sigorta.index') }}" class="stat-chip text-decoration-none" style="--chip-color:#0d9488;" title="Sigorta poliçelerim">
+            <div class="chip-icon-wrap" style="background:#0d948820;color:#0d9488;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <div class="chip-num" style="color:#0d9488;">🛡</div>
+                <div class="chip-label">Poliçelerim</div>
+            </div>
+        </a>
         {{-- Durum kartları --}}
         @foreach(['beklemede','islemde','fiyatlandirildi','depozitoda','biletlendi','iptal'] as $sk)
         @php

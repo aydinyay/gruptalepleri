@@ -410,6 +410,18 @@
                             <span>Yeni Talep</span>
                         </a>
                     </div>
+                    <div class="col-6">
+                        <a href="{{ route('admin.sigorta.index') }}" class="quick-btn">
+                            <i class="fas fa-shield-alt" style="color:#0d9488;"></i>
+                            <span>Sigorta Poliçeleri</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ route('admin.sigorta.kar-raporu') }}" class="quick-btn">
+                            <i class="fas fa-chart-pie" style="color:#6366f1;"></i>
+                            <span>Sigorta Kâr Raporu</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
