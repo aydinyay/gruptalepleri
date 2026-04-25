@@ -175,5 +175,43 @@
   "price_get": "Get Price",
   "duration_hours": "hrs",
   "duration_multi_day": "Multi-day",
-  "price_from_label": "Starting from"
+  "price_from_label": "Starting from",
+
+  "email_hello": "Hello",
+  "email_footer_copyright": "GrupRezervasyonlari.com · All rights reserved.",
+  "email_auto_footer": "This email was sent automatically by GrupRezervasyonları.",
+
+  "email_subject_flight_taken": "✅ Your Request Received —",
+  "email_flight_taken_title": "Your Request Has Been Received!",
+  "email_flight_taken_sub": "We will get back to you as soon as possible.",
+  "email_flight_taken_body": "Your group flight request has been successfully submitted. Our team will review your request and contact you within 2–4 hours.",
+  "email_ref_label": "Request Reference No",
+  "email_track_btn": "Track My Request →",
+  "email_track_note": "Keep this link safe — you will use it to check the status of your request, review offers and make payment.",
+
+  "email_subject_quote_ready": "💸 Your Quote Is Ready —",
+  "email_quote_ready_title": "Your Quote Is Ready!",
+  "email_quote_ready_body": "A price quote has been prepared for your group flight request. Click the button below to review and accept the offer.",
+  "email_quote_review_btn": "Review & Accept Offer →",
+  "email_quote_verify_note": "Click the link and verify with your phone number or email address to accept the offer.",
+
+  "email_subject_transfer_confirmed": "✅ Your Transfer Booking Confirmed —",
+  "email_transfer_confirmed_title": "Your Transfer Booking Is Confirmed",
+  "email_transfer_module_label": "Transfer Booking",
+  "email_transfer_confirmed_body": "Your transfer booking has been confirmed. Please find your booking details below.",
+  "email_booking_details": "Booking Details",
+  "email_booking_ref": "Booking Reference",
+  "email_airport_label": "Airport",
+  "email_zone_hotel": "Area / Hotel",
+  "email_direction_label": "Direction",
+  "email_datetime_label": "Date / Time",
+  "email_vehicle_label": "Vehicle",
+  "email_pax_label": "Passengers",
+  "email_pax_unit": "people",
+  "email_total_amount": "Total Amount",
+  "email_view_booking_btn": "View Booking",
+  "email_safe_travels": "Wishing you a safe and enjoyable journey.",
+
+  "sms_flight_taken": "Your group flight request has been received. Reference: :gtpnr. Track: :url",
+  "sms_transfer_confirmed": "Your transfer booking is confirmed. Ref: :ref. Details: :url"
 }

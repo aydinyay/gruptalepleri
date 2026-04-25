@@ -24,6 +24,7 @@ class TransferBooking extends Model
     protected $fillable = [
         'booking_ref',
         'source',
+        'locale',
         'b2c_user_id',
         'b2c_contact_name',
         'b2c_contact_phone',

@@ -175,5 +175,43 @@
   "price_get": "Fiyat Al",
   "duration_hours": "saat",
   "duration_multi_day": "Birden fazla gün",
-  "price_from_label": "Başlangıç fiyatı"
+  "price_from_label": "Başlangıç fiyatı",
+
+  "email_hello": "Merhaba",
+  "email_footer_copyright": "GrupRezervasyonlari.com · Her hakkı saklıdır.",
+  "email_auto_footer": "Bu e-posta GrupRezervasyonları tarafından otomatik olarak gönderilmiştir.",
+
+  "email_subject_flight_taken": "✅ Talebiniz Alındı —",
+  "email_flight_taken_title": "Talebiniz Alındı!",
+  "email_flight_taken_sub": "En kısa sürede size geri dönüyoruz.",
+  "email_flight_taken_body": "Grup uçuş talebiniz başarıyla alındı. Ekibimiz talebinizi inceleyerek 2–4 saat içinde sizinle iletişime geçecektir.",
+  "email_ref_label": "Talep Referans No",
+  "email_track_btn": "Talebimi Takip Et →",
+  "email_track_note": "Bu linki kaybetmeyin — talebinizin durumunu görmek, teklifleri incelemek ve ödeme yapmak için kullanacaksınız.",
+
+  "email_subject_quote_ready": "💸 Fiyat Teklifiniz Hazır —",
+  "email_quote_ready_title": "Fiyat Teklifiniz Hazır!",
+  "email_quote_ready_body": "numaralı grup uçuş talebiniz için fiyat teklifi hazırlandı. Teklifi inceleyip kabul etmek için aşağıdaki butona tıklayın.",
+  "email_quote_review_btn": "Teklifi İncele ve Kabul Et →",
+  "email_quote_verify_note": "Teklifinizi kabul etmek için linke tıklayın ve telefon numaranız veya e-posta adresinizle doğrulama yapın.",
+
+  "email_subject_transfer_confirmed": "✅ Transfer Rezervasyonunuz Onaylandı —",
+  "email_transfer_confirmed_title": "Transfer Rezervasyonunuz Onaylandı",
+  "email_transfer_module_label": "Transfer Rezervasyonu",
+  "email_transfer_confirmed_body": "Transfer rezervasyonunuz onaylandı. Aşağıda rezervasyon detaylarınızı bulabilirsiniz.",
+  "email_booking_details": "Rezervasyon Detayları",
+  "email_booking_ref": "Rezervasyon Kodu",
+  "email_airport_label": "Havalimanı",
+  "email_zone_hotel": "Bölge / Otel",
+  "email_direction_label": "Yön",
+  "email_datetime_label": "Tarih / Saat",
+  "email_vehicle_label": "Araç",
+  "email_pax_label": "Yolcu",
+  "email_pax_unit": "kişi",
+  "email_total_amount": "Toplam Tutar",
+  "email_view_booking_btn": "Rezervasyonu Görüntüle",
+  "email_safe_travels": "Seyahatinizde başarılar dileriz.",
+
+  "sms_flight_taken": "Grup ucus talebiniz alindi. Referans: :gtpnr. Takip: :url",
+  "sms_transfer_confirmed": "Transfer rezervasyonunuz onaylandi. Ref: :ref. Detay: :url"
 }

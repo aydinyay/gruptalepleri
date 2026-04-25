@@ -46,10 +46,13 @@ class FlightRequestController extends Controller
 
         $gtpnr = $gtpnrService->generate('group_flight');
 
+        $userLocale = app()->getLocale();
+
         $talep = TalepModel::create([
             'gtpnr'          => $gtpnr,
             'user_id'        => null,
             'source_channel' => 'b2c',
+            'locale'         => $userLocale,
             'type'           => 'group_flight',
             'status'         => 'beklemede',
             'agency_name'    => mb_strtoupper($validated['contact_name'], 'UTF-8'),
@@ -109,11 +112,14 @@ class FlightRequestController extends Controller
         (new SmsService())->sendByEvent('new_request', $talep->id, $smsMsg);
         (new EmailService())->yeniTalep($talep->id, $talep->gtpnr, $talep->agency_name . ' [B2C]', $talep->pax_total, $adminUrl);
 
-        // Tüketiciye onay + takip linki emaili
-        (new EmailService())->b2cTalepOnay($talep->id, $gtpnr, $validated['contact_name'], $validated['email'], $trackUrl);
+        // Tüketiciye onay + takip linki emaili (kullanıcının dili)
+        (new EmailService())->b2cTalepOnay($talep->id, $gtpnr, $validated['contact_name'], $validated['email'], $trackUrl, $userLocale);
 
-        // Tüketiciye SMS
-        $consumerSms = "Grup ucus talebiniz alindi. Referans: {$gtpnr}. Takip: {$trackUrl}";
+        // Tüketiciye SMS (kullanıcının dili)
+        $prev = app()->getLocale();
+        app()->setLocale($userLocale);
+        $consumerSms = __('sms_flight_taken', ['gtpnr' => $gtpnr, 'url' => $trackUrl]);
+        app()->setLocale($prev);
         (new SmsService())->send($talep->id, 'b2c_musteri', $validated['contact_name'], $validated['phone'], $consumerSms);
 
         return redirect()->route('b2c.flight.confirm', $talep->gtpnr);

@@ -302,23 +302,45 @@ if (($_GET['action'] ?? '') === 'translate') {
     exit;
 }
 
-// Katalog ürünleri çeviri — ?action=translate-catalog&lang=ar (veya all)
+// Katalog ürünleri çeviri — tek ürün, AJAX ile döngülenir
+// ?action=translate-catalog&id=5&lang=all  → bir ürünü çevirir, JSON döner
+// ?action=translate-catalog-list            → çevrilmemiş ID listesi döner
+if (($_GET['action'] ?? '') === 'translate-catalog-list') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    header('Content-Type: application/json');
+    $force = isset($_GET['force']);
+    $items = \Illuminate\Support\Facades\DB::table('catalog_items')
+        ->where('is_active', true)
+        ->select('id', 'title', 'title_translations')
+        ->get();
+    $ids = $items->filter(function($it) use ($force) {
+        if ($force) return true;
+        $t = json_decode($it->title_translations ?? '{}', true);
+        return empty($t['en']);
+    })->values()->map(fn($it) => ['id' => $it->id, 'title' => $it->title]);
+    echo json_encode(['total' => $ids->count(), 'ids' => $ids->toArray()]);
+    exit;
+}
+
 if (($_GET['action'] ?? '') === 'translate-catalog') {
     define('LARAVEL_START', microtime(true));
     require $webRoot . '/vendor/autoload.php';
     $app = require_once $webRoot . '/bootstrap/app.php';
     $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
     $kernel->bootstrap();
-    header('Content-Type: text/plain; charset=utf-8');
+    header('Content-Type: application/json');
     $lang  = trim($_GET['lang'] ?? 'all');
     $force = isset($_GET['force']);
     $id    = isset($_GET['id']) ? (int)$_GET['id'] : null;
-    $args  = ['--force' => $force];
+    if (! $id) { echo json_encode(['error' => 'id gerekli']); exit; }
+    $args  = ['--force' => true, '--id' => $id];
     if ($lang !== 'all') $args['--locale'] = $lang;
-    if ($id) $args['--id'] = $id;
     $exitCode = \Illuminate\Support\Facades\Artisan::call('gr:translate-catalog', $args);
-    echo \Illuminate\Support\Facades\Artisan::output();
-    echo "EXIT:{$exitCode}\n";
+    $output   = \Illuminate\Support\Facades\Artisan::output();
+    echo json_encode(['exit' => $exitCode, 'output' => $output, 'id' => $id]);
     exit;
 }
 

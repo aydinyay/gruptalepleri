@@ -69,6 +69,7 @@ class Request extends Model
         'gtpnr',
         'user_id',
         'source_channel',
+        'locale',
         'type',
         'status',
         'aktif_adim',

@@ -135,43 +135,50 @@ class EmailService
     /**
      * B2C grup uçuş talebi oluşturuldu — tüketiciye onay + takip linki emaili.
      */
-    public function b2cTalepOnay(int $requestId, string $gtpnr, string $contactName, string $email, string $trackUrl): void
+    public function b2cTalepOnay(int $requestId, string $gtpnr, string $contactName, string $email, string $trackUrl, string $locale = 'tr'): void
     {
         if (! SistemAyar::emailEnabled()) return;
 
-        $subject = "✅ Talebiniz Alındı — {$gtpnr}";
+        $prev = app()->getLocale();
+        app()->setLocale($locale);
+
+        $hello   = __('email_hello');
+        $title   = __('email_flight_taken_title');
+        $sub     = __('email_flight_taken_sub');
+        $body    = __('email_flight_taken_body');
+        $refLbl  = __('email_ref_label');
+        $trackBtn= __('email_track_btn');
+        $note    = __('email_track_note');
+        $footer  = __('email_footer_copyright');
+        $subject = __('email_subject_flight_taken') . " {$gtpnr}";
+
+        app()->setLocale($prev);
+
+        $dir = in_array($locale, ['ar', 'fa']) ? 'rtl' : 'ltr';
         $html = <<<HTML
-<!DOCTYPE html><html lang="tr"><body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',sans-serif;">
+<!DOCTYPE html><html lang="{$locale}" dir="{$dir}"><body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
   <tr><td style="background:linear-gradient(135deg,#0f2444,#1a3c6b);padding:32px 36px 28px;text-align:center;">
     <div style="font-size:2.5rem;margin-bottom:8px;">✈️</div>
-    <h1 style="color:#fff;font-size:1.4rem;margin:0 0 6px;">Talebiniz Alındı!</h1>
-    <p style="color:rgba(255,255,255,.75);margin:0;font-size:.88rem;">En kısa sürede size geri dönüyoruz.</p>
+    <h1 style="color:#fff;font-size:1.4rem;margin:0 0 6px;">{$title}</h1>
+    <p style="color:rgba(255,255,255,.75);margin:0;font-size:.88rem;">{$sub}</p>
   </td></tr>
   <tr><td style="padding:28px 36px;">
-    <p style="font-size:.95rem;color:#1a202c;margin:0 0 20px;">Merhaba <strong>{$contactName}</strong>,</p>
-    <p style="font-size:.88rem;color:#4a5568;line-height:1.6;margin:0 0 24px;">
-      Grup uçuş talebiniz başarıyla alındı. Ekibimiz talebinizi inceleyerek <strong>2–4 saat içinde</strong> sizinle iletişime geçecektir.
-    </p>
+    <p style="font-size:.95rem;color:#1a202c;margin:0 0 20px;">{$hello} <strong>{$contactName}</strong>,</p>
+    <p style="font-size:.88rem;color:#4a5568;line-height:1.6;margin:0 0 24px;">{$body}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4ff;border-radius:10px;margin-bottom:24px;">
       <tr><td style="padding:16px 18px;">
-        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7a99;margin-bottom:4px;">Talep Referans No</div>
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7a99;margin-bottom:4px;">{$refLbl}</div>
         <div style="font-size:1.3rem;font-weight:800;color:#1a3c6b;letter-spacing:2px;font-family:monospace;">{$gtpnr}</div>
       </td></tr>
     </table>
     <div style="text-align:center;margin-bottom:28px;">
-      <a href="{$trackUrl}" style="display:inline-block;background:#FF5533;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:700;font-size:.95rem;">
-        Talebimi Takip Et →
-      </a>
+      <a href="{$trackUrl}" style="display:inline-block;background:#FF5533;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:700;font-size:.95rem;">{$trackBtn}</a>
     </div>
-    <p style="font-size:.8rem;color:#718096;line-height:1.6;margin:0;">
-      Bu linki kaybetmeyin — talebinizin durumunu görmek, teklifleri incelemek ve ödeme yapmak için kullanacaksınız.
-    </p>
+    <p style="font-size:.8rem;color:#718096;line-height:1.6;margin:0;">{$note}</p>
   </td></tr>
-  <tr><td style="background:#f8faff;padding:16px 36px;text-align:center;font-size:.75rem;color:#a0aec0;border-top:1px solid #e2e8f0;">
-    GrupRezervasyonlari.com · Her hakkı saklıdır.
-  </td></tr>
+  <tr><td style="background:#f8faff;padding:16px 36px;text-align:center;font-size:.75rem;color:#a0aec0;border-top:1px solid #e2e8f0;">{$footer}</td></tr>
 </table></td></tr></table></body></html>
 HTML;
 
@@ -200,37 +207,42 @@ HTML;
     /**
      * B2C talep için admin teklif ekledi — tüketiciye bildirim emaili.
      */
-    public function b2cTeklifHazir(int $requestId, string $gtpnr, string $contactName, string $email, string $airline, string $trackUrl): void
+    public function b2cTeklifHazir(int $requestId, string $gtpnr, string $contactName, string $email, string $airline, string $trackUrl, string $locale = 'tr'): void
     {
         if (! SistemAyar::emailEnabled()) return;
 
-        $subject = "💸 Fiyat Teklifiniz Hazır — {$gtpnr}";
+        $prev = app()->getLocale();
+        app()->setLocale($locale);
+
+        $hello      = __('email_hello');
+        $title      = __('email_quote_ready_title');
+        $body       = "<strong>{$gtpnr}</strong> " . __('email_quote_ready_body');
+        $reviewBtn  = __('email_quote_review_btn');
+        $verifyNote = __('email_quote_verify_note');
+        $footer     = __('email_footer_copyright');
+        $subject    = __('email_subject_quote_ready') . " {$gtpnr}";
+
+        app()->setLocale($prev);
+
+        $dir = in_array($locale, ['ar', 'fa']) ? 'rtl' : 'ltr';
         $html = <<<HTML
-<!DOCTYPE html><html lang="tr"><body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',sans-serif;">
+<!DOCTYPE html><html lang="{$locale}" dir="{$dir}"><body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
   <tr><td style="background:linear-gradient(135deg,#166534,#22c55e);padding:32px 36px 28px;text-align:center;">
     <div style="font-size:2.5rem;margin-bottom:8px;">💸</div>
-    <h1 style="color:#fff;font-size:1.4rem;margin:0 0 6px;">Fiyat Teklifiniz Hazır!</h1>
-    <p style="color:rgba(255,255,255,.75);margin:0;font-size:.88rem;">{$airline} için fiyatlandırma tamamlandı.</p>
+    <h1 style="color:#fff;font-size:1.4rem;margin:0 0 6px;">{$title}</h1>
+    <p style="color:rgba(255,255,255,.75);margin:0;font-size:.88rem;">{$airline}</p>
   </td></tr>
   <tr><td style="padding:28px 36px;">
-    <p style="font-size:.95rem;color:#1a202c;margin:0 0 16px;">Merhaba <strong>{$contactName}</strong>,</p>
-    <p style="font-size:.88rem;color:#4a5568;line-height:1.6;margin:0 0 24px;">
-      <strong>{$gtpnr}</strong> numaralı grup uçuş talebiniz için fiyat teklifi hazırlandı. Teklifi inceleyip kabul etmek için aşağıdaki butona tıklayın.
-    </p>
+    <p style="font-size:.95rem;color:#1a202c;margin:0 0 16px;">{$hello} <strong>{$contactName}</strong>,</p>
+    <p style="font-size:.88rem;color:#4a5568;line-height:1.6;margin:0 0 24px;">{$body}</p>
     <div style="text-align:center;margin-bottom:28px;">
-      <a href="{$trackUrl}" style="display:inline-block;background:#FF5533;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:1rem;">
-        Teklifi İncele ve Kabul Et →
-      </a>
+      <a href="{$trackUrl}" style="display:inline-block;background:#FF5533;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:1rem;">{$reviewBtn}</a>
     </div>
-    <p style="font-size:.8rem;color:#718096;line-height:1.6;margin:0;">
-      Teklifinizi kabul etmek için linke tıklayın ve telefon numaranız veya e-posta adresinizle doğrulama yapın.
-    </p>
+    <p style="font-size:.8rem;color:#718096;line-height:1.6;margin:0;">{$verifyNote}</p>
   </td></tr>
-  <tr><td style="background:#f8faff;padding:16px 36px;text-align:center;font-size:.75rem;color:#a0aec0;border-top:1px solid #e2e8f0;">
-    GrupRezervasyonlari.com · Her hakkı saklıdır.
-  </td></tr>
+  <tr><td style="background:#f8faff;padding:16px 36px;text-align:center;font-size:.75rem;color:#a0aec0;border-top:1px solid #e2e8f0;">{$footer}</td></tr>
 </table></td></tr></table></body></html>
 HTML;
 

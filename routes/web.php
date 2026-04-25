@@ -865,6 +865,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::post('/katalog/{item}/one-cikan', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogToggleFeatured'])->name('catalog.toggle-featured');
         Route::post('/katalog/{item}/vitrin',    [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogToggleHero'])->name('catalog.toggle-hero');
         Route::post('/katalog/{item}/etiket',   [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'catalogSetBadge'])->name('catalog.set-badge');
+        Route::get('/katalog/toplu-ceviri', fn() => view('superadmin.b2c.catalog-translate'))->name('catalog.bulk-translate');
         Route::get('/katalog/{item}/seanslar',  [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionIndex'])->name('sessions.index');
         Route::post('/katalog/{item}/seanslar', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionStore'])->name('sessions.store');
         Route::post('/katalog/{item}/seanslar/tekrarla', [\App\Http\Controllers\Superadmin\B2cCatalogController::class, 'sessionBulkStore'])->name('sessions.bulk');

@@ -160,6 +160,7 @@ class TransferController extends Controller
                 'agency_user_id'            => null,
                 'created_by_user_id'        => null,
                 'b2c_user_id'               => $b2cUserId,
+                'locale'                    => app()->getLocale(),
                 'b2c_contact_name'          => $validated['contact_name'],
                 'b2c_contact_phone'         => $validated['contact_phone'],
                 'b2c_contact_email'         => $validated['contact_email'],

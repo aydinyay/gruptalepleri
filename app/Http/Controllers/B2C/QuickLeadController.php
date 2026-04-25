@@ -27,6 +27,7 @@ class QuickLeadController extends Controller
             'email'        => $validated['email'] ?? null,
             'service_type' => $validated['service_type'] ?? null,
             'notes'        => $validated['notes'] ?? null,
+            'locale'       => app()->getLocale(),
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);

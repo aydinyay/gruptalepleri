@@ -44,17 +44,25 @@ class B2cTransferNotificationService
             return;
         }
 
+        $locale   = $booking->locale ?? 'tr';
+        $prev     = app()->getLocale();
+        app()->setLocale($locale);
+
         $snap         = $booking->price_snapshot_json ?? [];
         $snapData     = $snap['snapshot'] ?? [];
         $airportName  = ($snapData['airport']['code'] ?? '') . ' — ' . ($snapData['airport']['name'] ?? $booking->airport?->name ?? '');
         $zoneName     = $snapData['zone']['name'] ?? $booking->zone?->name ?? '';
         $vehicleName  = $booking->vehicleType?->name ?? 'Transfer Aracı';
         $pickupAt     = $booking->pickup_at->format('d.m.Y H:i');
-        $dirLabel     = ['ARR' => 'Varış', 'DEP' => 'Gidiş', 'BOTH' => 'Gidiş-Dönüş'][$booking->direction] ?? $booking->direction;
+        $dirLabel     = ['ARR' => __('email_direction_label') . ': →🏨', 'DEP' => __('email_direction_label') . ': ✈', 'BOTH' => __('email_direction_label') . ': ↔'][$booking->direction] ?? $booking->direction;
         $amountFmt    = number_format((float) $booking->total_amount, 0, ',', '.') . ' ' . $booking->currency;
         $bookingUrl   = route('b2c.transfer.booking', ['bookingRef' => $booking->booking_ref]);
+        $subject      = __('email_subject_transfer_confirmed') . ' ' . $booking->booking_ref;
+
+        app()->setLocale($prev);
 
         $html = $this->buildCustomerEmailHtml(
+            locale:       $locale,
             contactName:  $booking->b2c_contact_name ?? '',
             bookingRef:   $booking->booking_ref,
             airportName:  $airportName,
@@ -66,8 +74,6 @@ class B2cTransferNotificationService
             amount:       $amountFmt,
             bookingUrl:   $bookingUrl,
         );
-
-        $subject = '✅ Transfer Rezervasyonunuz Onaylandı — ' . $booking->booking_ref;
 
         $status = 'sent';
         try {
@@ -170,6 +176,7 @@ class B2cTransferNotificationService
     // ── HTML Şablonları ────────────────────────────────────────────────────
 
     private function buildCustomerEmailHtml(
+        string $locale,
         string $contactName,
         string $bookingRef,
         string $airportName,
@@ -181,39 +188,62 @@ class B2cTransferNotificationService
         string $amount,
         string $bookingUrl,
     ): string {
+        $prev = app()->getLocale();
+        app()->setLocale($locale);
+
+        $hello      = __('email_hello');
+        $title      = __('email_transfer_confirmed_title');
+        $moduleLbl  = __('email_transfer_module_label');
+        $body       = __('email_transfer_confirmed_body');
+        $detailsLbl = __('email_booking_details');
+        $refLbl     = __('email_booking_ref');
+        $airportLbl = __('email_airport_label');
+        $zoneLbl    = __('email_zone_hotel');
+        $dirLbl     = __('email_direction_label');
+        $dateLbl    = __('email_datetime_label');
+        $vehicleLbl = __('email_vehicle_label');
+        $paxLbl     = __('email_pax_label');
+        $paxUnit    = __('email_pax_unit');
+        $totalLbl   = __('email_total_amount');
+        $viewBtn    = __('email_view_booking_btn');
+        $safeTravels= __('email_safe_travels');
+        $autoFooter = __('email_auto_footer');
+
+        app()->setLocale($prev);
+
+        $dir = in_array($locale, ['ar', 'fa']) ? 'rtl' : 'ltr';
+
         return <<<HTML
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="{$locale}" dir="{$dir}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f4f7fb;font-family:'Segoe UI',Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
 <table width="580" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.09);">
   <tr><td style="background:linear-gradient(135deg,#0f2444,#1a3c6b);padding:28px 36px;text-align:center;">
     <p style="margin:0;color:#fff;font-size:1.4rem;font-weight:800;letter-spacing:.5px;">GrupRezervasyonları</p>
-    <p style="margin:6px 0 0;color:rgba(255,255,255,.7);font-size:.9rem;">Transfer Rezervasyonu</p>
+    <p style="margin:6px 0 0;color:rgba(255,255,255,.7);font-size:.9rem;">{$moduleLbl}</p>
   </td></tr>
   <tr><td style="padding:32px 36px;">
-    <p style="margin:0 0 8px;font-size:1.1rem;font-weight:700;color:#1e293b;">Merhaba, {$contactName}!</p>
-    <p style="margin:0 0 24px;color:#64748b;line-height:1.6;">Transfer rezervasyonunuz onaylandı. Aşağıda rezervasyon detaylarınızı bulabilirsiniz.</p>
+    <p style="margin:0 0 8px;font-size:1.1rem;font-weight:700;color:#1e293b;">{$hello}, {$contactName}!</p>
+    <p style="margin:0 0 24px;color:#64748b;line-height:1.6;">{$body}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;font-size:.9rem;margin-bottom:24px;">
-      <tr style="background:#f8faff;"><td colspan="2" style="padding:12px 16px;font-weight:700;color:#1a3c6b;font-size:.85rem;letter-spacing:.5px;text-transform:uppercase;">Rezervasyon Detayları</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;width:40%;">Rezervasyon Kodu</td><td style="padding:10px 16px;font-weight:700;color:#1a3c6b;font-size:1rem;">{$bookingRef}</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;background:#fafafa;"><td style="padding:10px 16px;color:#64748b;">Havalimanı</td><td style="padding:10px 16px;font-weight:600;">{$airportName}</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;">Bölge / Otel</td><td style="padding:10px 16px;font-weight:600;">{$zoneName}</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;background:#fafafa;"><td style="padding:10px 16px;color:#64748b;">Yön</td><td style="padding:10px 16px;">{$direction}</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;">Tarih / Saat</td><td style="padding:10px 16px;font-weight:600;">{$pickupAt}</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;background:#fafafa;"><td style="padding:10px 16px;color:#64748b;">Araç</td><td style="padding:10px 16px;">{$vehicleName}</td></tr>
-      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;">Yolcu</td><td style="padding:10px 16px;">{$pax} kişi</td></tr>
-      <tr style="border-top:2px solid #1a3c6b;"><td style="padding:12px 16px;font-weight:700;color:#1a3c6b;">Toplam Tutar</td><td style="padding:12px 16px;font-weight:800;color:#FF5533;font-size:1.1rem;">{$amount}</td></tr>
+      <tr style="background:#f8faff;"><td colspan="2" style="padding:12px 16px;font-weight:700;color:#1a3c6b;font-size:.85rem;letter-spacing:.5px;text-transform:uppercase;">{$detailsLbl}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;width:40%;">{$refLbl}</td><td style="padding:10px 16px;font-weight:700;color:#1a3c6b;font-size:1rem;">{$bookingRef}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;background:#fafafa;"><td style="padding:10px 16px;color:#64748b;">{$airportLbl}</td><td style="padding:10px 16px;font-weight:600;">{$airportName}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;">{$zoneLbl}</td><td style="padding:10px 16px;font-weight:600;">{$zoneName}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;background:#fafafa;"><td style="padding:10px 16px;color:#64748b;">{$dirLbl}</td><td style="padding:10px 16px;">{$direction}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;">{$dateLbl}</td><td style="padding:10px 16px;font-weight:600;">{$pickupAt}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;background:#fafafa;"><td style="padding:10px 16px;color:#64748b;">{$vehicleLbl}</td><td style="padding:10px 16px;">{$vehicleName}</td></tr>
+      <tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 16px;color:#64748b;">{$paxLbl}</td><td style="padding:10px 16px;">{$pax} {$paxUnit}</td></tr>
+      <tr style="border-top:2px solid #1a3c6b;"><td style="padding:12px 16px;font-weight:700;color:#1a3c6b;">{$totalLbl}</td><td style="padding:12px 16px;font-weight:800;color:#FF5533;font-size:1.1rem;">{$amount}</td></tr>
     </table>
     <p style="text-align:center;margin:0 0 8px;">
-      <a href="{$bookingUrl}" style="display:inline-block;background:#FF5533;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:1rem;">Rezervasyonu Görüntüle</a>
+      <a href="{$bookingUrl}" style="display:inline-block;background:#FF5533;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:1rem;">{$viewBtn}</a>
     </p>
-    <p style="text-align:center;font-size:.8rem;color:#94a3b8;margin:0;">Seyahatinizde başarılar dileriz.</p>
+    <p style="text-align:center;font-size:.8rem;color:#94a3b8;margin:0;">{$safeTravels}</p>
   </td></tr>
-  <tr><td style="padding:16px 36px;background:#f8faff;text-align:center;font-size:.78rem;color:#94a3b8;border-top:1px solid #e2e8f0;">
-    Bu e-posta GrupRezervasyonları tarafından otomatik olarak gönderilmiştir.
-  </td></tr>
+  <tr><td style="padding:16px 36px;background:#f8faff;text-align:center;font-size:.78rem;color:#94a3b8;border-top:1px solid #e2e8f0;">{$autoFooter}</td></tr>
 </table>
 </td></tr></table>
 </body></html>

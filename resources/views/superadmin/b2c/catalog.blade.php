@@ -67,7 +67,10 @@
             </button>
             <a href="{{ route('superadmin.b2c.catalog') }}" class="btn btn-sm btn-outline-secondary ms-1">Temizle</a>
         </div>
-        <div class="col-auto ms-auto">
+        <div class="col-auto ms-auto d-flex gap-2">
+            <a href="{{ route('superadmin.b2c.catalog.bulk-translate') }}" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-language me-1"></i>Toplu Çeviri
+            </a>
             <a href="{{ route('superadmin.b2c.catalog.create') }}" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus me-1"></i>Yeni Ürün Ekle
             </a>
