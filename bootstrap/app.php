@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureTransferSupplierAccess;
 use App\Http\Middleware\EnsureB2CAuth;
 use App\Http\Middleware\EnsureB2CDomain;
 use App\Http\Middleware\DomainRouter;
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\VisitorTracker;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -24,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'b2c_auth'         => EnsureB2CAuth::class,
             'b2c_domain'       => EnsureB2CDomain::class,
         ]);
+        // SetLocale global olarak çalışır (routing öncesi) — URL prefix'ten locale tespit eder
+        $middleware->prepend(SetLocale::class);
         // DomainRouter en başa eklenir: session cookie'yi route yüklenmeden önce ayarlar
         $middleware->prependToGroup('web', DomainRouter::class);
         $middleware->appendToGroup('web', VisitorTracker::class);

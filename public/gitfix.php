@@ -275,6 +275,33 @@ if (($_GET['action'] ?? '') === 'b2c-reset') {
     exit;
 }
 
+// Çok dilli çeviri — ?action=translate&lang=ar (veya all)
+if (($_GET['action'] ?? '') === 'translate') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    header('Content-Type: text/plain; charset=utf-8');
+    $lang = trim($_GET['lang'] ?? 'all');
+    $service = new \App\Services\GeminiTranslationService();
+    $targets = ($lang === 'all')
+        ? \App\Services\GeminiTranslationService::SUPPORTED
+        : [$lang];
+    foreach ($targets as $locale) {
+        echo "[$locale] çeviriliyor...\n";
+        flush();
+        $result = $service->generateLangFile($locale);
+        if (isset($result['error'])) {
+            echo "[$locale] HATA: {$result['error']}\n";
+        } else {
+            echo "[$locale] OK — {$result['count']} string yazıldı.\n";
+        }
+        flush();
+    }
+    echo "DONE\n";
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");

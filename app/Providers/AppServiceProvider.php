@@ -26,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        require_once app_path('Helpers/locale_helpers.php');
+
         Schema::defaultStringLength(191);
         Paginator::useBootstrapFive();
 
