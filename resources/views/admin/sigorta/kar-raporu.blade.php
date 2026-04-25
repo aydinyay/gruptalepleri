@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin-sigorta')
 
 @section('title', 'Sigorta Kâr Raporu')
 

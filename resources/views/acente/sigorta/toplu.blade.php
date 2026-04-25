@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.acente-sigorta')
 
 @section('title', 'Toplu Sigorta')
 
