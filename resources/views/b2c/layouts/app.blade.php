@@ -931,6 +931,10 @@
                             <div class="pp-left"><i class="bi bi-pencil pp-icon"></i> Profil Düzenle</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
+                        <a href="{{ route('b2c.sigorta.policelerim') }}" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-shield-fill-check pp-icon"></i> Poliçelerim</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
                         <a href="{{ route('b2c.iletisim') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-headset pp-icon"></i> Destek</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>

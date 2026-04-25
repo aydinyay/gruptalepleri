@@ -82,6 +82,9 @@
             <a href="{{ route('b2c.account.profile.edit') }}" class="account-nav-item">
                 <i class="bi bi-person-fill"></i> Profilim
             </a>
+            <a href="{{ route('b2c.sigorta.policelerim') }}" class="account-nav-item">
+                <i class="bi bi-shield-fill-check"></i> Poliçelerim
+            </a>
             <a href="{{ route('b2c.catalog.index') }}" class="account-nav-item">
                 <i class="bi bi-grid-fill"></i> Hizmetleri Keşfet
             </a>
