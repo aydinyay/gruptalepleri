@@ -111,7 +111,7 @@
             </a>
         </div>
         <div class="col-md-2 col-4">
-            <a href="https://gruprezervasyonlari.com/gizli/fiyat?t=GRT2026owner" target="_blank" class="btn btn-outline-dark w-100">
+            <a href="{{ route('superadmin.b2c.pricing') }}" class="btn btn-outline-dark w-100">
                 <i class="fas fa-chart-line me-1"></i>Fiyat Analizi
             </a>
         </div>
