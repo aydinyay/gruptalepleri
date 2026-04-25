@@ -778,7 +778,7 @@ class B2cCatalogController extends Controller
             'supplier_id'         => 'nullable|integer|exists:users,id',
             'supplier_name'       => 'nullable|string|max:150',
             'supplier_logo_url'   => 'nullable|string|max:500',
-            'product_type'        => 'required|in:transfer,charter,leisure,tour,hotel,visa,other',
+            'product_type'        => 'required|in:transfer,charter,leisure,tour,hotel,visa,sigorta,other',
             'product_subtype'     => 'nullable|string|max:40',
             'reference_type'      => 'nullable|string|max:80',
             'reference_id'        => 'nullable|integer',
