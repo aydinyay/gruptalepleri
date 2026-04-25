@@ -886,6 +886,14 @@
                 </div>
             </li>
 
+            {{-- Seyahat Sigortası (tek link) --}}
+            <li>
+                <a href="{{ route('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:5px;">
+                    <i class="bi bi-shield-check" style="color:#0d9488;font-size:.95rem;"></i>
+                    Seyahat Sigortası
+                </a>
+            </li>
+
         </ul>{{-- /gyg-nav-links --}}
 
         {{-- ── Sağ aksiyonlar ── --}}
@@ -961,6 +969,10 @@
                             <div class="pp-left"><i class="bi bi-sun pp-icon"></i> Görünüm</div>
                             <div class="pp-right"><span style="font-size:.8rem;">Her zaman aydınlık</span><i class="bi bi-chevron-right"></i></div>
                         </a>
+                        <a href="{{ route('b2c.sigorta.create') }}" class="pp-row">
+                            <div class="pp-left"><i class="bi bi-shield-check pp-icon" style="color:#0d9488;"></i> Seyahat Sigortası</div>
+                            <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
+                        </a>
                         <a href="{{ route('b2c.iletisim') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-headset pp-icon"></i> Destek</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
@@ -1019,6 +1031,11 @@
             <a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">Özel Jet Kiralama</a>
             <a href="{{ route('b2c.catalog.category', 'helikopter') }}">Helikopter</a>
         </div>
+    </div>
+    <div class="gyg-mobile-section">
+        <a href="{{ route('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:8px;padding:14px 20px;font-weight:600;font-size:.95rem;color:#0d9488;text-decoration:none;">
+            <i class="bi bi-shield-check"></i> Seyahat Sigortası
+        </a>
     </div>
     <div class="gyg-mobile-section">
         <a href="{{ route('b2c.blog.index') }}" style="display:block;padding:14px 20px;font-weight:600;font-size:.95rem;color:var(--gr-text);text-decoration:none;">Blog &amp; Rehberler</a>
@@ -1084,6 +1101,7 @@
                     <li><a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}">Dinner Cruise</a></li>
                     <li><a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}">Yat Kiralama</a></li>
                     <li><a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}">Tur Paketleri</a></li>
+                    <li><a href="{{ route('b2c.sigorta.create') }}" style="color:#2dd4bf;">🛡 Seyahat Sigortası</a></li>
                 </ul>
             </div>
             <div class="col-6 col-lg-2">

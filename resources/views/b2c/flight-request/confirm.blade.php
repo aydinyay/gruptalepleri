@@ -281,6 +281,17 @@
                 <p>Ekibimiz talebinizi inceleyerek ortalama <strong>2–4 saat içinde</strong> size dönecektir. Referans: <strong>{{ $talep->gtpnr }}</strong></p>
             </div>
 
+            {{-- Sigorta upsell --}}
+            <div style="margin:0 24px 20px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1.5px solid #6ee7b7;border-radius:12px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+                <div>
+                    <div style="font-size:.78rem;font-weight:700;color:#059669;margin-bottom:.25rem;">🛡 Uçuşunuzu Güvence Altına Alın</div>
+                    <div style="font-size:.9rem;font-weight:600;color:#064e3b;">Seyahat sigortası — Anında poliçe, SMS + e-posta ile teslim</div>
+                </div>
+                <a href="{{ route('b2c.sigorta.create') }}" style="background:#059669;color:#fff;font-weight:700;font-size:.85rem;text-decoration:none;padding:9px 18px;border-radius:8px;white-space:nowrap;">
+                    Sigorta Yaptır →
+                </a>
+            </div>
+
             {{-- Eylem butonları --}}
             <div class="confirm-actions">
                 <a href="{{ route('b2c.flight.create') }}" class="btn-new-request">

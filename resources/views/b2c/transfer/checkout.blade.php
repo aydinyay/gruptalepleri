@@ -223,6 +223,18 @@
                 </button>
                 <div class="security-note mt-2"><i class="bi bi-shield-lock me-1"></i>SSL ile güvenli ödeme</div>
             </div>
+
+            {{-- Sigorta Upsell --}}
+            <div style="margin-top:1.25rem;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:1rem;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem;">
+                    <i class="bi bi-shield-check" style="color:#059669;font-size:1.2rem;"></i>
+                    <span style="font-weight:700;font-size:.9rem;color:#064e3b;">Seyahat Sigortası Ekle</span>
+                </div>
+                <p style="font-size:.8rem;color:#047857;margin:0 0 .75rem;">Tıbbi acil, bagaj kaybı ve uçuş iptali için koruma. Anında poliçe.</p>
+                <a href="{{ route('b2c.sigorta.create') }}" style="display:block;text-align:center;background:#059669;color:#fff;font-weight:600;font-size:.85rem;text-decoration:none;padding:9px;border-radius:7px;">
+                    <i class="bi bi-shield-check me-1"></i> Sigorta Teklifi Al →
+                </a>
+            </div>
         </div>
     </div>
 

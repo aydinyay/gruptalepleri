@@ -1083,6 +1083,11 @@ footer{background:var(--navy2);padding:3rem 5% 1.5rem;}
             <h3>Ödeme Takibi</h3>
             <p>Depozito ve bakiye ödemelerinizi tarihleri, tutarları ve durumlarıyla şeffaf izleyin.</p>
         </div>
+        <div class="feature-card" style="border-color:rgba(16,185,129,0.4);">
+            <div class="feature-icon" style="background:rgba(16,185,129,0.15);"><i class="fas fa-shield-alt" style="color:#10b981;"></i></div>
+            <h3>Seyahat Sigortası</h3>
+            <p>Nippon Sigorta ortaklığıyla B2B markup'lı sigorta satışı. TC kimlikli ve pasaportlu yolcular için anında poliçe, PDF teslim, SMS bildirim.</p>
+        </div>
     </div>
 </section>
 

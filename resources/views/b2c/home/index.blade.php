@@ -559,6 +559,7 @@
             <a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-pill"><i class="bi bi-map-fill"></i> Yurt İçi Turlar</a>
             <a href="{{ route('b2c.catalog.category', 'yurt-disi-turlar') }}" class="gyg-pill"><i class="bi bi-globe-americas"></i> Yurt Dışı Turlar</a>
             <a href="{{ route('b2c.catalog.category', 'vize') }}" class="gyg-pill"><i class="bi bi-passport"></i> Vize</a>
+            <a href="{{ route('b2c.sigorta.create') }}" class="gyg-pill"><i class="bi bi-shield-check" style="color:#0d9488;"></i> Seyahat Sigortası</a>
         @endif
     </div>
 </div>
@@ -716,6 +717,24 @@
 ════════════════════════════════════════════════════════════════ --}}
 <section style="padding:3rem 0;">
     <div class="container" style="max-width:1280px;">
+        {{-- Sigorta tanıtım banner --}}
+        <div style="background:linear-gradient(135deg,#065f46,#0d9488);border-radius:16px;padding:2rem 2.5rem;margin-bottom:3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;">
+            <div style="color:#fff;">
+                <div style="font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a7f3d0;margin-bottom:.5rem;">🛡 Seyahat Güvencesi</div>
+                <h3 style="font-size:1.4rem;font-weight:800;margin:0 0 .5rem;">Yurtdışı seyahatinizi sigortayla güvence altına alın</h3>
+                <p style="margin:0;color:#d1fae5;font-size:.93rem;">Nippon Sigorta · Anında poliçe · E-posta ve SMS ile teslim · Kredi kartıyla ödeme</p>
+                <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1rem;">
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Tıbbi tahliye</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Bagaj kaybı</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Uçuş iptali</span>
+                    <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Sağlık giderleri</span>
+                </div>
+            </div>
+            <a href="{{ route('b2c.sigorta.create') }}" style="background:#fff;color:#065f46;font-weight:800;font-size:.97rem;text-decoration:none;padding:14px 28px;border-radius:10px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
+                <i class="bi bi-shield-check"></i> Teklif Al &amp; Poliçe Yaptır →
+            </a>
+        </div>
+
         <div class="gyg-section-head">
             <div>
                 <h2>Popüler Destinasyonlar</h2>
@@ -865,6 +884,7 @@
                                     <option>Dinner Cruise</option>
                                     <option>Yat Kiralama</option>
                                     <option>Tur Paketi</option>
+                                    <option>Seyahat Sigortası</option>
                                     <option>Diğer</option>
                                 </select>
                             </div>

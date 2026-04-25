@@ -803,6 +803,23 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 </div>
 </div>
 
+{{-- Seyahat Sigortası Upsell --}}
+@php $isYurtdisi = $item->category && in_array($item->category->slug, ['ozel-jet','yat-kiralama','yurt-disi-turlar','charter']); @endphp
+<section style="padding:2rem 0;border-top:1px solid #e5e5e5;">
+<div style="max-width:1280px;margin:0 auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1.5px solid #6ee7b7;border-radius:14px;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <div style="font-size:.78rem;font-weight:700;color:#059669;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.35rem;">🛡 Bu Deneyimi Güvence Altına Alın</div>
+        <div style="font-size:1.05rem;font-weight:700;color:#064e3b;">Seyahat Sigortası — Anında Poliçe</div>
+        <div style="font-size:.86rem;color:#047857;margin-top:.3rem;">Tıbbi acil, bagaj kaybı, uçuş iptali ve daha fazlası · E-posta + SMS ile teslim</div>
+    </div>
+    <a href="{{ route('b2c.sigorta.create') }}" style="background:#059669;color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;padding:11px 22px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;">
+        <i class="bi bi-shield-check"></i> Poliçe Al →
+    </a>
+</div>
+</div>
+</section>
+
 @if($relatedItems->isNotEmpty())
 <section style="padding:3rem 0;background:#f8f9fc;border-top:1px solid #e5e5e5;">
 <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
