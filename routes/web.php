@@ -1270,7 +1270,10 @@ Route::middleware(['auth'])->prefix('acente/sigorta')->name('acente.sigorta.')->
     Route::get('/toplu',                                     [\App\Http\Controllers\Acente\SigortaController::class, 'toplu'])->name('toplu');
     Route::get('/toplu/sablon',                              [\App\Http\Controllers\Acente\SigortaController::class, 'topluSablon'])->name('toplu-sablon');
     Route::post('/toplu/basla',                              [\App\Http\Controllers\Acente\SigortaController::class, 'topluBaslat'])->name('toplu-basla');
-    Route::post('/toplu/{batch}/poll',                       [\App\Http\Controllers\Acente\SigortaController::class, 'topluPoll'])->name('toplu-poll');
+    Route::post('/toplu/{batch}/fiyat-poll',                 [\App\Http\Controllers\Acente\SigortaController::class, 'topluFiyatPoll'])->name('toplu-fiyat-poll');
+    Route::post('/toplu/{batch}/ode',                        [\App\Http\Controllers\Acente\SigortaController::class, 'topluOdemeBaslat'])->name('toplu-ode');
+    Route::get('/toplu/{batch}/sonuc',                       [\App\Http\Controllers\Acente\SigortaController::class, 'topluSonuc'])->name('toplu-sonuc');
+    Route::post('/toplu/{batch}/uret-poll',                  [\App\Http\Controllers\Acente\SigortaController::class, 'topluUretPoll'])->name('toplu-uret-poll');
     Route::post('/toplu/{batch}/retry',                      [\App\Http\Controllers\Acente\SigortaController::class, 'topluRetry'])->name('toplu-retry');
     Route::get('/mbf',                                       [\App\Http\Controllers\Acente\SigortaController::class, 'mbf'])->name('mbf');
     Route::post('/mbf',                                      [\App\Http\Controllers\Acente\SigortaController::class, 'mbfGonder'])->name('mbf-gonder');

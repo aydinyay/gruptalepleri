@@ -126,50 +126,53 @@
 
     {{-- Hata & Başlat --}}
     <div id="hata-kutusu" class="alert alert-danger d-none"></div>
-    <button type="button" id="btn-basla" class="btn btn-primary btn-lg" @if(!$aktif) disabled @endif>
-        <i class="fas fa-play me-2"></i> Sigortaları Başlat
-    </button>
 
-    {{-- İlerleme Paneli --}}
-    <div id="ilerleme-panel" class="card shadow-sm mt-4 d-none">
+    {{-- Aşama 1: Fiyat Hesapla butonu --}}
+    <div id="fase-1-buton">
+        <button type="button" id="btn-basla" class="btn btn-primary btn-lg" @if(!$aktif) disabled @endif>
+            <i class="fas fa-calculator me-2"></i> Fiyatları Hesapla
+        </button>
+    </div>
+
+    {{-- Fiyat Hesaplama Paneli --}}
+    <div id="fiyat-panel" class="card shadow-sm mt-4 d-none">
         <div class="card-body">
             <div class="d-flex justify-content-between mb-2">
-                <h6 class="fw-bold mb-0">İlerleme</h6>
-                <span id="ilerleme-yuzde" class="badge bg-primary">0%</span>
+                <h6 class="fw-bold mb-0"><i class="fas fa-calculator me-2 text-primary"></i>Fiyatlar Hesaplanıyor</h6>
+                <span id="fiyat-yuzde" class="badge bg-primary">0%</span>
             </div>
             <div class="progress mb-2" style="height:22px">
-                <div id="ilerleme-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                <div id="fiyat-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
                     role="progressbar" style="width:0%"></div>
             </div>
-            <p id="ilerleme-metin" class="text-muted small mb-0">Başlatılıyor...</p>
+            <p id="fiyat-metin" class="text-muted small mb-0">Teklif alınıyor...</p>
+        </div>
+    </div>
 
-            {{-- Hatalı Kayıtlar --}}
-            <div id="hatali-panel" class="d-none mt-4">
-                <hr>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold text-danger mb-0">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        Hatalı Kayıtlar — <span id="hatali-adet">0</span> kişi
-                    </h6>
-                    <button type="button" id="btn-retry" class="btn btn-sm btn-warning">
-                        <i class="fas fa-redo me-1"></i> Tekrar Dene
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0">
-                        <thead class="table-light">
-                            <tr><th>TC/Pasaport</th><th>Ad Soyad</th><th>Hata</th></tr>
-                        </thead>
-                        <tbody id="hatali-tbody"></tbody>
-                    </table>
+    {{-- Aşama 2: Fiyat Özeti + Ödeme --}}
+    <div id="odeme-panel" class="card shadow-sm mt-4 d-none border-success">
+        <div class="card-body">
+            <h6 class="fw-bold text-success mb-3"><i class="fas fa-check-circle me-2"></i>Fiyatlar Hazır — Ödeme Onayı</h6>
+            <div class="alert alert-success py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="fs-5 fw-bold">Toplam Tutar: <span id="toplam-fiyat" class="text-success">—</span></div>
+                        <small class="text-muted" id="kisi-sayisi-metin"></small>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                        <button type="button" id="btn-ode" class="btn btn-success btn-lg">
+                            <i class="fas fa-credit-card me-2"></i> Öde ve Poliçeleri Başlat
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <div id="bitti-panel" class="d-none mt-3">
-                <div class="alert alert-success mb-0">
-                    <i class="fas fa-check-circle me-2"></i>
-                    İşlem tamamlandı!
-                    <a href="{{ route('acente.sigorta.index') }}" class="alert-link ms-2">Poliçe listesine git →</a>
+            <div id="fiyat-hata-panel" class="d-none mt-2">
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <span id="fiyat-hata-adet">0</span> kişinin fiyatı alınamadı.
+                    <button type="button" id="btn-fiyat-retry" class="btn btn-sm btn-warning ms-2">
+                        <i class="fas fa-redo me-1"></i> Tekrar Dene
+                    </button>
                 </div>
             </div>
         </div>
@@ -241,8 +244,10 @@
 <script>
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
 let batchId = null;
+let batchToplam = 0;
+let toplam_tl = 0;
 let satirSay = 0;
-let pasaportModalIdx = null; // hangi satırın modalı açık
+let pasaportModalIdx = null;
 
 // ── Tab değiştirme ─────────────────────────────────────────────────────────
 document.querySelectorAll('[data-tab]').forEach(btn => {
@@ -431,7 +436,7 @@ document.getElementById('btn-csv-onayla').addEventListener('click', function () 
     document.getElementById('csv-preview').classList.add('d-none');
 });
 
-// ── Batch Başlat ──────────────────────────────────────────────────────────
+// ── Fiyat Hesapla (Aşama 1) ───────────────────────────────────────────────
 document.getElementById('btn-basla').addEventListener('click', async function () {
     const bas  = document.getElementById('baslangic_tarihi').value;
     const bit  = document.getElementById('bitis_tarihi').value;
@@ -440,16 +445,15 @@ document.getElementById('btn-basla').addEventListener('click', async function ()
 
     const satirlar = [];
     document.querySelectorAll('#yolcu-tbody tr').forEach(tr => {
-        const kimlik    = tr.querySelector('.kimlik-inp')?.value.trim() || '';
-        const adi       = tr.querySelector('[data-alan="adi"]')?.value.trim() || '';
-        const soyadi    = tr.querySelector('[data-alan="soyadi"]')?.value.trim() || '';
-        const dogumT    = tr.querySelector('[data-alan="dogum_tarihi"]')?.value || '';
+        const kimlik = tr.querySelector('.kimlik-inp')?.value.trim() || '';
+        const adi    = tr.querySelector('[data-alan="adi"]')?.value.trim() || '';
+        const soyadi = tr.querySelector('[data-alan="soyadi"]')?.value.trim() || '';
+        const dogumT = tr.querySelector('[data-alan="dogum_tarihi"]')?.value || '';
         if (!kimlik || !adi || !soyadi || !dogumT) return;
 
-        const isTC = /^\d{11}$/.test(kimlik);
-        const satir = { kimlik, adi, soyadi, dogum_tarihi: dogumT, baslangic_tarihi: bas, bitis_tarihi: bit, ulke };
+        const satir = { kimlik, adi, soyadi, dogum_tarihi: dogumT };
 
-        if (!isTC) {
+        if (!/^\d{11}$/.test(kimlik)) {
             const pd = JSON.parse(tr.dataset.pasaport || '{}');
             Object.assign(satir, {
                 baba_adi:   pd.baba_adi   || '',
@@ -470,67 +474,117 @@ document.getElementById('btn-basla').addEventListener('click', async function ()
 
     this.disabled = true;
     document.getElementById('hata-kutusu').classList.add('d-none');
+    document.getElementById('fase-1-buton').classList.add('d-none');
 
-    const res  = await fetch('{{ route("acente.sigorta.toplu-basla") }}', {
+    const res = await fetch('{{ route("acente.sigorta.toplu-basla") }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
-        body: JSON.stringify({ islem_adi: document.getElementById('islem_adi').value, baslangic_tarihi: bas, bitis_tarihi: bit, ulke, satirlar }),
+        body: JSON.stringify({
+            islem_adi: document.getElementById('islem_adi').value,
+            baslangic_tarihi: bas, bitis_tarihi: bit, ulke, satirlar,
+        }),
     });
     const data = await res.json();
-    if (!res.ok || data.error) { showHata(data.error || 'Başlatılamadı.'); this.disabled = false; return; }
-
-    batchId = data.batch_id;
-    document.getElementById('ilerleme-panel').classList.remove('d-none');
-    pollBatch();
-});
-
-async function pollBatch() {
-    const res  = await fetch(`{{ url('/acente/sigorta/toplu') }}/${batchId}/poll`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
-    });
-    const data = await res.json();
-
-    const done  = (data.tamamlanan || 0) + (data.basarisiz || 0);
-    const pct   = data.toplam > 0 ? Math.round((done / data.toplam) * 100) : 0;
-    document.getElementById('ilerleme-bar').style.width = pct + '%';
-    document.getElementById('ilerleme-yuzde').textContent = pct + '%';
-    document.getElementById('ilerleme-metin').textContent =
-        `${data.tamamlanan} başarılı / ${data.basarisiz} hatalı / ${data.toplam} toplam`;
-
-    if (data.hatali && data.hatali.length > 0) {
-        const tbody = document.getElementById('hatali-tbody');
-        tbody.innerHTML = '';
-        data.hatali.forEach(s => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="fw-mono small">${s.kimlik}</td>
-                <td>${s.adi} ${s.soyadi}</td>
-                <td class="text-danger small">${s.hata || '—'}</td>`;
-            tbody.appendChild(tr);
-        });
-        document.getElementById('hatali-adet').textContent = data.hatali.length;
-        document.getElementById('hatali-panel').classList.remove('d-none');
+    if (!res.ok || data.error) {
+        showHata(data.error || 'Başlatılamadı.');
+        this.disabled = false;
+        document.getElementById('fase-1-buton').classList.remove('d-none');
+        return;
     }
 
-    if (data.tamamlandi) {
-        document.getElementById('ilerleme-bar').classList.remove('progress-bar-animated');
-        document.getElementById('bitti-panel').classList.remove('d-none');
-    } else {
-        setTimeout(pollBatch, 2000);
+    batchId = data.batch_id;
+    batchToplam = satirlar.length;
+    document.getElementById('fiyat-panel').classList.remove('d-none');
+    pollFiyat();
+});
+
+// ── Fiyat Poll ─────────────────────────────────────────────────────────────
+async function pollFiyat() {
+    try {
+        const res  = await fetch(`{{ url('/acente/sigorta/toplu') }}/${batchId}/fiyat-poll`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+        });
+        const data = await res.json();
+
+        const pct = batchToplam > 0 ? Math.round(((data.fiyatlanan || 0) / batchToplam) * 100) : 0;
+        document.getElementById('fiyat-bar').style.width = pct + '%';
+        document.getElementById('fiyat-yuzde').textContent = pct + '%';
+        document.getElementById('fiyat-metin').textContent =
+            `${data.fiyatlanan || 0} / ${batchToplam} kişi fiyatlandı`;
+
+        if (data.tamamlandi || data.batch_durum === 'odeme_bekleniyor') {
+            document.getElementById('fiyat-bar').classList.remove('progress-bar-animated');
+            document.getElementById('fiyat-yuzde').textContent = '100%';
+            document.getElementById('fiyat-metin').textContent =
+                `Tüm fiyatlar hazır — ${batchToplam} kişi`;
+
+            toplam_tl = data.total_tl || 0;
+
+            document.getElementById('toplam-fiyat').textContent = numFmt(toplam_tl) + ' ₺';
+            document.getElementById('kisi-sayisi-metin').textContent = `${batchToplam} kişi — kişi başı ortalama ${numFmt(toplam_tl / batchToplam)} ₺`;
+
+            // Fiyat hatası olan varsa göster
+            const hataAdet = (data.fiyatlanan || 0) < batchToplam ? batchToplam - (data.fiyatlanan || 0) : 0;
+            if (hataAdet > 0) {
+                document.getElementById('fiyat-hata-adet').textContent = hataAdet;
+                document.getElementById('fiyat-hata-panel').classList.remove('d-none');
+            }
+
+            document.getElementById('odeme-panel').classList.remove('d-none');
+        } else {
+            setTimeout(pollFiyat, 2000);
+        }
+    } catch (_) {
+        setTimeout(pollFiyat, 4000);
     }
 }
 
-document.getElementById('btn-retry').addEventListener('click', async function () {
+// ── Ödeme Başlat (Aşama 2) ─────────────────────────────────────────────────
+document.getElementById('btn-ode').addEventListener('click', async function () {
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ödemeye Yönlendiriliyorsunuz...';
+
+    try {
+        const res  = await fetch(`{{ url('/acente/sigorta/toplu') }}/${batchId}/ode`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            showHata(data.error || 'Ödeme başlatılamadı.');
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-credit-card me-2"></i> Öde ve Poliçeleri Başlat';
+            return;
+        }
+
+        window.location.href = data.payment_url;
+    } catch (_) {
+        showHata('Bağlantı hatası. Tekrar deneyin.');
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-credit-card me-2"></i> Öde ve Poliçeleri Başlat';
+    }
+});
+
+// ── Fiyat Retry ───────────────────────────────────────────────────────────
+document.getElementById('btn-fiyat-retry').addEventListener('click', async function () {
     await fetch(`{{ url('/acente/sigorta/toplu') }}/${batchId}/retry`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': csrf },
     });
-    document.getElementById('hatali-tbody').innerHTML = '';
-    document.getElementById('hatali-adet').textContent = '0';
-    document.getElementById('bitti-panel').classList.add('d-none');
-    document.getElementById('ilerleme-bar').classList.add('progress-bar-animated');
-    pollBatch();
+    document.getElementById('fiyat-hata-panel').classList.add('d-none');
+    document.getElementById('odeme-panel').classList.add('d-none');
+    document.getElementById('fiyat-bar').style.width = '0%';
+    document.getElementById('fiyat-bar').classList.add('progress-bar-animated');
+    document.getElementById('fiyat-yuzde').textContent = '0%';
+    document.getElementById('fiyat-metin').textContent = 'Teklif alınıyor...';
+    pollFiyat();
 });
+
+function numFmt(n) {
+    return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function showHata(msg) {
     const el = document.getElementById('hata-kutusu');

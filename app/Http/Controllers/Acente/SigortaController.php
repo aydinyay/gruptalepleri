@@ -280,17 +280,53 @@ class SigortaController extends Controller
 
         $odeme = SigortaOdeme::where('internal_reference', $internalRef)->first();
 
-        if (!$odeme || !$odeme->sigorta_police_id) {
+        if (!$odeme || (!$odeme->sigorta_police_id && !$odeme->sigorta_batch_job_id)) {
             return redirect()->route('acente.sigorta.index')
                 ->with('error', 'Ödeme kaydı bulunamadı.');
         }
 
-        if ($odeme->paid_at ?? $odeme->failed_at) {
+        // Duplicate callback guard
+        if ($odeme->paid_at || $odeme->failed_at) {
+            if ($odeme->sigorta_batch_job_id) {
+                return redirect()->route('acente.sigorta.toplu-sonuc', $odeme->sigorta_batch_job_id);
+            }
             return redirect()->route('acente.sigorta.show', $odeme->sigorta_police_id);
         }
 
         $mappedStatus = $gateway->mapCallbackStatus($payload);
+        $providerRef  = trim((string) ($payload['reference_code'] ?? $payload['REFERENCE_CODE'] ?? ''));
 
+        // ── Batch ödeme ──────────────────────────────────────────────────────
+        if ($odeme->sigorta_batch_job_id) {
+            $batch = SigortaBatchJob::find($odeme->sigorta_batch_job_id);
+
+            if ($mappedStatus !== 'paid') {
+                $reason = Str::limit((string) ($payload['RESPONSE_DATA'] ?? $payload['message'] ?? 'Ödeme reddedildi.'), 350);
+                $odeme->update([
+                    'status'                => 'rejected',
+                    'callback_payload_json' => $payload,
+                    'failure_reason'        => $reason,
+                    'failed_at'             => now(),
+                ]);
+                $batch?->update(['durum' => 'hata']);
+                return redirect()->route('acente.sigorta.toplu')
+                    ->with('error', 'Ödeme başarısız. Poliçeler düzenlenmedi.');
+            }
+
+            $odeme->update([
+                'status'                => 'approved',
+                'provider_reference'    => $providerRef ?: $odeme->provider_reference,
+                'callback_payload_json' => $payload,
+                'paid_at'               => now(),
+            ]);
+
+            $batch?->update(['durum' => 'isleniyor']);
+
+            return redirect()->route('acente.sigorta.toplu-sonuc', $batch->id)
+                ->with('success', 'Ödeme alındı, poliçeler işleniyor.');
+        }
+
+        // ── Tekil ödeme ──────────────────────────────────────────────────────
         if ($mappedStatus !== 'paid') {
             $reason = Str::limit((string) ($payload['RESPONSE_DATA'] ?? $payload['message'] ?? 'Ödeme reddedildi.'), 350);
             $odeme->update([
@@ -306,7 +342,6 @@ class SigortaController extends Controller
                 ->with('error', 'Ödeme başarısız. Poliçe düzenlenmedi.');
         }
 
-        $providerRef = trim((string) ($payload['reference_code'] ?? $payload['REFERENCE_CODE'] ?? ''));
         $odeme->update([
             'status'                => 'approved',
             'provider_reference'    => $providerRef ?: $odeme->provider_reference,
@@ -408,7 +443,7 @@ class SigortaController extends Controller
         ]);
     }
 
-    // ── Toplu Batch Başlat ────────────────────────────────────────────────────
+    // ── Toplu Batch Başlat → sadece fiyat hesaplama aşaması açılır ──────────────
 
     public function topluBaslat(Request $request)
     {
@@ -428,34 +463,33 @@ class SigortaController extends Controller
             'baslangic_tarihi' => $request->baslangic_tarihi,
             'bitis_tarihi'     => $request->bitis_tarihi,
             'ulke'             => $request->ulke,
-            'durum'            => 'bekliyor',
         ]), $request->satirlar);
 
         $batch = SigortaBatchJob::create([
-            'islem_adi'       => $request->islem_adi ?: 'Toplu Sigorta ' . now()->format('d.m.Y H:i'),
-            'kanal'           => 'b2b',
-            'acente_id'       => $this->acenteActor()->id,
-            'toplam'          => count($satirlar),
-            'durum'           => 'bekliyor',
+            'islem_adi'         => $request->islem_adi ?: 'Toplu Sigorta ' . now()->format('d.m.Y H:i'),
+            'kanal'             => 'b2b',
+            'acente_id'         => $this->acenteActor()->id,
+            'toplam'            => count($satirlar),
+            'durum'             => 'fiyat_hesaplaniyor',
             'bekleyen_satirlar' => $satirlar,
         ]);
 
         return response()->json(['ok' => true, 'batch_id' => $batch->id]);
     }
 
-    // ── Toplu Batch Poll (3-5 kayıt işler) ────────────────────────────────────
+    // ── Fiyat Hesaplama Poll (teklifAl — 4 kişi/çağrı) ────────────────────────
 
-    public function topluPoll(Request $request, SigortaBatchJob $batch)
+    public function topluFiyatPoll(Request $request, SigortaBatchJob $batch)
     {
         abort_unless($batch->acente_id === $this->acenteActor()->id, 403);
 
-        if ($batch->tamamlandiMi()) {
+        if (!in_array($batch->durum, ['fiyat_hesaplaniyor'])) {
             return response()->json([
-                'tamamlandi'  => true,
-                'tamamlanan'  => $batch->tamamlanan,
-                'basarisiz'   => $batch->basarisiz,
-                'toplam'      => $batch->toplam,
-                'hatali'      => $batch->hatali_satirlar ?? [],
+                'tamamlandi'   => true,
+                'fiyatlanan'   => count($batch->fiyatlanmis_satirlar ?? []),
+                'toplam'       => $batch->toplam,
+                'total_tl'     => (float) $batch->total_amount_try,
+                'batch_durum'  => $batch->durum,
             ]);
         }
 
@@ -463,27 +497,35 @@ class SigortaController extends Controller
             return response()->json(['error' => 'Sigorta modülü henüz aktif değil.'], 503);
         }
 
-        $bekleyen = $batch->bekleyen_satirlar ?? [];
+        $bekleyen    = $batch->bekleyen_satirlar ?? [];
+        $fiyatlanmis = $batch->fiyatlanmis_satirlar ?? [];
+        $markup      = (float) $this->ayar('b2b_markup_yuzde', 20);
+        $tampon      = (float) $this->ayar('kur_tamponu_yuzde', 5);
+
         if (empty($bekleyen)) {
-            $batch->update(['durum' => 'tamamlandi']);
-            return response()->json(['tamamlandi' => true, 'tamamlanan' => $batch->tamamlanan, 'basarisiz' => $batch->basarisiz, 'toplam' => $batch->toplam]);
+            $total = array_sum(array_column($fiyatlanmis, 'satis_fiyat'));
+            $batch->update([
+                'durum'            => 'odeme_bekleniyor',
+                'total_amount_try' => $total,
+            ]);
+            return response()->json([
+                'tamamlandi'  => true,
+                'fiyatlanan'  => count($fiyatlanmis),
+                'toplam'      => $batch->toplam,
+                'total_tl'    => $total,
+                'batch_durum' => 'odeme_bekleniyor',
+            ]);
         }
 
-        $batch->update(['durum' => 'isleniyor']);
-
-        $islenecekler = array_splice($bekleyen, 0, 4); // her poll'da 4 kişi
-        $hatali       = $batch->hatali_satirlar ?? [];
-        $markup       = (float) $this->ayar('b2b_markup_yuzde', 20);
-        $tampon       = (float) $this->ayar('kur_tamponu_yuzde', 5);
-
-        $svc = app(PaoNetService::class);
+        $islenecekler = array_splice($bekleyen, 0, 4);
+        $svc          = app(PaoNetService::class);
 
         foreach ($islenecekler as $satir) {
             try {
                 $kimlikT  = PaoNetHelper::detectKimlikTipi($satir['kimlik']);
                 $urunKodu = PaoNetHelper::urunKodu($kimlikT);
 
-                $strMsg = PaoNetHelper::buildStrMsg([
+                $msgParams = [
                     'Kimlik'          => $satir['kimlik'],
                     'Adi'             => $satir['adi'],
                     'Soyadi'          => $satir['soyadi'],
@@ -491,67 +533,200 @@ class SigortaController extends Controller
                     'BaslangicTarihi' => $satir['baslangic_tarihi'],
                     'BitisTarihi'     => $satir['bitis_tarihi'],
                     'GidilecekUlke'   => $satir['ulke'],
-                ]);
+                ];
+                if ($kimlikT === 'pasaport') {
+                    $msgParams['DogumYeri'] = $satir['dogum_yeri'] ?? '';
+                    $msgParams['Uyruk']     = $satir['uyruk']      ?? '';
+                    $msgParams['Boy']       = $satir['boy']         ?? '';
+                    $msgParams['Kilo']      = $satir['kilo']        ?? '';
+                    $msgParams['IlAdi']     = $satir['il_adi']      ?? '';
+                    $msgParams['IlceAdi']   = $satir['ilce_adi']    ?? '';
+                    $msgParams['Adres']     = $satir['adres']       ?? '';
+                }
 
-                $teklif  = $svc->teklifAl($urunKodu, $strMsg);
-                $sonuc   = $svc->policeUret($teklif['TeklifId'] ?? $teklif['teklifId'] ?? '');
+                $strMsg = PaoNetHelper::buildStrMsg($msgParams);
+                $teklif = $svc->teklifAl($urunKodu, $strMsg);
+
+                $bprim  = (float) ($teklif['Bprim'] ?? 0);
+                $dkuru  = (float) ($teklif['Dkuru'] ?? 1);
+                $fiyat  = PaoNetHelper::hesaplaSatisFiyati($bprim, $dkuru, $markup, $tampon);
+
+                $fiyatlanmis[] = array_merge($satir, [
+                    'teklif_id'   => $teklif['TeklifId'] ?? $teklif['teklifId'] ?? '',
+                    'urun_kodu'   => $urunKodu,
+                    'kimlik_tipi' => $kimlikT,
+                    'doviz_turu'  => $teklif['DovizTuru'] ?? 'USD',
+                    'bprim'       => $bprim,
+                    'dkuru'       => $dkuru,
+                    'maliyet_tl'  => $fiyat['maliyet_tl'],
+                    'satis_fiyat' => $fiyat['satis_fiyat'],
+                    'net_kar'     => $fiyat['net_kar'],
+                ]);
+            } catch (\RuntimeException $e) {
+                // Fiyatlama hatası — satırı bilgiyle geri ekle, devam et
+                $fiyatlanmis[] = array_merge($satir, [
+                    'teklif_id'   => null,
+                    'hata'        => $e->getMessage(),
+                    'satis_fiyat' => 0,
+                ]);
+                Log::warning('Batch fiyat hatası', ['satir' => $satir, 'hata' => $e->getMessage()]);
+            }
+        }
+
+        $batch->update([
+            'bekleyen_satirlar'    => array_values($bekleyen),
+            'fiyatlanmis_satirlar' => $fiyatlanmis,
+        ]);
+
+        return response()->json([
+            'tamamlandi'  => false,
+            'fiyatlanan'  => count($fiyatlanmis),
+            'toplam'      => $batch->toplam,
+            'kalan'       => count($bekleyen),
+            'batch_durum' => 'fiyat_hesaplaniyor',
+        ]);
+    }
+
+    // ── Toplu Ödeme Başlat ───────────────────────────────────────────────────
+
+    public function topluOdemeBaslat(Request $request, SigortaBatchJob $batch)
+    {
+        abort_unless($batch->acente_id === $this->acenteActor()->id, 403);
+        abort_unless($batch->durum === 'odeme_bekleniyor', 422, 'Batch henüz fiyatlanmadı.');
+
+        $existingOdeme = $batch->odeme;
+        if ($existingOdeme && $existingOdeme->paid_at) {
+            return response()->json(['error' => 'Bu batch için ödeme zaten alındı.'], 422);
+        }
+
+        $internalRef = 'BTY-' . now()->format('ymdHis') . '-' . strtoupper(Str::random(6));
+
+        $odeme = SigortaOdeme::create([
+            'sigorta_batch_job_id' => $batch->id,
+            'kanal'                => 'b2b',
+            'internal_reference'   => $internalRef,
+            'amount_try'           => $batch->total_amount_try,
+            'status'               => 'pending',
+            'request_payload_json' => ['batch_id' => $batch->id, 'acente_id' => $this->acenteActor()->id],
+        ]);
+
+        try {
+            $gateway     = app(PaynkolayGatewayService::class);
+            $initialized = $gateway->initializePayment(
+                clientReference: $internalRef,
+                amountTry:       (float) $batch->total_amount_try,
+                successUrl:      route('acente.sigorta.odeme.basarili'),
+                failUrl:         route('acente.sigorta.odeme.basarisiz'),
+                cardHolderIp:    (string) $request->ip(),
+            );
+
+            $odeme->update(['provider_reference' => $initialized['provider_reference']]);
+
+            return response()->json([
+                'ok'          => true,
+                'payment_url' => $initialized['redirect_url'],
+            ]);
+        } catch (\Throwable $e) {
+            $odeme->update(['status' => 'rejected', 'failure_reason' => $e->getMessage(), 'failed_at' => now()]);
+            return response()->json(['error' => 'Ödeme başlatılamadı: ' . Str::limit($e->getMessage(), 200)], 422);
+        }
+    }
+
+    // ── Toplu Sonuç Sayfası (ödeme sonrası) ─────────────────────────────────
+
+    public function topluSonuc(SigortaBatchJob $batch)
+    {
+        abort_unless($batch->acente_id === $this->acenteActor()->id, 403);
+        return view('acente.sigorta.toplu-sonuc', compact('batch'));
+    }
+
+    // ── Toplu Poliçe Üretim Poll (policeUret — 4 kişi/çağrı) ─────────────────
+
+    public function topluUretPoll(Request $request, SigortaBatchJob $batch)
+    {
+        abort_unless($batch->acente_id === $this->acenteActor()->id, 403);
+
+        if ($batch->tamamlandiMi()) {
+            return response()->json([
+                'tamamlandi' => true,
+                'tamamlanan' => $batch->tamamlanan,
+                'basarisiz'  => $batch->basarisiz,
+                'toplam'     => $batch->toplam,
+            ]);
+        }
+
+        if (!$this->aktifMi()) {
+            return response()->json(['error' => 'Sigorta modülü henüz aktif değil.'], 503);
+        }
+
+        $fiyatlanmis = $batch->fiyatlanmis_satirlar ?? [];
+        if (empty($fiyatlanmis)) {
+            $batch->update(['durum' => 'tamamlandi']);
+            return response()->json(['tamamlandi' => true, 'tamamlanan' => $batch->tamamlanan, 'basarisiz' => $batch->basarisiz, 'toplam' => $batch->toplam]);
+        }
+
+        $markup = (float) $this->ayar('b2b_markup_yuzde', 20);
+        $tampon = (float) $this->ayar('kur_tamponu_yuzde', 5);
+        $svc    = app(PaoNetService::class);
+
+        $islenecekler = array_splice($fiyatlanmis, 0, 4);
+
+        foreach ($islenecekler as $satir) {
+            if (empty($satir['teklif_id'])) {
+                // Fiyatlama hatası olan satır — skip
+                $batch->increment('basarisiz');
+                continue;
+            }
+            try {
+                $sonuc    = $svc->policeUret($satir['teklif_id']);
                 $referans = $sonuc['Referans'] ?? $sonuc['referans'] ?? '';
 
-                $bprim = (float) ($teklif['Bprim'] ?? 0);
-                $dkuru = (float) ($teklif['Dkuru'] ?? 1);
-                $fiyat = PaoNetHelper::hesaplaSatisFiyati($bprim, $dkuru, $markup, $tampon);
-
                 SigortaPolice::create([
-                    'batch_job_id'     => $batch->id,
-                    'acente_id'        => $batch->acente_id,
-                    'kanal'            => 'b2b',
-                    'paonet_referans'  => $referans,
-                    'paonet_teklif_id' => $teklif['TeklifId'] ?? '',
-                    'paonet_urun_kodu' => $urunKodu,
-                    'sigortali_kimlik' => $satir['kimlik'],
-                    'kimlik_tipi'      => $kimlikT,
-                    'sigortali_adi'    => $satir['adi'],
-                    'sigortali_soyadi' => $satir['soyadi'],
-                    'sigortali_dogum'  => $satir['dogum_tarihi'],
-                    'baslangic_tarihi' => $satir['baslangic_tarihi'],
-                    'bitis_tarihi'     => $satir['bitis_tarihi'],
-                    'gidilecek_ulke'   => $satir['ulke'],
-                    'api_doviz_turu'   => $teklif['DovizTuru'] ?? 'USD',
-                    'api_doviz_tutar'  => $bprim,
-                    'api_kur'          => $dkuru,
-                    'maliyet_tl'       => $fiyat['maliyet_tl'],
-                    'b2b_fiyat_tl'     => $fiyat['satis_fiyat'],
-                    'satilan_fiyat_tl' => $fiyat['satis_fiyat'],
-                    'net_kar_tl'       => $fiyat['net_kar'],
-                    'markup_yuzde'     => $markup,
-                    'kur_tamponu_yuzde'=> $tampon,
-                    'durum'            => 'police_isleniyor',
+                    'batch_job_id'      => $batch->id,
+                    'acente_id'         => $batch->acente_id,
+                    'kanal'             => 'b2b',
+                    'paonet_referans'   => $referans,
+                    'paonet_teklif_id'  => $satir['teklif_id'],
+                    'paonet_urun_kodu'  => $satir['urun_kodu'] ?? '',
+                    'sigortali_kimlik'  => $satir['kimlik'],
+                    'kimlik_tipi'       => $satir['kimlik_tipi'] ?? PaoNetHelper::detectKimlikTipi($satir['kimlik']),
+                    'sigortali_adi'     => $satir['adi'],
+                    'sigortali_soyadi'  => $satir['soyadi'],
+                    'sigortali_dogum'   => $satir['dogum_tarihi'],
+                    'baslangic_tarihi'  => $satir['baslangic_tarihi'],
+                    'bitis_tarihi'      => $satir['bitis_tarihi'],
+                    'gidilecek_ulke'    => $satir['ulke'],
+                    'api_doviz_turu'    => $satir['doviz_turu'] ?? 'USD',
+                    'api_doviz_tutar'   => $satir['bprim'] ?? 0,
+                    'api_kur'           => $satir['dkuru'] ?? 1,
+                    'maliyet_tl'        => $satir['maliyet_tl'] ?? 0,
+                    'b2b_fiyat_tl'      => $satir['satis_fiyat'] ?? 0,
+                    'satilan_fiyat_tl'  => $satir['satis_fiyat'] ?? 0,
+                    'net_kar_tl'        => $satir['net_kar'] ?? 0,
+                    'markup_yuzde'      => $markup,
+                    'kur_tamponu_yuzde' => $tampon,
+                    'durum'             => 'police_isleniyor',
                 ]);
 
                 $batch->increment('tamamlanan');
             } catch (\RuntimeException $e) {
-                $satir['hata'] = $e->getMessage();
-                $hatali[]      = $satir;
                 $batch->increment('basarisiz');
-                Log::warning('Batch sigorta hatası', ['satir' => $satir, 'hata' => $e->getMessage()]);
+                Log::warning('Batch policeUret hatası', ['satir' => $satir, 'hata' => $e->getMessage()]);
             }
         }
 
-        $yeniDurum = empty($bekleyen) ? 'tamamlandi' : 'isleniyor';
-
+        $yeniDurum = empty($fiyatlanmis) ? 'tamamlandi' : 'isleniyor';
         $batch->update([
-            'bekleyen_satirlar' => array_values($bekleyen),
-            'hatali_satirlar'   => array_values($hatali),
-            'durum'             => $yeniDurum,
+            'fiyatlanmis_satirlar' => array_values($fiyatlanmis),
+            'durum'                => $yeniDurum,
         ]);
 
         return response()->json([
             'tamamlandi' => $yeniDurum === 'tamamlandi',
-            'tamamlanan' => $batch->tamamlanan,
-            'basarisiz'  => $batch->basarisiz,
+            'tamamlanan' => $batch->fresh()->tamamlanan,
+            'basarisiz'  => $batch->fresh()->basarisiz,
             'toplam'     => $batch->toplam,
-            'kalan'      => count($bekleyen),
-            'hatali'     => $hatali,
+            'kalan'      => count($fiyatlanmis),
         ]);
     }
 
@@ -561,16 +736,27 @@ class SigortaController extends Controller
     {
         abort_unless($batch->acente_id === $this->acenteActor()->id, 403);
 
-        $hatali = $batch->hatali_satirlar ?? [];
-        if (empty($hatali)) {
+        // Retry only on fiyat errors (fiyatlanmis_satirlar with no teklif_id)
+        $fiyatlanmis = $batch->fiyatlanmis_satirlar ?? [];
+        $hataliFiyat = array_filter($fiyatlanmis, fn ($s) => empty($s['teklif_id']));
+        $basarili    = array_filter($fiyatlanmis, fn ($s) => !empty($s['teklif_id']));
+
+        if (empty($hataliFiyat)) {
             return response()->json(['error' => 'Yeniden denenecek kayıt yok.'], 422);
         }
 
+        // Move failed back to bekleyen for re-pricing
+        $yenidenBekleyen = array_map(function ($s) {
+            unset($s['teklif_id'], $s['hata'], $s['urun_kodu'], $s['kimlik_tipi'],
+                  $s['doviz_turu'], $s['bprim'], $s['dkuru'], $s['maliyet_tl'],
+                  $s['satis_fiyat'], $s['net_kar']);
+            return $s;
+        }, array_values($hataliFiyat));
+
         $batch->update([
-            'bekleyen_satirlar' => array_map(fn ($s) => array_merge($s, ['hata' => null]), $hatali),
-            'hatali_satirlar'   => [],
-            'basarisiz'         => 0,
-            'durum'             => 'bekliyor',
+            'bekleyen_satirlar'    => $yenidenBekleyen,
+            'fiyatlanmis_satirlar' => array_values($basarili),
+            'durum'                => 'fiyat_hesaplaniyor',
         ]);
 
         return response()->json(['ok' => true]);

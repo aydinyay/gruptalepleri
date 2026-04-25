@@ -20,13 +20,17 @@ class SigortaBatchJob extends Model
         'tamamlanan',
         'basarisiz',
         'durum',
+        'total_amount_try',
         'bekleyen_satirlar',
+        'fiyatlanmis_satirlar',
         'hatali_satirlar',
     ];
 
     protected $casts = [
-        'bekleyen_satirlar' => 'array',
-        'hatali_satirlar'   => 'array',
+        'bekleyen_satirlar'    => 'array',
+        'fiyatlanmis_satirlar' => 'array',
+        'hatali_satirlar'      => 'array',
+        'total_amount_try'     => 'decimal:2',
     ];
 
     public function policeler(): HasMany
