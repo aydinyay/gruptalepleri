@@ -1289,6 +1289,7 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin/sigorta')->n
     Route::get('/kar-raporu',                [\App\Http\Controllers\Admin\SigortaController::class, 'karRaporu'])->name('kar-raporu');
     Route::get('/batchler',                  [\App\Http\Controllers\Admin\SigortaController::class, 'batchler'])->name('batchler');
     Route::post('/iptal-kontrol',            [\App\Http\Controllers\Admin\SigortaController::class, 'iptalKontrolCalistir'])->name('iptal-kontrol');
+    Route::post('/police/{police}/durum',    [\App\Http\Controllers\Admin\SigortaController::class, 'durumDegistir'])->name('durum-degistir');
     Route::get('/police/{police}/belge/{tip}',[\App\Http\Controllers\Admin\SigortaController::class, 'belge'])->name('belge');
 });
 

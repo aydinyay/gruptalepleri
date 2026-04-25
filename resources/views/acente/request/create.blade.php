@@ -206,6 +206,22 @@
             </div>
         </div>
 
+        {{-- Sigorta Upsell — yurtdışı rota algılandığında gösterilir --}}
+        @if($sigortaAktif ?? false)
+        <div id="sigorta-upsell" class="alert alert-info d-flex align-items-center gap-3 d-none mb-3" role="alert">
+            <i class="fas fa-shield-alt fa-lg text-primary flex-shrink-0"></i>
+            <div class="flex-fill">
+                <strong>Yurtdışı seyahat sigortası yaptırmak ister misiniz?</strong>
+                <div class="small text-muted">Bu grup için anında sigorta poliçesi düzenleyebilirsiniz.</div>
+            </div>
+            <a href="{{ route('acente.sigorta.toplu') }}" target="_blank"
+                class="btn btn-sm btn-primary flex-shrink-0">
+                <i class="fas fa-shield-alt me-1"></i> Sigorta Yaptır
+            </a>
+            <button type="button" class="btn-close flex-shrink-0" onclick="this.closest('#sigorta-upsell').classList.add('d-none')"></button>
+        </div>
+        @endif
+
         <div class="d-grid d-md-flex gap-2">
             <button type="submit" class="btn btn-success btn-lg px-md-5 w-100 w-md-auto">
                 <i class="fas fa-paper-plane me-2"></i>Talebi Gönder
@@ -555,5 +571,39 @@ function selectAirline(opt) {
 }
 </script>
 @include('acente.partials.theme-script')
+
+@if($sigortaAktif ?? false)
+<script>
+// Türk havalimanları — bu listede OLMAYAN to_iata yurtdışı sayılır
+const TR_AIRPORTS = new Set([
+    'IST','SAW','ADB','ESB','ANK','AYT','ADA','TZX','GZT','SZF','ERZ',
+    'VAN','DIY','KYA','ASR','BJV','DLM','GZP','HTY','MLX','EZS','IGD',
+    'NAV','MQM','AFY','KFS','USQ','GNY','TEQ','BAL','AOE','KCO','SIC',
+    'MSR','ONQ','YEI','NOP','ISE','TJK','KSY','MZH','YKO','GBT'
+]);
+
+function kontrolUpsell() {
+    const upsell = document.getElementById('sigorta-upsell');
+    if (!upsell) return;
+    const toInputs = document.querySelectorAll('input[name$="[to_iata]"][data-iata-hidden]');
+    let yurtdisi = false;
+    toInputs.forEach(inp => {
+        const iata = (inp.value || '').trim().toUpperCase();
+        if (iata && !TR_AIRPORTS.has(iata)) yurtdisi = true;
+    });
+    if (yurtdisi) {
+        upsell.classList.remove('d-none');
+    }
+}
+
+// IATA hidden input değiştiğinde kontrol et
+document.addEventListener('change', e => {
+    if (e.target.matches('input[data-iata-hidden]')) kontrolUpsell();
+});
+// Segment eklenince de kontrol et (MutationObserver)
+const segObs = new MutationObserver(kontrolUpsell);
+segObs.observe(document.getElementById('segments') || document.body, { childList: true, subtree: true });
+</script>
+@endif
 </body>
 </html>

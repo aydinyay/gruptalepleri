@@ -454,6 +454,62 @@ HTML;
     }
 
     /**
+     * Sigorta poliçesi hazır bildirimi — acente veya B2C kullanıcısına.
+     */
+    public function policeHazir(\App\Models\SigortaPolice $police): void
+    {
+        if (! SistemAyar::emailEnabled()) return;
+
+        $user = null;
+        if ($police->kanal === 'b2b' && $police->acente_id) {
+            $user = User::find($police->acente_id);
+        } elseif ($police->kanal === 'b2c' && $police->b2c_user_id) {
+            $user = User::find($police->b2c_user_id);
+        }
+
+        if (! $user || ! $user->email) return;
+
+        $policeNo = $police->police_no ?: '—';
+        $subject  = "🛡 Sigorta Poliçeniz Hazır — {$policeNo}";
+
+        $belgeUrl = $police->kanal === 'b2b'
+            ? route('acente.sigorta.belge', ['police' => $police->id, 'tip' => 'police'])
+            : route('b2c.sigorta.belge',   ['police' => $police->id, 'tip' => 'police']);
+
+        $sigortalı    = htmlspecialchars($police->sigortali_adi . ' ' . $police->sigortali_soyadi);
+        $ülke         = htmlspecialchars($police->gidilecek_ulke ?? '');
+        $baslangic    = $police->baslangic_tarihi?->format('d.m.Y') ?? '—';
+        $bitis        = $police->bitis_tarihi?->format('d.m.Y') ?? '—';
+        $adSoyad      = htmlspecialchars($user->name ?? '');
+
+        $html = <<<HTML
+<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;padding:24px 20px;">
+  <h2 style="color:#1a3c6b;font-size:1.25rem;margin-bottom:8px;">✅ Sigorta Poliçeniz Hazır!</h2>
+  <p style="color:#555;">Merhaba {$adSoyad},</p>
+  <p style="color:#555;">Aşağıdaki sigorta poliçeniz başarıyla düzenlendi:</p>
+  <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:16px 20px;border-radius:6px;margin:16px 0;">
+    <strong style="color:#15803d;font-size:1rem;">Poliçe No: {$policeNo}</strong><br>
+    <span style="color:#555;">Sigortalı: {$sigortalı}</span><br>
+    <span style="color:#555;">Gidilecek Ülke: {$ülke}</span><br>
+    <span style="color:#555;">Seyahat: {$baslangic} – {$bitis}</span>
+  </div>
+  <a href="{$belgeUrl}" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.95rem;">
+    Poliçeyi PDF İndir →
+  </a>
+  <p style="color:#aaa;font-size:.75rem;margin-top:24px;">GrupTalepleri Sigorta · PAO-Net / Nippon Sigorta</p>
+</div>
+HTML;
+
+        try {
+            Mail::html($html, function ($m) use ($user, $subject) {
+                $m->to($user->email, $user->name)->subject($subject);
+            });
+        } catch (\Throwable $e) {
+            Log::error('EmailService::policeHazir hatası: ' . $e->getMessage(), ['police_id' => $police->id]);
+        }
+    }
+
+    /**
      * DB şablonundan oluşturulmuş HTML ile gönderim (view gerektirmez).
      */
     private function sendHtml(?int $requestId, User $user, string $subject, string $html): void

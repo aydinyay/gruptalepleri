@@ -155,6 +155,25 @@ class SigortaController extends Controller
         ]);
     }
 
+    // ── Manuel Durum Düzeltme ─────────────────────────────────────────────────
+
+    public function durumDegistir(Request $request, SigortaPolice $police)
+    {
+        $request->validate([
+            'durum'     => 'required|in:odeme_bekleniyor,odeme_basarisiz,police_isleniyor,tamamlandi,iptal_bekliyor,iptal,hata',
+            'police_no' => 'nullable|string|max:60',
+            'not'       => 'nullable|string|max:500',
+        ]);
+
+        $updates = ['durum' => $request->durum];
+        if ($request->filled('police_no')) $updates['police_no']   = $request->police_no;
+        if ($request->filled('not'))       $updates['hata_mesaji'] = $request->not;
+
+        $police->update($updates);
+
+        return back()->with('success', 'Poliçe #' . $police->id . ' durumu "' . $request->durum . '" olarak güncellendi.');
+    }
+
     // ── PDF Belge Proxy (admin erişimi) ───────────────────────────────────────
 
     public function belge(SigortaPolice $police, string $tip)

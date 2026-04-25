@@ -393,14 +393,16 @@ class SigortaController extends Controller
                 // PDF linklerini de çek
                 $pdfData = $svc->pdfGetir($policeNo);
                 $police->update([
-                    'police_no'        => $policeNo,
-                    'durum'            => 'tamamlandi',
-                    'pdf_url_base'     => $pdfData['PdfUrlBase'] ?? '',
-                    'pdf_link'         => $pdfData['PdfLink'] ?? '',
-                    'makbuz_link'      => $pdfData['MakbuzLink'] ?? '',
-                    'sertifika_link'   => $pdfData['SertifikaLink'] ?? '',
+                    'police_no'          => $policeNo,
+                    'durum'              => 'tamamlandi',
+                    'pdf_url_base'       => $pdfData['PdfUrlBase'] ?? '',
+                    'pdf_link'           => $pdfData['PdfLink'] ?? '',
+                    'makbuz_link'        => $pdfData['MakbuzLink'] ?? '',
+                    'sertifika_link'     => $pdfData['SertifikaLink'] ?? '',
                     'ing_sertifika_link' => $pdfData['IngSertifikaLink'] ?? '',
                 ]);
+
+                try { (new \App\Services\EmailService())->policeHazir($police->fresh()); } catch (\Throwable) {}
 
                 return response()->json(['durum' => 'tamamlandi', 'police_no' => $policeNo]);
             }

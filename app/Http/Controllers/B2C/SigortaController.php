@@ -382,6 +382,7 @@ class SigortaController extends Controller
                     'sertifika_link'     => $pdfData['SertifikaLink'] ?? '',
                     'ing_sertifika_link' => $pdfData['IngSertifikaLink'] ?? '',
                 ]);
+                try { (new \App\Services\EmailService())->policeHazir($police->fresh()); } catch (\Throwable) {}
                 return response()->json(['durum' => 'tamamlandi', 'police_no' => $policeNo]);
             }
 

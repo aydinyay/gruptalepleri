@@ -95,5 +95,44 @@
         <strong>Hata:</strong> {{ $police->hata_mesaji }}
     </div>
     @endif
+
+    {{-- Admin Manuel Durum Düzeltme --}}
+    <div class="card shadow-sm mt-4 border-warning">
+        <div class="card-header fw-bold bg-warning bg-opacity-10 py-2">
+            <i class="fas fa-tools me-2 text-warning"></i>Manuel Durum Güncelleme
+        </div>
+        <div class="card-body">
+            @if(session('success'))
+            <div class="alert alert-success py-2 small">{{ session('success') }}</div>
+            @endif
+            <form method="POST" action="{{ route('admin.sigorta.durum-degistir', $police) }}" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Yeni Durum</label>
+                    <select name="durum" class="form-select form-select-sm" required>
+                        @foreach(['odeme_bekleniyor','odeme_basarisiz','police_isleniyor','tamamlandi','iptal_bekliyor','iptal','hata'] as $d)
+                        <option value="{{ $d }}" {{ $police->durum === $d ? 'selected' : '' }}>{{ $d }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Poliçe No (opsiyonel)</label>
+                    <input type="text" name="police_no" class="form-control form-control-sm"
+                        value="{{ $police->police_no }}" placeholder="PAO-Net'ten gelen no">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Not / Hata Mesajı</label>
+                    <input type="text" name="not" class="form-control form-control-sm"
+                        placeholder="Admin notu..." maxlength="500">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-warning btn-sm w-100"
+                        onclick="return confirm('Durumu güncellemek istediğinizden emin misiniz?')">
+                        <i class="fas fa-save me-1"></i> Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection

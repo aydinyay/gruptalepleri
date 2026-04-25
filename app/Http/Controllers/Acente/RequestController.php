@@ -21,7 +21,9 @@ class RequestController extends Controller
 
     public function create()
     {
-        return view('acente.request.create');
+        $sigortaAktif = (bool) \Illuminate\Support\Facades\DB::table('sigorta_ayarlar')
+            ->where('anahtar', 'aktif')->value('deger');
+        return view('acente.request.create', compact('sigortaAktif'));
     }
 
     public function store(Request $request)
