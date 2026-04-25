@@ -30,7 +30,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
     <div class="gyg-pcard-img">
         @if($item->cover_image)
             @php $imgSrc = str_starts_with($item->cover_image, 'http') ? $item->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $item->cover_image; @endphp
-            <img src="{{ $imgSrc }}" alt="{{ $item->title }}" loading="lazy">
+            <img src="{{ $imgSrc }}" alt="{{ $item->translatedTitle() }}" loading="lazy">
         @else
             <div class="img-placeholder" style="background:{{ $bg }};">
                 <i class="bi {{ $icon }}"></i>
@@ -91,7 +91,7 @@ $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
             @if($item->destination_city) · {{ implode(', ', array_filter([$item->destination_district, $item->destination_city])) }} @endif
         </div>
 
-        <div class="gyg-pcard-title">{{ $item->title }}</div>
+        <div class="gyg-pcard-title">{{ $item->translatedTitle() }}</div>
 
         <div class="d-flex align-items-center gap-1" style="margin-bottom:4px;">
             @if(($item->rating_avg ?? 0) > 0)

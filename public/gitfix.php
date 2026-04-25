@@ -302,6 +302,26 @@ if (($_GET['action'] ?? '') === 'translate') {
     exit;
 }
 
+// Katalog ürünleri çeviri — ?action=translate-catalog&lang=ar (veya all)
+if (($_GET['action'] ?? '') === 'translate-catalog') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    header('Content-Type: text/plain; charset=utf-8');
+    $lang  = trim($_GET['lang'] ?? 'all');
+    $force = isset($_GET['force']);
+    $id    = isset($_GET['id']) ? (int)$_GET['id'] : null;
+    $args  = ['--force' => $force];
+    if ($lang !== 'all') $args['--locale'] = $lang;
+    if ($id) $args['--id'] = $id;
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('gr:translate-catalog', $args);
+    echo \Illuminate\Support\Facades\Artisan::output();
+    echo "EXIT:{$exitCode}\n";
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");

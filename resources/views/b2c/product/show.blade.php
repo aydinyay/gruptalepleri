@@ -1,23 +1,23 @@
 @extends('b2c.layouts.app')
-@section('title', $item->meta_title ?? $item->title)
+@section('title', $item->translatedMetaTitle() ?? $item->translatedTitle())
 @if($item->cover_image)
 @section('og_image', str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image)
 @endif
-@section('meta_description', $item->meta_description ?? $item->short_desc ?? ($item->title . ' — Grup Rezervasyonları'))
+@section('meta_description', $item->translatedMetaDescription() ?? $item->translatedShortDesc() ?? ($item->translatedTitle() . ' — Grup Rezervasyonları'))
 
 @push('head_styles')
 @php
 $_schemaImg = $item->cover_image
     ? (str_starts_with($item->cover_image,'http') ? $item->cover_image : rtrim(config('app.url'),'/').'/uploads/'.$item->cover_image)
     : null;
-$_schemaDesc = e($item->meta_description ?? $item->short_desc ?? $item->title);
+$_schemaDesc = e($item->translatedMetaDescription() ?? $item->translatedShortDesc() ?? $item->translatedTitle());
 $_schemaUrl  = url('/urun/'.$item->slug);
 $_schema = ['@context'=>'https://schema.org'];
 
 if ($item->pricing_type === 'fixed' && $item->base_price) {
     $_schema['@type']       = 'Product';
-    $_schema['name']        = $item->title;
-    $_schema['description'] = $item->meta_description ?? $item->short_desc ?? $item->title;
+    $_schema['name']        = $item->translatedTitle();
+    $_schema['description'] = $item->translatedMetaDescription() ?? $item->translatedShortDesc() ?? $item->translatedTitle();
     $_schema['url']         = $_schemaUrl;
     if ($_schemaImg) $_schema['image'] = [$_schemaImg];
     $_schema['brand']       = ['@type'=>'Brand','name'=>'Grup Rezervasyonları'];
@@ -31,8 +31,8 @@ if ($item->pricing_type === 'fixed' && $item->base_price) {
     ];
 } else {
     $_schema['@type']       = 'Service';
-    $_schema['name']        = $item->title;
-    $_schema['description'] = $item->meta_description ?? $item->short_desc ?? $item->title;
+    $_schema['name']        = $item->translatedTitle();
+    $_schema['description'] = $item->translatedMetaDescription() ?? $item->translatedShortDesc() ?? $item->translatedTitle();
     $_schema['url']         = $_schemaUrl;
     if ($_schemaImg) $_schema['image'] = $_schemaImg;
     $_schema['provider']    = ['@type'=>'Organization','name'=>'Grup Rezervasyonları','url'=>'https://gruprezervasyonlari.com'];
@@ -183,7 +183,7 @@ if ($item->rating_avg > 0 && $item->review_count > 0) {
 @if($item->category)
 <a href="{{ lroute('b2c.catalog.category', $item->category->slug) }}">{{ $item->category->name }}</a> ›
 @endif
-{{ Str::limit($item->title, 50) }}
+{{ Str::limit($item->translatedTitle(), 50) }}
 </div>
 </div>
 
@@ -400,7 +400,7 @@ $supplierCount    = $isPlatform
     @endif
 </div>
 
-<h1 class="prd-title">{{ $item->title }}</h1>
+<h1 class="prd-title">{{ $item->translatedTitle() }}</h1>
 
 <div class="prd-meta">
 @if($item->rating_avg > 0)
@@ -445,7 +445,7 @@ $supplierCount    = $isPlatform
 </div>
 
 @if($item->short_desc)
-<p style="font-size:1rem;color:#4a5568;line-height:1.7;margin-bottom:0;">{{ $item->short_desc }}</p>
+<p style="font-size:1rem;color:#4a5568;line-height:1.7;margin-bottom:0;">{{ $item->translatedShortDesc() }}</p>
 @endif
 
 {{-- Transfer: Rota bilgisi --}}
@@ -520,7 +520,7 @@ $dirLabel  = $dirLabels[$item->transfer_direction] ?? $item->transfer_direction;
 
 @if($item->full_desc)
 <div class="prd-sec">Detaylı Açıklama</div>
-<div style="font-size:.95rem;color:#4a5568;line-height:1.8;" class="prd-full-desc">{!! $item->full_desc !!}</div>
+<div style="font-size:.95rem;color:#4a5568;line-height:1.8;" class="prd-full-desc">{!! $item->translatedFullDesc() !!}</div>
 @endif
 
 </div>

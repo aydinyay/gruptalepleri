@@ -510,10 +510,15 @@
                     </div>
                 </div>
 
-                <div class="mt-4 d-flex gap-2">
+                <div class="mt-4 d-flex gap-2 flex-wrap">
                     <button type="submit" class="btn btn-primary px-5">
                         <i class="fas fa-save me-1"></i>{{ isset($item) ? 'Güncelle' : 'Ürünü Kaydet' }}
                     </button>
+                    @if(isset($item))
+                    <button type="button" class="btn btn-outline-info" id="aiTranslateBtn" onclick="aiTranslateCatalog({{ $item->id }})">
+                        <i class="fas fa-language me-1"></i> AI ile Çevir (6 dil)
+                    </button>
+                    @endif
                     <a href="{{ route('superadmin.b2c.catalog') }}" class="btn btn-outline-secondary">İptal</a>
                 </div>
 
@@ -721,5 +726,28 @@ function grGeocode() {
 <style>
 .ai-filled { transition: background .3s; background: #fffbe6 !important; }
 </style>
+
+<script>
+async function aiTranslateCatalog(id) {
+    const btn = document.getElementById('aiTranslateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Çeviriliyor...';
+    try {
+        const url = '/gitfix.php?t=grt2026fix&action=translate-catalog&force=1&id=' + id;
+        const r = await fetch(url);
+        const text = await r.text();
+        if (text.includes('EXIT:0')) {
+            btn.innerHTML = '<i class="fas fa-check me-1"></i> Çeviri Tamamlandı!';
+            btn.classList.replace('btn-outline-info', 'btn-success');
+        } else {
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Hata — konsola bak';
+            console.error(text);
+        }
+    } catch(e) {
+        btn.innerHTML = '<i class="fas fa-times me-1"></i> Bağlantı hatası';
+        console.error(e);
+    }
+}
+</script>
 </body>
 </html>

@@ -24,9 +24,12 @@ class CatalogItem extends Model
         'reference_type',
         'reference_id',
         'title',
+        'title_translations',
         'slug',
         'short_desc',
+        'short_desc_translations',
         'full_desc',
+        'full_desc_translations',
         'cover_image',
         'gallery_json',
         'pricing_type',
@@ -58,7 +61,9 @@ class CatalogItem extends Model
         'rating_avg',
         'review_count',
         'meta_title',
+        'meta_title_translations',
         'meta_description',
+        'meta_description_translations',
         'transfer_airport_id',
         'transfer_zone_id',
         'transfer_direction',
@@ -67,7 +72,12 @@ class CatalogItem extends Model
     protected function casts(): array
     {
         return [
-            'gallery_json'  => 'array',
+            'gallery_json'              => 'array',
+            'title_translations'        => 'array',
+            'short_desc_translations'   => 'array',
+            'full_desc_translations'    => 'array',
+            'meta_title_translations'   => 'array',
+            'meta_description_translations' => 'array',
             'is_active'     => 'boolean',
             'is_featured'   => 'boolean',
             'homepage_hero' => 'boolean',
@@ -223,5 +233,44 @@ class CatalogItem extends Model
     public function getIsOwnedByPlatformAttribute(): bool
     {
         return $this->owner_type === 'platform';
+    }
+
+    // ── Çok dilli erişimciler ──────────────────────────────────────────────
+
+    public function translatedTitle(): string
+    {
+        return $this->translatedField('title_translations', 'title');
+    }
+
+    public function translatedShortDesc(): ?string
+    {
+        return $this->translatedField('short_desc_translations', 'short_desc');
+    }
+
+    public function translatedFullDesc(): ?string
+    {
+        return $this->translatedField('full_desc_translations', 'full_desc');
+    }
+
+    public function translatedMetaTitle(): ?string
+    {
+        return $this->translatedField('meta_title_translations', 'meta_title');
+    }
+
+    public function translatedMetaDescription(): ?string
+    {
+        return $this->translatedField('meta_description_translations', 'meta_description');
+    }
+
+    private function translatedField(string $jsonColumn, string $fallbackColumn): ?string
+    {
+        $locale = app()->getLocale();
+        if ($locale !== 'tr') {
+            $translations = $this->{$jsonColumn};
+            if (is_array($translations) && ! empty($translations[$locale])) {
+                return $translations[$locale];
+            }
+        }
+        return $this->{$fallbackColumn};
     }
 }
