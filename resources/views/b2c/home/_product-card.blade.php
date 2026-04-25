@@ -6,6 +6,7 @@ $typeIcons = [
     'tour'     => 'bi-map-fill',
     'hotel'    => 'bi-building',
     'visa'     => 'bi-passport',
+    'sigorta'  => 'bi-shield-fill-check',
     'other'    => 'bi-grid',
 ];
 $typeColors = [
@@ -15,6 +16,7 @@ $typeColors = [
     'tour'     => 'linear-gradient(135deg,#1e4d1e,#2d7a2d)',
     'hotel'    => 'linear-gradient(135deg,#4d1e1e,#8a2d2d)',
     'visa'     => 'linear-gradient(135deg,#3d1a6b,#6b2a8a)',
+    'sigorta'  => 'linear-gradient(135deg,#065f46,#0d9488)',
     'other'    => 'linear-gradient(135deg,#1a3c6b,#2a5298)',
 ];
 $icon     = $typeIcons[$item->product_type] ?? 'bi-grid';

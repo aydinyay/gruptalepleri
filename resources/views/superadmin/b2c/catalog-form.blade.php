@@ -262,7 +262,7 @@
                             <div class="mb-3">
                                 <label class="form-label fw-600">Ürün Tipi *</label>
                                 <select name="product_type" id="productType" class="form-select" required>
-                                    @foreach(['transfer'=>'Transfer','charter'=>'Charter & Uçuş','leisure'=>'Deniz & Eğlence','tour'=>'Tur','hotel'=>'Otel','visa'=>'Vize','other'=>'Diğer'] as $v => $l)
+                                    @foreach(['transfer'=>'Transfer','charter'=>'Charter & Uçuş','leisure'=>'Deniz & Eğlence','tour'=>'Tur','hotel'=>'Otel','visa'=>'Vize','sigorta'=>'Sigorta','other'=>'Diğer'] as $v => $l)
                                     <option value="{{ $v }}" {{ old('product_type', $item->product_type ?? '') == $v ? 'selected' : '' }}>{{ $l }}</option>
                                     @endforeach
                                 </select>
@@ -549,6 +549,7 @@ const subtypeMap = {
     tour:     [['day_tour','Günübirlik Tur'],['multi_day_tour','Çok Günlük Tur'],['activity_tour','Aktivite Turu']],
     hotel:    [['hotel_room','Otel Odası'],['apart_rental','Apart Kiralama']],
     visa:     [['visa_service','Vize Hizmeti']],
+    sigorta:  [['seyahat_tc','Yurtdışı Sigorta (TC Kimlikli)'],['seyahat_pasaport','Yurtdışı Sigorta (Pasaportlu)'],['seyahat_toplu','Toplu Grup Sigortası']],
     other:    [['corporate_event','Kurumsal Etkinlik'],['event_ticket','Etkinlik Bileti'],['admission_ticket','Müze / Giriş Bileti'],['timed_experience','Deneyim Turu (Tadım, Workshop vb.)']],
 };
 const currentSubtype = '{{ old('product_subtype', $item->product_subtype ?? '') }}';

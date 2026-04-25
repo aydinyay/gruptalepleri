@@ -25,6 +25,18 @@ class ProductController extends Controller
             ->limit(3)
             ->get();
 
+        // Sigorta ürünleri → özel detay sayfası, formdan başlar
+        if ($item->product_type === 'sigorta') {
+            $sigortaAktif = (bool) \Illuminate\Support\Facades\DB::table('sigorta_ayarlar')
+                ->where('anahtar', 'aktif')->value('deger');
+
+            if ($item->category) {
+                session(['b2c_last_category' => $item->category->name]);
+            }
+
+            return view('b2c.product.sigorta-show', compact('item', 'relatedItems', 'sigortaAktif'));
+        }
+
         // Yacht charter: saatlik özel şablon (leisure-show) — diğer leisure/tour subtypelar show.blade.php kullanır
         $yachtSubtypes   = ['yacht_charter'];
         $leisureRefTypes = ['leisure_package', 'leisure_package_template'];
