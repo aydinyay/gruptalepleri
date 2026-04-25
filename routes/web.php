@@ -1261,6 +1261,7 @@ Route::middleware(['auth'])->prefix('acente/sigorta')->name('acente.sigorta.')->
     Route::get('/police/{police}/belge/{tip}',               [\App\Http\Controllers\Acente\SigortaController::class, 'belge'])->name('belge');
     Route::delete('/police/{police}/iptal',                  [\App\Http\Controllers\Acente\SigortaController::class, 'iptal'])->name('iptal');
     Route::get('/toplu',                                     [\App\Http\Controllers\Acente\SigortaController::class, 'toplu'])->name('toplu');
+    Route::get('/toplu/sablon',                              [\App\Http\Controllers\Acente\SigortaController::class, 'topluSablon'])->name('toplu-sablon');
     Route::post('/toplu/basla',                              [\App\Http\Controllers\Acente\SigortaController::class, 'topluBaslat'])->name('toplu-basla');
     Route::post('/toplu/{batch}/poll',                       [\App\Http\Controllers\Acente\SigortaController::class, 'topluPoll'])->name('toplu-poll');
     Route::post('/toplu/{batch}/retry',                      [\App\Http\Controllers\Acente\SigortaController::class, 'topluRetry'])->name('toplu-retry');
@@ -1277,6 +1278,7 @@ Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin/sigorta')->n
     Route::patch('/markup',                  [\App\Http\Controllers\Admin\SigortaController::class, 'markupGuncelle'])->name('markup-guncelle');
     Route::get('/kar-raporu',                [\App\Http\Controllers\Admin\SigortaController::class, 'karRaporu'])->name('kar-raporu');
     Route::get('/batchler',                  [\App\Http\Controllers\Admin\SigortaController::class, 'batchler'])->name('batchler');
+    Route::post('/iptal-kontrol',            [\App\Http\Controllers\Admin\SigortaController::class, 'iptalKontrolCalistir'])->name('iptal-kontrol');
     Route::get('/police/{police}/belge/{tip}',[\App\Http\Controllers\Admin\SigortaController::class, 'belge'])->name('belge');
 });
 

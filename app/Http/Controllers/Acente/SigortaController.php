@@ -279,6 +279,21 @@ class SigortaController extends Controller
         ]);
     }
 
+    // ── CSV Şablon İndir ─────────────────────────────────────────────────────
+
+    public function topluSablon()
+    {
+        $bom     = "\xEF\xBB\xBF"; // Excel için UTF-8 BOM
+        $header  = "kimlik,adi,soyadi,baba_adi,dogum_tarihi,dogum_yeri,cinsiyet,uyruk,boy,kilo,il,ilce,adres\n";
+        $tc      = "12345678901,Ahmet,Yılmaz,,1985-05-15,,E,,,,,, \n";
+        $pspr    = "AB1234567,Ivan,Petrov,Nikolai,1990-03-20,Moskova,E,Rus,180,75,İstanbul,Şişli,\"Cumhuriyet Cad. No:10\"\n";
+
+        return response($bom . $header . $tc . $pspr, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="sigorta-sablon.csv"',
+        ]);
+    }
+
     // ── Toplu Batch Başlat ────────────────────────────────────────────────────
 
     public function topluBaslat(Request $request)

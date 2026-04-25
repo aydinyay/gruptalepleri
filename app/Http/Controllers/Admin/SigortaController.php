@@ -121,6 +121,40 @@ class SigortaController extends Controller
         return view('admin.sigorta.batchler', compact('batchler'));
     }
 
+    // ── İptal Bekleyenleri Kontrol Et (Manuel Tetikleme) ─────────────────────
+
+    public function iptalKontrolCalistir()
+    {
+        if (empty(config('services.paonet.api_key'))) {
+            return response()->json(['error' => 'PAO-Net API anahtarı tanımlanmamış.'], 422);
+        }
+
+        $bekleyenler = SigortaPolice::where('durum', 'iptal_bekliyor')
+            ->whereNotNull('police_no')
+            ->get();
+
+        $guncellenen = 0;
+        foreach ($bekleyenler as $police) {
+            try {
+                $svc   = app(PaoNetService::class);
+                $sonuc = $svc->iptalKontrol($police->police_no);
+                $durum = $sonuc['IptalDurum'] ?? $sonuc['iptalDurum'] ?? '';
+                if (in_array(strtolower($durum), ['iptal', 'cancelled', 'onaylandi', '1', 'true'])) {
+                    $police->update(['durum' => 'iptal']);
+                    $guncellenen++;
+                }
+            } catch (\Throwable $e) {
+                // Tek hata tüm döngüyü durdurmasın
+            }
+        }
+
+        return response()->json([
+            'ok'          => true,
+            'kontrol'     => $bekleyenler->count(),
+            'guncellenen' => $guncellenen,
+        ]);
+    }
+
     // ── PDF Belge Proxy (admin erişimi) ───────────────────────────────────────
 
     public function belge(SigortaPolice $police, string $tip)

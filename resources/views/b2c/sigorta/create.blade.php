@@ -37,6 +37,59 @@
                 </div>
             </div>
 
+            {{-- NPN220 Pasaport ek alanları --}}
+            <div id="b2c-pasaport-alanlar" class="d-none">
+                <div class="alert alert-info py-2 small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Yabancı uyruklu sigortalı için ek bilgiler gerekmektedir.
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Baba Adı</label>
+                        <input type="text" id="baba_adi" class="form-control" placeholder="Baba adı">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Doğum Yeri <span class="text-danger">*</span></label>
+                        <input type="text" id="dogum_yeri" class="form-control" placeholder="Şehir / Ülke">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Cinsiyet <span class="text-danger">*</span></label>
+                        <select id="cinsiyet" class="form-select">
+                            <option value="E">Erkek</option>
+                            <option value="K">Kadın</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Uyruk <span class="text-danger">*</span></label>
+                        <input type="text" id="uyruk" class="form-control" placeholder="Rus / Alman...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Boy (cm)</label>
+                        <input type="number" id="boy" class="form-control" placeholder="175" min="50" max="250">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Kilo (kg)</label>
+                        <input type="number" id="kilo" class="form-control" placeholder="70" min="10" max="300">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">İl <span class="text-danger">*</span></label>
+                        <input type="text" id="il_adi" class="form-control" placeholder="İstanbul">
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">İlçe <span class="text-danger">*</span></label>
+                        <input type="text" id="ilce_adi" class="form-control" placeholder="Şişli">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Açık Adres <span class="text-danger">*</span></label>
+                        <input type="text" id="adres" class="form-control" placeholder="Mahalle, sokak, kapı no">
+                    </div>
+                </div>
+            </div>
+
             <hr class="my-4">
 
             <div class="row g-3 mb-3">
@@ -128,8 +181,10 @@ const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
 document.getElementById('kimlik').addEventListener('input', function () {
     const v = this.value.trim();
-    const tip = /^\d{11}$/.test(v) ? '🇹🇷 TC' : (v.length > 0 ? '🌍 Pasaport' : '🇹🇷 TC');
-    document.getElementById('kimlik-tip-badge').textContent = tip;
+    const isTC = /^\d{11}$/.test(v);
+    const isPasaport = v.length > 0 && !isTC;
+    document.getElementById('kimlik-tip-badge').textContent = isPasaport ? '🌍 Pasaport' : '🇹🇷 TC';
+    document.getElementById('b2c-pasaport-alanlar').classList.toggle('d-none', !isPasaport);
     document.getElementById('teklif-sonuc').classList.add('d-none');
     document.getElementById('btn-onayla').classList.add('d-none');
 });
@@ -141,14 +196,25 @@ document.getElementById('btn-teklif').addEventListener('click', async function (
     this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Hesaplanıyor...';
     document.getElementById('hata-kutusu').classList.add('d-none');
 
+    const val = (id) => document.getElementById(id)?.value ?? '';
     const body = {
-        kimlik: document.getElementById('kimlik').value,
-        adi: document.getElementById('adi').value,
-        soyadi: document.getElementById('soyadi').value,
-        dogum_tarihi: document.getElementById('dogum_tarihi').value,
-        baslangic_tarihi: document.getElementById('baslangic_tarihi').value,
-        bitis_tarihi: document.getElementById('bitis_tarihi').value,
-        ulke: document.getElementById('ulke').value,
+        kimlik:           val('kimlik'),
+        adi:              val('adi'),
+        soyadi:           val('soyadi'),
+        dogum_tarihi:     val('dogum_tarihi'),
+        baslangic_tarihi: val('baslangic_tarihi'),
+        bitis_tarihi:     val('bitis_tarihi'),
+        ulke:             val('ulke'),
+        // NPN220 pasaport alanları
+        baba_adi:   val('baba_adi'),
+        dogum_yeri: val('dogum_yeri'),
+        cinsiyet:   val('cinsiyet'),
+        uyruk:      val('uyruk'),
+        boy:        val('boy'),
+        kilo:       val('kilo'),
+        il_adi:     val('il_adi'),
+        ilce_adi:   val('ilce_adi'),
+        adres:      val('adres'),
     };
 
     try {

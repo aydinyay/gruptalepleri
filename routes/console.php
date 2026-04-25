@@ -71,6 +71,28 @@ Schedule::call(fn() => \Artisan::call('gr:check-price-alerts'))
     ->withoutOverlapping(30)
     ->environments(['production']);
 
+// İptal bekleyen sigorta poliçelerini her 30 dakikada PAO-Net'e sor
+Schedule::call(function () {
+    if (empty(config('services.paonet.api_key'))) {
+        return;
+    }
+    $bekleyenler = \App\Models\SigortaPolice::where('durum', 'iptal_bekliyor')
+        ->whereNotNull('police_no')
+        ->get();
+    foreach ($bekleyenler as $police) {
+        try {
+            $svc   = app(\App\Services\PaoNetService::class);
+            $sonuc = $svc->iptalKontrol($police->police_no);
+            $durum = $sonuc['IptalDurum'] ?? $sonuc['iptalDurum'] ?? '';
+            if (in_array(strtolower($durum), ['iptal', 'cancelled', 'onaylandi', '1', 'true'])) {
+                $police->update(['durum' => 'iptal']);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('sigorta.iptal_kontrol hata: ' . $e->getMessage(), ['police_id' => $police->id]);
+        }
+    }
+})->everyThirtyMinutes()->name('sigorta-iptal-kontrol')->withoutOverlapping(20)->environments(['production']);
+
 // Local geliştirme ortamında DB boşalma riskine karşı otomatik sağlık kontrolü
 Schedule::command('db:ensure-local-health --import-on-empty --min-requests=1')
     ->everyTenMinutes()

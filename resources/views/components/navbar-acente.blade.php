@@ -117,6 +117,44 @@
             ],
         ],
         [
+            'id' => 'sigorta',
+            'label' => 'Sigorta',
+            'icon' => 'fas fa-shield-alt',
+            'href' => route('acente.sigorta.index'),
+            'items' => [
+                [
+                    'label' => 'Poliçelerim',
+                    'href'  => route('acente.sigorta.index'),
+                    'icon'  => 'fas fa-list',
+                    'keys'  => ['sigorta'],
+                ],
+                [
+                    'label' => 'Yeni Poliçe',
+                    'href'  => route('acente.sigorta.create'),
+                    'icon'  => 'fas fa-plus',
+                    'keys'  => ['sigorta-yeni'],
+                ],
+                [
+                    'label' => 'Toplu Sigorta',
+                    'href'  => route('acente.sigorta.toplu'),
+                    'icon'  => 'fas fa-users',
+                    'keys'  => ['sigorta-toplu'],
+                ],
+                [
+                    'label' => 'MBF Formu',
+                    'href'  => route('acente.sigorta.mbf'),
+                    'icon'  => 'fas fa-file-alt',
+                    'keys'  => ['sigorta-mbf'],
+                ],
+                [
+                    'label' => 'Kâr Raporunuz',
+                    'href'  => route('acente.sigorta.kar-raporu'),
+                    'icon'  => 'fas fa-chart-bar',
+                    'keys'  => ['sigorta-kar'],
+                ],
+            ],
+        ],
+        [
             'id' => 'leisure',
             'label' => 'Leisure',
             'icon' => 'fas fa-compass',

@@ -85,6 +85,38 @@
             ],
         ],
         [
+            'id' => 'sigorta',
+            'label' => 'Sigorta',
+            'icon' => 'fas fa-shield-alt',
+            'href' => route('admin.sigorta.index'),
+            'items' => [
+                [
+                    'label' => 'Tüm Poliçeler',
+                    'href'  => route('admin.sigorta.index'),
+                    'icon'  => 'fas fa-list',
+                    'keys'  => ['sigorta'],
+                ],
+                [
+                    'label' => 'Kâr Raporu',
+                    'href'  => route('admin.sigorta.kar-raporu'),
+                    'icon'  => 'fas fa-chart-bar',
+                    'keys'  => ['sigorta-kar'],
+                ],
+                [
+                    'label' => 'Markup Ayarları',
+                    'href'  => route('admin.sigorta.markup'),
+                    'icon'  => 'fas fa-sliders-h',
+                    'keys'  => ['sigorta-markup'],
+                ],
+                [
+                    'label' => 'Batch İşlemler',
+                    'href'  => route('admin.sigorta.batchler'),
+                    'icon'  => 'fas fa-tasks',
+                    'keys'  => ['sigorta-batch'],
+                ],
+            ],
+        ],
+        [
             'id' => 'leisure',
             'label' => 'Leisure',
             'icon' => 'fas fa-compass',

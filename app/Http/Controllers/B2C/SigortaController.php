@@ -36,6 +36,11 @@ class SigortaController extends Controller
 
     public function teklifAl(Request $request)
     {
+        // Honeypot — bot koruması
+        if ($request->filled('website')) {
+            return response()->json(['error' => 'Geçersiz istek.'], 422);
+        }
+
         $request->validate([
             'kimlik'           => 'required|string|max:20',
             'adi'              => 'required|string|max:80',
@@ -44,7 +49,16 @@ class SigortaController extends Controller
             'baslangic_tarihi' => 'required|date|after_or_equal:today',
             'bitis_tarihi'     => 'required|date|after:baslangic_tarihi',
             'ulke'             => 'required|string|max:80',
-            'g-recaptcha-response' => 'nullable|string',
+            // NPN220 pasaport alanları (opsiyonel, pasaport algılanınca dolduruluyor)
+            'dogum_yeri'       => 'nullable|string|max:100',
+            'uyruk'            => 'nullable|string|max:80',
+            'baba_adi'         => 'nullable|string|max:80',
+            'cinsiyet'         => 'nullable|string|in:E,K',
+            'boy'              => 'nullable|integer|min:50|max:250',
+            'kilo'             => 'nullable|integer|min:10|max:300',
+            'il_adi'           => 'nullable|string|max:60',
+            'ilce_adi'         => 'nullable|string|max:60',
+            'adres'            => 'nullable|string|max:255',
         ]);
 
         if (!$this->aktifMi()) {
@@ -56,7 +70,7 @@ class SigortaController extends Controller
             $kimlikT  = PaoNetHelper::detectKimlikTipi($request->kimlik);
             $urunKodu = PaoNetHelper::urunKodu($kimlikT);
 
-            $strMsg = PaoNetHelper::buildStrMsg([
+            $msgParams = [
                 'Kimlik'          => $request->kimlik,
                 'Adi'             => $request->adi,
                 'Soyadi'          => $request->soyadi,
@@ -64,7 +78,21 @@ class SigortaController extends Controller
                 'BaslangicTarihi' => $request->baslangic_tarihi,
                 'BitisTarihi'     => $request->bitis_tarihi,
                 'GidilecekUlke'   => $request->ulke,
-            ]);
+            ];
+
+            if ($kimlikT === 'pasaport') {
+                $msgParams['BabaAdi']   = $request->baba_adi ?? '';
+                $msgParams['DogumYeri'] = $request->dogum_yeri ?? '';
+                $msgParams['Cinsiyet']  = PaoNetHelper::cinsiyetKodu($request->cinsiyet ?? 'E');
+                $msgParams['Uyruk']     = $request->uyruk ?? '';
+                $msgParams['Boy']       = $request->boy ?? '';
+                $msgParams['Kilo']      = $request->kilo ?? '';
+                $msgParams['IlAdi']     = $request->il_adi ?? '';
+                $msgParams['IlceAdi']   = $request->ilce_adi ?? '';
+                $msgParams['Adres']     = $request->adres ?? '';
+            }
+
+            $strMsg = PaoNetHelper::buildStrMsg($msgParams);
 
             $teklif  = $svc->teklifAl($urunKodu, $strMsg);
             $bprim   = (float) ($teklif['Bprim'] ?? $teklif['bprim'] ?? 0);
