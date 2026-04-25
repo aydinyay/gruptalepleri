@@ -65,7 +65,7 @@ Schedule::call(fn() => \Artisan::call('acenteler:sync', ['--batch' => '50', '--d
     ->environments(['production']);
 
 // B2C fiyat alarmlarını günde iki kez kontrol et (09:00 ve 18:00)
-Schedule::command('gr:check-price-alerts')
+Schedule::call(fn() => \Artisan::call('gr:check-price-alerts'))
     ->twiceDaily(9, 18)
     ->name('gr-price-alerts')
     ->withoutOverlapping(30)
