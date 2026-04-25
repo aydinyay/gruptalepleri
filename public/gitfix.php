@@ -241,6 +241,40 @@ if (($_GET['action'] ?? '') === 'clearlog') {
     exit;
 }
 
+// B2C kullanıcıları listele
+if (($_GET['action'] ?? '') === 'b2c-users') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    header('Content-Type: text/plain');
+    $users = \Illuminate\Support\Facades\DB::table('b2c_users')
+        ->orderByDesc('created_at')
+        ->get(['id', 'name', 'email', 'phone', 'created_at']);
+    foreach ($users as $u) {
+        echo "ID:{$u->id} | {$u->name} | {$u->email} | {$u->phone} | {$u->created_at}\n";
+    }
+    exit;
+}
+
+// B2C şifre sıfırla
+if (($_GET['action'] ?? '') === 'b2c-reset') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    header('Content-Type: text/plain');
+    $id    = (int) ($_GET['id'] ?? 0);
+    $yeni  = trim($_GET['pw'] ?? '');
+    if (!$id || strlen($yeni) < 6) { echo "HATA: id ve pw (min 6 karakter) gerekli.\n"; exit; }
+    $user = \App\Models\B2C\B2cUser::find($id);
+    if (!$user) { echo "HATA: kullanıcı bulunamadı (id={$id}).\n"; exit; }
+    $user->password = \Illuminate\Support\Facades\Hash::make($yeni);
+    $user->save();
+    echo "OK: {$user->email} şifresi güncellendi.\n";
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");
