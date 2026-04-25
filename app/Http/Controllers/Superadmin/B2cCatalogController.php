@@ -819,6 +819,43 @@ class B2cCatalogController extends Controller
         ]);
     }
 
+    // ── Fiyat Analizi ────────────────────────────────────────────────────
+
+    public function pricing(Request $request)
+    {
+        $items = CatalogItem::with('category')
+            ->orderByRaw("FIELD(publish_status,'b2c','b2b','draft')")
+            ->orderBy('product_type')
+            ->orderBy('title')
+            ->get();
+
+        $usdKuru = (float) \App\Models\SistemAyar::get('usd_kuru', '34');
+        $eurKuru = (float) \App\Models\SistemAyar::get('eur_kuru', '37');
+
+        $superadminMode = true;
+
+        return view('b2c.owner.pricing', compact('items', 'usdKuru', 'eurKuru', 'superadminMode'));
+    }
+
+    public function pricingUpdate(Request $request, CatalogItem $item)
+    {
+        $data = $request->validate([
+            'cost_price'     => 'nullable|numeric|min:0',
+            'gt_price'       => 'nullable|numeric|min:0',
+            'base_price'     => 'nullable|numeric|min:0',
+            'pricing_notes'  => 'nullable|string|max:500',
+            'publish_status' => 'nullable|in:draft,b2b,b2c',
+        ]);
+
+        if (isset($data['publish_status'])) {
+            $data['is_published'] = ($data['publish_status'] === 'b2c');
+        }
+
+        $item->update($data);
+
+        return redirect()->route('superadmin.b2c.pricing')->with('updated', $item->title . ' güncellendi.');
+    }
+
     // ── B2C Quick Leads ───────────────────────────────────────────────────
 
     public function quickLeads(Request $request)

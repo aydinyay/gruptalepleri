@@ -223,9 +223,9 @@
                 ],
                 [
                     'label' => 'Fiyat Analizi',
-                    'href'  => 'https://gruprezervasyonlari.com/gizli/fiyat?t=GRT2026owner',
+                    'href'  => route('superadmin.b2c.pricing'),
                     'icon'  => 'fas fa-chart-line',
-                    'keys'  => [],
+                    'keys'  => ['b2c-pricing'],
                 ],
             ],
         ],

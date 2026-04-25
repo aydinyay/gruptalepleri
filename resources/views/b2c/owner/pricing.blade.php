@@ -313,7 +313,7 @@ $statFixed = $items->where('pricing_type', 'fixed')->count();
 
         $rate = match($curr) { 'USD' => $usdKuru, 'EUR' => $eurKuru, default => 1 };
         @endphp
-        <form method="POST" action="{{ route('b2c.owner.pricing.update', [$item->id, 't' => $token]) }}">
+        <form method="POST" action="{{ isset($superadminMode) ? route('superadmin.b2c.pricing.update', $item->id) : route('b2c.owner.pricing.update', $item->id) }}">
             @csrf
             <tr>
                 <td style="color:#9ca3af;font-size:.72rem;text-align:center;">

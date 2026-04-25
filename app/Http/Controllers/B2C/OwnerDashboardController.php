@@ -9,17 +9,34 @@ use Illuminate\Http\Request;
 
 class OwnerDashboardController extends Controller
 {
-    private function checkToken(Request $request): bool
+    private function authenticate(Request $request): bool
     {
+        // Zaten oturumu doğrulanmış mı?
+        if (session('owner_auth') === true) {
+            return true;
+        }
+
+        // URL'den token geliyorsa doğrula ve session'a al
         $expected = config('b2c.owner_token', env('GRT_OWNER_TOKEN', ''));
         if (! $expected) return false;
-        return $request->get('t') === $expected;
+
+        if ($request->get('t') === $expected) {
+            session(['owner_auth' => true]);
+            return true;
+        }
+
+        return false;
     }
 
     public function pricing(Request $request)
     {
-        if (! $this->checkToken($request)) {
+        if (! $this->authenticate($request)) {
             abort(404);
+        }
+
+        // Token URL'de varsa temiz URL'ye yönlendir
+        if ($request->has('t')) {
+            return redirect()->route('b2c.owner.pricing');
         }
 
         $items = CatalogItem::with('category')
@@ -28,16 +45,15 @@ class OwnerDashboardController extends Controller
             ->orderBy('title')
             ->get();
 
-        $token   = $request->get('t');
         $usdKuru = (float) SistemAyar::get('usd_kuru', '34');
         $eurKuru = (float) SistemAyar::get('eur_kuru', '37');
 
-        return view('b2c.owner.pricing', compact('items', 'token', 'usdKuru', 'eurKuru'));
+        return view('b2c.owner.pricing', compact('items', 'usdKuru', 'eurKuru'));
     }
 
     public function pricingUpdate(Request $request, CatalogItem $item)
     {
-        if (! $this->checkToken($request)) {
+        if (! $this->authenticate($request)) {
             abort(404);
         }
 
@@ -55,9 +71,13 @@ class OwnerDashboardController extends Controller
 
         $item->update($data);
 
-        $token = $request->get('t');
-
-        return redirect()->route('b2c.owner.pricing', ['t' => $token])
+        return redirect()->route('b2c.owner.pricing')
             ->with('updated', $item->title . ' güncellendi.');
+    }
+
+    public function logout()
+    {
+        session()->forget('owner_auth');
+        return redirect('/');
     }
 }
