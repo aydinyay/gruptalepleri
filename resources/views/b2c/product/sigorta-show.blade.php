@@ -221,7 +221,7 @@
             <div class="cta-sub">TC kimlik no, tarih ve ülkeyi girerek anında teklif alın.</div>
 
             @if($sigortaAktif)
-                <a href="{{ route('b2c.sigorta.create') }}" class="sig-cta-btn">
+                <a href="{{ lroute('b2c.sigorta.create') }}" class="sig-cta-btn">
                     <i class="bi bi-shield-plus me-2"></i> Teklif Al &amp; Poliçe Yaptır
                 </a>
                 <p class="sig-cta-note"><i class="bi bi-lock-fill me-1"></i>Güvenli ödeme · SSL şifreli</p>
@@ -399,7 +399,7 @@
         </div>
 
         @if($sigortaAktif)
-        <a href="{{ route('b2c.sigorta.create') }}" class="sig-cta-btn" style="display:block;text-align:center;">
+        <a href="{{ lroute('b2c.sigorta.create') }}" class="sig-cta-btn" style="display:block;text-align:center;">
             <i class="bi bi-shield-plus me-2"></i> Hemen Teklif Al
         </a>
         @endif

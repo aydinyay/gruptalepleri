@@ -82,22 +82,22 @@
             <div class="account-user-email">{{ $user->email }}</div>
         </div>
         <nav>
-            <a href="{{ route('b2c.account.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.index') }}" class="account-nav-item">
                 <i class="bi bi-house-fill"></i> Genel Bakış
             </a>
-            <a href="{{ route('b2c.account.orders.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.orders.index') }}" class="account-nav-item">
                 <i class="bi bi-bag-fill"></i> Siparişlerim
             </a>
-            <a href="{{ route('b2c.account.profile.edit') }}" class="account-nav-item active">
+            <a href="{{ lroute('b2c.account.profile.edit') }}" class="account-nav-item active">
                 <i class="bi bi-person-fill"></i> Profilim
             </a>
-            <a href="{{ route('b2c.sigorta.policelerim') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.sigorta.policelerim') }}" class="account-nav-item">
                 <i class="bi bi-shield-fill-check"></i> Poliçelerim
             </a>
-            <a href="{{ route('b2c.catalog.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="account-nav-item">
                 <i class="bi bi-grid-fill"></i> Hizmetleri Keşfet
             </a>
-            <form method="POST" action="{{ route('b2c.auth.logout') }}" style="margin:0;">
+            <form method="POST" action="{{ lroute('b2c.auth.logout') }}" style="margin:0;">
                 @csrf
                 <button type="submit" class="account-nav-item" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:0;">
                     <i class="bi bi-box-arrow-right" style="color:#e53e3e;"></i>
@@ -120,7 +120,7 @@
             <div class="profile-card-title">
                 <i class="bi bi-person-fill"></i> Kişisel Bilgiler
             </div>
-            <form method="POST" action="{{ route('b2c.account.profile.update') }}">
+            <form method="POST" action="{{ lroute('b2c.account.profile.update') }}">
                 @csrf
                 @method('PUT')
 
@@ -157,7 +157,7 @@
             <div class="profile-card-title">
                 <i class="bi bi-lock-fill"></i> Şifre Değiştir
             </div>
-            <form method="POST" action="{{ route('b2c.account.profile.update') }}">
+            <form method="POST" action="{{ lroute('b2c.account.profile.update') }}">
                 @csrf
                 @method('PUT')
                 {{-- Mevcut name/phone'u hidden olarak gönderiyoruz ki validation geçsin --}}

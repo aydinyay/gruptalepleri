@@ -287,14 +287,14 @@
                     <div style="font-size:.78rem;font-weight:700;color:#059669;margin-bottom:.25rem;">🛡 Uçuşunuzu Güvence Altına Alın</div>
                     <div style="font-size:.9rem;font-weight:600;color:#064e3b;">Seyahat sigortası — Anında poliçe, SMS + e-posta ile teslim</div>
                 </div>
-                <a href="{{ route('b2c.sigorta.create') }}" style="background:#059669;color:#fff;font-weight:700;font-size:.85rem;text-decoration:none;padding:9px 18px;border-radius:8px;white-space:nowrap;">
+                <a href="{{ lroute('b2c.sigorta.create') }}" style="background:#059669;color:#fff;font-weight:700;font-size:.85rem;text-decoration:none;padding:9px 18px;border-radius:8px;white-space:nowrap;">
                     Sigorta Yaptır →
                 </a>
             </div>
 
             {{-- Eylem butonları --}}
             <div class="confirm-actions">
-                <a href="{{ route('b2c.flight.create') }}" class="btn-new-request">
+                <a href="{{ lroute('b2c.flight.create') }}" class="btn-new-request">
                     <i class="bi bi-plus-circle"></i> Yeni Talep
                 </a>
                 <a href="{{ $trackUrl }}" class="btn-home">

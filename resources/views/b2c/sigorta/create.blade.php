@@ -192,7 +192,7 @@ document.getElementById('btn-teklif').addEventListener('click', async function (
     };
 
     try {
-        const res  = await fetch('{{ route("b2c.sigorta.teklif-al") }}', {
+        const res  = await fetch('{{ lroute("b2c.sigorta.teklif-al") }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
             body: JSON.stringify(body),
@@ -239,7 +239,7 @@ document.getElementById('btn-onayla').addEventListener('click', async function (
     };
 
     try {
-        const res  = await fetch('{{ route("b2c.sigorta.police-uret") }}', {
+        const res  = await fetch('{{ lroute("b2c.sigorta.police-uret") }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
             body: JSON.stringify(body),

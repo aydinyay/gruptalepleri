@@ -432,7 +432,7 @@
         <p class="hero-sub" style="opacity:1;">Yat, charter, transfer ve daha fazlası — grubunuza özel fiyatlarla.</p>
 
         <div class="gyg-search-wrap">
-            <form action="{{ route('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
+            <form action="{{ lroute('b2c.catalog.index') }}" method="GET" id="heroSearchForm">
                 <div class="gyg-search-box">
                     <i class="bi bi-search" style="color:#a0aec0;font-size:1.1rem;flex-shrink:0;"></i>
                     <input type="text" id="heroSearchInput" name="q" placeholder="Aktivite, tur veya destinasyon ara..." autocomplete="off">
@@ -451,7 +451,7 @@
         <div class="gyg-hero-tags">
             <span>Popüler:</span>
             @foreach($popularTags as $tag)
-            <a href="{{ route('b2c.catalog.category', $tag->slug) }}" class="gyg-hero-tag">{{ $tag->name }}</a>
+            <a href="{{ lroute('b2c.catalog.category', $tag->slug) }}" class="gyg-hero-tag">{{ $tag->name }}</a>
             @endforeach
         </div>
         @endif
@@ -465,7 +465,7 @@
                     ? (str_starts_with($hi->cover_image, 'http') ? $hi->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $hi->cover_image)
                     : null;
             @endphp
-            <a href="{{ route('b2c.product.show', $hi->slug) }}" class="gyg-hero-card"
+            <a href="{{ lroute('b2c.product.show', $hi->slug) }}" class="gyg-hero-card"
                data-city="{{ $hi->destination_city ?? '' }}"
                @if(!empty($hi->venue_lat)) data-lat="{{ $hi->venue_lat }}" data-lng="{{ $hi->venue_lng }}" @endif>
                 <div class="hc-img" @if($hiImg) style="background-image:url('{{ $hiImg }}')" @endif>
@@ -541,25 +541,25 @@
 ════════════════════════════════════════════════════════════════ --}}
 <div class="gyg-pills-wrap">
     <div class="gyg-pills">
-        <a href="{{ route('b2c.catalog.index') }}" class="gyg-pill active">
+        <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-pill active">
             <i class="bi bi-grid-3x3-gap-fill"></i> Tümü
         </a>
         @if($categories->isNotEmpty())
             @foreach($categories->take(10) as $cat)
-            <a href="{{ route('b2c.catalog.category', $cat->slug) }}" class="gyg-pill">
+            <a href="{{ lroute('b2c.catalog.category', $cat->slug) }}" class="gyg-pill">
                 <i class="bi {{ $cat->icon ?? 'bi-grid' }}"></i> {{ $cat->name }}
             </a>
             @endforeach
         @else
-            <a href="{{ route('b2c.catalog.category', 'transfer') }}" class="gyg-pill"><i class="bi bi-car-front-fill"></i> Havalimanı Transferi</a>
-            <a href="{{ route('b2c.catalog.category', 'ozel-jet') }}" class="gyg-pill"><i class="bi bi-airplane-fill"></i> Özel Jet & Charter</a>
-            <a href="{{ route('b2c.catalog.category', 'helikopter') }}" class="gyg-pill"><i class="bi bi-helicopter"></i> Helikopter</a>
-            <a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}" class="gyg-pill"><i class="bi bi-water"></i> Dinner Cruise</a>
-            <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" class="gyg-pill"><i class="bi bi-tsunami"></i> Yat Kiralama</a>
-            <a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-pill"><i class="bi bi-map-fill"></i> Yurt İçi Turlar</a>
-            <a href="{{ route('b2c.catalog.category', 'yurt-disi-turlar') }}" class="gyg-pill"><i class="bi bi-globe-americas"></i> Yurt Dışı Turlar</a>
-            <a href="{{ route('b2c.catalog.category', 'vize') }}" class="gyg-pill"><i class="bi bi-passport"></i> Vize</a>
-            <a href="{{ route('b2c.sigorta.create') }}" class="gyg-pill"><i class="bi bi-shield-check" style="color:#0d9488;"></i> Seyahat Sigortası</a>
+            <a href="{{ lroute('b2c.catalog.category', 'transfer') }}" class="gyg-pill"><i class="bi bi-car-front-fill"></i> Havalimanı Transferi</a>
+            <a href="{{ lroute('b2c.catalog.category', 'ozel-jet') }}" class="gyg-pill"><i class="bi bi-airplane-fill"></i> Özel Jet & Charter</a>
+            <a href="{{ lroute('b2c.catalog.category', 'helikopter') }}" class="gyg-pill"><i class="bi bi-helicopter"></i> Helikopter</a>
+            <a href="{{ lroute('b2c.catalog.category', 'dinner-cruise') }}" class="gyg-pill"><i class="bi bi-water"></i> Dinner Cruise</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}" class="gyg-pill"><i class="bi bi-tsunami"></i> Yat Kiralama</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-pill"><i class="bi bi-map-fill"></i> Yurt İçi Turlar</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yurt-disi-turlar') }}" class="gyg-pill"><i class="bi bi-globe-americas"></i> Yurt Dışı Turlar</a>
+            <a href="{{ lroute('b2c.catalog.category', 'vize') }}" class="gyg-pill"><i class="bi bi-passport"></i> Vize</a>
+            <a href="{{ lroute('b2c.sigorta.create') }}" class="gyg-pill"><i class="bi bi-shield-check" style="color:#0d9488;"></i> Seyahat Sigortası</a>
         @endif
     </div>
 </div>
@@ -575,7 +575,7 @@
                 <h2>Tüm Hizmetler</h2>
                 <p>Öne çıkanlar başta — tüm deneyimler bir arada</p>
             </div>
-            <a href="{{ route('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
         </div>
 
         <div class="gyg-products-grid" id="main-products-grid">
@@ -584,7 +584,7 @@
                     @include('b2c.home._product-card', ['item' => $item, 'savedIds' => $savedIds ?? [], 'dataCity' => $item->destination_city])
                     @if($loop->index === 3)
                     {{-- Grup Uçak Talebi Statik Kartı --}}
-                    <a href="{{ route('b2c.flight.create') }}" class="gyg-pcard">
+                    <a href="{{ lroute('b2c.flight.create') }}" class="gyg-pcard">
                         <div class="gyg-pcard-img">
                             <img src="{{ rtrim(config('app.url'), '/') }}/uploads/grup-ucak-talebi.png" alt="Grup Uçak Bileti" loading="lazy">
                             <div class="gyg-pcard-tag" style="background:#0c3547;color:#fff;">✈ Özel</div>
@@ -645,7 +645,7 @@
                     ];
                 @endphp
                 @foreach($pcs as $idx => $ph)
-                <a href="{{ route('b2c.catalog.category', $ph['slug']) }}" class="gyg-pcard">
+                <a href="{{ lroute('b2c.catalog.category', $ph['slug']) }}" class="gyg-pcard">
                     <div class="gyg-pcard-img">
                         <div class="img-placeholder" style="background:{{ $pcColors[$idx] }};">
                             <i class="bi {{ $pcIcons[$idx] }}"></i>
@@ -730,7 +730,7 @@
                     <span style="background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:4px 12px;border-radius:20px;"><i class="bi bi-check-circle me-1"></i>Sağlık giderleri</span>
                 </div>
             </div>
-            <a href="{{ route('b2c.sigorta.create') }}" style="background:#fff;color:#065f46;font-weight:800;font-size:.97rem;text-decoration:none;padding:14px 28px;border-radius:10px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
+            <a href="{{ lroute('b2c.sigorta.create') }}" style="background:#fff;color:#065f46;font-weight:800;font-size:.97rem;text-decoration:none;padding:14px 28px;border-radius:10px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
                 <i class="bi bi-shield-check"></i> Teklif Al &amp; Poliçe Yaptır →
             </a>
         </div>
@@ -740,7 +740,7 @@
                 <h2>Popüler Destinasyonlar</h2>
                 <p>En çok tercih edilen şehirler ve bölgeler</p>
             </div>
-            <a href="{{ route('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-see-all">Tümünü Gör →</a>
         </div>
         <div class="gyg-dest-grid">
             @php
@@ -778,7 +778,7 @@
                 }
             @endphp
             @foreach($dests as $dest)
-            <a href="{{ route('b2c.catalog.index') }}?sehir={{ $dest['sehir'] }}" class="gyg-dest-card"
+            <a href="{{ lroute('b2c.catalog.index') }}?sehir={{ $dest['sehir'] }}" class="gyg-dest-card"
                @if($dest['img']) style="background-image:url('{{ $dest['img'] }}');background-size:cover;background-position:center;" @endif>
                 <div class="dest-bg" style="background:{{ $dest['img'] ? 'linear-gradient(to top,rgba(0,0,0,.65) 0%,rgba(0,0,0,.1) 60%,transparent 100%)' : $dest['bg'] }};">
                     <div>
@@ -802,12 +802,12 @@
                 <h2>Gezi İlhamı</h2>
                 <p>Şehir rehberleri ve seyahat ipuçları</p>
             </div>
-            <a href="{{ route('b2c.blog.index') }}" class="gyg-see-all">Tümünü Keşfet →</a>
+            <a href="{{ lroute('b2c.blog.index') }}" class="gyg-see-all">Tümünü Keşfet →</a>
         </div>
         <div class="gyg-blog-grid">
             @if(isset($blogPosts) && $blogPosts->isNotEmpty())
                 @foreach($blogPosts->take(3) as $post)
-                <a href="{{ route('b2c.blog.show', $post->slug) }}" class="gyg-blog-card">
+                <a href="{{ lroute('b2c.blog.show', $post->slug) }}" class="gyg-blog-card">
                     <div class="blog-thumb">
                         @if($post->kapak_gorseli)
                             <img src="{{ $post->kapak_gorseli_url }}" style="width:100%;height:100%;object-fit:cover;">
@@ -821,19 +821,19 @@
                 </a>
                 @endforeach
             @else
-                <a href="{{ route('b2c.blog.index') }}?tag=istanbul" class="gyg-blog-card">
+                <a href="{{ lroute('b2c.blog.index') }}?tag=istanbul" class="gyg-blog-card">
                     <div class="blog-thumb" style="background:linear-gradient(135deg,#1a3c6b,#2a5298);"><i class="bi bi-buildings-fill"></i></div>
                     <div class="blog-cat">Şehir Rehberi</div>
                     <div class="blog-title">İstanbul'u keşfet: En kapsamlı seyahat rehberi</div>
                     <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
                 </a>
-                <a href="{{ route('b2c.blog.index') }}?tag=antalya" class="gyg-blog-card">
+                <a href="{{ lroute('b2c.blog.index') }}?tag=antalya" class="gyg-blog-card">
                     <div class="blog-thumb" style="background:linear-gradient(135deg,#c05621,#dd6b20);"><i class="bi bi-sun-fill"></i></div>
                     <div class="blog-cat">Destinasyon</div>
                     <div class="blog-title">Antalya'yı keşfet: Sahil tatili için tam rehber</div>
                     <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
                 </a>
-                <a href="{{ route('b2c.blog.index') }}?tag=kapadokya" class="gyg-blog-card">
+                <a href="{{ lroute('b2c.blog.index') }}?tag=kapadokya" class="gyg-blog-card">
                     <div class="blog-thumb" style="background:linear-gradient(135deg,#6b2d1a,#9c4221);"><i class="bi bi-cloud-fill"></i></div>
                     <div class="blog-cat">Doğa & Kültür</div>
                     <div class="blog-title">Kapadokya seyahat rehberi: Peri bacaları ve balon turları</div>
@@ -867,7 +867,7 @@
             </div>
             <div class="col-lg-7">
                 <div style="background:#f8f9fc;border-radius:16px;padding:2rem;border:1px solid #e5e5e5;">
-                    <form action="{{ route('b2c.quick-lead.store') }}" method="POST">
+                    <form action="{{ lroute('b2c.quick-lead.store') }}" method="POST">
                         @csrf
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -914,7 +914,7 @@
                 <h3><i class="bi bi-building me-2"></i>Ürününüzü Milyonlara Ulaştırın</h3>
                 <p>Transfer, tur, charter veya deniz hizmetleri sunuyorsanız platformumuza katılın. Ücretsiz başvurun, onaylandıktan sonra yayınlanın.</p>
             </div>
-            <a href="{{ route('b2c.supplier-apply.show') }}" class="gyg-supplier-btn">
+            <a href="{{ lroute('b2c.supplier-apply.show') }}" class="gyg-supplier-btn">
                 Tedarikçi Başvurusu →
             </a>
         </div>

@@ -65,9 +65,9 @@
 <div class="dest-header">
     <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
         <div class="gyg-breadcrumb" style="background:transparent;border:none;padding:0 0 12px;">
-            <a href="{{ route('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
+            <a href="{{ lroute('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
-            <a href="{{ route('b2c.catalog.index') }}" style="color:rgba(255,255,255,.6);">Tüm Hizmetler</a>
+            <a href="{{ lroute('b2c.catalog.index') }}" style="color:rgba(255,255,255,.6);">Tüm Hizmetler</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
             <span style="color:rgba(255,255,255,.9);">{{ ucfirst($city) }}</span>
         </div>
@@ -83,7 +83,7 @@
 {{-- Hizmet tipi filtresi --}}
 <div class="catalog-filter-bar">
     <div class="filter-bar-inner">
-        <a href="{{ route('b2c.catalog.destination', $slug) }}"
+        <a href="{{ lroute('b2c.catalog.destination', $slug) }}"
            class="filter-btn {{ !request('tip') ? 'active' : '' }}">
             <i class="bi bi-grid-fill"></i> Tümü
         </a>
@@ -96,7 +96,7 @@
             'hotel'    => ['bi-building',          'Konaklama'],
             'visa'     => ['bi-passport',          'Vize'],
         ] as $val => [$ico, $label])
-        <a href="{{ route('b2c.catalog.destination', array_merge(['slug' => $slug], ['tip' => $val])) }}"
+        <a href="{{ lroute('b2c.catalog.destination', array_merge(['slug' => $slug], ['tip' => $val])) }}"
            class="filter-btn {{ request('tip') === $val ? 'active' : '' }}">
             <i class="bi {{ $ico }}"></i> {{ $label }}
         </a>
@@ -136,7 +136,7 @@
             <p style="color:#718096;margin-top:1rem;font-size:1rem;">
                 <strong>{{ ucfirst($city) }}</strong> için henüz hizmet bulunmuyor.
             </p>
-            <a href="{{ route('b2c.catalog.index') }}" class="gyg-pcard-cta" style="display:inline-block;width:auto;padding:12px 32px;margin-top:12px;text-decoration:none;">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-pcard-cta" style="display:inline-block;width:auto;padding:12px 32px;margin-top:12px;text-decoration:none;">
                 Tüm Hizmetleri Gör
             </a>
         </div>

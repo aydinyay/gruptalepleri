@@ -53,6 +53,9 @@ if (! function_exists('gr_locale_url')) {
         $domain = config('b2c.domain', 'gruprezervasyonlari.com');
         $path   = request()->path();
 
+        // Laravel anasayfada '/' döndürür — boşa çevir
+        if ($path === '/') $path = '';
+
         // Mevcut locale prefix'ini temizle
         $supported = \App\Http\Middleware\SetLocale::SUPPORTED;
         $segments  = explode('/', $path, 2);
@@ -60,14 +63,20 @@ if (! function_exists('gr_locale_url')) {
             $path = $segments[1] ?? '';
         }
 
+        // Sorgu parametrelerini temizle (reset_locale tekrar eklenmesin)
         $query = request()->getQueryString();
+        $query = preg_replace('/(^|&)reset_locale=[^&]*/i', '', $query ?? '');
+        $query = trim($query, '&');
         $qs    = $query ? '?' . $query : '';
 
         if ($targetLocale === 'tr') {
-            return 'https://' . $domain . '/' . $path . $qs;
+            // TR için cookie'yi sıfırla — reset_locale=1 param'ı middleware'de işlenir
+            $sep = $qs ? '&' : '?';
+            return 'https://' . $domain . '/' . $path . $qs . $sep . 'reset_locale=1';
         }
 
-        return 'https://' . $domain . '/' . $targetLocale . '/' . $path . $qs;
+        $slash = $path ? '/' : '';
+        return 'https://' . $domain . '/' . $targetLocale . $slash . $path . $qs;
     }
 }
 

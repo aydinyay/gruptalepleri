@@ -107,7 +107,7 @@
 
     {{-- Sol panel: marka --}}
     <div class="auth-brand-panel">
-        <a href="{{ route('b2c.home') }}" class="auth-brand-logo">
+        <a href="{{ lroute('b2c.home') }}" class="auth-brand-logo">
             Grup<span>Rezervasyonları</span>
         </a>
         <div class="auth-brand-headline">
@@ -128,7 +128,7 @@
             <div class="auth-form-title">Hesap Oluşturun</div>
             <div class="auth-form-sub">Ücretsiz — Kredi kartı gerekmez</div>
 
-            <form method="POST" action="{{ route('b2c.auth.register.post') }}">
+            <form method="POST" action="{{ lroute('b2c.auth.register.post') }}">
                 @csrf
 
                 <div class="auth-row" style="margin-bottom:14px;">
@@ -186,8 +186,8 @@
                 <button type="submit" class="auth-submit">Ücretsiz Kayıt Ol</button>
 
                 <p style="text-align:center;font-size:.78rem;color:#a0aec0;margin:12px 0 0;">
-                    Kayıt olarak <a href="{{ route('b2c.kvkk') }}" target="_blank" style="color:#718096;">Gizlilik Politikası</a>'nı
-                    ve <a href="{{ route('b2c.mesafeli-satis') }}" target="_blank" style="color:#718096;">Kullanım Koşulları</a>'nı kabul etmiş olursunuz.
+                    Kayıt olarak <a href="{{ lroute('b2c.kvkk') }}" target="_blank" style="color:#718096;">Gizlilik Politikası</a>'nı
+                    ve <a href="{{ lroute('b2c.mesafeli-satis') }}" target="_blank" style="color:#718096;">Kullanım Koşulları</a>'nı kabul etmiş olursunuz.
                 </p>
             </form>
 
@@ -195,7 +195,7 @@
 
             <p style="text-align:center;font-size:.9rem;color:#4a5568;margin:0;">
                 Zaten hesabınız var mı?
-                <a href="{{ route('b2c.auth.login') }}" style="color:#1a3c6b;font-weight:700;">Giriş Yapın</a>
+                <a href="{{ lroute('b2c.auth.login') }}" style="color:#1a3c6b;font-weight:700;">Giriş Yapın</a>
             </p>
         </div>
     </div>

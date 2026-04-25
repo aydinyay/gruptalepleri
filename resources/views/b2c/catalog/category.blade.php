@@ -80,9 +80,9 @@
 <div class="catalog-header">
     <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
         <div class="gyg-breadcrumb" style="background:transparent;border:none;padding:0 0 12px;">
-            <a href="{{ route('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
+            <a href="{{ lroute('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
-            <a href="{{ route('b2c.catalog.index') }}" style="color:rgba(255,255,255,.6);">Tüm Hizmetler</a>
+            <a href="{{ lroute('b2c.catalog.index') }}" style="color:rgba(255,255,255,.6);">Tüm Hizmetler</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
             <span style="color:rgba(255,255,255,.9);">{{ $category->name }}</span>
         </div>
@@ -103,7 +103,7 @@
 {{-- Filtre çubuğu --}}
 <div class="catalog-filter-bar">
     <div class="filter-bar-inner">
-        <a href="{{ route('b2c.catalog.index') }}" class="filter-btn">
+        <a href="{{ lroute('b2c.catalog.index') }}" class="filter-btn">
             <i class="bi bi-grid-fill"></i> Tüm Hizmetler
         </a>
         <div class="filter-sep"></div>
@@ -115,7 +115,7 @@
             'hotel'    => ['bi-building',          'Konaklama'],
             'visa'     => ['bi-passport',          'Vize'],
         ] as $val => [$ico, $label])
-        <a href="{{ route('b2c.catalog.index', ['tip' => $val]) }}"
+        <a href="{{ lroute('b2c.catalog.index', ['tip' => $val]) }}"
            class="filter-btn {{ ($category->slug === $val || $category->product_type_hint === $val) ? 'active' : '' }}">
             <i class="bi {{ $ico }}"></i> {{ $label }}
         </a>
@@ -130,7 +130,7 @@
     @if($subcategories->isNotEmpty())
     <div class="subcat-pills">
         @foreach($subcategories as $sub)
-        <a href="{{ route('b2c.catalog.category', $sub->slug) }}" class="subcat-pill">
+        <a href="{{ lroute('b2c.catalog.category', $sub->slug) }}" class="subcat-pill">
             {{ $sub->name }}
             <span class="pill-count">{{ $sub->published_items_count }}</span>
         </a>
@@ -165,7 +165,7 @@
         <div style="text-align:center;padding:4rem 0;">
             <i class="bi bi-search" style="font-size:3rem;color:#a0aec0;"></i>
             <p style="color:#718096;margin-top:1rem;font-size:1rem;">Bu kategoride henüz hizmet bulunmuyor.</p>
-            <a href="{{ route('b2c.catalog.index') }}" class="gyg-pcard-cta" style="display:inline-block;width:auto;padding:12px 32px;margin-top:12px;text-decoration:none;">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-pcard-cta" style="display:inline-block;width:auto;padding:12px 32px;margin-top:12px;text-decoration:none;">
                 Tüm Hizmetleri Gör
             </a>
         </div>

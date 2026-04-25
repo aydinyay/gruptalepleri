@@ -103,7 +103,7 @@
 
     {{-- Sol panel: marka --}}
     <div class="auth-brand-panel">
-        <a href="{{ route('b2c.home') }}" class="auth-brand-logo">
+        <a href="{{ lroute('b2c.home') }}" class="auth-brand-logo">
             Grup<span>Rezervasyonları</span>
         </a>
         <div class="auth-brand-headline">
@@ -130,7 +130,7 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('b2c.auth.login.post') }}">
+            <form method="POST" action="{{ lroute('b2c.auth.login.post') }}">
                 @csrf
 
                 <div style="margin-bottom:16px;">
@@ -147,7 +147,7 @@
                 <div style="margin-bottom:20px;">
                     <label class="auth-label" for="password" style="display:flex;justify-content:space-between;align-items:center;">
                         Şifre
-                        <a href="{{ route('b2c.auth.forgot') }}" style="font-weight:400;font-size:.82rem;color:#1a3c6b;">Şifremi unuttum</a>
+                        <a href="{{ lroute('b2c.auth.forgot') }}" style="font-weight:400;font-size:.82rem;color:#1a3c6b;">Şifremi unuttum</a>
                     </label>
                     <input type="password" id="password" name="password"
                            class="auth-input" required autocomplete="current-password"
@@ -166,7 +166,7 @@
 
             <p style="text-align:center;font-size:.9rem;color:#4a5568;margin:0;">
                 Henüz hesabınız yok mu?
-                <a href="{{ route('b2c.auth.register') }}" style="color:#1a3c6b;font-weight:700;">Ücretsiz Kayıt Olun</a>
+                <a href="{{ lroute('b2c.auth.register') }}" style="color:#1a3c6b;font-weight:700;">Ücretsiz Kayıt Olun</a>
             </p>
         </div>
     </div>

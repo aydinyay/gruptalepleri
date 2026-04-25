@@ -10,7 +10,7 @@
     <div class="text-center py-5 text-muted">
         <i class="fas fa-shield-alt fa-3x mb-3 opacity-25"></i>
         <p>Henüz bir sigorta poliçeniz bulunmuyor.</p>
-        <a href="{{ route('b2c.sigorta.create') }}" class="btn btn-primary">
+        <a href="{{ lroute('b2c.sigorta.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i> Sigorta Yaptır
         </a>
     </div>
@@ -53,12 +53,12 @@
                         </td>
                         <td>
                             @if($p->durum === 'tamamlandi' && $p->pdf_link)
-                            <a href="{{ route('b2c.sigorta.belge', [$p, 'police']) }}" target="_blank"
+                            <a href="{{ lroute('b2c.sigorta.belge', [$p, 'police']) }}" target="_blank"
                                 class="btn btn-sm btn-outline-danger">
                                 <i class="fas fa-file-pdf me-1"></i> PDF
                             </a>
                             @elseif(in_array($p->durum, ['police_isleniyor', 'odeme_bekleniyor']))
-                            <a href="{{ route('b2c.sigorta.durum', $p) }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{{ lroute('b2c.sigorta.durum', $p) }}" class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-clock me-1"></i> Takip
                             </a>
                             @endif
@@ -75,7 +75,7 @@
     @endif
 
     <div class="text-center mt-4">
-        <a href="{{ route('b2c.sigorta.create') }}" class="btn btn-outline-primary">
+        <a href="{{ lroute('b2c.sigorta.create') }}" class="btn btn-outline-primary">
             <i class="fas fa-plus me-2"></i> Yeni Poliçe
         </a>
     </div>

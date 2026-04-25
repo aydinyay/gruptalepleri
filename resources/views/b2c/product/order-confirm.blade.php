@@ -34,10 +34,10 @@ $paidPayment = $order->payments->firstWhere('status', 'paid');
 {{-- Breadcrumb --}}
 <div style="background:var(--card);border-bottom:1px solid var(--brd);padding:.6rem 0;font-size:.82rem;color:var(--muted);">
     <div class="container">
-        <a href="{{ route('b2c.home') }}" style="color:var(--muted);text-decoration:none;">Ana Sayfa</a>
+        <a href="{{ lroute('b2c.home') }}" style="color:var(--muted);text-decoration:none;">Ana Sayfa</a>
         @if($order->item?->category)
             <span class="mx-1">/</span>
-            <a href="{{ route('b2c.catalog.category', $order->item->category->slug) }}" style="color:var(--muted);text-decoration:none;">{{ $order->item->category->name }}</a>
+            <a href="{{ lroute('b2c.catalog.category', $order->item->category->slug) }}" style="color:var(--muted);text-decoration:none;">{{ $order->item->category->name }}</a>
         @endif
         <span class="mx-1">/</span><strong style="color:var(--txt);">{{ $order->order_ref }}</strong>
     </div>
@@ -162,7 +162,7 @@ $paidPayment = $order->payments->firstWhere('status', 'paid');
                             <span style="font-size:.88rem;font-weight:600;">Ödeme tamamlandı</span>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('b2c.guest.payment.start', $order) }}">
+                        <form method="POST" action="{{ lroute('b2c.guest.payment.start', $order) }}">
                             @csrf
                             <button type="submit" class="bk-btn-pay mt-2">
                                 <i class="bi bi-lock-fill me-2"></i>Ödemeyi Tamamla
@@ -181,7 +181,7 @@ $paidPayment = $order->payments->firstWhere('status', 'paid');
                 </div>
                 <hr style="margin:.8rem 0;">
                 @if($order->item)
-                    <a href="{{ route('b2c.product.show', $order->item->slug) }}"
+                    <a href="{{ lroute('b2c.product.show', $order->item->slug) }}"
                        class="d-flex align-items-center gap-2 text-decoration-none"
                        style="font-size:.82rem;color:var(--muted);">
                         <i class="bi bi-arrow-left"></i> Ürüne dön

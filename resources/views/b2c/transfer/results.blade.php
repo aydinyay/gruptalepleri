@@ -57,7 +57,7 @@
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2">
-                <li class="breadcrumb-item"><a href="{{ route('b2c.transfer.index') }}">Transfer</a></li>
+                <li class="breadcrumb-item"><a href="{{ lroute('b2c.transfer.index') }}">Transfer</a></li>
                 <li class="breadcrumb-item active">Sonuçlar</li>
             </ol>
         </nav>
@@ -80,7 +80,7 @@
     <div class="col-lg-3">
         <div class="sidebar-search">
             <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-1"></i>Aramayı Düzenle</h6>
-            <form method="POST" action="{{ route('b2c.transfer.search') }}">
+            <form method="POST" action="{{ lroute('b2c.transfer.search') }}">
                 @csrf
                 <div class="mb-2">
                     <label class="form-label">Yön</label>
@@ -130,7 +130,7 @@
                 <i class="bi bi-search d-block mb-3"></i>
                 <h5 class="fw-bold">Sonuç Bulunamadı</h5>
                 <p class="text-muted">{{ $error }}</p>
-                <a href="{{ route('b2c.transfer.index') }}" class="btn btn-primary mt-2">Yeniden Ara</a>
+                <a href="{{ lroute('b2c.transfer.index') }}" class="btn btn-primary mt-2">Yeniden Ara</a>
             </div>
         @else
             <p class="text-muted mb-3"><strong>{{ count($options) }}</strong> seçenek bulundu</p>
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const currentZoneId  = '{{ $search['zone_id'] }}';
 
     function loadZones(airportId, selectedZone) {
-        fetch('{{ route('b2c.transfer.zones') }}?airport_id=' + airportId)
+        fetch('{{ lroute('b2c.transfer.zones') }}?airport_id=' + airportId)
             .then(function (r) { return r.json(); })
             .then(function (zones) {
                 sidebarZoneSel.innerHTML = '<option value="">— Seçin —</option>';

@@ -67,7 +67,7 @@
 <div class="catalog-header">
     <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
         <div class="gyg-breadcrumb" style="background:transparent;border:none;padding:0 0 12px;">
-            <a href="{{ route('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
+            <a href="{{ lroute('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
             <span style="color:rgba(255,255,255,.9);">Tüm Hizmetler</span>
         </div>
@@ -89,7 +89,7 @@
 {{-- Filtre çubuğu --}}
 <div class="catalog-filter-bar">
     <div class="filter-bar-inner">
-        <a href="{{ route('b2c.catalog.index', array_merge(request()->except('tip'), [])) }}"
+        <a href="{{ lroute('b2c.catalog.index', array_merge(request()->except('tip'), [])) }}"
            class="filter-btn {{ !request('tip') ? 'active' : '' }}">
             <i class="bi bi-grid-fill"></i> Tümü
         </a>
@@ -102,7 +102,7 @@
             'hotel'    => ['bi-building',          'Konaklama'],
             'visa'     => ['bi-passport',          'Vize'],
         ] as $val => [$ico, $label])
-        <a href="{{ route('b2c.catalog.index', array_merge(request()->except('tip','page'), ['tip' => $val])) }}"
+        <a href="{{ lroute('b2c.catalog.index', array_merge(request()->except('tip','page'), ['tip' => $val])) }}"
            class="filter-btn {{ request('tip') === $val ? 'active' : '' }}">
             <i class="bi {{ $ico }}"></i> {{ $label }}
         </a>
@@ -117,22 +117,22 @@
     @if(request('sehir') || request('fiyat') || request('q'))
     <div class="active-filters">
         @if(request('q'))
-            <a href="{{ route('b2c.catalog.index', request()->except('q','page')) }}" class="filter-chip">
+            <a href="{{ lroute('b2c.catalog.index', request()->except('q','page')) }}" class="filter-chip">
                 🔍 {{ request('q') }} <span class="chip-x">✕</span>
             </a>
         @endif
         @if(request('sehir'))
-            <a href="{{ route('b2c.catalog.index', request()->except('sehir','page')) }}" class="filter-chip">
+            <a href="{{ lroute('b2c.catalog.index', request()->except('sehir','page')) }}" class="filter-chip">
                 📍 {{ request('sehir') }} <span class="chip-x">✕</span>
             </a>
         @endif
         @if(request('fiyat'))
-            <a href="{{ route('b2c.catalog.index', request()->except('fiyat','page')) }}" class="filter-chip">
+            <a href="{{ lroute('b2c.catalog.index', request()->except('fiyat','page')) }}" class="filter-chip">
                 💰 {{ ['fixed'=>'Sabit Fiyat','quote'=>'Teklif Al','request'=>'Talep'][request('fiyat')] ?? request('fiyat') }}
                 <span class="chip-x">✕</span>
             </a>
         @endif
-        <a href="{{ route('b2c.catalog.index') }}" style="font-size:.82rem;color:#718096;align-self:center;text-decoration:underline;">
+        <a href="{{ lroute('b2c.catalog.index') }}" style="font-size:.82rem;color:#718096;align-self:center;text-decoration:underline;">
             Tüm filtreleri temizle
         </a>
     </div>
@@ -192,7 +192,7 @@
         <div style="text-align:center;padding:4rem 0;">
             <i class="bi bi-search" style="font-size:3rem;color:#a0aec0;"></i>
             <p style="color:#718096;margin-top:1rem;font-size:1rem;">Bu kriterlere uygun hizmet bulunamadı.</p>
-            <a href="{{ route('b2c.catalog.index') }}" class="gyg-pcard-cta" style="display:inline-block;width:auto;padding:12px 32px;margin-top:12px;text-decoration:none;">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-pcard-cta" style="display:inline-block;width:auto;padding:12px 32px;margin-top:12px;text-decoration:none;">
                 Tüm Hizmetleri Gör
             </a>
         </div>

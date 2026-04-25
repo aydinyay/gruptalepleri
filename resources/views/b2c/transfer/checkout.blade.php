@@ -40,7 +40,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2">
                 <li class="breadcrumb-item">
-                    <a href="{{ route('b2c.transfer.index') }}" style="color:rgba(255,255,255,.7)">Transfer</a>
+                    <a href="{{ lroute('b2c.transfer.index') }}" style="color:rgba(255,255,255,.7)">Transfer</a>
                 </li>
                 <li class="breadcrumb-item" style="color:rgba(255,255,255,.7)">Sonuçlar</li>
                 <li class="breadcrumb-item active" style="color:#fff">Rezervasyon</li>
@@ -67,7 +67,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('b2c.transfer.book', $quote->token) }}" id="bookingForm">
+        <form method="POST" action="{{ lroute('b2c.transfer.book', $quote->token) }}" id="bookingForm">
             @csrf
 
             {{-- İletişim Bilgileri --}}
@@ -231,7 +231,7 @@
                     <span style="font-weight:700;font-size:.9rem;color:#064e3b;">Seyahat Sigortası Ekle</span>
                 </div>
                 <p style="font-size:.8rem;color:#047857;margin:0 0 .75rem;">Tıbbi acil, bagaj kaybı ve uçuş iptali için koruma. Anında poliçe.</p>
-                <a href="{{ route('b2c.sigorta.create') }}" style="display:block;text-align:center;background:#059669;color:#fff;font-weight:600;font-size:.85rem;text-decoration:none;padding:9px;border-radius:7px;">
+                <a href="{{ lroute('b2c.sigorta.create') }}" style="display:block;text-align:center;background:#059669;color:#fff;font-weight:600;font-size:.85rem;text-decoration:none;padding:9px;border-radius:7px;">
                     <i class="bi bi-shield-check me-1"></i> Sigorta Teklifi Al →
                 </a>
             </div>

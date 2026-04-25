@@ -535,7 +535,7 @@
                 </div>
                 @endif
 
-                <form id="fr-form" method="POST" action="{{ route('b2c.flight.store') }}">
+                <form id="fr-form" method="POST" action="{{ lroute('b2c.flight.store') }}">
                     @csrf
 
                     {{-- ═══════════════════════════════════════ ADIM 1 ══ --}}
@@ -776,8 +776,8 @@
 @push('scripts')
 <script>
 // ── Sayfa verileri ──────────────────────────────────────────────────────────
-const AIRPORT_URL = '{{ route("b2c.airports.search") }}';
-const AIRLINE_URL = '{{ route("b2c.airlines.search") }}';
+const AIRPORT_URL = '{{ lroute("b2c.airports.search") }}';
+const AIRLINE_URL = '{{ lroute("b2c.airlines.search") }}';
 const TODAY       = '{{ now()->format("Y-m-d") }}';
 
 // ── Adım yönetimi ───────────────────────────────────────────────────────────

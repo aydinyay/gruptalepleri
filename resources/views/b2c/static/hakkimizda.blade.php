@@ -41,7 +41,7 @@
 <div class="about-header">
     <div style="max-width:700px;margin:0 auto;padding:0 24px;">
         <div class="gyg-breadcrumb" style="background:transparent;border:none;padding:0 0 12px;justify-content:center;">
-            <a href="{{ route('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
+            <a href="{{ lroute('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
             <span style="color:rgba(255,255,255,.9);">Hakkımızda</span>
         </div>
@@ -83,11 +83,11 @@
     </div>
 
     <div style="margin-top:40px;text-align:center;">
-        <a href="{{ route('b2c.catalog.index') }}"
+        <a href="{{ lroute('b2c.catalog.index') }}"
            style="display:inline-block;padding:14px 36px;background:#1a3c6b;color:#fff;border-radius:10px;font-weight:700;font-size:1rem;text-decoration:none;margin-right:12px;">
             Hizmetleri Keşfet
         </a>
-        <a href="{{ route('b2c.iletisim') }}"
+        <a href="{{ lroute('b2c.iletisim') }}"
            style="display:inline-block;padding:14px 32px;border:2px solid #1a3c6b;color:#1a3c6b;border-radius:10px;font-weight:700;font-size:1rem;text-decoration:none;">
             İletişime Geç
         </a>

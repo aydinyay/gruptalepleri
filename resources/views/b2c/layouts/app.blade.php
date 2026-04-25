@@ -709,7 +709,7 @@
     <div class="nav-inner">
 
         {{-- Logo --}}
-        <a class="gyg-logo" href="{{ route('b2c.home') }}">
+        <a class="gyg-logo" href="{{ lroute('b2c.home') }}">
             @if(file_exists(public_path('images/logo-gruprezervasyonlari.png')))
                 <img src="{{ asset('images/logo-gruprezervasyonlari.png') }}" alt="Grup Rezervasyonları">
             @else
@@ -722,7 +722,7 @@
 
             {{-- Aktiviteler & Turlar (MEGA) --}}
             <li data-mega="mega-aktiviteler">
-                <a href="{{ route('b2c.catalog.index') }}">
+                <a href="{{ lroute('b2c.catalog.index') }}">
                     {{ __('nav_activities') }}
                     <i class="bi bi-chevron-down caret"></i>
                 </a>
@@ -730,10 +730,10 @@
                     <div class="gyg-mega-inner">
                         <div class="gyg-mega-sidebar">
                             <div class="sidebar-title">{{ __('nav_categories') }}</div>
-                            <a href="{{ route('b2c.catalog.index') }}" class="sidebar-see-all">{{ __('nav_explore_all') }}</a>
+                            <a href="{{ lroute('b2c.catalog.index') }}" class="sidebar-see-all">{{ __('nav_explore_all') }}</a>
                             <ul>
                                 @foreach(($navCategories ?? collect())->take(6) as $cat)
-                                <li><a href="{{ route('b2c.catalog.category', $cat->slug) }}" class="{{ request()->route('slug') === $cat->slug ? 'active' : '' }}">{{ $cat->name }}</a></li>
+                                <li><a href="{{ lroute('b2c.catalog.category', $cat->slug) }}" class="{{ request()->route('slug') === $cat->slug ? 'active' : '' }}">{{ $cat->name }}</a></li>
                                 @endforeach
                             </ul>
                         </div>
@@ -758,7 +758,7 @@
                             ];
                             @endphp
                             @foreach(($navCategories ?? collect())->take(9) as $cat)
-                            <a href="{{ route('b2c.catalog.category', $cat->slug) }}" class="gyg-mega-item">
+                            <a href="{{ lroute('b2c.catalog.category', $cat->slug) }}" class="gyg-mega-item">
                                 <div class="thumb"><i class="bi {{ $catIconMap[$cat->slug] ?? 'bi-grid' }}"></i></div>
                                 <div class="item-text">
                                     {{ $cat->name }}<br>
@@ -773,7 +773,7 @@
 
             {{-- Destinasyonlar (MEGA) --}}
             <li data-mega="mega-destinasyonlar">
-                <a href="{{ route('b2c.catalog.index') }}">
+                <a href="{{ lroute('b2c.catalog.index') }}">
                     {{ __('nav_destinations') }}
                     <i class="bi bi-chevron-down caret"></i>
                 </a>
@@ -781,10 +781,10 @@
                     <div class="gyg-mega-inner">
                         <div class="gyg-mega-sidebar">
                             <div class="sidebar-title">{{ __('nav_regions') }}</div>
-                            <a href="{{ route('b2c.catalog.index') }}" class="sidebar-see-all">{{ __('nav_all_destinations') }}</a>
+                            <a href="{{ lroute('b2c.catalog.index') }}" class="sidebar-see-all">{{ __('nav_all_destinations') }}</a>
                             <ul>
                                 @foreach(($navCities ?? collect())->take(6) as $city)
-                                <li><a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city->slug) }}">{{ $city->name }}</a></li>
+                                <li><a href="{{ lroute('b2c.catalog.index') }}?sehir={{ urlencode($city->slug) }}">{{ $city->name }}</a></li>
                                 @endforeach
                             </ul>
                         </div>
@@ -807,7 +807,7 @@
                             ];
                             @endphp
                             @foreach(($navCities ?? collect()) as $city)
-                            <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city->slug) }}" class="gyg-mega-item">
+                            <a href="{{ lroute('b2c.catalog.index') }}?sehir={{ urlencode($city->slug) }}" class="gyg-mega-item">
                                 <div class="thumb"><i class="bi {{ $cityIconMap[$city->slug] ?? 'bi-geo-alt-fill' }}"></i></div>
                                 <div class="item-text">
                                     {{ $city->name }}<br>
@@ -822,7 +822,7 @@
 
             {{-- Ulaşım (MEGA) --}}
             <li data-mega="mega-ulasim">
-                <a href="{{ route('b2c.transfer.index') }}">
+                <a href="{{ lroute('b2c.transfer.index') }}">
                     {{ __('nav_transport') }}
                     <i class="bi bi-chevron-down caret"></i>
                 </a>
@@ -830,22 +830,22 @@
                     <div class="gyg-mega-inner">
                         <div class="gyg-mega-sidebar">
                             <div class="sidebar-title">{{ __('nav_transport_services') }}</div>
-                            <a href="{{ route('b2c.transfer.index') }}" class="sidebar-see-all">{{ __('nav_all_transport') }}</a>
+                            <a href="{{ lroute('b2c.transfer.index') }}" class="sidebar-see-all">{{ __('nav_all_transport') }}</a>
                             <ul>
-                                <li><a href="{{ route('b2c.transfer.index') }}">{{ __('nav_airport_transfer') }}</a></li>
-                                <li><a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">{{ __('nav_private_jet') }}</a></li>
-                                <li><a href="{{ route('b2c.catalog.category', 'helikopter') }}">{{ __('nav_helicopter_tour') }}</a></li>
+                                <li><a href="{{ lroute('b2c.transfer.index') }}">{{ __('nav_airport_transfer') }}</a></li>
+                                <li><a href="{{ lroute('b2c.catalog.category', 'ozel-jet') }}">{{ __('nav_private_jet') }}</a></li>
+                                <li><a href="{{ lroute('b2c.catalog.category', 'helikopter') }}">{{ __('nav_helicopter_tour') }}</a></li>
                             </ul>
                         </div>
                         <div class="gyg-mega-grid">
                             @php
                                 $megaUlasim = [
-                                    ['icon'=>'bi-car-front-fill',  'title'=> __('nav_airport_transfer'), 'sub'=> __('nav_istanbul_area'),    'url'=> route('b2c.transfer.index')],
-                                    ['icon'=>'bi-taxi-front-fill', 'title'=> __('nav_vip_transfer'),     'sub'=> __('nav_private_driver'),   'url'=> route('b2c.transfer.index')],
-                                    ['icon'=>'bi-airplane-fill',   'title'=> __('nav_private_jet'),      'sub'=> __('nav_comfortable_fast'), 'url'=> route('b2c.catalog.category', 'ozel-jet')],
-                                    ['icon'=>'bi-airplane-engines','title'=> __('nav_charter_flight'),   'sub'=> __('nav_group_plane'),      'url'=> route('b2c.catalog.category', 'ozel-jet')],
-                                    ['icon'=>'bi-helicopter',      'title'=> __('nav_helicopter_tour'),  'sub'=> __('nav_aerial_view'),      'url'=> route('b2c.catalog.category', 'helikopter')],
-                                    ['icon'=>'bi-bus-front-fill',  'title'=> __('nav_group_transfer'),   'sub'=> __('nav_bus_minibus'),      'url'=> route('b2c.transfer.index')],
+                                    ['icon'=>'bi-car-front-fill',  'title'=> __('nav_airport_transfer'), 'sub'=> __('nav_istanbul_area'),    'url'=> lroute('b2c.transfer.index')],
+                                    ['icon'=>'bi-taxi-front-fill', 'title'=> __('nav_vip_transfer'),     'sub'=> __('nav_private_driver'),   'url'=> lroute('b2c.transfer.index')],
+                                    ['icon'=>'bi-airplane-fill',   'title'=> __('nav_private_jet'),      'sub'=> __('nav_comfortable_fast'), 'url'=> lroute('b2c.catalog.category', 'ozel-jet')],
+                                    ['icon'=>'bi-airplane-engines','title'=> __('nav_charter_flight'),   'sub'=> __('nav_group_plane'),      'url'=> lroute('b2c.catalog.category', 'ozel-jet')],
+                                    ['icon'=>'bi-helicopter',      'title'=> __('nav_helicopter_tour'),  'sub'=> __('nav_aerial_view'),      'url'=> lroute('b2c.catalog.category', 'helikopter')],
+                                    ['icon'=>'bi-bus-front-fill',  'title'=> __('nav_group_transfer'),   'sub'=> __('nav_bus_minibus'),      'url'=> lroute('b2c.transfer.index')],
                                 ];
                             @endphp
                             @foreach($megaUlasim as $u)
@@ -864,7 +864,7 @@
 
             {{-- Gezi İlhamı (MEGA) --}}
             <li data-mega="mega-ilham">
-                <a href="{{ route('b2c.blog.index') }}">
+                <a href="{{ lroute('b2c.blog.index') }}">
                     {{ __('nav_inspiration') }}
                     <i class="bi bi-chevron-down caret"></i>
                 </a>
@@ -872,7 +872,7 @@
                     <div class="gyg-mega-inner">
                         <div class="gyg-mega-sidebar">
                             <div class="sidebar-title">{{ __('nav_city_guides') }}</div>
-                            <a href="{{ route('b2c.blog.index') }}" class="sidebar-see-all">{{ __('nav_explore_all') }}</a>
+                            <a href="{{ lroute('b2c.blog.index') }}" class="sidebar-see-all">{{ __('nav_explore_all') }}</a>
                         </div>
                         <div class="gyg-mega-grid">
                             @php
@@ -889,7 +889,7 @@
                                 ];
                             @endphp
                             @foreach($rehberler as $r)
-                            <a href="{{ route('b2c.blog.index') }}?tag={{ $r['sehir'] }}" class="gyg-mega-item">
+                            <a href="{{ lroute('b2c.blog.index') }}?tag={{ $r['sehir'] }}" class="gyg-mega-item">
                                 <div class="thumb" style="background:linear-gradient(135deg,#2d5282,#4299e1);">
                                     <i class="bi {{ $r['icon'] }}"></i>
                                 </div>
@@ -903,7 +903,7 @@
 
             {{-- Seyahat Sigortası (tek link) --}}
             <li>
-                <a href="{{ route('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:5px;">
+                <a href="{{ lroute('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:5px;">
                     <i class="bi bi-shield-check" style="color:#0d9488;font-size:.95rem;"></i>
                     {{ __('nav_insurance') }}
                 </a>
@@ -914,7 +914,7 @@
         {{-- ── Sağ aksiyonlar ── --}}
         <div class="gyg-nav-actions">
             {{-- İstek Listesi --}}
-            <a href="{{ route('b2c.wishlist.index') }}" class="gyg-icon-btn" title="{{ __('nav_wishlist') }}" style="position:relative;">
+            <a href="{{ lroute('b2c.wishlist.index') }}" class="gyg-icon-btn" title="{{ __('nav_wishlist') }}" style="position:relative;">
                 <i class="bi bi-heart"></i>
                 @if(($_wishlistCount ?? 0) > 0)
                     <span class="wishlist-badge">{{ $_wishlistCount }}</span>
@@ -954,37 +954,37 @@
                 <div class="gyg-profile-panel" id="gygProfilePanel">
                     <div class="pp-title">{{ __('profile_title') }}</div>
                     @auth('b2c')
-                        <a href="{{ route('b2c.account.index') }}" class="pp-login-row">
+                        <a href="{{ lroute('b2c.account.index') }}" class="pp-login-row">
                             <i class="bi bi-person-circle"></i>
                             <div>
                                 <div style="font-weight:600;font-size:.93rem;">{{ auth('b2c')->user()->name }}</div>
                                 <div style="font-size:.8rem;color:#718096;">{{ __('profile_my_account') }}</div>
                             </div>
                         </a>
-                        <a href="{{ route('b2c.account.orders.index') }}" class="pp-row">
+                        <a href="{{ lroute('b2c.account.orders.index') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-bag pp-icon"></i> {{ __('profile_orders') }}</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
-                        <a href="{{ route('b2c.account.profile.edit') }}" class="pp-row">
+                        <a href="{{ lroute('b2c.account.profile.edit') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-pencil pp-icon"></i> {{ __('profile_edit') }}</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
-                        <a href="{{ route('b2c.sigorta.policelerim') }}" class="pp-row">
+                        <a href="{{ lroute('b2c.sigorta.policelerim') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-shield-fill-check pp-icon"></i> {{ __('profile_policies') }}</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
-                        <a href="{{ route('b2c.iletisim') }}" class="pp-row">
+                        <a href="{{ lroute('b2c.iletisim') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-headset pp-icon"></i> {{ __('profile_support') }}</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
-                        <form action="{{ route('b2c.auth.logout') }}" method="POST" style="padding:10px 20px 14px;border-top:1px solid #f0f0f0;">
+                        <form action="{{ lroute('b2c.auth.logout') }}" method="POST" style="padding:10px 20px 14px;border-top:1px solid #f0f0f0;">
                             @csrf
                             <button type="submit" style="background:none;border:none;color:#e53e3e;font-size:.9rem;cursor:pointer;padding:0;width:100%;text-align:left;display:flex;align-items:center;gap:10px;">
                                 <i class="bi bi-box-arrow-right" style="font-size:1.1rem;"></i> {{ __('profile_logout') }}
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('b2c.auth.login') }}" class="pp-login-row">
+                        <a href="{{ lroute('b2c.auth.login') }}" class="pp-login-row">
                             <i class="bi bi-person-circle"></i>
                             <div>
                                 <div style="font-weight:600;font-size:.93rem;">{{ __('profile_login_prompt') }}</div>
@@ -999,11 +999,11 @@
                             <div class="pp-left"><i class="bi bi-sun pp-icon"></i> {{ __('profile_appearance') }}</div>
                             <div class="pp-right"><span style="font-size:.8rem;">{{ __('profile_always_light') }}</span><i class="bi bi-chevron-right"></i></div>
                         </a>
-                        <a href="{{ route('b2c.sigorta.create') }}" class="pp-row">
+                        <a href="{{ lroute('b2c.sigorta.create') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-shield-check pp-icon" style="color:#0d9488;"></i> {{ __('nav_insurance') }}</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
-                        <a href="{{ route('b2c.iletisim') }}" class="pp-row">
+                        <a href="{{ lroute('b2c.iletisim') }}" class="pp-row">
                             <div class="pp-left"><i class="bi bi-headset pp-icon"></i> {{ __('profile_support') }}</div>
                             <div class="pp-right"><i class="bi bi-chevron-right"></i></div>
                         </a>
@@ -1015,7 +1015,7 @@
                 </div>
             </div>
             {{-- CTA --}}
-            <a href="{{ route('b2c.catalog.index') }}" class="gyg-cta-btn">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="gyg-cta-btn">
                 <i class="bi bi-search" style="margin-right:5px;"></i>{{ __('nav_discover') }}
             </a>
         </div>
@@ -1034,11 +1034,11 @@
             {{ __('mobile_activities') }} <i class="bi bi-chevron-down"></i>
         </div>
         <div class="gyg-mobile-section-body">
-            <a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}">{{ __('mobile_dinner_cruise') }}</a>
-            <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}">{{ __('mobile_yacht_charter') }}</a>
-            <a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}">{{ __('mobile_domestic_tours') }}</a>
-            <a href="{{ route('b2c.catalog.category', 'yurt-disi-turlar') }}">{{ __('mobile_international_tours') }}</a>
-            <a href="{{ route('b2c.catalog.category', 'gunubirlik-turlar') }}">{{ __('mobile_day_tours') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'dinner-cruise') }}">{{ __('mobile_dinner_cruise') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}">{{ __('mobile_yacht_charter') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yurt-ici-turlar') }}">{{ __('mobile_domestic_tours') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yurt-disi-turlar') }}">{{ __('mobile_international_tours') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'gunubirlik-turlar') }}">{{ __('mobile_day_tours') }}</a>
         </div>
     </div>
     <div class="gyg-mobile-section">
@@ -1046,10 +1046,10 @@
             {{ __('nav_destinations') }} <i class="bi bi-chevron-down"></i>
         </div>
         <div class="gyg-mobile-section-body">
-            <a href="{{ route('b2c.catalog.index') }}?sehir=istanbul">İstanbul</a>
-            <a href="{{ route('b2c.catalog.index') }}?sehir=antalya">Antalya</a>
-            <a href="{{ route('b2c.catalog.index') }}?sehir=bodrum">Bodrum</a>
-            <a href="{{ route('b2c.catalog.index') }}?sehir=kapadokya">Kapadokya</a>
+            <a href="{{ lroute('b2c.catalog.index') }}?sehir=istanbul">İstanbul</a>
+            <a href="{{ lroute('b2c.catalog.index') }}?sehir=antalya">Antalya</a>
+            <a href="{{ lroute('b2c.catalog.index') }}?sehir=bodrum">Bodrum</a>
+            <a href="{{ lroute('b2c.catalog.index') }}?sehir=kapadokya">Kapadokya</a>
         </div>
     </div>
     <div class="gyg-mobile-section">
@@ -1057,27 +1057,27 @@
             {{ __('nav_transport') }} <i class="bi bi-chevron-down"></i>
         </div>
         <div class="gyg-mobile-section-body">
-            <a href="{{ route('b2c.transfer.index') }}">{{ __('nav_airport_transfer') }}</a>
-            <a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">{{ __('mobile_private_jet') }}</a>
-            <a href="{{ route('b2c.catalog.category', 'helikopter') }}">{{ __('mobile_helicopter') }}</a>
+            <a href="{{ lroute('b2c.transfer.index') }}">{{ __('nav_airport_transfer') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'ozel-jet') }}">{{ __('mobile_private_jet') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'helikopter') }}">{{ __('mobile_helicopter') }}</a>
         </div>
     </div>
     <div class="gyg-mobile-section">
-        <a href="{{ route('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:8px;padding:14px 20px;font-weight:600;font-size:.95rem;color:#0d9488;text-decoration:none;">
+        <a href="{{ lroute('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:8px;padding:14px 20px;font-weight:600;font-size:.95rem;color:#0d9488;text-decoration:none;">
             <i class="bi bi-shield-check"></i> {{ __('nav_insurance') }}
         </a>
     </div>
     <div class="gyg-mobile-section">
-        <a href="{{ route('b2c.blog.index') }}" style="display:block;padding:14px 20px;font-weight:600;font-size:.95rem;color:var(--gr-text);text-decoration:none;">{{ __('nav_blog_guides') }}</a>
+        <a href="{{ lroute('b2c.blog.index') }}" style="display:block;padding:14px 20px;font-weight:600;font-size:.95rem;color:var(--gr-text);text-decoration:none;">{{ __('nav_blog_guides') }}</a>
     </div>
     <div style="padding:16px 20px;border-top:1px solid #f0f0f0;display:flex;flex-direction:column;gap:10px;">
         @auth('b2c')
-            <a href="{{ route('b2c.account.index') }}" class="btn btn-gr-primary btn-sm rounded-pill">{{ __('profile_my_account_short') }}</a>
+            <a href="{{ lroute('b2c.account.index') }}" class="btn btn-gr-primary btn-sm rounded-pill">{{ __('profile_my_account_short') }}</a>
         @else
-            <a href="{{ route('b2c.auth.login') }}" class="btn btn-outline-secondary btn-sm rounded-pill">{{ __('auth_login') }}</a>
-            <a href="{{ route('b2c.auth.register') }}" class="btn btn-gr-accent btn-sm rounded-pill">{{ __('auth_register') }}</a>
+            <a href="{{ lroute('b2c.auth.login') }}" class="btn btn-outline-secondary btn-sm rounded-pill">{{ __('auth_login') }}</a>
+            <a href="{{ lroute('b2c.auth.register') }}" class="btn btn-gr-accent btn-sm rounded-pill">{{ __('auth_register') }}</a>
         @endauth
-        <a href="{{ route('b2c.catalog.index') }}" class="btn btn-gr-accent btn-sm rounded-pill">
+        <a href="{{ lroute('b2c.catalog.index') }}" class="btn btn-gr-accent btn-sm rounded-pill">
             <i class="bi bi-search me-1"></i>{{ __('nav_discover_services') }}
         </a>
     </div>
@@ -1126,41 +1126,41 @@
             <div class="col-6 col-lg-2">
                 <div class="footer-title">{{ __('footer_services') }}</div>
                 <ul class="list-unstyled" style="font-size:.88rem;line-height:2;">
-                    <li><a href="{{ route('b2c.transfer.index') }}">{{ __('nav_airport_transfer') }}</a></li>
-                    <li><a href="{{ route('b2c.catalog.category', 'ozel-jet') }}">{{ __('footer_private_jet') }}</a></li>
-                    <li><a href="{{ route('b2c.catalog.category', 'dinner-cruise') }}">Dinner Cruise</a></li>
-                    <li><a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}">{{ __('mobile_yacht_charter') }}</a></li>
-                    <li><a href="{{ route('b2c.catalog.category', 'yurt-ici-turlar') }}">{{ __('footer_tour_packages') }}</a></li>
-                    <li><a href="{{ route('b2c.sigorta.create') }}" style="color:#2dd4bf;">🛡 {{ __('nav_insurance') }}</a></li>
+                    <li><a href="{{ lroute('b2c.transfer.index') }}">{{ __('nav_airport_transfer') }}</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.category', 'ozel-jet') }}">{{ __('footer_private_jet') }}</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.category', 'dinner-cruise') }}">Dinner Cruise</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}">{{ __('mobile_yacht_charter') }}</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.category', 'yurt-ici-turlar') }}">{{ __('footer_tour_packages') }}</a></li>
+                    <li><a href="{{ lroute('b2c.sigorta.create') }}" style="color:#2dd4bf;">🛡 {{ __('nav_insurance') }}</a></li>
                 </ul>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="footer-title">{{ __('footer_destinations') }}</div>
                 <ul class="list-unstyled" style="font-size:.88rem;line-height:2;">
-                    <li><a href="{{ route('b2c.catalog.index') }}?sehir=istanbul">İstanbul</a></li>
-                    <li><a href="{{ route('b2c.catalog.index') }}?sehir=antalya">Antalya</a></li>
-                    <li><a href="{{ route('b2c.catalog.index') }}?sehir=bodrum">Bodrum</a></li>
-                    <li><a href="{{ route('b2c.catalog.index') }}?sehir=kapadokya">Kapadokya</a></li>
-                    <li><a href="{{ route('b2c.catalog.index') }}?sehir=izmir">İzmir</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.index') }}?sehir=istanbul">İstanbul</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.index') }}?sehir=antalya">Antalya</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.index') }}?sehir=bodrum">Bodrum</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.index') }}?sehir=kapadokya">Kapadokya</a></li>
+                    <li><a href="{{ lroute('b2c.catalog.index') }}?sehir=izmir">İzmir</a></li>
                 </ul>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="footer-title">{{ __('footer_corporate') }}</div>
                 <ul class="list-unstyled" style="font-size:.88rem;line-height:2;">
-                    <li><a href="{{ route('b2c.hakkimizda') }}">{{ __('footer_about') }}</a></li>
-                    <li><a href="{{ route('b2c.iletisim') }}">{{ __('footer_contact') }}</a></li>
-                    <li><a href="{{ route('b2c.blog.index') }}">{{ __('footer_blog') }}</a></li>
-                    <li><a href="{{ route('b2c.supplier-apply.show') }}" style="color:var(--gr-accent);">{{ __('footer_become_supplier') }}</a></li>
+                    <li><a href="{{ lroute('b2c.hakkimizda') }}">{{ __('footer_about') }}</a></li>
+                    <li><a href="{{ lroute('b2c.iletisim') }}">{{ __('footer_contact') }}</a></li>
+                    <li><a href="{{ lroute('b2c.blog.index') }}">{{ __('footer_blog') }}</a></li>
+                    <li><a href="{{ lroute('b2c.supplier-apply.show') }}" style="color:var(--gr-accent);">{{ __('footer_become_supplier') }}</a></li>
                 </ul>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="footer-title">{{ __('footer_legal') }}</div>
                 <ul class="list-unstyled" style="font-size:.88rem;line-height:2;">
-                    <li><a href="{{ route('b2c.kvkk') }}">{{ __('legal_kvkk') }}</a></li>
-                    <li><a href="{{ route('b2c.gizlilik') }}">{{ __('legal_privacy') }}</a></li>
-                    <li><a href="{{ route('b2c.mesafeli-satis') }}">{{ __('legal_distance_sales') }}</a></li>
-                    <li><a href="{{ route('b2c.iptal-iade') }}">{{ __('legal_cancellation') }}</a></li>
-                    <li><a href="{{ route('b2c.on-bilgilendirme') }}">{{ __('legal_pre_info') }}</a></li>
+                    <li><a href="{{ lroute('b2c.kvkk') }}">{{ __('legal_kvkk') }}</a></li>
+                    <li><a href="{{ lroute('b2c.gizlilik') }}">{{ __('legal_privacy') }}</a></li>
+                    <li><a href="{{ lroute('b2c.mesafeli-satis') }}">{{ __('legal_distance_sales') }}</a></li>
+                    <li><a href="{{ lroute('b2c.iptal-iade') }}">{{ __('legal_cancellation') }}</a></li>
+                    <li><a href="{{ lroute('b2c.on-bilgilendirme') }}">{{ __('legal_pre_info') }}</a></li>
                 </ul>
             </div>
         </div>
@@ -1284,7 +1284,7 @@ function toggleMobileSection(head) {
 function grtWishlistToggle(btn) {
     var itemId = btn.dataset.itemId;
     var csrf   = document.querySelector('meta[name="csrf-token"]').content;
-    fetch('{{ route("b2c.wishlist.toggle") }}', {
+    fetch('{{ lroute("b2c.wishlist.toggle") }}', {
         method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
         body: JSON.stringify({item_id: parseInt(itemId)})

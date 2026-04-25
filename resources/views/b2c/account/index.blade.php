@@ -106,22 +106,22 @@
             <div class="account-user-email">{{ $user->email }}</div>
         </div>
         <nav>
-            <a href="{{ route('b2c.account.index') }}" class="account-nav-item active">
+            <a href="{{ lroute('b2c.account.index') }}" class="account-nav-item active">
                 <i class="bi bi-house-fill"></i> Genel Bakış
             </a>
-            <a href="{{ route('b2c.account.orders.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.orders.index') }}" class="account-nav-item">
                 <i class="bi bi-bag-fill"></i> Siparişlerim
             </a>
-            <a href="{{ route('b2c.account.profile.edit') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.profile.edit') }}" class="account-nav-item">
                 <i class="bi bi-person-fill"></i> Profilim
             </a>
-            <a href="{{ route('b2c.sigorta.policelerim') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.sigorta.policelerim') }}" class="account-nav-item">
                 <i class="bi bi-shield-fill-check"></i> Poliçelerim
             </a>
-            <a href="{{ route('b2c.catalog.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="account-nav-item">
                 <i class="bi bi-grid-fill"></i> Hizmetleri Keşfet
             </a>
-            <form method="POST" action="{{ route('b2c.auth.logout') }}" style="margin:0;">
+            <form method="POST" action="{{ lroute('b2c.auth.logout') }}" style="margin:0;">
                 @csrf
                 <button type="submit" class="account-nav-item" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:0;">
                     <i class="bi bi-box-arrow-right" style="color:#e53e3e;"></i>
@@ -160,7 +160,7 @@
             <div class="account-card-title">
                 <i class="bi bi-clock-history"></i> Son Siparişler
                 @if(!$orders->isEmpty())
-                <a href="{{ route('b2c.account.orders.index') }}" style="font-size:.82rem;font-weight:500;color:#1a3c6b;margin-left:auto;text-decoration:none;">
+                <a href="{{ lroute('b2c.account.orders.index') }}" style="font-size:.82rem;font-weight:500;color:#1a3c6b;margin-left:auto;text-decoration:none;">
                     Tümünü Gör →
                 </a>
                 @endif
@@ -170,7 +170,7 @@
             <div class="empty-state">
                 <i class="bi bi-bag"></i>
                 <p>Henüz siparişiniz yok.</p>
-                <a href="{{ route('b2c.catalog.index') }}" style="display:inline-block;padding:10px 24px;background:#1a3c6b;color:#fff;border-radius:8px;text-decoration:none;font-size:.9rem;font-weight:600;">
+                <a href="{{ lroute('b2c.catalog.index') }}" style="display:inline-block;padding:10px 24px;background:#1a3c6b;color:#fff;border-radius:8px;text-decoration:none;font-size:.9rem;font-weight:600;">
                     Hizmetleri Keşfedin
                 </a>
             </div>
@@ -190,7 +190,7 @@
                 <span class="order-status {{ $order->status }}">
                     {{ $order->status_label ?? ucfirst($order->status) }}
                 </span>
-                <a href="{{ route('b2c.account.orders.show', $order->order_ref) }}"
+                <a href="{{ lroute('b2c.account.orders.show', $order->order_ref) }}"
                    style="font-size:.82rem;color:#1a3c6b;text-decoration:none;flex-shrink:0;font-weight:600;">
                     Detay
                 </a>
@@ -205,11 +205,11 @@
                 <i class="bi bi-lightning-fill"></i> Hızlı Eylemler
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
-                <a href="{{ route('b2c.catalog.index') }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-grid-fill" style="color:#1a3c6b;font-size:1rem;"></i> Hizmet Ara</a>
-                <a href="{{ route('b2c.catalog.index', ['tip'=>'transfer']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-car-front-fill" style="color:#1a3c6b;font-size:1rem;"></i> Transfer</a>
-                <a href="{{ route('b2c.catalog.index', ['tip'=>'charter']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-airplane-fill" style="color:#1a3c6b;font-size:1rem;"></i> Charter</a>
-                <a href="{{ route('b2c.catalog.index', ['tip'=>'leisure']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-water" style="color:#1a3c6b;font-size:1rem;"></i> Deniz & Eğlence</a>
-                <a href="{{ route('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-shield-plus" style="color:#1a3c6b;font-size:1rem;"></i> Sigorta Satın Al</a>
+                <a href="{{ lroute('b2c.catalog.index') }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-grid-fill" style="color:#1a3c6b;font-size:1rem;"></i> Hizmet Ara</a>
+                <a href="{{ lroute('b2c.catalog.index', ['tip'=>'transfer']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-car-front-fill" style="color:#1a3c6b;font-size:1rem;"></i> Transfer</a>
+                <a href="{{ lroute('b2c.catalog.index', ['tip'=>'charter']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-airplane-fill" style="color:#1a3c6b;font-size:1rem;"></i> Charter</a>
+                <a href="{{ lroute('b2c.catalog.index', ['tip'=>'leisure']) }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-water" style="color:#1a3c6b;font-size:1rem;"></i> Deniz & Eğlence</a>
+                <a href="{{ lroute('b2c.sigorta.create') }}" style="display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid #e8eef5;border-radius:10px;text-decoration:none;color:#1a202c;font-size:.88rem;font-weight:500;"><i class="bi bi-shield-plus" style="color:#1a3c6b;font-size:1rem;"></i> Sigorta Satın Al</a>
             </div>
         </div>
 

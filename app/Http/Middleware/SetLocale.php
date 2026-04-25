@@ -39,7 +39,7 @@ class SetLocale
             $query  = $request->server('QUERY_STRING', '');
             $newUri = '/' . $newPath . ($query ? '?' . $query : '');
 
-            $server              = $request->server->all();
+            $server                = $request->server->all();
             $server['REQUEST_URI'] = $newUri;
             $server['PATH_INFO']   = '/' . $newPath;
 
@@ -56,10 +56,21 @@ class SetLocale
             app()->setLocale($locale);
             $request->attributes->set('gr_locale', $locale);
 
-            // Cookie'ye yaz — sonraki sayfalarda (prefix'siz URL'lerde) de geçerli olsun
+            // Cookie'ye yaz — prefix'siz iç linklerde de locale korunur
             $response = $next($request);
             $response->headers->setCookie(
                 cookie('gr_locale', $locale, 60 * 24 * 365, '/', null, false, false)
+            );
+            return $response;
+        }
+
+        // Dil sıfırlama: ?reset_locale=1 — TR'ye dön, cookie'yi temizle
+        if ($request->query('reset_locale') == '1') {
+            app()->setLocale('tr');
+            $request->attributes->set('gr_locale', 'tr');
+            $response = $next($request);
+            $response->headers->setCookie(
+                cookie('gr_locale', 'tr', 60 * 24 * 365, '/', null, false, false)
             );
             return $response;
         }

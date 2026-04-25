@@ -41,7 +41,7 @@
             <div style="font-size:.9rem;color:#718096;margin-top:4px;">Hesabınız için güçlü bir şifre seçin.</div>
         </div>
 
-        <form method="POST" action="{{ route('b2c.auth.reset.post') }}">
+        <form method="POST" action="{{ lroute('b2c.auth.reset.post') }}">
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
 

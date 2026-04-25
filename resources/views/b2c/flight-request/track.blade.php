@@ -309,7 +309,7 @@
                     <strong>{{ \Carbon\Carbon::parse($offer->option_date)->format('d.m.Y') }}</strong>
                 </div>
                 @endif
-                <form method="POST" action="{{ route('b2c.flight.offer.accept', [$talep->gtpnr, $offer->id]) }}" onsubmit="return confirm('Bu teklifi kabul etmek istediğinize emin misiniz?')">
+                <form method="POST" action="{{ lroute('b2c.flight.offer.accept', [$talep->gtpnr, $offer->id]) }}" onsubmit="return confirm('Bu teklifi kabul etmek istediğinize emin misiniz?')">
                     @csrf
                     <button type="submit" class="btn-accept">
                         <i class="bi bi-check-circle-fill me-2"></i>Bu Teklifi Kabul Et
@@ -331,7 +331,7 @@
             <div class="waiting-icon">😔</div>
             <h3 style="color:#c53030;">Teklif Verilemedi</h3>
             <p style="color:#742a2a;">Belirttiğiniz tarih ve rota için şu an uygun seçenek bulunamadı. Farklı tarih veya rota ile yeni talep oluşturabilirsiniz.</p>
-            <a href="{{ route('b2c.flight.create') }}" class="btn-accept mt-3 d-inline-block text-decoration-none text-center" style="background:#c53030;">
+            <a href="{{ lroute('b2c.flight.create') }}" class="btn-accept mt-3 d-inline-block text-decoration-none text-center" style="background:#c53030;">
                 Yeni Talep Oluştur
             </a>
         </div>
@@ -461,7 +461,7 @@
         </div>
 
         <div class="text-center mt-2 mb-2">
-            <a href="{{ route('b2c.flight.create') }}" style="font-size:.8rem;color:#1a3c6b;text-decoration:none;">
+            <a href="{{ lroute('b2c.flight.create') }}" style="font-size:.8rem;color:#1a3c6b;text-decoration:none;">
                 <i class="bi bi-plus-circle me-1"></i>Yeni talep oluştur
             </a>
         </div>

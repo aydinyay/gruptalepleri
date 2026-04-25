@@ -120,7 +120,7 @@
                     </div>
                     @endif
 
-                    <form action="{{ route('b2c.supplier-apply.store') }}" method="POST" class="needs-validation" novalidate>
+                    <form action="{{ lroute('b2c.supplier-apply.store') }}" method="POST" class="needs-validation" novalidate>
                         @csrf
                         <div class="row g-3">
                             <div class="col-md-6">

@@ -24,7 +24,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2">
                 <li class="breadcrumb-item">
-                    <a href="{{ route('b2c.transfer.index') }}" style="color:rgba(255,255,255,.7)">Transfer</a>
+                    <a href="{{ lroute('b2c.transfer.index') }}" style="color:rgba(255,255,255,.7)">Transfer</a>
                 </li>
                 <li class="breadcrumb-item active" style="color:#fff">Rezervasyon</li>
             </ol>
@@ -190,7 +190,7 @@
             @if($booking->status === 'confirmed')
             <div class="booking-card">
                 <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2"></i>Fiş / Voucher</h5>
-                <a href="{{ route('b2c.transfer.voucher', $booking->booking_ref) }}"
+                <a href="{{ lroute('b2c.transfer.voucher', $booking->booking_ref) }}"
                    target="_blank"
                    class="btn btn-outline-secondary btn-sm w-100 mb-2">
                     <i class="bi bi-printer me-1"></i>Voucher Görüntüle / Yazdır
@@ -202,7 +202,7 @@
             <div class="booking-card">
                 <h5 class="fw-bold mb-3"><i class="bi bi-headset me-2"></i>Destek</h5>
                 <p class="small text-muted mb-2">Rezervasyonunuzla ilgili sorularınız için:</p>
-                <a href="{{ route('b2c.iletisim') }}" class="btn btn-outline-primary btn-sm w-100">
+                <a href="{{ lroute('b2c.iletisim') }}" class="btn btn-outline-primary btn-sm w-100">
                     <i class="bi bi-envelope me-1"></i>İletişime Geç
                 </a>
             </div>
@@ -210,7 +210,7 @@
     </div>
 
     <div class="text-center mt-2">
-        <a href="{{ route('b2c.transfer.index') }}" class="btn btn-link text-muted">
+        <a href="{{ lroute('b2c.transfer.index') }}" class="btn btn-link text-muted">
             <i class="bi bi-arrow-left me-1"></i>Yeni Transfer Ara
         </a>
     </div>

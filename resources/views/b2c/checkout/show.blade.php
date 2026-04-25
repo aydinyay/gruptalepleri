@@ -47,7 +47,7 @@
 @section('content')
 <div style="background:#f8f9fc;border-bottom:1px solid #eee;padding:14px 0;margin-bottom:8px;">
     <div style="max-width:960px;margin:0 auto;padding:0 20px;font-size:.85rem;color:#718096;">
-        <a href="{{ route('b2c.home') }}" style="color:#718096;text-decoration:none;">Ana Sayfa</a>
+        <a href="{{ lroute('b2c.home') }}" style="color:#718096;text-decoration:none;">Ana Sayfa</a>
         <span style="margin:0 8px;">›</span> Ödeme
     </div>
 </div>
@@ -62,7 +62,7 @@
         </div>
         @endif
 
-        <form method="POST" action="{{ route('b2c.checkout.create') }}">
+        <form method="POST" action="{{ lroute('b2c.checkout.create') }}">
             @csrf
 
             <div class="ck-section">
@@ -139,7 +139,7 @@
                     </div>
                     @endif
                 </div>
-                <form method="POST" action="{{ route('b2c.cart.remove', $rowId) }}" style="flex-shrink:0;">
+                <form method="POST" action="{{ lroute('b2c.cart.remove', $rowId) }}" style="flex-shrink:0;">
                     @csrf @method('DELETE')
                     <button type="submit" title="Kaldır"
                             style="border:none;background:none;color:#e53e3e;font-size:1rem;cursor:pointer;padding:0;">

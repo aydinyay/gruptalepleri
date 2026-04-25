@@ -8,7 +8,7 @@
     <h3 class="fw-bold">Seyahat Sigortası</h3>
     <p class="text-muted">
         Seyahat sigortası hizmeti çok yakında bu sayfada aktif olacak.
-        Şimdilik <a href="{{ route('b2c.home') }}">ana sayfaya dönebilirsiniz</a>.
+        Şimdilik <a href="{{ lroute('b2c.home') }}">ana sayfaya dönebilirsiniz</a>.
     </p>
 </div>
 @endsection

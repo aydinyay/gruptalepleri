@@ -22,7 +22,7 @@
         <div style="text-align:center;padding:80px 24px;">
             <i class="bi bi-heart" style="font-size:3rem;color:#e2e8f0;display:block;margin-bottom:16px;"></i>
             <p style="color:var(--gr-muted);margin-bottom:24px;">İstek listesi boş. Beğendiğiniz ürünleri kalp ikonuna tıklayarak kaydedin.</p>
-            <a href="{{ route('b2c.home') }}" class="btn btn-primary" style="background:var(--gr-primary);border:none;border-radius:8px;padding:10px 24px;">
+            <a href="{{ lroute('b2c.home') }}" class="btn btn-primary" style="background:var(--gr-primary);border:none;border-radius:8px;padding:10px 24px;">
                 Ürünleri Keşfet
             </a>
         </div>

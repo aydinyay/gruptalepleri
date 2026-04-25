@@ -47,7 +47,7 @@
         </div>
         @endif
 
-        <form method="POST" action="{{ route('b2c.auth.forgot.post') }}">
+        <form method="POST" action="{{ lroute('b2c.auth.forgot.post') }}">
             @csrf
             <div style="margin-bottom:16px;">
                 <label style="display:block;font-size:.85rem;font-weight:600;color:#2d3748;margin-bottom:6px;" for="email">
@@ -65,7 +65,7 @@
         </form>
 
         <div style="text-align:center;margin-top:20px;">
-            <a href="{{ route('b2c.auth.login') }}" style="font-size:.88rem;color:#718096;text-decoration:none;">
+            <a href="{{ lroute('b2c.auth.login') }}" style="font-size:.88rem;color:#718096;text-decoration:none;">
                 <i class="bi bi-arrow-left me-1"></i>Giriş sayfasına dön
             </a>
         </div>

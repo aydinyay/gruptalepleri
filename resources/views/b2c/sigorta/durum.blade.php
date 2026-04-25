@@ -25,15 +25,15 @@
                 <h4 class="fw-bold">Poliçeniz Hazır!</h4>
                 <p class="text-muted mb-1">Poliçe No: <strong>{{ $police->police_no }}</strong></p>
                 <div class="d-flex gap-2 justify-content-center mt-4 flex-wrap">
-                    <a href="{{ route('b2c.sigorta.belge', [$police, 'police']) }}" target="_blank" class="btn btn-danger btn-sm">
+                    <a href="{{ lroute('b2c.sigorta.belge', [$police, 'police']) }}" target="_blank" class="btn btn-danger btn-sm">
                         <i class="fas fa-file-pdf me-1"></i> Poliçe PDF
                     </a>
                     @if($police->sertifika_link)
-                    <a href="{{ route('b2c.sigorta.belge', [$police, 'sertifika']) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ lroute('b2c.sigorta.belge', [$police, 'sertifika']) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-certificate me-1"></i> Sertifika
                     </a>
                     @endif
-                    <a href="{{ route('b2c.sigorta.create') }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{{ lroute('b2c.sigorta.create') }}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-plus me-1"></i> Yeni Poliçe
                     </a>
                 </div>
@@ -44,7 +44,7 @@
             <i class="fas fa-times-circle text-danger fa-4x mb-3"></i>
             <h5>Bir Sorun Oluştu</h5>
             <p class="text-muted small">{{ $police->hata_mesaji ?? 'Poliçe işlenirken hata oluştu.' }}</p>
-            <a href="{{ route('b2c.sigorta.create') }}" class="btn btn-outline-secondary btn-sm mt-2">Tekrar Dene</a>
+            <a href="{{ lroute('b2c.sigorta.create') }}" class="btn btn-outline-secondary btn-sm mt-2">Tekrar Dene</a>
             @endif
 
         </div>
@@ -64,7 +64,7 @@
     const iv = setInterval(async () => {
         n++;
         try {
-            const res  = await fetch('{{ route("b2c.sigorta.durum-ajax", $police) }}');
+            const res  = await fetch('{{ lroute("b2c.sigorta.durum-ajax", $police) }}');
             const data = await res.json();
             if (data.durum === 'tamamlandi') {
                 clearInterval(iv);
@@ -76,7 +76,7 @@
                         <a href="{{ url('/sigorta/police') }}/${data.police_no ? '{{ $police->id }}' : '{{ $police->id }}'}/belge/police" target="_blank" class="btn btn-danger btn-sm">
                             <i class="fas fa-file-pdf me-1"></i> Poliçe PDF
                         </a>
-                        <a href="{{ route('b2c.sigorta.create') }}" class="btn btn-outline-primary btn-sm">
+                        <a href="{{ lroute('b2c.sigorta.create') }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-plus me-1"></i> Yeni Poliçe
                         </a>
                     </div>`;

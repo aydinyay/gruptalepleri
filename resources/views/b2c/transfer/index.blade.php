@@ -55,7 +55,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('b2c.transfer.search') }}" id="transferSearchForm">
+    <form method="POST" action="{{ lroute('b2c.transfer.search') }}" id="transferSearchForm">
         @csrf
 
         {{-- Yön --}}
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        fetch('{{ route('b2c.transfer.zones') }}?airport_id=' + airportId, {
+        fetch('{{ lroute('b2c.transfer.zones') }}?airport_id=' + airportId, {
             headers: {'X-Requested-With': 'XMLHttpRequest'}
         })
         .then(function (r) { return r.json(); })

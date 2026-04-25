@@ -89,22 +89,22 @@
             <div class="account-user-email">{{ Auth::guard('b2c')->user()->email }}</div>
         </div>
         <nav>
-            <a href="{{ route('b2c.account.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.index') }}" class="account-nav-item">
                 <i class="bi bi-house-fill"></i> Genel Bakış
             </a>
-            <a href="{{ route('b2c.account.orders.index') }}" class="account-nav-item active">
+            <a href="{{ lroute('b2c.account.orders.index') }}" class="account-nav-item active">
                 <i class="bi bi-bag-fill"></i> Siparişlerim
             </a>
-            <a href="{{ route('b2c.account.profile.edit') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.profile.edit') }}" class="account-nav-item">
                 <i class="bi bi-person-fill"></i> Profilim
             </a>
-            <a href="{{ route('b2c.sigorta.policelerim') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.sigorta.policelerim') }}" class="account-nav-item">
                 <i class="bi bi-shield-fill-check"></i> Poliçelerim
             </a>
-            <a href="{{ route('b2c.catalog.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="account-nav-item">
                 <i class="bi bi-grid-fill"></i> Hizmetleri Keşfet
             </a>
-            <form method="POST" action="{{ route('b2c.auth.logout') }}" style="margin:0;">
+            <form method="POST" action="{{ lroute('b2c.auth.logout') }}" style="margin:0;">
                 @csrf
                 <button type="submit" class="account-nav-item" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:0;">
                     <i class="bi bi-box-arrow-right" style="color:#e53e3e;"></i>
@@ -128,7 +128,7 @@
             <div class="empty-state">
                 <i class="bi bi-bag"></i>
                 <p>Henüz siparişiniz yok.</p>
-                <a href="{{ route('b2c.catalog.index') }}" style="display:inline-block;padding:10px 24px;background:#1a3c6b;color:#fff;border-radius:8px;text-decoration:none;font-size:.9rem;font-weight:600;">
+                <a href="{{ lroute('b2c.catalog.index') }}" style="display:inline-block;padding:10px 24px;background:#1a3c6b;color:#fff;border-radius:8px;text-decoration:none;font-size:.9rem;font-weight:600;">
                     Hizmetleri Keşfedin
                 </a>
             </div>
@@ -151,7 +151,7 @@
                 <span class="order-badge badge-{{ $order->status_color }}">
                     {{ $order->status_label }}
                 </span>
-                <a href="{{ route('b2c.account.orders.show', $order->order_ref) }}"
+                <a href="{{ lroute('b2c.account.orders.show', $order->order_ref) }}"
                    style="font-size:.82rem;color:#1a3c6b;text-decoration:none;flex-shrink:0;font-weight:600;white-space:nowrap;">
                     Detay →
                 </a>

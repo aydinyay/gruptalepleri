@@ -7,7 +7,7 @@
                 </span>
                 <span style="color:#4a5568;font-size:.88rem;font-weight:500;">{{ $label ?? $city }}</span>
             </div>
-            <a href="{{ route('b2c.catalog.index') }}?sehir={{ urlencode($city) }}" class="gyg-see-all">Tümünü Gör →</a>
+            <a href="{{ lroute('b2c.catalog.index') }}?sehir={{ urlencode($city) }}" class="gyg-see-all">Tümünü Gör →</a>
         </div>
         <div class="gyg-products-grid">
             @foreach($items as $item)

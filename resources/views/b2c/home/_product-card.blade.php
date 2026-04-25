@@ -24,7 +24,7 @@ $bg       = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,
 $catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
 @endphp
 
-<a href="{{ route('b2c.product.show', $item->slug) }}" class="gyg-pcard"
+<a href="{{ lroute('b2c.product.show', $item->slug) }}" class="gyg-pcard"
    @if(!empty($dataCity)) data-city="{{ $dataCity }}" @endif
    @if(!empty($item->venue_lat)) data-lat="{{ $item->venue_lat }}" data-lng="{{ $item->venue_lng }}" @endif>
     <div class="gyg-pcard-img">

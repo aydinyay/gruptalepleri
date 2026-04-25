@@ -29,9 +29,9 @@ body{background:var(--bg);color:var(--txt);}
 {{-- Breadcrumb --}}
 <div style="background:var(--card);border-bottom:1px solid var(--brd);padding:.6rem 0;font-size:.82rem;color:var(--muted);">
     <div class="container">
-        <a href="{{ route('b2c.home') }}" style="color:var(--muted);text-decoration:none;">Ana Sayfa</a>
+        <a href="{{ lroute('b2c.home') }}" style="color:var(--muted);text-decoration:none;">Ana Sayfa</a>
         <span class="mx-1">/</span>
-        <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" style="color:var(--muted);text-decoration:none;">Yat Kiralama</a>
+        <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}" style="color:var(--muted);text-decoration:none;">Yat Kiralama</a>
         <span class="mx-1">/</span>
         <span>Rezervasyon</span>
         <span class="mx-1">/</span>
@@ -51,7 +51,7 @@ body{background:var(--bg);color:var(--txt);}
     @endif
 
     <div class="d-flex align-items-center gap-2 mt-3 mb-1" style="font-size:.82rem;color:var(--muted);">
-        <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" style="color:var(--muted);text-decoration:none;">Yat Kiralama</a>
+        <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}" style="color:var(--muted);text-decoration:none;">Yat Kiralama</a>
         <span>/</span><span>Rezervasyon</span>
         <span>/</span><strong style="color:var(--txt);">{{ $leisureRequest->gtpnr }}</strong>
     </div>
@@ -130,7 +130,7 @@ body{background:var(--bg);color:var(--txt);}
                     </div>
 
                     @if((float)$booking->remaining_amount > 0)
-                        <form method="POST" action="{{ route('b2c.leisure.payment.start', $booking) }}">
+                        <form method="POST" action="{{ lroute('b2c.leisure.payment.start', $booking) }}">
                             @csrf
                             <button type="submit" class="bk-btn-pay mt-2">
                                 <i class="fas fa-lock me-2"></i>Ödemeyi Tamamla
@@ -148,7 +148,7 @@ body{background:var(--bg);color:var(--txt);}
                 @endif
 
                 <hr style="margin:1rem 0;">
-                <a href="{{ route('b2c.catalog.category', 'yat-kiralama') }}" class="d-flex align-items-center gap-2 text-decoration-none" style="font-size:.82rem;color:var(--muted);">
+                <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}" class="d-flex align-items-center gap-2 text-decoration-none" style="font-size:.82rem;color:var(--muted);">
                     <i class="fas fa-arrow-left"></i> Ürün kataloğuna dön
                 </a>
             </div>

@@ -71,7 +71,7 @@
 <div class="contact-header">
     <div style="max-width:1100px;margin:0 auto;padding:0 24px;">
         <div class="gyg-breadcrumb" style="background:transparent;border:none;padding:0 0 12px;">
-            <a href="{{ route('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
+            <a href="{{ lroute('b2c.home') }}" style="color:rgba(255,255,255,.6);">Ana Sayfa</a>
             <span class="sep" style="color:rgba(255,255,255,.4);">›</span>
             <span style="color:rgba(255,255,255,.9);">İletişim</span>
         </div>
@@ -202,7 +202,7 @@
             <div style="font-size:.83rem;opacity:.75;margin-bottom:14px;">
                 Platformumuza ürün ekleyin, müşteri kitlesiyle buluşun.
             </div>
-            <a href="{{ route('b2c.supplier-apply.show') }}"
+            <a href="{{ lroute('b2c.supplier-apply.show') }}"
                style="display:inline-block;padding:9px 20px;background:#f4a418;color:#fff;border-radius:8px;font-size:.88rem;font-weight:700;text-decoration:none;">
                 <i class="bi bi-building me-1"></i>İş Ortağı Olun
             </a>
@@ -220,7 +220,7 @@
         </div>
         @endif
 
-        <form method="POST" action="{{ route('b2c.iletisim') }}">
+        <form method="POST" action="{{ lroute('b2c.iletisim') }}">
             @csrf
             <div class="contact-row contact-field">
                 <div>

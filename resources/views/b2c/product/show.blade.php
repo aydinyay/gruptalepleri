@@ -179,9 +179,9 @@ if ($item->rating_avg > 0 && $item->review_count > 0) {
 
 <div class="breadcrumb-bar">
 <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
-<a href="{{ route('b2c.home') }}">Ana Sayfa</a> ›
+<a href="{{ lroute('b2c.home') }}">Ana Sayfa</a> ›
 @if($item->category)
-<a href="{{ route('b2c.catalog.category', $item->category->slug) }}">{{ $item->category->name }}</a> ›
+<a href="{{ lroute('b2c.catalog.category', $item->category->slug) }}">{{ $item->category->name }}</a> ›
 @endif
 {{ Str::limit($item->title, 50) }}
 </div>
@@ -617,7 +617,7 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
     </div>
 @endif
 
-<form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:10px 0 4px;" id="bookForm">
+<form method="POST" action="{{ lroute('b2c.guest.booking.book', $item->slug) }}" style="margin:10px 0 4px;" id="bookForm">
     @csrf
     @if($sessions->isNotEmpty())
     {{-- Seans seçici --}}
@@ -732,7 +732,7 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
     </div>
 @endif
 
-<form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:6px 0 4px;">
+<form method="POST" action="{{ lroute('b2c.guest.booking.book', $item->slug) }}" style="margin:6px 0 4px;">
     @csrf
     <div style="margin-bottom:10px;">
         <label style="display:block;font-size:.82rem;font-weight:600;color:#4a5568;margin-bottom:4px;">Tercih Edilen Tarih</label>
@@ -767,7 +767,7 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 </form>
 @else
 <div class="pc-qbox"><i class="bi bi-telephone-fill me-2" style="color:#1a3c6b;"></i>Bilgi almak için aşağıdaki formu doldurun.</div>
-<form method="POST" action="{{ route('b2c.guest.booking.book', $item->slug) }}" style="margin:6px 0 4px;">
+<form method="POST" action="{{ lroute('b2c.guest.booking.book', $item->slug) }}" style="margin:6px 0 4px;">
     @csrf
     <div style="margin-bottom:10px;">
         <input type="text" name="guest_name" value="{{ old('guest_name') }}" placeholder="Ad Soyad" required
@@ -813,7 +813,7 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
         <div style="font-size:1.05rem;font-weight:700;color:#064e3b;">Seyahat Sigortası — Anında Poliçe</div>
         <div style="font-size:.86rem;color:#047857;margin-top:.3rem;">Tıbbi acil, bagaj kaybı, uçuş iptali ve daha fazlası · E-posta + SMS ile teslim</div>
     </div>
-    <a href="{{ route('b2c.sigorta.create') }}" style="background:#059669;color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;padding:11px 22px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;">
+    <a href="{{ lroute('b2c.sigorta.create') }}" style="background:#059669;color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;padding:11px 22px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;">
         <i class="bi bi-shield-check"></i> Poliçe Al →
     </a>
 </div>
@@ -826,7 +826,7 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 <div class="gyg-section-head">
 <div><h2 class="gr-section-title" style="color:#1a202c;">Benzer Deneyimler</h2><p class="gr-section-subtitle">Bunları da beğenebilirsiniz</p></div>
 @if($item->category)
-<a href="{{ route('b2c.catalog.category', $item->category->slug) }}" class="gyg-see-all">Tümünü Gör</a>
+<a href="{{ lroute('b2c.catalog.category', $item->category->slug) }}" class="gyg-see-all">Tümünü Gör</a>
 @endif
 </div>
 <div class="rel-grid">
@@ -841,7 +841,7 @@ $priceTitle = $isGroupPrice ? 'Fiyat' : 'Başlangıç fiyatı';
 @if($item->hasLiveTransferPricing())
 <script>
 (function() {
-    var _priceUrl   = '{{ route('b2c.transfer.price-query') }}';
+    var _priceUrl   = '{{ lroute('b2c.transfer.price-query') }}';
     var _direction  = document.getElementById('tr-direction')?.value ?? '';
 
     function trChangePax(delta) {

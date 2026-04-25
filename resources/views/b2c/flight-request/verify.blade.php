@@ -124,7 +124,7 @@
                 </div>
                 @endif
 
-                <form method="POST" action="{{ route('b2c.flight.verify.post', $talep->gtpnr) }}">
+                <form method="POST" action="{{ lroute('b2c.flight.verify.post', $talep->gtpnr) }}">
                     @csrf
                     <label class="v-label" for="inp-cred">Telefon Numarası veya E-posta Adresi</label>
                     <input type="text"
@@ -142,7 +142,7 @@
 
                 <p class="help-text">
                     Talep sırasında girdiğiniz telefon numaranızı veya e-posta adresinizi girin.<br>
-                    <a href="{{ route('b2c.flight.create') }}" style="color:#1a3c6b;">Yeni talep oluştur →</a>
+                    <a href="{{ lroute('b2c.flight.create') }}" style="color:#1a3c6b;">Yeni talep oluştur →</a>
                 </p>
             </div>
         </div>

@@ -73,22 +73,22 @@
             <div class="account-user-email">{{ Auth::guard('b2c')->user()->email }}</div>
         </div>
         <nav>
-            <a href="{{ route('b2c.account.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.index') }}" class="account-nav-item">
                 <i class="bi bi-house-fill"></i> Genel Bakış
             </a>
-            <a href="{{ route('b2c.account.orders.index') }}" class="account-nav-item active">
+            <a href="{{ lroute('b2c.account.orders.index') }}" class="account-nav-item active">
                 <i class="bi bi-bag-fill"></i> Siparişlerim
             </a>
-            <a href="{{ route('b2c.account.profile.edit') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.account.profile.edit') }}" class="account-nav-item">
                 <i class="bi bi-person-fill"></i> Profilim
             </a>
-            <a href="{{ route('b2c.sigorta.policelerim') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.sigorta.policelerim') }}" class="account-nav-item">
                 <i class="bi bi-shield-fill-check"></i> Poliçelerim
             </a>
-            <a href="{{ route('b2c.catalog.index') }}" class="account-nav-item">
+            <a href="{{ lroute('b2c.catalog.index') }}" class="account-nav-item">
                 <i class="bi bi-grid-fill"></i> Hizmetleri Keşfet
             </a>
-            <form method="POST" action="{{ route('b2c.auth.logout') }}" style="margin:0;">
+            <form method="POST" action="{{ lroute('b2c.auth.logout') }}" style="margin:0;">
                 @csrf
                 <button type="submit" class="account-nav-item" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:0;">
                     <i class="bi bi-box-arrow-right" style="color:#e53e3e;"></i>
@@ -101,7 +101,7 @@
     {{-- Main --}}
     <main>
         {{-- Geri butonu --}}
-        <a href="{{ route('b2c.account.orders.index') }}"
+        <a href="{{ lroute('b2c.account.orders.index') }}"
            style="display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#718096;text-decoration:none;margin-bottom:16px;">
             <i class="bi bi-arrow-left"></i> Siparişlerime Dön
         </a>
@@ -212,7 +212,7 @@
         <div style="background:#f7faff;border:1px solid #e8eef5;border-radius:12px;padding:16px 20px;font-size:.88rem;color:#4a5568;">
             <i class="bi bi-headset" style="color:#1a3c6b;margin-right:6px;"></i>
             Siparişinizle ilgili sorularınız için
-            <a href="{{ route('b2c.iletisim') }}" style="color:#1a3c6b;font-weight:600;">iletişime geçin</a>.
+            <a href="{{ lroute('b2c.iletisim') }}" style="color:#1a3c6b;font-weight:600;">iletişime geçin</a>.
         </div>
     </main>
 </div>

@@ -140,10 +140,10 @@ body{background:var(--bg);color:var(--txt);}
 {{-- Breadcrumb --}}
 <div class="lp-bc">
     <div class="container">
-        <a href="{{ route('b2c.home') }}">Ana Sayfa</a>
+        <a href="{{ lroute('b2c.home') }}">Ana Sayfa</a>
         @if($item->category)
             <span class="mx-1">/</span>
-            <a href="{{ route('b2c.catalog.category', $item->category->slug) }}">{{ $item->category->name }}</a>
+            <a href="{{ lroute('b2c.catalog.category', $item->category->slug) }}">{{ $item->category->name }}</a>
         @endif
         <span class="mx-1">/</span>
         <span>{{ $package->name_tr }}</span>
@@ -245,7 +245,7 @@ body{background:var(--bg);color:var(--txt);}
                                 ->where('reference_type', $item->reference_type)
                                 ->where('reference_id', $p->id)
                                 ->first();
-                            $pUrl = $pItem ? route('b2c.product.show', $pItem->slug) : '#';
+                            $pUrl = $pItem ? lroute('b2c.product.show', $pItem->slug) : '#';
                         @endphp
                         <a href="{{ $pUrl }}" class="lp-pkg-tab {{ $p->id === $package->id ? 'active' : '' }}">
                             {{ $p->name_tr }}
@@ -369,7 +369,7 @@ body{background:var(--bg);color:var(--txt);}
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('b2c.leisure.inquiry.store') }}" id="lpBookForm">
+                <form method="POST" action="{{ lroute('b2c.leisure.inquiry.store') }}" id="lpBookForm">
                     @csrf
                     <input type="hidden" name="package_code" value="{{ $package->code }}">
 
