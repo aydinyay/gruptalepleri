@@ -16,6 +16,9 @@
             <a href="{{ route('admin.sigorta.batchler') }}" class="btn btn-sm btn-outline-primary">
                 <i class="fas fa-list me-1"></i> Batch İşlemler
             </a>
+            <button type="button" id="btn-iptal-kontrol" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-sync me-1"></i> İptal Kontrol
+            </button>
         </div>
     </div>
 
@@ -122,4 +125,32 @@
         @endif
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.getElementById('btn-iptal-kontrol')?.addEventListener('click', async function () {
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Kontrol ediliyor...';
+
+    try {
+        const res  = await fetch('{{ route("admin.sigorta.iptal-kontrol") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        });
+        const data = await res.json();
+
+        const msg = `İptal kontrolü tamamlandı: ${data.kontrol_edildi} poliçe kontrol edildi, ${data.iptal_edildi} iptal işlendi.`;
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-info alert-dismissible fade show mt-3';
+        alert.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.querySelector('.container-fluid').prepend(alert);
+    } catch (e) {
+        alert('Bağlantı hatası.');
+    }
+
+    this.disabled = false;
+    this.innerHTML = '<i class="fas fa-sync me-1"></i> İptal Kontrol';
+});
+</script>
+@endpush
 @endsection

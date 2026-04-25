@@ -409,4 +409,17 @@ class SigortaController extends Controller
             PaoNetHelper::normalizePdfUrl($rawUrl)
         );
     }
+
+    // ── Hesabım → Poliçelerim ─────────────────────────────────────────────────
+
+    public function policelerim(Request $request)
+    {
+        $b2cUser  = auth('b2c')->user();
+        $policeler = SigortaPolice::where('b2c_user_id', $b2cUser->id)
+            ->where('kanal', 'b2c')
+            ->latest()
+            ->paginate(20);
+
+        return view('b2c.sigorta.policelerim', compact('policeler'));
+    }
 }

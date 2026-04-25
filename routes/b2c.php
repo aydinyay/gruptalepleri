@@ -456,6 +456,7 @@ Route::post('/sigorta/police-uret',                       [\App\Http\Controllers
 Route::get('/sigorta/police/{police}/izle',               [\App\Http\Controllers\B2C\SigortaController::class, 'policeDurum'])->name('b2c.sigorta.durum');
 Route::get('/sigorta/police/{police}/durum-ajax',         [\App\Http\Controllers\B2C\SigortaController::class, 'policeUretimDurum'])->name('b2c.sigorta.durum-ajax');
 Route::get('/sigorta/police/{police}/belge/{tip}',        [\App\Http\Controllers\B2C\SigortaController::class, 'belge'])->name('b2c.sigorta.belge');
+Route::middleware('b2c_auth')->get('/sigorta/policelerim', [\App\Http\Controllers\B2C\SigortaController::class, 'policelerim'])->name('b2c.sigorta.policelerim');
 
 // Paynkolay sigorta callback — CSRF muaf
 Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
