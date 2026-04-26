@@ -22,17 +22,17 @@ class GrAiService
      *
      * @return array{reply: string, products: array, error: bool}
      */
-    public function chat(string $message, ?int $userId, string $guestUuid): array
+    public function chat(string $message, ?int $userId, string $guestUuid, string $locale = 'tr'): array
     {
         try {
-            return $this->doChat($message, $userId, $guestUuid);
+            return $this->doChat($message, $userId, $guestUuid, $locale);
         } catch (\Throwable $e) {
             Log::error('GrAiService::chat fatal: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
             return $this->errorReply('Bir hata oluştu, birazdan tekrar dene.');
         }
     }
 
-    private function doChat(string $message, ?int $userId, string $guestUuid): array
+    private function doChat(string $message, ?int $userId, string $guestUuid, string $locale = 'tr'): array
     {
         $apiKey = config('services.gemini.key');
         if (! $apiKey) {
@@ -50,7 +50,7 @@ class GrAiService
         $userCtx        = $this->buildUserContext($userId);
 
         // Prompt oluştur
-        $systemPrompt = $this->buildSystemPrompt($memories, $timeCtx, $userCtx, $relevantItems, $userId === null);
+        $systemPrompt = $this->buildSystemPrompt($memories, $timeCtx, $userCtx, $relevantItems, $userId === null, $locale);
 
         // Gemini'ye gönder
         $raw = $this->callGemini($apiKey, $systemPrompt, $history, $message);
@@ -326,7 +326,7 @@ Genel engagement yüksekse (2+ soru):
 UPSELL;
     }
 
-    private function buildSystemPrompt(array $memories, array $time, array $user, array $products, bool $isGuest = false): string
+    private function buildSystemPrompt(array $memories, array $time, array $user, array $products, bool $isGuest = false, string $locale = 'tr'): string
     {
         $memoriesText = empty($memories)
             ? 'Henüz öğrenilmiş bir tercih yok.'
@@ -345,8 +345,20 @@ UPSELL;
         $haftasonu  = $time['haftasonu'] ? ' (hafta sonu)' : '';
         $guestBlock = $isGuest ? $this->buildGuestUpsellBlock() : '';
 
+        $langNames = [
+            'tr' => 'Türkçe', 'en' => 'English', 'ar' => 'العربية',
+            'ru' => 'Русский', 'de' => 'Deutsch', 'fr' => 'Français',
+            'fa' => 'فارسی', 'zh' => '中文',
+        ];
+        $langInstruction = $locale === 'tr'
+            ? 'Kullanıcıyla Türkçe konuş.'
+            : 'Kullanıcı siteyi ' . ($langNames[$locale] ?? strtoupper($locale)) . ' dilinde kullanıyor. '
+              . '"reply" alanını MUTLAKA bu dilde yaz. Kullanıcı sana başka bir dilde yazarsa onun dilini kullan; eğer Türkçe yazarsa yine de ' . ($langNames[$locale] ?? $locale) . ' ile cevap ver.';
+
         return <<<PROMPT
 Sen gruprezervasyonlari.com'un yapay zeka asistanısın. Adın GR (okunuşu: Ciar).
+
+DİL TALİMATI: {$langInstruction}
 
 PLATFORM KAPSAMI:
 Gruprezervasyonlari.com — Türkiye'nin lider grup seyahat ve etkinlik platformu.

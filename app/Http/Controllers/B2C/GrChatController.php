@@ -33,7 +33,7 @@ class GrChatController extends Controller
             $guest->touchSeen();
         }
 
-        $result = (new GrAiService())->chat($message, $userId, $guestUuid);
+        $result = (new GrAiService())->chat($message, $userId, $guestUuid, app()->getLocale());
 
         $sid = session()->getId();
         $wishlistAdded = false;
