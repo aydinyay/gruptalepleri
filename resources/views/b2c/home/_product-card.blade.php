@@ -21,7 +21,23 @@ $typeColors = [
 ];
 $icon     = $typeIcons[$item->product_type] ?? 'bi-grid';
 $bg       = $typeColors[$item->product_type] ?? 'linear-gradient(135deg,#1a3c6b,#2a5298)';
-$catLabel = optional($item->category)->name ?? ucfirst($item->product_type);
+$catNameKeys = [
+    'Boğaz Turları'            => 'pill_bosphorus',
+    'Havalimanı Transferi'     => 'pill_airport_transfer',
+    'Günübirlik Turlar'        => 'pill_day_tours',
+    'Özel Jet & Charter'       => 'pill_jet_charter',
+    'Etkinlikler & Deneyimler' => 'pill_activities',
+    'Aktiviteler & Deneyimler' => 'pill_activities',
+    'Yat Kiralama'             => 'pill_yacht',
+    'Helikopter'               => 'pill_helicopter',
+    'Dinner Cruise'            => 'pill_dinner_cruise',
+    'Yurt İçi Turlar'          => 'pill_domestic',
+    'Yurt Dışı Turlar'         => 'pill_international',
+    'Vize'                     => 'pill_visa',
+    'Seyahat Sigortası'        => 'pill_insurance',
+];
+$rawCat   = optional($item->category)->name;
+$catLabel = $rawCat ? (isset($catNameKeys[$rawCat]) ? __($catNameKeys[$rawCat]) : $rawCat) : ucfirst($item->product_type);
 
 // Map DB-stored Turkish pricing_unit values to translation keys
 $unitKeyMap = [
