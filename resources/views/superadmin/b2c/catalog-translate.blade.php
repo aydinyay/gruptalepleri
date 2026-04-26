@@ -92,23 +92,39 @@ async function startTranslation(force) {
 async function processNext() {
     if (!running || !queue.length) { finish(); return; }
     const id = queue.shift();
-    try {
-        const r = await fetch(BASE + '&action=translate-catalog&id=' + id);
-        const data = await r.json();
-        done++;
-        if (data.exit === 0) {
-            log(`✓ ID:${id} — ${data.output.trim().split('\n').pop()}`, 'log-ok');
-        } else {
-            log(`✗ ID:${id} HATA — ${data.output.trim()}`, 'log-err');
+    let retries = 2;
+    while (retries >= 0) {
+        try {
+            const r = await fetch(BASE + '&action=translate-catalog&id=' + id);
+            const text = await r.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch(_) {
+                // Sunucu JSON yerine HTML döndürdü (PHP hatası)
+                const preview = text.replace(/<[^>]+>/g, '').trim().slice(0, 120);
+                if (retries > 0) { retries--; await new Promise(r => setTimeout(r, 1000)); continue; }
+                log(`✗ ID:${id} sunucu hatası — ${preview}`, 'log-err');
+                break;
+            }
+            done++;
+            if (data.exit === 0) {
+                log(`✓ ID:${id} — ${(data.output||'').trim().split('\n').pop()}`, 'log-ok');
+            } else {
+                log(`✗ ID:${id} HATA — ${(data.output||data.error||'').trim()}`, 'log-err');
+            }
+            const pct = total > 0 ? (done / total * 100) : 0;
+            setProgress(pct, `${done} / ${total}`);
+            break;
+        } catch(e) {
+            if (retries > 0) { retries--; await new Promise(r => setTimeout(r, 1500)); continue; }
+            log(`✗ ID:${id} bağlantı hatası: ${e.message}`, 'log-err');
+            done++;
+            break;
         }
-        const pct = total > 0 ? (done / total * 100) : 0;
-        setProgress(pct, `${done} / ${total}`);
-    } catch(e) {
-        log(`✗ ID:${id} bağlantı hatası: ${e.message}`, 'log-err');
-        done++;
     }
     // Kısa bekleme — sunucuyu yormamak için
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 400));
     processNext();
 }
 

@@ -312,14 +312,19 @@ if (($_GET['action'] ?? '') === 'translate-catalog-list') {
     $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
     header('Content-Type: application/json');
     $force = isset($_GET['force']);
+    $allLocales = \App\Console\Commands\TranslateCatalogItems::SUPPORTED;
     $items = \Illuminate\Support\Facades\DB::table('catalog_items')
         ->where('is_active', true)
         ->select('id', 'title', 'title_translations')
         ->get();
-    $ids = $items->filter(function($it) use ($force) {
+    $ids = $items->filter(function($it) use ($force, $allLocales) {
         if ($force) return true;
         $t = json_decode($it->title_translations ?? '{}', true);
-        return empty($t['en']);
+        // Herhangi bir locale eksikse dahil et
+        foreach ($allLocales as $locale) {
+            if (empty($t[$locale])) return true;
+        }
+        return false;
     })->values()->map(fn($it) => ['id' => $it->id, 'title' => $it->title]);
     echo json_encode(['total' => $ids->count(), 'ids' => $ids->toArray()]);
     exit;
@@ -331,16 +336,22 @@ if (($_GET['action'] ?? '') === 'translate-catalog') {
     $app = require_once $webRoot . '/bootstrap/app.php';
     $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
     $kernel->bootstrap();
+    // Önce header'ı ayarla — herhangi bir çıktıdan önce
     header('Content-Type: application/json');
+    // PHP hatalarının HTML olarak output'a karışmasını engelle
+    ini_set('display_errors', '0');
     $lang  = trim($_GET['lang'] ?? 'all');
-    $force = isset($_GET['force']);
     $id    = isset($_GET['id']) ? (int)$_GET['id'] : null;
-    if (! $id) { echo json_encode(['error' => 'id gerekli']); exit; }
-    $args  = ['--force' => true, '--id' => $id];
-    if ($lang !== 'all') $args['--locale'] = $lang;
-    $exitCode = \Illuminate\Support\Facades\Artisan::call('gr:translate-catalog', $args);
-    $output   = \Illuminate\Support\Facades\Artisan::output();
-    echo json_encode(['exit' => $exitCode, 'output' => $output, 'id' => $id]);
+    if (! $id) { echo json_encode(['exit' => 1, 'output' => 'id gerekli', 'id' => 0]); exit; }
+    try {
+        $args = ['--force' => true, '--id' => $id];
+        if ($lang !== 'all') $args['--locale'] = $lang;
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('gr:translate-catalog', $args);
+        $output   = \Illuminate\Support\Facades\Artisan::output();
+        echo json_encode(['exit' => $exitCode, 'output' => $output, 'id' => $id]);
+    } catch (\Throwable $e) {
+        echo json_encode(['exit' => 1, 'output' => $e->getMessage(), 'id' => $id]);
+    }
     exit;
 }
 
