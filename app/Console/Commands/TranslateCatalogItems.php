@@ -87,10 +87,10 @@ class TranslateCatalogItems extends Command
                     continue;
                 }
 
-                // full_desc ayrı istek — max 1800 karakter gönderilir
+                // full_desc ayrı istek — max 800 karakter (hosting timeout sınırı)
                 $fullTranslated = null;
                 if ($item->full_desc) {
-                    $fullText  = mb_substr(strip_tags($item->full_desc), 0, 1800);
+                    $fullText  = mb_substr(strip_tags($item->full_desc), 0, 800);
                     $fullResult = $this->translateFields($apiKey, $model, $locale, ['full_desc' => $fullText]);
                     $fullTranslated = $fullResult['full_desc'] ?? null;
                 }

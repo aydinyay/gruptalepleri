@@ -80,10 +80,10 @@ class TranslateBlogPosts extends Command
                     continue;
                 }
 
-                // icerik ayrı istek — max 2000 karakter
+                // icerik ayrı istek — max 800 karakter (hosting timeout sınırı)
                 $icerikTranslated = null;
                 if ($item->icerik) {
-                    $icerikText   = mb_substr(strip_tags($item->icerik), 0, 2000);
+                    $icerikText   = mb_substr(strip_tags($item->icerik), 0, 800);
                     $icerikResult = $this->translateFields($apiKey, $model, $locale, ['icerik' => $icerikText]);
                     $icerikTranslated = $icerikResult['icerik'] ?? null;
                 }

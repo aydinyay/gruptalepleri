@@ -331,6 +331,7 @@ if (($_GET['action'] ?? '') === 'translate-catalog-list') {
 }
 
 if (($_GET['action'] ?? '') === 'translate-catalog') {
+    set_time_limit(300);
     define('LARAVEL_START', microtime(true));
     require $webRoot . '/vendor/autoload.php';
     $app = require_once $webRoot . '/bootstrap/app.php';
@@ -382,6 +383,7 @@ if (($_GET['action'] ?? '') === 'translate-blog-list') {
 
 // Blog çevirisi — tekil
 if (($_GET['action'] ?? '') === 'translate-blog') {
+    set_time_limit(300);
     define('LARAVEL_START', microtime(true));
     require $webRoot . '/vendor/autoload.php';
     $app = require_once $webRoot . '/bootstrap/app.php';
