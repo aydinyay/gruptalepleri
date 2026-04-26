@@ -831,6 +831,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/opsiyon-ayarlari/{opsiyonAyar}/toggle', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarToggle'])->name('opsiyon.toggle');
     Route::delete('/opsiyon-ayarlari/{opsiyonAyar}', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'opsiyonAyarSil'])->name('opsiyon.sil');
 
+    // Yabancı Dil & Çeviri Yönetimi
+    Route::get('/yabanci-diller', fn() => view('superadmin.dil-yonetimi'))->name('dil.yonetimi');
+
     // Blog Yönetimi
     Route::prefix('blog')->name('blog.')->group(function () {
         Route::get('/',                              [\App\Http\Controllers\Superadmin\BlogController::class, 'index'])->name('index');

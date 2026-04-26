@@ -262,6 +262,32 @@
             ],
         ],
         [
+            'id' => 'dil-yonetimi',
+            'label' => 'Yabancı Diller',
+            'icon' => 'fas fa-globe',
+            'href' => route('superadmin.dil.yonetimi'),
+            'items' => [
+                [
+                    'label' => 'Dil Yönetimi',
+                    'href'  => route('superadmin.dil.yonetimi'),
+                    'icon'  => 'fas fa-globe',
+                    'keys'  => ['dil-yonetimi'],
+                ],
+                [
+                    'label' => 'Katalog Çevirisi',
+                    'href'  => route('superadmin.b2c.catalog.bulk-translate'),
+                    'icon'  => 'fas fa-boxes-stacked',
+                    'keys'  => ['b2c-catalog-translate'],
+                ],
+                [
+                    'label' => 'Blog Çevirisi',
+                    'href'  => route('superadmin.blog.translate'),
+                    'icon'  => 'fas fa-newspaper',
+                    'keys'  => ['blog-translate'],
+                ],
+            ],
+        ],
+        [
             'id' => 'finans',
             'label' => 'Finans',
             'icon' => 'fas fa-wallet',
