@@ -67,29 +67,37 @@ class TranslateCatalogItems extends Command
                     continue;
                 }
 
-                $fields = array_filter([
+                // Kısa alanlar tek istekte çevrilir (hızlı)
+                $shortFields = array_filter([
                     'title'            => $item->title,
                     'short_desc'       => $item->short_desc,
-                    'full_desc'        => $item->full_desc ? strip_tags($item->full_desc) : null,
                     'meta_title'       => $item->meta_title,
                     'meta_description' => $item->meta_description,
                 ]);
 
-                if (empty($fields)) {
+                if (empty($shortFields)) {
                     $skip++;
                     continue;
                 }
 
-                $translated = $this->translateFields($apiKey, $model, $locale, $fields);
+                $translated = $this->translateFields($apiKey, $model, $locale, $shortFields);
 
                 if (isset($translated['error'])) {
                     $this->warn("  ID:{$item->id} HATA — {$translated['error']}");
                     continue;
                 }
 
+                // full_desc ayrı istek — max 1800 karakter gönderilir
+                $fullTranslated = null;
+                if ($item->full_desc) {
+                    $fullText  = mb_substr(strip_tags($item->full_desc), 0, 1800);
+                    $fullResult = $this->translateFields($apiKey, $model, $locale, ['full_desc' => $fullText]);
+                    $fullTranslated = $fullResult['full_desc'] ?? null;
+                }
+
                 $titleT = array_merge($item->title_translations ?? [], [$locale => $translated['title'] ?? $item->title]);
                 $shortT = array_merge($item->short_desc_translations ?? [], [$locale => $translated['short_desc'] ?? null]);
-                $fullT  = array_merge($item->full_desc_translations ?? [], [$locale => $translated['full_desc'] ?? null]);
+                $fullT  = array_merge($item->full_desc_translations ?? [], [$locale => $fullTranslated]);
                 $metaTT = array_merge($item->meta_title_translations ?? [], [$locale => $translated['meta_title'] ?? null]);
                 $metaDT = array_merge($item->meta_description_translations ?? [], [$locale => $translated['meta_description'] ?? null]);
 
