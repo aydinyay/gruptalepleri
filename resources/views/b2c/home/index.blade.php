@@ -855,28 +855,28 @@
                         @endif
                     </div>
                     <div class="blog-cat">{{ __('blog_cat_guide') }}</div>
-                    <div class="blog-title">{{ Str::limit($post->baslik, 70) }}</div>
+                    <div class="blog-title">{{ Str::limit($post->translatedBaslik(), 70) }}</div>
                     <div class="blog-date"><i class="bi bi-calendar3 me-1"></i>{{ $post->created_at->format('d M Y') }}</div>
                 </a>
                 @endforeach
             @else
                 <a href="{{ lroute('b2c.blog.index') }}?tag=istanbul" class="gyg-blog-card">
                     <div class="blog-thumb" style="background:linear-gradient(135deg,#1a3c6b,#2a5298);"><i class="bi bi-buildings-fill"></i></div>
-                    <div class="blog-cat">Şehir Rehberi</div>
-                    <div class="blog-title">İstanbul'u keşfet: En kapsamlı seyahat rehberi</div>
-                    <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
+                    <div class="blog-cat">{{ __('blog_cat_city_guide') }}</div>
+                    <div class="blog-title">{{ __('blog_istanbul_title') }}</div>
+                    <div class="blog-date"><i class="bi bi-compass me-1"></i>{{ __('blog_cat_guide') }}</div>
                 </a>
                 <a href="{{ lroute('b2c.blog.index') }}?tag=antalya" class="gyg-blog-card">
                     <div class="blog-thumb" style="background:linear-gradient(135deg,#c05621,#dd6b20);"><i class="bi bi-sun-fill"></i></div>
-                    <div class="blog-cat">Destinasyon</div>
-                    <div class="blog-title">Antalya'yı keşfet: Sahil tatili için tam rehber</div>
-                    <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
+                    <div class="blog-cat">{{ __('blog_cat_destination') }}</div>
+                    <div class="blog-title">{{ __('blog_antalya_title') }}</div>
+                    <div class="blog-date"><i class="bi bi-compass me-1"></i>{{ __('blog_cat_guide') }}</div>
                 </a>
                 <a href="{{ lroute('b2c.blog.index') }}?tag=kapadokya" class="gyg-blog-card">
                     <div class="blog-thumb" style="background:linear-gradient(135deg,#6b2d1a,#9c4221);"><i class="bi bi-cloud-fill"></i></div>
-                    <div class="blog-cat">Doğa & Kültür</div>
-                    <div class="blog-title">Kapadokya seyahat rehberi: Peri bacaları ve balon turları</div>
-                    <div class="blog-date"><i class="bi bi-compass me-1"></i>Seyahat rehberi</div>
+                    <div class="blog-cat">{{ __('blog_cat_nature') }}</div>
+                    <div class="blog-title">{{ __('blog_cappadocia_title') }}</div>
+                    <div class="blog-date"><i class="bi bi-compass me-1"></i>{{ __('blog_cat_guide') }}</div>
                 </a>
             @endif
         </div>

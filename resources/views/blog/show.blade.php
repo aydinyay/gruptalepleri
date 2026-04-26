@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ $yazi->meta_baslik ?: $yazi->baslik }} — GrupTalepleri Blog</title>
-<meta name="description" content="{{ $yazi->meta_aciklama ?: Str::limit($yazi->ozet, 160) }}">
+<title>{{ $yazi->translatedMetaBaslik() ?: $yazi->translatedBaslik() }} — GrupTalepleri Blog</title>
+<meta name="description" content="{{ $yazi->translatedMetaAciklama() ?: Str::limit($yazi->translatedOzet() ?? $yazi->ozet, 160) }}">
 <link rel="canonical" href="{{ url('/blog/'.$yazi->slug) }}">
 <meta property="og:type" content="article">
-<meta property="og:title" content="{{ $yazi->baslik }}">
-<meta property="og:description" content="{{ Str::limit($yazi->ozet, 200) }}">
+<meta property="og:title" content="{{ $yazi->translatedBaslik() }}">
+<meta property="og:description" content="{{ Str::limit($yazi->translatedOzet() ?? $yazi->ozet, 200) }}">
 @if($yazi->kapak_gorseli)
 <meta property="og:image" content="{{ $yazi->kapak_gorseli }}">
 @endif
@@ -20,8 +20,8 @@ $_ctx = '@context'; $_type = '@type';
 $_articleSchema = json_encode([
     $_ctx         => 'https://schema.org',
     $_type        => 'Article',
-    'headline'    => $yazi->baslik,
-    'description' => Str::limit($yazi->ozet, 200),
+    'headline'    => $yazi->translatedBaslik(),
+    'description' => Str::limit($yazi->translatedOzet() ?? $yazi->ozet, 200),
     'author'      => [$_type=>'Person','name'=>$yazi->yazar],
     'publisher'   => [$_type=>'Organization','name'=>'GrupTalepleri','logo'=>[$_type=>'ImageObject','url'=>'https://gruptalepleri.com/og-image.png']],
     'datePublished' => $yazi->yayinlanma_tarihi?->toIso8601String(),
@@ -67,7 +67,7 @@ body { font-family: 'Barlow', sans-serif; background: #f8f9fa; }
         @if($yazi->kategori)
         <span class="kat-badge mb-2 d-inline-block">{{ $yazi->kategori->ad }}</span>
         @endif
-        <h1>{{ $yazi->baslik }}</h1>
+        <h1>{{ $yazi->translatedBaslik() }}</h1>
         <div class="mt-2" style="font-size:.85rem;opacity:.65;">
             <i class="fas fa-user me-1"></i>{{ $yazi->yazar }}
             &nbsp;·&nbsp;
@@ -90,9 +90,9 @@ body { font-family: 'Barlow', sans-serif; background: #f8f9fa; }
         <div class="col-lg-8">
 
             <div class="blog-content">
-                <p class="lead text-muted mb-4">{{ $yazi->ozet }}</p>
+                <p class="lead text-muted mb-4">{{ $yazi->translatedOzet() ?? $yazi->ozet }}</p>
                 <hr class="mb-4">
-                {!! $yazi->icerik !!}
+                {!! $yazi->translatedIcerik() ?? $yazi->icerik !!}
             </div>
 
             <div class="cta-box">

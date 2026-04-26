@@ -355,6 +355,52 @@ if (($_GET['action'] ?? '') === 'translate-catalog') {
     exit;
 }
 
+// Blog çevirisi — liste
+if (($_GET['action'] ?? '') === 'translate-blog-list') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    header('Content-Type: application/json');
+    $force      = isset($_GET['force']);
+    $allLocales = \App\Console\Commands\TranslateBlogPosts::SUPPORTED;
+    $items = \Illuminate\Support\Facades\DB::table('blog_yazilari')
+        ->where('durum', 'yayinda')
+        ->select('id', 'baslik', 'baslik_translations')
+        ->get();
+    $ids = $items->filter(function($it) use ($force, $allLocales) {
+        if ($force) return true;
+        $t = json_decode($it->baslik_translations ?? '{}', true);
+        foreach ($allLocales as $locale) {
+            if (empty($t[$locale])) return true;
+        }
+        return false;
+    })->values()->map(fn($it) => ['id' => $it->id, 'title' => $it->baslik]);
+    echo json_encode(['total' => $ids->count(), 'ids' => $ids->toArray()]);
+    exit;
+}
+
+// Blog çevirisi — tekil
+if (($_GET['action'] ?? '') === 'translate-blog') {
+    define('LARAVEL_START', microtime(true));
+    require $webRoot . '/vendor/autoload.php';
+    $app = require_once $webRoot . '/bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    header('Content-Type: application/json');
+    ini_set('display_errors', '0');
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+    if (! $id) { echo json_encode(['exit' => 1, 'output' => 'id gerekli', 'id' => 0]); exit; }
+    try {
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('gr:translate-blog', ['--force' => true, '--id' => $id]);
+        $output   = \Illuminate\Support\Facades\Artisan::output();
+        echo json_encode(['exit' => $exitCode, 'output' => $output, 'id' => $id]);
+    } catch (\Throwable $e) {
+        echo json_encode(['exit' => 1, 'output' => $e->getMessage(), 'id' => $id]);
+    }
+    exit;
+}
+
 // Cache temizleme
 @unlink("$webRoot/bootstrap/cache/routes-v7.php");
 @unlink("$webRoot/bootstrap/cache/config.php");

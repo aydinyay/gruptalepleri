@@ -65,8 +65,8 @@ body { font-family: 'Barlow', sans-serif; background: #f8f9fa; }
                     @if($yazi->kategori)
                     <span class="kat-badge mb-2 d-inline-block">{{ $yazi->kategori->ad }}</span>
                     @endif
-                    <div class="blog-card-title">{{ $yazi->baslik }}</div>
-                    <div class="blog-card-ozet">{{ Str::limit($yazi->ozet, 120) }}</div>
+                    <div class="blog-card-title">{{ $yazi->translatedBaslik() }}</div>
+                    <div class="blog-card-ozet">{{ Str::limit($yazi->translatedOzet() ?? $yazi->ozet, 120) }}</div>
                 </div>
                 <div class="blog-card-footer">
                     <span>{{ $yazi->yayinlanma_tarihi?->format('d M Y') }}</span>

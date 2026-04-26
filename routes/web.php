@@ -842,6 +842,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
         Route::get('/kategoriler',                   [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriler'])->name('kategoriler');
         Route::post('/kategoriler',                  [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriStore'])->name('kategori.store');
         Route::delete('/kategoriler/{kategori}',     [\App\Http\Controllers\Superadmin\BlogController::class, 'kategoriDestroy'])->name('kategori.destroy');
+        Route::get('/toplu-ceviri',                  function () { return view('superadmin.blog.blog-translate'); })->name('translate');
     });
 
     // B2C Vitrin Yönetimi (gruprezervasyonlari.com)
