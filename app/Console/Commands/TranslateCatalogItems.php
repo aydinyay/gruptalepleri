@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Http;
 class TranslateCatalogItems extends Command
 {
     protected $signature = 'gr:translate-catalog
-                            {--locale= : Tek locale (en, ar, ru, de, fr, fa) — boş bırakılırsa hepsi}
+                            {--locale= : Tek locale (en, ar, ru, de, fr, fa, zh) — boş bırakılırsa hepsi}
                             {--force : Zaten çevrilmiş olanları da yeniden çevir}
                             {--id= : Sadece bu ID\'yi çevir (test için)}';
 
     protected $description = 'Gemini ile catalog_items çeviri kolonlarını doldurur';
 
-    const SUPPORTED = ['en', 'ar', 'ru', 'de', 'fr', 'fa'];
+    const SUPPORTED = ['en', 'ar', 'ru', 'de', 'fr', 'fa', 'zh'];
 
     const LOCALE_NAMES = [
         'en' => 'English',
@@ -24,6 +24,7 @@ class TranslateCatalogItems extends Command
         'de' => 'German (Deutsch)',
         'fr' => 'French (Français)',
         'fa' => 'Persian (فارسی)',
+        'zh' => 'Simplified Chinese (简体中文)',
     ];
 
     public function handle(): int

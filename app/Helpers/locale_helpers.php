@@ -91,6 +91,7 @@ if (! function_exists('gr_locale_name')) {
             'de' => 'Deutsch',
             'fr' => 'Français',
             'fa' => 'فارسی',
+            'zh' => '中文',
             default => strtoupper($locale),
         };
     }
@@ -107,6 +108,7 @@ if (! function_exists('gr_locale_flag')) {
             'de' => '🇩🇪',
             'fr' => '🇫🇷',
             'fa' => '🇮🇷',
+            'zh' => '🇨🇳',
             default => '🌐',
         };
     }

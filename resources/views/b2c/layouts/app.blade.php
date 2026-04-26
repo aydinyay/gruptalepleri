@@ -2,7 +2,7 @@
 @php
     $grLocale  = gr_locale();
     $grIsRtl   = gr_is_rtl();
-    $grLocales = ['tr', 'en', 'ar', 'ru', 'de', 'fr', 'fa'];
+    $grLocales = ['tr', 'en', 'ar', 'ru', 'de', 'fr', 'fa', 'zh'];
 @endphp
 <html lang="{{ $grLocale }}" dir="{{ $grIsRtl ? 'rtl' : 'ltr' }}">
 <head>
@@ -929,7 +929,7 @@
                 </button>
                 <div class="gyg-profile-panel" id="grLangPanel" style="min-width:160px;">
                     <div class="pp-title">{{ __('lang_switcher') }}</div>
-                    @foreach(['tr','en','ar','ru','de','fr','fa'] as $_lc)
+                    @foreach(['tr','en','ar','ru','de','fr','fa','zh'] as $_lc)
                     <a href="{{ gr_locale_url($_lc) }}"
                        class="pp-row{{ gr_locale() === $_lc ? ' active' : '' }}"
                        style="{{ gr_locale() === $_lc ? 'font-weight:700;color:var(--gr-primary);' : '' }}">

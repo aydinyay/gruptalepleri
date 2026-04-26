@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 class GeminiTranslationService
 {
-    const SUPPORTED = ['en', 'ar', 'ru', 'de', 'fr', 'fa'];
+    const SUPPORTED = ['en', 'ar', 'ru', 'de', 'fr', 'fa', 'zh'];
 
     // Seyahat terminolojisi sözlüğü — locale başına sabit çeviriler
     const GLOSSARY = [
@@ -17,6 +17,7 @@ class GeminiTranslationService
             'de' => 'Dinner-Kreuzfahrt',
             'fr' => 'Dîner-croisière',
             'fa' => 'کروز شام',
+            'zh' => '博斯普鲁斯晚餐游轮',
         ],
         'Yat Kiralama' => [
             'en' => 'Yacht Charter',
@@ -25,6 +26,7 @@ class GeminiTranslationService
             'de' => 'Yachtvermietung',
             'fr' => 'Location de yacht',
             'fa' => 'اجاره یخت',
+            'zh' => '游艇租赁',
         ],
         'VIP Transfer' => [
             'en' => 'VIP Transfer',
@@ -33,6 +35,7 @@ class GeminiTranslationService
             'de' => 'VIP-Transfer',
             'fr' => 'Transfert VIP',
             'fa' => 'ترانسفر VIP',
+            'zh' => 'VIP 接送',
         ],
         'Havalimanı Transferi' => [
             'en' => 'Airport Transfer',
@@ -41,6 +44,7 @@ class GeminiTranslationService
             'de' => 'Flughafentransfer',
             'fr' => 'Transfert aéroport',
             'fa' => 'ترانسفر فرودگاه',
+            'zh' => '机场接送',
         ],
         'Grup Uçak Bileti' => [
             'en' => 'Group Flight Ticket',
@@ -49,6 +53,7 @@ class GeminiTranslationService
             'de' => 'Gruppenflugticket',
             'fr' => 'Billet de groupe',
             'fa' => 'بلیط گروهی هواپیما',
+            'zh' => '团体机票',
         ],
         'Seyahat Sigortası' => [
             'en' => 'Travel Insurance',
@@ -57,6 +62,7 @@ class GeminiTranslationService
             'de' => 'Reiseversicherung',
             'fr' => 'Assurance voyage',
             'fa' => 'بیمه سفر',
+            'zh' => '旅行保险',
         ],
         'Grup Rezervasyonları' => [
             'en' => 'Grup Rezervasyonları',
@@ -65,6 +71,7 @@ class GeminiTranslationService
             'de' => 'Grup Rezervasyonları',
             'fr' => 'Grup Rezervasyonları',
             'fa' => 'Grup Rezervasyonları',
+            'zh' => 'Grup Rezervasyonları',
         ],
     ];
 
@@ -75,6 +82,7 @@ class GeminiTranslationService
         'de' => 'German (Deutsch)',
         'fr' => 'French (Français)',
         'fa' => 'Persian (فارسی)',
+        'zh' => 'Simplified Chinese (简体中文)',
     ];
 
     public function generateLangFile(string $locale): array
