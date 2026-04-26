@@ -446,12 +446,50 @@
 
         @php
         $popularTags = $categories->filter(fn($c) => $c->published_items_count > 0)->take(6);
+
+        // Kategori adı → çeviri anahtarı eşlemesi
+        $catNameKeys = [
+            'Boğaz Turları'            => 'pill_bosphorus',
+            'Havalimanı Transferi'     => 'pill_airport_transfer',
+            'Günübirlik Turlar'        => 'pill_day_tours',
+            'Özel Jet & Charter'       => 'pill_jet_charter',
+            'Etkinlikler & Deneyimler' => 'pill_activities',
+            'Aktiviteler & Deneyimler' => 'pill_activities',
+            'Yat Kiralama'             => 'pill_yacht',
+            'Helikopter'               => 'pill_helicopter',
+            'Dinner Cruise'            => 'pill_dinner_cruise',
+            'Yurt İçi Turlar'          => 'pill_domestic',
+            'Yurt Dışı Turlar'         => 'pill_international',
+            'Vize'                     => 'pill_visa',
+            'Seyahat Sigortası'        => 'pill_insurance',
+        ];
+
+        // Rozet etiketi → çeviri anahtarı
+        $badgeLabelKeys = [
+            'Vizyon'            => 'badge_vision',
+            'Popüler'           => 'badge_popular',
+            'Yeni'              => 'badge_new_item',
+            'Son Fırsat'        => 'badge_last_chance',
+            'İndirim'           => 'badge_discount',
+            'Sınırlı'           => 'badge_limited',
+            'Çok Satan'         => 'badge_bestseller',
+            'Sıradışı'          => 'badge_unique',
+            'Hızlı Tükeniyor'   => 'badge_selling_fast',
+            'Klasik'            => 'badge_classic',
+            'Efsane'            => 'badge_legendary',
+            'Özel Teklif'       => 'badge_special_offer',
+            'Erken Rezervasyon' => 'badge_early_booking',
+            'Gastronomi'        => 'badge_gastronomy',
+            'Gurme'             => 'badge_gourmet',
+            'Lezzetler'         => 'badge_flavors',
+        ];
         @endphp
         @if($popularTags->isNotEmpty())
         <div class="gyg-hero-tags">
             <span>{{ __('hero_popular') }}</span>
             @foreach($popularTags as $tag)
-            <a href="{{ lroute('b2c.catalog.category', $tag->slug) }}" class="gyg-hero-tag">{{ $tag->name }}</a>
+            @php $tagLabel = isset($catNameKeys[$tag->name]) ? __($catNameKeys[$tag->name]) : $tag->name; @endphp
+            <a href="{{ lroute('b2c.catalog.category', $tag->slug) }}" class="gyg-hero-tag">{{ $tagLabel }}</a>
             @endforeach
         </div>
         @endif
@@ -464,22 +502,22 @@
                 $hiImg = $hi->cover_image
                     ? (str_starts_with($hi->cover_image, 'http') ? $hi->cover_image : rtrim(config('app.url'), '/') . '/uploads/' . $hi->cover_image)
                     : null;
+                $hcBadgeColors = ['Vizyon'=>'#b7791f','Popüler'=>'#3182ce','Yeni'=>'#38a169','Son Fırsat'=>'#e53e3e','İndirim'=>'#dd6b20','Sınırlı'=>'#805ad5'];
             @endphp
             <a href="{{ lroute('b2c.product.show', $hi->slug) }}" class="gyg-hero-card"
                data-city="{{ $hi->destination_city ?? '' }}"
                @if(!empty($hi->venue_lat)) data-lat="{{ $hi->venue_lat }}" data-lng="{{ $hi->venue_lng }}" @endif>
                 <div class="hc-img" @if($hiImg) style="background-image:url('{{ $hiImg }}')" @endif>
                     @if($hi->badge_label)
-                    @php
-                    $hcBadgeColors = ['Vizyon'=>'#b7791f','Popüler'=>'#3182ce','Yeni'=>'#38a169','Son Fırsat'=>'#e53e3e','İndirim'=>'#dd6b20','Sınırlı'=>'#805ad5'];
-                    @endphp
-                    <div class="hc-badge" style="background:{{ $hcBadgeColors[$hi->badge_label] ?? '#718096' }};color:#fff;">{{ $hi->badge_label }}</div>
+                    @php $hcBadgeLabel = isset($badgeLabelKeys[$hi->badge_label]) ? __($badgeLabelKeys[$hi->badge_label]) : $hi->badge_label; @endphp
+                    <div class="hc-badge" style="background:{{ $hcBadgeColors[$hi->badge_label] ?? '#718096' }};color:#fff;">{{ $hcBadgeLabel }}</div>
                     @endif
                 </div>
                 <div class="hc-body">
                     <div>
-                        <div class="hc-cat">{{ optional($hi->category)->name ?? ucfirst($hi->product_type) }}</div>
-                        <div class="hc-title">{{ Str::limit($hi->title, 60) }}</div>
+                        @php $hiCatName = optional($hi->category)->name; @endphp
+                        <div class="hc-cat">{{ isset($catNameKeys[$hiCatName]) ? __($catNameKeys[$hiCatName]) : ($hiCatName ?? ucfirst($hi->product_type)) }}</div>
+                        <div class="hc-title">{{ Str::limit($hi->translatedTitle(), 60) }}</div>
                         <div class="hc-meta">
                             @if($hi->duration_hours) {{ $hi->duration_hours }} {{ __('duration_hours') }} · @endif
                             {{ $hi->destination_city ?? 'Türkiye' }}
@@ -546,20 +584,21 @@
         </a>
         @if($categories->isNotEmpty())
             @foreach($categories->take(10) as $cat)
+            @php $catPillLabel = isset($catNameKeys[$cat->name]) ? __($catNameKeys[$cat->name]) : $cat->name; @endphp
             <a href="{{ lroute('b2c.catalog.category', $cat->slug) }}" class="gyg-pill">
-                <i class="bi {{ $cat->icon ?? 'bi-grid' }}"></i> {{ $cat->name }}
+                <i class="bi {{ $cat->icon ?? 'bi-grid' }}"></i> {{ $catPillLabel }}
             </a>
             @endforeach
         @else
-            <a href="{{ lroute('b2c.catalog.category', 'transfer') }}" class="gyg-pill"><i class="bi bi-car-front-fill"></i> Havalimanı Transferi</a>
-            <a href="{{ lroute('b2c.catalog.category', 'ozel-jet') }}" class="gyg-pill"><i class="bi bi-airplane-fill"></i> Özel Jet & Charter</a>
-            <a href="{{ lroute('b2c.catalog.category', 'helikopter') }}" class="gyg-pill"><i class="bi bi-helicopter"></i> Helikopter</a>
-            <a href="{{ lroute('b2c.catalog.category', 'dinner-cruise') }}" class="gyg-pill"><i class="bi bi-water"></i> Dinner Cruise</a>
-            <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}" class="gyg-pill"><i class="bi bi-tsunami"></i> Yat Kiralama</a>
-            <a href="{{ lroute('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-pill"><i class="bi bi-map-fill"></i> Yurt İçi Turlar</a>
-            <a href="{{ lroute('b2c.catalog.category', 'yurt-disi-turlar') }}" class="gyg-pill"><i class="bi bi-globe-americas"></i> Yurt Dışı Turlar</a>
-            <a href="{{ lroute('b2c.catalog.category', 'vize') }}" class="gyg-pill"><i class="bi bi-passport"></i> Vize</a>
-            <a href="{{ lroute('b2c.sigorta.create') }}" class="gyg-pill"><i class="bi bi-shield-check" style="color:#0d9488;"></i> Seyahat Sigortası</a>
+            <a href="{{ lroute('b2c.catalog.category', 'transfer') }}" class="gyg-pill"><i class="bi bi-car-front-fill"></i> {{ __('pill_airport_transfer') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'ozel-jet') }}" class="gyg-pill"><i class="bi bi-airplane-fill"></i> {{ __('pill_jet_charter') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'helikopter') }}" class="gyg-pill"><i class="bi bi-helicopter"></i> {{ __('pill_helicopter') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'dinner-cruise') }}" class="gyg-pill"><i class="bi bi-water"></i> {{ __('pill_dinner_cruise') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yat-kiralama') }}" class="gyg-pill"><i class="bi bi-tsunami"></i> {{ __('pill_yacht') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yurt-ici-turlar') }}" class="gyg-pill"><i class="bi bi-map-fill"></i> {{ __('pill_domestic') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'yurt-disi-turlar') }}" class="gyg-pill"><i class="bi bi-globe-americas"></i> {{ __('pill_international') }}</a>
+            <a href="{{ lroute('b2c.catalog.category', 'vize') }}" class="gyg-pill"><i class="bi bi-passport"></i> {{ __('pill_visa') }}</a>
+            <a href="{{ lroute('b2c.sigorta.create') }}" class="gyg-pill"><i class="bi bi-shield-check" style="color:#0d9488;"></i> {{ __('pill_insurance') }}</a>
         @endif
     </div>
 </div>
@@ -960,7 +999,7 @@ function grInjectPin(imgWrap, km) {
     if (!imgWrap || imgWrap.querySelector('.gr-nearby-pin')) return;
     var PIN_STYLE = 'position:absolute;bottom:8px;right:8px;background:rgba(16,185,129,.93);color:#fff;border-radius:20px;padding:.25rem .65rem .25rem .5rem;font-size:.69rem;font-weight:700;display:inline-flex;align-items:center;gap:.28rem;backdrop-filter:blur(6px);pointer-events:none;z-index:4;letter-spacing:.01em;box-shadow:0 2px 6px rgba(0,0,0,.18);';
     var PIN_ICON  = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>';
-    var label = km !== null ? ('Size ' + km + ' km yakın') : 'Size Yakın';
+    var label = km !== null ? (@json(__('nearby_km')).replace(':km', km)) : @json(__('nearby_label'));
     var pin = document.createElement('div');
     pin.className = 'gr-nearby-pin';
     pin.innerHTML = PIN_ICON + ' ' + label;

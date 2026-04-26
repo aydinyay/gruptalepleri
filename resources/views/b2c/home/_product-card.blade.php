@@ -71,9 +71,18 @@ $unitKeyMap = [
                 'Gurme'               => 'background:#7c2d12;color:#fff;',
                 'Lezzetler'           => 'background:#a16207;color:#fff;',
             ];
-            $badgeStyle = $badgeStyles[$item->badge_label] ?? 'background:#718096;color:#fff;';
+            $badgeLabelKeys = [
+                'Vizyon'=>'badge_vision','Popüler'=>'badge_popular','Yeni'=>'badge_new_item',
+                'Son Fırsat'=>'badge_last_chance','İndirim'=>'badge_discount','Sınırlı'=>'badge_limited',
+                'Çok Satan'=>'badge_bestseller','Sıradışı'=>'badge_unique','Hızlı Tükeniyor'=>'badge_selling_fast',
+                'Klasik'=>'badge_classic','Efsane'=>'badge_legendary','Özel Teklif'=>'badge_special_offer',
+                'Erken Rezervasyon'=>'badge_early_booking','Gastronomi'=>'badge_gastronomy',
+                'Gurme'=>'badge_gourmet','Lezzetler'=>'badge_flavors',
+            ];
+            $badgeStyle  = $badgeStyles[$item->badge_label] ?? 'background:#718096;color:#fff;';
+            $badgeText   = isset($badgeLabelKeys[$item->badge_label]) ? __($badgeLabelKeys[$item->badge_label]) : $item->badge_label;
             @endphp
-            <div class="gyg-pcard-tag" style="{{ $badgeStyle }}">{{ $item->badge_label }}</div>
+            <div class="gyg-pcard-tag" style="{{ $badgeStyle }}">{{ $badgeText }}</div>
         @elseif($item->is_featured)
             <div class="gyg-pcard-tag featured">{{ __('badge_featured') }}</div>
         @endif
